@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Moon, BookOpen, RotateCcw, Users, Settings } from "lucide-react";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useSettings }    from "@/hooks/useSettings";
+import { useAuth }        from "@/hooks/useAuth";
 import { PRAYER_LABELS }  from "@/lib/prayer";
 import { storage, todayKey } from "@/lib/storage";
 import { getHijriDate, formatHijri } from "@/lib/hijri";
@@ -50,9 +51,9 @@ export default function AccueilPage() {
     setStats(getTodayStats());
   }, []);
 
-  const hour    = new Date().getHours();
-  const greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
-  const hijri   = getHijriDate();
+  const { user } = useAuth();
+  const firstName = user?.user_metadata?.display_name?.split(" ")[0] ?? null;
+  const hijri     = getHijriDate();
 
   return (
     <main className="flex flex-col gap-6 px-5 pt-12 pb-4">
@@ -64,7 +65,7 @@ export default function AccueilPage() {
             Assalamu alaykum
           </p>
           <h1 className="mt-1 text-2xl font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
-            {greeting} 👋
+            {firstName ? `${firstName} 👋` : "Bienvenue 👋"}
           </h1>
         </div>
         <Link

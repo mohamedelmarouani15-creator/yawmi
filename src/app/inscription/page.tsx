@@ -1,31 +1,41 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
-import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, Mail } from "lucide-react";
 
 export default function InscriptionPage() {
-  const router = useRouter();
   const [name,     setName]     = useState("");
   const [email,    setEmail]    = useState("");
   const [password, setPassword] = useState("");
   const [show,     setShow]     = useState(false);
   const [loading,  setLoading]  = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
   const [error,    setError]    = useState("");
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const { error: err } = await supabase.auth.signUp({
+    const { data, error: err } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { display_name: name } },
+      options: {
+        data: { display_name: name },
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
     if (err) { setError(err.message); setLoading(false); return; }
-    router.replace("/accueil");
+    // Si email non confirmé → afficher message
+    if (data.user && !data.session) {
+      setEmailSent(true);
+      setLoading(false);
+      return;
+    }
+    // Si confirmation désactivée → accueil direct
+    if (typeof localStorage !== "undefined") localStorage.setItem("yawmi_onboarded", "1");
+    window.location.href = "/accueil";
   }
 
   return (

@@ -85,58 +85,38 @@ export default function PrieresPage() {
       )}
 
       {/* Qibla */}
-      <div
-        className="flex items-center gap-5 rounded-2xl border p-5"
-        style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.12)" }}
+      <Link
+        href="/qibla"
+        className="relative flex items-center justify-between overflow-hidden rounded-2xl border p-5 transition-all active:scale-[0.98]"
+        style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.15)" }}
       >
-        {/* Boussole */}
-        <div className="relative flex h-20 w-20 shrink-0 items-center justify-center">
-          {/* Cercle extérieur */}
-          <svg width="80" height="80" className="absolute inset-0">
-            <circle cx="40" cy="40" r="36" fill="none" stroke="rgba(212,175,55,0.15)" strokeWidth="1.5" />
-            {/* N S E O */}
-            {["N","E","S","O"].map((l, i) => {
-              const angle = i * 90 * Math.PI / 180;
-              const x = 40 + 28 * Math.sin(angle);
-              const y = 40 - 28 * Math.cos(angle);
-              return (
-                <text key={l} x={x} y={y} textAnchor="middle" dominantBaseline="middle"
-                  fontSize="7" fill="rgba(248,244,236,0.25)" fontFamily="sans-serif">{l}</text>
-              );
-            })}
-          </svg>
-          {/* Flèche Qibla */}
-          <div
-            className="absolute flex h-16 w-16 items-center justify-center"
-            style={{ transform: `rotate(${bearing}deg)` }}
-          >
-            <svg width="64" height="64" viewBox="0 0 64 64">
-              {/* Pointe vers la Mecque */}
-              <polygon points="32,6 37,32 32,28 27,32" fill="#D4AF37" />
-              {/* Queue */}
-              <polygon points="32,58 27,32 32,36 37,32" fill="rgba(212,175,55,0.3)" />
-            </svg>
-          </div>
-          {/* Point central */}
-          <div className="absolute h-2 w-2 rounded-full" style={{ background: "#D4AF37" }} />
-        </div>
-
-        {/* Infos */}
+        <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-10"
+          style={{ background: "radial-gradient(circle, #D4AF37, transparent)" }} />
         <div className="flex flex-col gap-1">
           <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
             Qibla · القبلة
           </p>
-          <p className="text-2xl font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+          <p className="text-3xl font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
             {bearing}°
           </p>
           <p className="text-xs opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-            depuis le Nord · {dist.toLocaleString("fr-FR")} km de La Mecque
-          </p>
-          <p className="mt-1 text-xs opacity-30 leading-snug" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-            Utilise une boussole physique et oriente-toi à {bearing}° depuis le Nord.
+            {dist.toLocaleString("fr-FR")} km de La Mecque
           </p>
         </div>
-      </div>
+        <div className="flex flex-col items-center gap-1">
+          <svg width="64" height="64" viewBox="0 0 64 64">
+            <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(212,175,55,0.2)" strokeWidth="1" />
+            <g transform={`rotate(${bearing}, 32, 32)`}>
+              <polygon points="32,6 37,30 32,26 27,30" fill="#D4AF37" />
+              <polygon points="32,58 27,34 32,38 37,34" fill="rgba(212,175,55,0.25)" />
+            </g>
+            <circle cx="32" cy="32" r="3" fill="#D4AF37" />
+          </svg>
+          <p className="text-xs font-semibold" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+            Ouvrir →
+          </p>
+        </div>
+      </Link>
 
       {/* Liste des prières */}
       <div className="flex flex-col gap-2">

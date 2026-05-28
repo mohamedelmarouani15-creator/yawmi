@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Check } from "lucide-react";
+import { Bell, BellOff, Check } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
+import { useNotifications } from "@/hooks/useNotifications";
 import { CALC_METHOD_LABELS, type CalcMethodKey } from "@/lib/prayer";
 import { CITIES } from "@/lib/cities";
 import { storage, todayKey } from "@/lib/storage";
@@ -34,6 +35,7 @@ function getStats() {
 
 export default function ProfilPage() {
   const { settings, save } = useSettings();
+  const { enabled: notifEnabled, enable: enableNotif, disable: disableNotif, permission } = useNotifications();
   const [citySearch, setCitySearch] = useState("");
   const [showCities, setShowCities] = useState(false);
   const [saved,      setSaved]      = useState(false);
@@ -93,6 +95,47 @@ export default function ProfilPage() {
             </p>
           </div>
         ))}
+      </div>
+
+      {/* Notifications */}
+      <div>
+        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          Rappels de prières
+        </p>
+        <div
+          className="flex items-center justify-between rounded-xl border px-4 py-3.5"
+          style={{
+            background: notifEnabled ? "rgba(5,92,63,0.2)" : "rgba(255,255,255,0.02)",
+            borderColor: notifEnabled ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.06)",
+          }}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl"
+              style={{ background: "rgba(5,92,63,0.4)", color: "#D4AF37" }}>
+              {notifEnabled ? <Bell size={16} /> : <BellOff size={16} />}
+            </div>
+            <div>
+              <p className="text-sm font-medium" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                Notifications
+              </p>
+              <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                {permission === "denied" ? "Bloquées dans les réglages" : notifEnabled ? "Actives pour les 5 prières" : "Désactivées"}
+              </p>
+            </div>
+          </div>
+          {permission !== "denied" && (
+            <button
+              onClick={notifEnabled ? disableNotif : () => enableNotif()}
+              className="rounded-full px-4 py-1.5 text-xs font-semibold transition-all active:scale-95"
+              style={{
+                background: notifEnabled ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg,#055C3F,#0a8a5e)",
+                color: "#F8F4EC", fontFamily: "var(--font-dm-sans)",
+              }}
+            >
+              {notifEnabled ? "Désactiver" : "Activer"}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Ville */}

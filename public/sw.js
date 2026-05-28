@@ -1,4 +1,4 @@
-const CACHE = "yawmi-v1";
+const CACHE = "yawmi-v2";
 
 const APP_SHELL = [
   "/accueil",

@@ -1,10 +1,11 @@
 import type { CalcMethodKey } from "./prayer";
 
 export interface YawmiSettings {
-  cityName:  string;
-  lat:       number;
-  lng:       number;
-  method:    CalcMethodKey;
+  cityName:   string;
+  lat:        number;
+  lng:        number;
+  method:     CalcMethodKey;
+  adhanMode:  "audio" | "silencieux";
 }
 
 export interface Task {
@@ -48,10 +49,11 @@ function set(key: string, value: unknown): void {
 }
 
 export const DEFAULT_SETTINGS: YawmiSettings = {
-  cityName: "Paris",
-  lat:      48.8566,
-  lng:      2.3522,
-  method:   "MuslimWorldLeague",
+  cityName:  "Paris",
+  lat:       48.8566,
+  lng:       2.3522,
+  method:    "MuslimWorldLeague",
+  adhanMode: "audio",
 };
 
 export const storage = {

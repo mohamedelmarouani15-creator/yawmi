@@ -93,19 +93,40 @@ export default function PrieresPage() {
           <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
             Adhan · الأذان
           </p>
-          <p className="text-sm font-semibold opacity-60" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
-            Mishary Rashid Alafasy
-          </p>
+          <div className="flex items-center gap-2">
+            <span
+              className="rounded-full px-2.5 py-0.5 text-xs font-medium"
+              style={{
+                background: (settings.adhanMode ?? "audio") === "audio"
+                  ? "rgba(5,92,63,0.4)" : "rgba(255,255,255,0.06)",
+                color: (settings.adhanMode ?? "audio") === "audio" ? "#D4AF37" : "rgba(248,244,236,0.4)",
+                fontFamily: "var(--font-dm-sans)",
+              }}
+            >
+              {(settings.adhanMode ?? "audio") === "audio" ? "🔊 Audio" : "🔇 Silencieux"}
+            </span>
+          </div>
         </div>
-        {/* Lecteur natif du navigateur — le plus fiable sur iOS PWA */}
-        <audio
-          src="/audio/adhan.mp3"
-          controls
-          playsInline
-          preload="auto"
-          className="w-full"
-          style={{ height: 36, borderRadius: 12, accentColor: "#D4AF37" }}
-        />
+
+        {(settings.adhanMode ?? "audio") === "audio" ? (
+          <>
+            <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+              Mishary Rashid Alafasy
+            </p>
+            <audio
+              src="/audio/adhan.mp3"
+              controls
+              playsInline
+              preload="auto"
+              className="w-full"
+              style={{ height: 36, borderRadius: 12 }}
+            />
+          </>
+        ) : (
+          <p className="text-sm opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            Notifications silencieuses activées — change dans Profil pour écouter l'adhan.
+          </p>
+        )}
       </div>
 
       {/* Qibla */}

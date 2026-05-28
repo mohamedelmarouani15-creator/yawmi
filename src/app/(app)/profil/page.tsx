@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Bell, BellOff, Check } from "lucide-react";
+import { Bell, BellOff, Check, Volume2, VolumeX } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
 import { useNotifications } from "@/hooks/useNotifications";
 import { CALC_METHOD_LABELS, type CalcMethodKey } from "@/lib/prayer";
@@ -95,6 +95,43 @@ export default function ProfilPage() {
             </p>
           </div>
         ))}
+      </div>
+
+      {/* Mode Adhan */}
+      <div>
+        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          Mode Adhan
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {(["audio", "silencieux"] as const).map(mode => {
+            const active = (settings.adhanMode ?? "audio") === mode;
+            return (
+              <button
+                key={mode}
+                onClick={() => { save({ ...settings, adhanMode: mode }); flash(); }}
+                className="flex items-center gap-3 rounded-xl border px-4 py-3.5 transition-all"
+                style={{
+                  background: active ? "rgba(5,92,63,0.25)" : "rgba(255,255,255,0.02)",
+                  borderColor: active ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.06)",
+                }}
+              >
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg"
+                  style={{ background: "rgba(5,92,63,0.4)", color: "#D4AF37" }}>
+                  {mode === "audio" ? <Volume2 size={15} /> : <VolumeX size={15} />}
+                </div>
+                <div className="text-left">
+                  <p className="text-sm font-medium capitalize" style={{ color: active ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    {mode === "audio" ? "Audio" : "Silencieux"}
+                  </p>
+                  <p className="text-xs opacity-40 leading-tight" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    {mode === "audio" ? "Joue l'adhan" : "Sans son"}
+                  </p>
+                </div>
+                {active && <Check size={14} className="ml-auto" style={{ color: "#D4AF37" }} />}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Notifications */}

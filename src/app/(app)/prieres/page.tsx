@@ -1,12 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
-import { usePrayerTimes }   from "@/hooks/usePrayerTimes";
-import { useSettings }      from "@/hooks/useSettings";
+import { usePrayerTimes } from "@/hooks/usePrayerTimes";
+import { useSettings }    from "@/hooks/useSettings";
 import { PRAYER_LABELS, PRAYER_ORDER, formatTime } from "@/lib/prayer";
 import { Qibla, Coordinates } from "adhan";
 import Link from "next/link";
-import { Pause, Play, Settings2 } from "lucide-react";
+import { Settings2 } from "lucide-react";
 
 function getQibla(lat: number, lng: number) {
   const coords  = new Coordinates(lat, lng);
@@ -27,24 +26,6 @@ function getQibla(lat: number, lng: number) {
 export default function PrieresPage() {
   const { times, nextPrayer, countdown } = usePrayerTimes();
   const { settings } = useSettings();
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [adhanPlaying, setAdhanPlaying] = useState(false);
-  const [adhanError,   setAdhanError]   = useState(false);
-
-  function toggleAdhan() {
-    const a = audioRef.current;
-    if (!a) return;
-    setAdhanError(false);
-    if (adhanPlaying) {
-      a.pause();
-      a.currentTime = 0;
-      setAdhanPlaying(false);
-    } else {
-      a.play()
-        .then(() => setAdhanPlaying(true))
-        .catch(() => setAdhanError(true));
-    }
-  }
   const { bearing, dist } = getQibla(settings.lat, settings.lng);
 
   return (
@@ -105,43 +86,26 @@ export default function PrieresPage() {
 
       {/* Adhan */}
       <div
-        className="flex items-center justify-between rounded-2xl border px-5 py-4"
+        className="flex flex-col gap-3 rounded-2xl border px-5 py-4"
         style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.12)" }}
       >
-        <div>
+        <div className="flex items-center justify-between">
           <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
             Adhan · الأذان
           </p>
-          <p className="mt-0.5 text-sm font-semibold" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-            {adhanPlaying ? "En cours de lecture…" : "Mishary Rashid Alafasy"}
+          <p className="text-sm font-semibold opacity-60" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+            Mishary Rashid Alafasy
           </p>
         </div>
-        <button
-          onClick={toggleAdhan}
-          className="flex h-12 w-12 items-center justify-center rounded-full transition-all active:scale-95"
-          style={{
-            background: adhanPlaying
-              ? "rgba(212,175,55,0.2)"
-              : "linear-gradient(135deg, #055C3F, #0a8a5e)",
-            boxShadow: adhanPlaying ? "none" : "0 0 20px rgba(5,92,63,0.4)",
-            border: adhanPlaying ? "1px solid rgba(212,175,55,0.3)" : "none",
-          }}
-        >
-          {adhanPlaying
-            ? <Pause size={18} style={{ color: "#D4AF37" }} />
-            : <Play  size={18} fill="#F8F4EC" style={{ color: "#F8F4EC", marginLeft: 2 }} />
-          }
-        </button>
-        {/* playsInline est obligatoire sur iOS pour éviter le blocage */}
-        <audio ref={audioRef} src="/audio/adhan.mp3"
-          playsInline preload="auto"
-          onEnded={() => setAdhanPlaying(false)}
-          onError={() => setAdhanError(true)} />
-        {adhanError && (
-          <p className="mt-2 text-xs text-center" style={{ color: "#f87171", fontFamily: "var(--font-dm-sans)" }}>
-            ⚠️ Vérifie que le son n'est pas coupé (bouton sur le côté de l'iPhone)
-          </p>
-        )}
+        {/* Lecteur natif du navigateur — le plus fiable sur iOS PWA */}
+        <audio
+          src="/audio/adhan.mp3"
+          controls
+          playsInline
+          preload="auto"
+          className="w-full"
+          style={{ height: 36, borderRadius: 12, accentColor: "#D4AF37" }}
+        />
       </div>
 
       {/* Qibla */}

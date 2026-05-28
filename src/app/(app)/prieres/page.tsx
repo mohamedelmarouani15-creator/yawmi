@@ -132,7 +132,9 @@ export default function PrieresPage() {
             : <Play  size={18} fill="#F8F4EC" style={{ color: "#F8F4EC", marginLeft: 2 }} />
           }
         </button>
+        {/* playsInline est obligatoire sur iOS pour éviter le blocage */}
         <audio ref={audioRef} src="/audio/adhan.mp3"
+          playsInline preload="auto"
           onEnded={() => setAdhanPlaying(false)}
           onError={() => setAdhanError(true)} />
         {adhanError && (

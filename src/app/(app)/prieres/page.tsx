@@ -1,36 +1,55 @@
 "use client";
 
+import { useState } from "react";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useSettings }    from "@/hooks/useSettings";
-import { PRAYER_LABELS, PRAYER_ORDER, formatTime } from "@/lib/prayer";
+import { PRAYER_LABELS, PRAYER_ORDER, formatTime, type PrayerKey } from "@/lib/prayer";
 import { Qibla, Coordinates } from "adhan";
 import Link from "next/link";
-import { Settings2 } from "lucide-react";
+import { Settings2, Volume2, VolumeX, ChevronDown } from "lucide-react";
+
+const RECITERS = [
+  { id: "alafasy",    name: "Mishary Alafasy",       src: "/audio/adhan-alafasy.mp3"    },
+  { id: "abdulbasit", name: "Abdul Basit Mujawwad",   src: "/audio/adhan-abdulbasit.mp3" },
+  { id: "thobaity",   name: "Ali Ahmed Mulla",        src: "/audio/adhan-thobaity.mp3"   },
+  { id: "husary",     name: "Mahmoud Al-Husary",      src: "/audio/adhan-husary.mp3"     },
+];
 
 function getQibla(lat: number, lng: number) {
-  const coords  = new Coordinates(lat, lng);
-  const bearing = Qibla(coords); // degrés depuis le Nord, sens horaire
-
-  // Distance à la Mecque (Haversine)
-  const R   = 6371;
-  const lat1 = lat  * Math.PI / 180;
+  const coords = new Coordinates(lat, lng);
+  const bearing = Qibla(coords);
+  const lat1 = lat * Math.PI / 180;
   const lat2 = 21.4225 * Math.PI / 180;
   const dLat = (21.4225 - lat) * Math.PI / 180;
   const dLng = (39.8262 - lng) * Math.PI / 180;
   const a = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2;
-  const dist = Math.round(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
-
-  return { bearing: Math.round(bearing), dist };
+  return { bearing: Math.round(bearing), dist: Math.round(6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))) };
 }
 
 export default function PrieresPage() {
   const { times, nextPrayer, countdown } = usePrayerTimes();
-  const { settings } = useSettings();
+  const { settings, save } = useSettings();
   const { bearing, dist } = getQibla(settings.lat, settings.lng);
+  const [showReciters, setShowReciters] = useState(false);
+
+  const reciterId   = settings.adhanReciter ?? "alafasy";
+  const reciter     = RECITERS.find(r => r.id === reciterId) ?? RECITERS[0];
+  const prayerModes = settings.prayerModes ?? {};
+
+  function togglePrayerMode(key: string) {
+    const current = prayerModes[key] ?? "audio";
+    save({ ...settings, prayerModes: { ...prayerModes, [key]: current === "audio" ? "silencieux" : "audio" } });
+  }
+
+  function selectReciter(id: string) {
+    save({ ...settings, adhanReciter: id });
+    setShowReciters(false);
+  }
 
   return (
     <main className="flex flex-col gap-6 px-5 pt-12 pb-4">
 
+      {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
@@ -40,24 +59,17 @@ export default function PrieresPage() {
             Prières
           </h1>
         </div>
-        <Link
-          href="/profil"
+        <Link href="/profil"
           className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs"
-          style={{ borderColor: "rgba(212,175,55,0.3)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}
-        >
+          style={{ borderColor: "rgba(212,175,55,0.3)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
           <Settings2 size={12} /> {settings.cityName}
         </Link>
       </div>
 
       {/* Prochaine prière */}
       {nextPrayer && times ? (
-        <div
-          className="relative overflow-hidden rounded-2xl p-5 text-center"
-          style={{
-            background: "linear-gradient(135deg, #055C3F 0%, #033d2a 100%)",
-            boxShadow: "0 8px 32px rgba(5,92,63,0.3)",
-          }}
-        >
+        <div className="relative overflow-hidden rounded-2xl p-5 text-center"
+          style={{ background: "linear-gradient(135deg, #055C3F 0%, #033d2a 100%)", boxShadow: "0 8px 32px rgba(5,92,63,0.3)" }}>
           <div className="pointer-events-none absolute -right-6 -top-6 h-32 w-32 rounded-full opacity-20"
             style={{ background: "radial-gradient(circle, #D4AF37, transparent)" }} />
           <p className="text-xs tracking-widest uppercase opacity-60" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
@@ -84,57 +96,112 @@ export default function PrieresPage() {
         </div>
       )}
 
-      {/* Adhan */}
-      <div
-        className="flex flex-col gap-3 rounded-2xl border px-5 py-4"
-        style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.12)" }}
-      >
+      {/* Adhan + récitateur */}
+      <div className="flex flex-col gap-3 rounded-2xl border px-5 py-4"
+        style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.12)" }}>
+
         <div className="flex items-center justify-between">
           <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
             Adhan · الأذان
           </p>
-          <div className="flex items-center gap-2">
-            <span
-              className="rounded-full px-2.5 py-0.5 text-xs font-medium"
-              style={{
-                background: (settings.adhanMode ?? "audio") === "audio"
-                  ? "rgba(5,92,63,0.4)" : "rgba(255,255,255,0.06)",
-                color: (settings.adhanMode ?? "audio") === "audio" ? "#D4AF37" : "rgba(248,244,236,0.4)",
-                fontFamily: "var(--font-dm-sans)",
-              }}
-            >
-              {(settings.adhanMode ?? "audio") === "audio" ? "🔊 Audio" : "🔇 Silencieux"}
-            </span>
-          </div>
+          <button onClick={() => setShowReciters(v => !v)}
+            className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs"
+            style={{ borderColor: "rgba(212,175,55,0.25)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+            {reciter.name} <ChevronDown size={11} />
+          </button>
         </div>
 
-        {(settings.adhanMode ?? "audio") === "audio" ? (
-          <>
-            <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-              Mishary Rashid Alafasy
-            </p>
-            <audio
-              src="/audio/adhan.mp3"
-              controls
-              playsInline
-              preload="auto"
-              className="w-full"
-              style={{ height: 36, borderRadius: 12 }}
-            />
-          </>
-        ) : (
-          <p className="text-sm opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-            Notifications silencieuses activées — change dans Profil pour écouter l'adhan.
-          </p>
+        {/* Sélecteur récitateur */}
+        {showReciters && (
+          <div className="flex flex-col gap-1.5">
+            {RECITERS.map(r => (
+              <button key={r.id} onClick={() => selectReciter(r.id)}
+                className="flex items-center justify-between rounded-xl border px-4 py-2.5 text-left"
+                style={{
+                  background: reciterId === r.id ? "rgba(5,92,63,0.25)" : "rgba(255,255,255,0.02)",
+                  borderColor: reciterId === r.id ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.06)",
+                }}>
+                <span className="text-sm" style={{ color: reciterId === r.id ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  {r.name}
+                </span>
+                {reciterId === r.id && <span style={{ color: "#D4AF37" }}>✓</span>}
+              </button>
+            ))}
+          </div>
         )}
+
+        <audio key={reciter.src} src={reciter.src} controls playsInline preload="auto"
+          className="w-full" style={{ height: 36, borderRadius: 10 }} />
+      </div>
+
+      {/* Liste des prières avec toggle audio/silencieux */}
+      <div>
+        <p className="mb-2 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          Horaires · appuie sur 🔊/🔇 pour chaque prière
+        </p>
+        <div className="flex flex-col gap-2">
+          {PRAYER_ORDER.map((key: PrayerKey) => {
+            if (!times) return null;
+            const isPast   = times[key] < new Date();
+            const isNext   = key === nextPrayer;
+            const mode     = prayerModes[key] ?? "audio";
+            const isAudio  = mode === "audio";
+
+            return (
+              <div key={key}
+                className="flex items-center gap-3 rounded-xl border px-4 py-3.5"
+                style={{
+                  background: isNext ? "rgba(5,92,63,0.2)" : "rgba(255,255,255,0.02)",
+                  borderColor: isNext ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.06)",
+                }}>
+
+                {/* Indicateur */}
+                <div className="h-2 w-2 rounded-full flex-shrink-0"
+                  style={{ background: isPast ? "#055C3F" : isNext ? "#D4AF37" : "rgba(255,255,255,0.15)" }} />
+
+                {/* Nom */}
+                <div className="flex-1">
+                  <p className="text-sm font-semibold"
+                    style={{ color: isNext ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    {PRAYER_LABELS[key].fr}
+                  </p>
+                  <p className="text-xs opacity-40"
+                    style={{ color: "#F8F4EC", fontFamily: "var(--font-amiri)" }}>
+                    {PRAYER_LABELS[key].ar}
+                  </p>
+                </div>
+
+                {/* Heure */}
+                <p className="text-sm font-semibold tabular-nums"
+                  style={{
+                    color: isPast ? "rgba(248,244,236,0.3)" : "#F8F4EC",
+                    fontFamily: "var(--font-dm-sans)",
+                    textDecoration: isPast ? "line-through" : "none",
+                  }}>
+                  {formatTime(times[key])}
+                </p>
+
+                {/* Toggle audio/silencieux */}
+                <button onClick={() => togglePrayerMode(key)}
+                  className="flex h-7 w-7 items-center justify-center rounded-full border transition-all active:scale-90"
+                  style={{
+                    borderColor: isAudio ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.1)",
+                    background:  isAudio ? "rgba(212,175,55,0.12)" : "transparent",
+                    color:       isAudio ? "#D4AF37" : "rgba(248,244,236,0.25)",
+                  }}
+                  title={isAudio ? "Audio activé" : "Silencieux"}>
+                  {isAudio ? <Volume2 size={12} /> : <VolumeX size={12} />}
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Qibla */}
-      <Link
-        href="/qibla"
+      <Link href="/qibla"
         className="relative flex items-center justify-between overflow-hidden rounded-2xl border p-5 transition-all active:scale-[0.98]"
-        style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.15)" }}
-      >
+        style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.15)" }}>
         <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-10"
           style={{ background: "radial-gradient(circle, #D4AF37, transparent)" }} />
         <div className="flex flex-col gap-1">
@@ -162,50 +229,6 @@ export default function PrieresPage() {
           </p>
         </div>
       </Link>
-
-      {/* Liste des prières */}
-      <div className="flex flex-col gap-2">
-        {PRAYER_ORDER.map((key) => {
-          if (!times) return null;
-          const isPast = times[key] < new Date();
-          const isNext = key === nextPrayer;
-          return (
-            <div
-              key={key}
-              className="flex items-center justify-between rounded-xl border px-4 py-3.5"
-              style={{
-                background: isNext ? "rgba(5,92,63,0.2)" : "rgba(255,255,255,0.02)",
-                borderColor: isNext ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.06)",
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="h-2 w-2 rounded-full"
-                  style={{ background: isPast ? "#055C3F" : isNext ? "#D4AF37" : "rgba(255,255,255,0.15)" }}
-                />
-                <div>
-                  <p className="text-sm font-semibold" style={{ color: isNext ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-                    {PRAYER_LABELS[key].fr}
-                  </p>
-                  <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-amiri)" }}>
-                    {PRAYER_LABELS[key].ar}
-                  </p>
-                </div>
-              </div>
-              <p
-                className="text-sm font-semibold tabular-nums"
-                style={{
-                  color: isPast ? "rgba(248,244,236,0.3)" : "#F8F4EC",
-                  fontFamily: "var(--font-dm-sans)",
-                  textDecoration: isPast ? "line-through" : "none",
-                }}
-              >
-                {formatTime(times[key])}
-              </p>
-            </div>
-          );
-        })}
-      </div>
     </main>
   );
 }

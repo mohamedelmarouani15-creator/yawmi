@@ -6,6 +6,7 @@ import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useSettings }    from "@/hooks/useSettings";
 import { PRAYER_LABELS }  from "@/lib/prayer";
 import { storage, todayKey } from "@/lib/storage";
+import { getHijriDate, formatHijri } from "@/lib/hijri";
 import { useEffect, useState } from "react";
 
 const DAILY_DHIKRS = [
@@ -49,8 +50,9 @@ export default function AccueilPage() {
     setStats(getTodayStats());
   }, []);
 
-  const hour = new Date().getHours();
+  const hour    = new Date().getHours();
   const greeting = hour < 12 ? "Bonjour" : hour < 18 ? "Bon après-midi" : "Bonsoir";
+  const hijri   = getHijriDate();
 
   return (
     <main className="flex flex-col gap-6 px-5 pt-12 pb-4">
@@ -72,6 +74,36 @@ export default function AccueilPage() {
         >
           <Settings size={18} />
         </Link>
+      </div>
+
+      {/* Date Hijri */}
+      <div
+        className="flex items-center justify-between rounded-xl border px-4 py-3"
+        style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}
+      >
+        <div>
+          <p className="text-xs opacity-40 tracking-widest uppercase" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            Calendrier islamique
+          </p>
+          <p className="mt-0.5 text-sm font-medium" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            {hijri.monthFr} {hijri.year} H
+          </p>
+        </div>
+        <div className="text-right">
+          <p className="text-xl font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-amiri)" }}>
+            {formatHijri(hijri)}
+          </p>
+          {hijri.isRamadan && (
+            <p className="text-xs mt-0.5" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+              ✦ Ramadan Mubarak
+            </p>
+          )}
+          {hijri.isJumua && !hijri.isRamadan && (
+            <p className="text-xs mt-0.5 opacity-60" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+              Jumu'ah Mubarak
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Prochaine prière */}

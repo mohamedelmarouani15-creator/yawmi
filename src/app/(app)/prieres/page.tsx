@@ -29,12 +29,21 @@ export default function PrieresPage() {
   const { settings } = useSettings();
   const audioRef = useRef<HTMLAudioElement>(null);
   const [adhanPlaying, setAdhanPlaying] = useState(false);
+  const [adhanError,   setAdhanError]   = useState(false);
 
   function toggleAdhan() {
     const a = audioRef.current;
     if (!a) return;
-    if (adhanPlaying) { a.pause(); a.currentTime = 0; setAdhanPlaying(false); }
-    else { a.play(); setAdhanPlaying(true); }
+    setAdhanError(false);
+    if (adhanPlaying) {
+      a.pause();
+      a.currentTime = 0;
+      setAdhanPlaying(false);
+    } else {
+      a.play()
+        .then(() => setAdhanPlaying(true))
+        .catch(() => setAdhanError(true));
+    }
   }
   const { bearing, dist } = getQibla(settings.lat, settings.lng);
 
@@ -123,7 +132,14 @@ export default function PrieresPage() {
             : <Play  size={18} fill="#F8F4EC" style={{ color: "#F8F4EC", marginLeft: 2 }} />
           }
         </button>
-        <audio ref={audioRef} src="/audio/adhan.mp3" onEnded={() => setAdhanPlaying(false)} />
+        <audio ref={audioRef} src="/audio/adhan.mp3"
+          onEnded={() => setAdhanPlaying(false)}
+          onError={() => setAdhanError(true)} />
+        {adhanError && (
+          <p className="mt-2 text-xs text-center" style={{ color: "#f87171", fontFamily: "var(--font-dm-sans)" }}>
+            ⚠️ Vérifie que le son n'est pas coupé (bouton sur le côté de l'iPhone)
+          </p>
+        )}
       </div>
 
       {/* Qibla */}

@@ -10,6 +10,11 @@ export interface YawmiSettings {
   prayerModes:  Partial<Record<string, "audio" | "silencieux">>;
 }
 
+export interface PrayerLog {
+  date:  string; // YYYY-MM-DD
+  done:  Partial<Record<string, boolean>>;
+}
+
 export interface Task {
   id:        string;
   text:      string;
@@ -72,6 +77,9 @@ export const storage = {
 
   getReading:     ()  => get<ReadingProgress>(KEYS.reading, { surah: 1, ayah: 1 }),
   saveReading:    (r: ReadingProgress) => set(KEYS.reading, r),
+
+  getPrayerLog:   ()  => get<PrayerLog[]>("yawmi_prayer_log", []),
+  savePrayerLog:  (l: PrayerLog[]) => set("yawmi_prayer_log", l),
 };
 
 export function todayKey(): string {

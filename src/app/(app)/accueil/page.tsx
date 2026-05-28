@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Moon, BookOpen, RotateCcw, Users, Settings } from "lucide-react";
+import { Moon, BookOpen, RotateCcw, Users, Settings, Star } from "lucide-react";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useSettings }    from "@/hooks/useSettings";
 import { useAuth }        from "@/hooks/useAuth";
 import { PRAYER_LABELS }  from "@/lib/prayer";
 import { storage, todayKey } from "@/lib/storage";
 import { getHijriDate, formatHijri } from "@/lib/hijri";
+import { getUpcomingEvents, formatGregorian } from "@/lib/islamic-events";
 import { useEffect, useState } from "react";
 
 const DAILY_DHIKRS = [
@@ -38,6 +39,7 @@ const SHORTCUTS = [
   { href: "/prieres", icon: Moon,      label: "Prières"  },
   { href: "/coran",   icon: BookOpen,  label: "Coran"    },
   { href: "/dhikr",   icon: RotateCcw, label: "Dhikr"    },
+  { href: "/azkar",   icon: Star,      label: "Azkar"    },
   { href: "/famille", icon: Users,     label: "Famille"  },
 ];
 
@@ -53,7 +55,8 @@ export default function AccueilPage() {
 
   const { user } = useAuth();
   const firstName = user?.user_metadata?.display_name?.split(" ")[0] ?? null;
-  const hijri     = getHijriDate();
+  const hijri          = getHijriDate();
+  const upcomingEvents = getUpcomingEvents(3);
 
   return (
     <main className="flex flex-col gap-6 px-5 pt-12 pb-4">
@@ -173,12 +176,40 @@ export default function AccueilPage() {
         </p>
       </div>
 
+      {/* Événements islamiques */}
+      {upcomingEvents.length > 0 && (
+        <div>
+          <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            Prochains événements
+          </p>
+          <div className="flex flex-col gap-2">
+            {upcomingEvents.map(ev => (
+              <div key={ev.name} className="flex items-center justify-between rounded-xl border px-4 py-3"
+                style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}>
+                <div>
+                  <p className="text-sm font-semibold" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>{ev.name}</p>
+                  <p className="text-xs opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>{ev.desc}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs font-semibold" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                    {ev.daysUntil === 0 ? "Aujourd'hui !" : ev.daysUntil === 1 ? "Demain" : `${ev.daysUntil}j`}
+                  </p>
+                  <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    {formatGregorian(ev.gregorianDate)}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Raccourcis */}
       <div>
         <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
           Accès rapide
         </p>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-5 gap-2">
           {SHORTCUTS.map(({ href, icon: Icon, label }) => (
             <Link
               key={href}

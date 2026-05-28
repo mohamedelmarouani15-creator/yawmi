@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { storage } from "@/lib/storage";
 import { idbSet, idbGet, idbDel } from "@/lib/idb";
-import { ArrowLeft, BookOpen, Download, Loader2, Trash2, WifiOff } from "lucide-react";
+import { favorites } from "@/lib/favorites";
+import { ArrowLeft, BookOpen, Bookmark, BookmarkCheck, Download, Loader2, Trash2, WifiOff } from "lucide-react";
 import QuranPlayer from "@/components/QuranPlayer";
 
 interface Surah { number: number; name: string; englishName: string; numberOfAyahs: number; }
@@ -25,7 +26,24 @@ export default function CoranPage() {
   const [dlProgress,    setDlProgress]    = useState(0);
   const [playingAyah,   setPlayingAyah]   = useState(1);
   const [showPlayer,    setShowPlayer]    = useState(false);
+  const [favs,          setFavs]          = useState<Set<string>>(new Set());
   const reading = storage.getReading();
+
+  useEffect(() => {
+    const all = favorites.getAll();
+    setFavs(new Set(all.map(f => `${f.surah}-${f.ayah}`)));
+  }, [selected]);
+
+  const toggleFav = useCallback((surahNum: number, surahName: string, ayahNum: number, text: string) => {
+    const key = `${surahNum}-${ayahNum}`;
+    if (favs.has(key)) {
+      favorites.remove(surahNum, ayahNum);
+      setFavs(prev => { const n = new Set(prev); n.delete(key); return n; });
+    } else {
+      favorites.add({ surah: surahNum, surahName, ayah: ayahNum, text });
+      setFavs(prev => new Set(prev).add(key));
+    }
+  }, [favs]);
 
   // Charge la liste des sourates
   useEffect(() => {
@@ -171,14 +189,18 @@ export default function CoranPage() {
                     style={{ background: "rgba(5,92,63,0.5)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
                     {ayah.numberInSurah}
                   </div>
-                  {showPlayer && (
-                    <button
-                      onClick={() => setPlayingAyah(ayah.numberInSurah)}
-                      className="text-xs opacity-40 hover:opacity-80"
-                      style={{ color: "#D4AF37" }}>
-                      ▶
+                  <div className="flex items-center gap-2">
+                    {showPlayer && (
+                      <button onClick={() => setPlayingAyah(ayah.numberInSurah)}
+                        className="text-xs opacity-40" style={{ color: "#D4AF37" }}>▶</button>
+                    )}
+                    <button onClick={() => toggleFav(selected!, surah?.englishName ?? "", ayah.numberInSurah, ayah.text)}
+                      style={{ color: favs.has(`${selected}-${ayah.numberInSurah}`) ? "#D4AF37" : "rgba(255,255,255,0.2)" }}>
+                      {favs.has(`${selected}-${ayah.numberInSurah}`)
+                        ? <BookmarkCheck size={15} />
+                        : <Bookmark size={15} />}
                     </button>
-                  )}
+                  </div>
                 </div>
                 <p className="mt-3 text-right text-xl leading-loose"
                   style={{ color: "#F8F4EC", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
@@ -245,6 +267,34 @@ export default function CoranPage() {
             style={{ width: `${dlProgress}%`, background: "linear-gradient(to right, #055C3F, #D4AF37)" }} />
         </div>
       )}
+
+      {/* Favoris */}
+      {(() => {
+        const favList = favorites.getAll();
+        if (!favList.length) return null;
+        return (
+          <div>
+            <p className="mb-2 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+              Favoris · {favList.length} verset{favList.length > 1 ? "s" : ""}
+            </p>
+            <div className="flex flex-col gap-2">
+              {favList.slice(0, 3).map(f => (
+                <button key={`${f.surah}-${f.ayah}`} onClick={() => openSurah(f.surah)}
+                  className="rounded-xl border p-3 text-right transition-all active:scale-[0.98]"
+                  style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.12)" }}>
+                  <p className="text-xs opacity-40 text-left mb-1" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    {f.surahName} · verset {f.ayah}
+                  </p>
+                  <p className="text-base leading-loose line-clamp-2"
+                    style={{ color: "#D4AF37", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
+                    {f.text}
+                  </p>
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Continuer la lecture */}
       {reading.surah > 1 && (

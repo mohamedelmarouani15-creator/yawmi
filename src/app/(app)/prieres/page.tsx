@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from "react";
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useSettings }    from "@/hooks/useSettings";
 import { PRAYER_LABELS, PRAYER_ORDER, formatTime, type PrayerKey } from "@/lib/prayer";
+import { storage, todayKey } from "@/lib/storage";
 import { Qibla, Coordinates } from "adhan";
 import Link from "next/link";
-import { Settings2, Volume2, VolumeX, ChevronDown } from "lucide-react";
+import { Settings2, Volume2, VolumeX, ChevronDown, CheckCircle2, Circle } from "lucide-react";
 
 const RECITERS = [
   { id: "alafasy",    name: "Mishary Alafasy",       src: "/audio/adhan-alafasy.mp3"    },
@@ -31,6 +34,35 @@ export default function PrieresPage() {
   const { settings, save } = useSettings();
   const { bearing, dist } = getQibla(settings.lat, settings.lng);
   const [showReciters, setShowReciters] = useState(false);
+  const [donePrayers, setDonePrayers]   = useState<Partial<Record<string, boolean>>>({});
+
+  useEffect(() => {
+    const log = storage.getPrayerLog();
+    const today = log.find(l => l.date === todayKey());
+    setDonePrayers(today?.done ?? {});
+  }, []);
+
+  const togglePrayerDone = useCallback((key: string) => {
+    const next = { ...donePrayers, [key]: !donePrayers[key] };
+    setDonePrayers(next);
+    const log = storage.getPrayerLog().filter(l => l.date !== todayKey());
+    storage.savePrayerLog([...log, { date: todayKey(), done: next }]);
+  }, [donePrayers]);
+
+  // Calcul streak
+  const prayerStreak = (() => {
+    const log = storage.getPrayerLog();
+    const trackedKeys = PRAYER_ORDER.filter(k => k !== "sunrise");
+    let streak = 0;
+    for (let i = 0; i < 365; i++) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const key = d.toISOString().split("T")[0];
+      const entry = log.find(l => l.date === key);
+      if (trackedKeys.every(k => entry?.done[k])) streak++;
+      else if (i > 0) break;
+    }
+    return streak;
+  })();
 
   const reciterId   = settings.adhanReciter ?? "alafasy";
   const reciter     = RECITERS.find(r => r.id === reciterId) ?? RECITERS[0];
@@ -136,9 +168,16 @@ export default function PrieresPage() {
 
       {/* Liste des prières avec toggle audio/silencieux */}
       <div>
-        <p className="mb-2 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-          Horaires · appuie sur 🔊/🔇 pour chaque prière
-        </p>
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            Horaires du jour
+          </p>
+          {prayerStreak > 0 && (
+            <span className="text-xs font-semibold" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+              🔥 {prayerStreak} jour{prayerStreak > 1 ? "s" : ""}
+            </span>
+          )}
+        </div>
         <div className="flex flex-col gap-2">
           {PRAYER_ORDER.map((key: PrayerKey) => {
             if (!times) return null;
@@ -180,6 +219,17 @@ export default function PrieresPage() {
                   }}>
                   {formatTime(times[key])}
                 </p>
+
+                {/* Toggle fait/non fait */}
+                {key !== "sunrise" && (
+                  <button onClick={() => togglePrayerDone(key)}
+                    className="transition-all active:scale-90"
+                    style={{ color: donePrayers[key] ? "#D4AF37" : "rgba(255,255,255,0.2)" }}>
+                    {donePrayers[key]
+                      ? <CheckCircle2 size={20} />
+                      : <Circle size={20} />}
+                  </button>
+                )}
 
                 {/* Toggle audio/silencieux */}
                 <button onClick={() => togglePrayerMode(key)}

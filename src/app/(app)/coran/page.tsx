@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { storage } from "@/lib/storage";
 import { idbSet, idbGet, idbDel } from "@/lib/idb";
 import { ArrowLeft, BookOpen, Download, Loader2, Trash2, WifiOff } from "lucide-react";
+import QuranPlayer from "@/components/QuranPlayer";
 
 interface Surah { number: number; name: string; englishName: string; numberOfAyahs: number; }
 interface Ayah  { numberInSurah: number; text: string; }
@@ -22,6 +23,8 @@ export default function CoranPage() {
   const [offline,       setOffline]       = useState(false);
   const [downloading,   setDownloading]   = useState(false);
   const [dlProgress,    setDlProgress]    = useState(0);
+  const [playingAyah,   setPlayingAyah]   = useState(1);
+  const [showPlayer,    setShowPlayer]    = useState(false);
   const reading = storage.getReading();
 
   // Charge la liste des sourates
@@ -135,6 +138,17 @@ export default function CoranPage() {
             }}>
             Traduction
           </button>
+          <button
+            onClick={() => { setShowPlayer(v => !v); setPlayingAyah(1); }}
+            className="rounded-full border px-3 py-1 text-xs font-semibold transition-all"
+            style={{
+              borderColor: showPlayer ? "rgba(212,175,55,0.4)" : "rgba(5,92,63,0.4)",
+              color: showPlayer ? "#D4AF37" : "#F8F4EC",
+              background: showPlayer ? "rgba(212,175,55,0.1)" : "rgba(5,92,63,0.3)",
+              fontFamily: "var(--font-dm-sans)",
+            }}>
+            {showPlayer ? "⏹" : "▶"} Audio
+          </button>
         </div>
 
         {loading ? (
@@ -142,13 +156,29 @@ export default function CoranPage() {
             <Loader2 size={24} className="animate-spin" style={{ color: "#D4AF37" }} />
           </div>
         ) : (
-          <div className="flex flex-col gap-4">
+          <div className={`flex flex-col gap-4 ${showPlayer ? "pb-36" : ""}`}>
             {ayahs.map((ayah, i) => (
-              <div key={ayah.numberInSurah} className="rounded-xl border p-4"
-                style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}>
-                <div className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
-                  style={{ background: "rgba(5,92,63,0.5)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
-                  {ayah.numberInSurah}
+              <div key={ayah.numberInSurah}
+                className="rounded-xl border p-4 transition-all"
+                style={{
+                  background: showPlayer && playingAyah === ayah.numberInSurah
+                    ? "rgba(5,92,63,0.2)" : "rgba(255,255,255,0.02)",
+                  borderColor: showPlayer && playingAyah === ayah.numberInSurah
+                    ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.06)",
+                }}>
+                <div className="flex items-center justify-between">
+                  <div className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
+                    style={{ background: "rgba(5,92,63,0.5)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                    {ayah.numberInSurah}
+                  </div>
+                  {showPlayer && (
+                    <button
+                      onClick={() => setPlayingAyah(ayah.numberInSurah)}
+                      className="text-xs opacity-40 hover:opacity-80"
+                      style={{ color: "#D4AF37" }}>
+                      ▶
+                    </button>
+                  )}
                 </div>
                 <p className="mt-3 text-right text-xl leading-loose"
                   style={{ color: "#F8F4EC", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
@@ -163,6 +193,15 @@ export default function CoranPage() {
               </div>
             ))}
           </div>
+        )}
+
+        {showPlayer && selected !== null && (
+          <QuranPlayer
+            surah={selected}
+            totalAyahs={surah?.numberOfAyahs ?? 1}
+            currentAyah={playingAyah}
+            onAyahChange={setPlayingAyah}
+          />
         )}
       </main>
     );

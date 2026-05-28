@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <main className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[#061A12]">
@@ -111,7 +113,8 @@ export default function Home() {
         </p>
 
         {/* CTA */}
-        <button
+        <Link
+          href="/accueil"
           className="mt-8 rounded-full px-8 py-3.5 text-sm font-semibold tracking-wide transition-all duration-300 hover:scale-105 active:scale-95"
           style={{
             background: "linear-gradient(135deg, #055C3F 0%, #0a8a5e 100%)",
@@ -121,7 +124,7 @@ export default function Home() {
           }}
         >
           Commencer →
-        </button>
+        </Link>
       </div>
 
       {/* Motif de points décoratif */}

@@ -27,6 +27,12 @@ export default function InscriptionPage() {
       },
     });
     if (err) { setError(err.message); setLoading(false); return; }
+
+    // Créer la row profil dès l'inscription
+    if (data.user) {
+      await supabase.from("profiles").upsert({ id: data.user.id, display_name: name });
+    }
+
     // Si email non confirmé → afficher message
     if (data.user && !data.session) {
       setEmailSent(true);

@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Home, Moon, BookOpen, RotateCcw, Users } from "lucide-react";
+import { motion } from "framer-motion";
+import { Home, Moon, Compass, RotateCcw, Users } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/accueil",  label: "Accueil",  Icon: Home       },
   { href: "/prieres",  label: "Prières",  Icon: Moon       },
-  { href: "/coran",    label: "Coran",    Icon: BookOpen   },
+  { href: "/oasis",    label: "Oasis",    Icon: Compass    },
   { href: "/dhikr",    label: "Dhikr",    Icon: RotateCcw  },
   { href: "/famille",  label: "Famille",  Icon: Users      },
 ];
@@ -17,37 +18,45 @@ export default function BottomNav() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t px-2 pb-safe"
+      className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t pb-safe"
       style={{
-        background: "rgba(6,26,18,0.95)",
+        background: "rgba(6,26,18,0.96)",
         borderColor: "rgba(212,175,55,0.15)",
-        backdropFilter: "blur(12px)",
-        WebkitBackdropFilter: "blur(12px)",
+        backdropFilter: "blur(16px)",
+        WebkitBackdropFilter: "blur(16px)",
       }}
     >
       {NAV_ITEMS.map(({ href, label, Icon }) => {
-        const active = pathname === href;
+        const active = pathname === href || (href !== "/accueil" && pathname.startsWith(href));
         return (
-          <Link
-            key={href}
-            href={href}
-            className="flex flex-col items-center gap-1 px-4 py-3 transition-all duration-200"
-            style={{ color: active ? "#D4AF37" : "rgba(248,244,236,0.4)" }}
-          >
-            <Icon size={22} strokeWidth={active ? 2.5 : 1.8} />
-            <span
-              className="text-[10px] font-medium tracking-wide"
-              style={{ fontFamily: "var(--font-dm-sans)" }}
+          <motion.div key={href} whileTap={{ scale: 0.86 }} transition={{ type: "spring", stiffness: 500, damping: 25 }}>
+            <Link
+              href={href}
+              className="relative flex flex-col items-center gap-0.5 px-3 py-2.5"
+              style={{ color: active ? "#D4AF37" : "rgba(248,244,236,0.35)" }}
             >
-              {label}
-            </span>
-            {active && (
+              <motion.div
+                animate={{ scale: active ? 1 : 0.92, opacity: active ? 1 : 0.65 }}
+                transition={{ type: "spring", stiffness: 400, damping: 28 }}
+              >
+                <Icon size={21} strokeWidth={active ? 2.5 : 1.8} />
+              </motion.div>
               <span
-                className="absolute bottom-0 h-0.5 w-8 rounded-full"
-                style={{ background: "#D4AF37" }}
-              />
-            )}
-          </Link>
+                className="text-[9px] font-medium tracking-wide"
+                style={{ fontFamily: "var(--font-dm-sans)" }}
+              >
+                {label}
+              </span>
+              {active && (
+                <motion.span
+                  layoutId="nav-indicator"
+                  className="absolute bottom-0 h-0.5 w-7 rounded-full"
+                  style={{ background: "#D4AF37" }}
+                  transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                />
+              )}
+            </Link>
+          </motion.div>
         );
       })}
     </nav>

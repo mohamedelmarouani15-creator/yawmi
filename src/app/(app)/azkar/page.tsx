@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Sun, Moon, RotateCcw } from "lucide-react";
 import { AZKAR_MATIN, AZKAR_SOIR, type Zikr } from "@/lib/azkar";
 import { storage, todayKey } from "@/lib/storage";
-import { RotateCcw } from "lucide-react";
+import { pageVariants, itemVariants, springTap } from "@/lib/motion";
 
 type Session = "matin" | "soir";
 
@@ -26,6 +28,7 @@ export default function AzkarPage() {
       if (current >= zikr.count) return prev;
       const next = { ...prev, [zikr.id]: current + 1 };
       localStorage.setItem(SESSION_KEY(session), JSON.stringify(next));
+      if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(6);
       return next;
     });
   }, [session]);
@@ -41,10 +44,14 @@ export default function AzkarPage() {
   const totalDone = azkar.filter(z => (counts[z.id] ?? 0) >= z.count).length;
 
   return (
-    <main className="flex flex-col gap-5 px-5 pt-12 pb-24">
-
+    <motion.main
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      className="flex flex-col gap-5 px-5 pt-12 pb-24"
+    >
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <motion.div variants={itemVariants} className="flex items-start justify-between">
         <div>
           <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
             {session === "matin" ? "Après Fajr" : "Après Asr"}
@@ -56,101 +63,139 @@ export default function AzkarPage() {
         <div className="flex items-center gap-1.5 rounded-full border px-1.5 py-1"
           style={{ borderColor: "rgba(212,175,55,0.2)" }}>
           {(["matin", "soir"] as Session[]).map(s => (
-            <button key={s} onClick={() => setSession(s)}
-              className="rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
+            <motion.button
+              key={s}
+              onClick={() => setSession(s)}
+              whileTap={{ scale: 0.93 }}
+              transition={springTap}
+              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold"
               style={{
                 background: session === s ? "rgba(5,92,63,0.5)" : "transparent",
                 color: session === s ? "#D4AF37" : "rgba(248,244,236,0.4)",
                 border: session === s ? "1px solid rgba(212,175,55,0.3)" : "1px solid transparent",
                 fontFamily: "var(--font-dm-sans)",
-              }}>
-              {s === "matin" ? "🌅 Matin" : "🌙 Soir"}
-            </button>
+              }}
+            >
+              {s === "matin"
+                ? <><Sun size={11} /> Matin</>
+                : <><Moon size={11} /> Soir</>
+              }
+            </motion.button>
           ))}
         </div>
-      </div>
+      </motion.div>
 
       {/* Progression */}
-      <div>
+      <motion.div variants={itemVariants}>
         <div className="mb-1 flex items-center justify-between">
           <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
             {totalDone}/{azkar.length} dhikrs complétés
           </p>
-          {totalDone === azkar.length && (
-            <p className="text-xs font-semibold" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
-              ✦ Session complète
-            </p>
-          )}
+          <AnimatePresence>
+            {totalDone === azkar.length && (
+              <motion.p
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0 }}
+                className="text-xs font-semibold"
+                style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}
+              >
+                ✦ Session complète
+              </motion.p>
+            )}
+          </AnimatePresence>
         </div>
         <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-          <div className="h-full rounded-full transition-all duration-500"
-            style={{ width: `${(totalDone / azkar.length) * 100}%`, background: "linear-gradient(to right,#055C3F,#D4AF37)" }} />
+          <motion.div
+            className="h-full rounded-full"
+            animate={{ width: `${(totalDone / azkar.length) * 100}%` }}
+            transition={{ ease: [0.25, 0.1, 0.25, 1], duration: 0.5 }}
+            style={{ background: "linear-gradient(to right,#055C3F,#D4AF37)" }}
+          />
         </div>
-      </div>
+      </motion.div>
 
       {/* Liste */}
-      {azkar.map((zikr) => {
-        const current = counts[zikr.id] ?? 0;
-        const done    = current >= zikr.count;
-        const pct     = Math.min((current / zikr.count) * 100, 100);
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={session}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -6 }}
+          transition={{ ease: [0.25, 0.1, 0.25, 1], duration: 0.25 }}
+          className="flex flex-col gap-4"
+        >
+          {azkar.map((zikr, idx) => {
+            const current = counts[zikr.id] ?? 0;
+            const done    = current >= zikr.count;
+            const pct     = Math.min((current / zikr.count) * 100, 100);
 
-        return (
-          <div key={zikr.id}
-            className="flex flex-col gap-3 rounded-2xl border p-4 transition-all"
-            style={{
-              background: done ? "rgba(5,92,63,0.15)" : "rgba(255,255,255,0.02)",
-              borderColor: done ? "rgba(212,175,55,0.25)" : "rgba(255,255,255,0.06)",
-            }}>
-
-            {/* Source */}
-            <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-              {zikr.source}
-            </p>
-
-            {/* Texte arabe */}
-            <p className="text-right text-lg leading-loose font-medium"
-              style={{ color: done ? "rgba(248,244,236,0.5)" : "#F8F4EC", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
-              {zikr.ar}
-            </p>
-
-            {/* Traduction */}
-            <p className="text-xs leading-relaxed opacity-50"
-              style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-              {zikr.fr}
-            </p>
-
-            {/* Compteur + bouton */}
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-                <div className="h-full rounded-full transition-all duration-200"
-                  style={{ width: `${pct}%`, background: done ? "#D4AF37" : "#055C3F" }} />
-              </div>
-              <div className="flex items-center gap-2">
-                {!done && (
-                  <button onClick={() => reset(zikr.id)}
-                    className="opacity-30 hover:opacity-60"
-                    style={{ color: "#F8F4EC" }}>
-                    <RotateCcw size={12} />
-                  </button>
-                )}
-                <button
-                  onClick={() => tap(zikr)}
-                  disabled={done}
-                  className="flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold transition-all active:scale-95 disabled:opacity-40"
-                  style={{
-                    background: done ? "rgba(212,175,55,0.15)" : "linear-gradient(135deg,#055C3F,#0a8a5e)",
-                    color: done ? "#D4AF37" : "#F8F4EC",
-                    fontFamily: "var(--font-dm-sans)",
-                    minWidth: 80,
-                    justifyContent: "center",
-                  }}>
-                  {done ? "✓ Fait" : `${current}/${zikr.count}`}
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-      })}
-    </main>
+            return (
+              <motion.div
+                key={zikr.id}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ ease: [0.25, 0.1, 0.25, 1], duration: 0.35, delay: idx * 0.04 }}
+                className="flex flex-col gap-3 rounded-2xl border p-4"
+                style={{
+                  background: done ? "rgba(5,92,63,0.15)" : "rgba(255,255,255,0.02)",
+                  borderColor: done ? "rgba(212,175,55,0.25)" : "rgba(255,255,255,0.06)",
+                }}
+              >
+                <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  {zikr.source}
+                </p>
+                <p className="text-right text-lg leading-loose font-medium"
+                  style={{ color: done ? "rgba(248,244,236,0.4)" : "#F8F4EC", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
+                  {zikr.ar}
+                </p>
+                <p className="text-xs leading-relaxed opacity-50"
+                  style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  {zikr.fr}
+                </p>
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex-1 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                    <motion.div
+                      className="h-full rounded-full"
+                      animate={{ width: `${pct}%` }}
+                      transition={{ ease: [0.25, 0.1, 0.25, 1], duration: 0.2 }}
+                      style={{ background: done ? "#D4AF37" : "#055C3F" }}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {!done && (
+                      <motion.button
+                        onClick={() => reset(zikr.id)}
+                        whileTap={{ scale: 0.85 }}
+                        className="opacity-30"
+                        style={{ color: "#F8F4EC" }}
+                      >
+                        <RotateCcw size={12} />
+                      </motion.button>
+                    )}
+                    <motion.button
+                      onClick={() => tap(zikr)}
+                      disabled={done}
+                      whileTap={done ? {} : { scale: 0.93 }}
+                      transition={springTap}
+                      className="flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold disabled:opacity-50"
+                      style={{
+                        background: done ? "rgba(212,175,55,0.15)" : "linear-gradient(135deg,#055C3F,#0a8a5e)",
+                        color: done ? "#D4AF37" : "#F8F4EC",
+                        fontFamily: "var(--font-dm-sans)",
+                        minWidth: 80,
+                        justifyContent: "center",
+                      }}
+                    >
+                      {done ? "✦ Fait" : `${current}/${zikr.count}`}
+                    </motion.button>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </motion.div>
+      </AnimatePresence>
+    </motion.main>
   );
 }

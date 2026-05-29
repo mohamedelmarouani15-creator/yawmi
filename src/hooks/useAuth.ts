@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 
 export function useAuth() {
+  const router = useRouter();
   const [user,    setUser]    = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -21,7 +23,10 @@ export function useAuth() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signOut = () => supabase.auth.signOut();
+  const signOut = async () => {
+    await supabase.auth.signOut();
+    router.replace("/connexion");
+  };
 
   return { user, loading, signOut };
 }

@@ -6,9 +6,10 @@ import BottomNav          from "@/components/BottomNav";
 import PageWrapper        from "@/components/PageWrapper";
 import OfflineBanner      from "@/components/OfflineBanner";
 import { useNotifications } from "@/hooks/useNotifications";
+import { supabase } from "@/lib/supabase";
 
 function NotifScheduler() {
-  useNotifications(); // planifie silencieusement les notifications
+  useNotifications();
   return null;
 }
 
@@ -18,9 +19,22 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const done = localStorage.getItem("yawmi_onboarded");
-    if (!done) router.replace("/onboarding");
-    else setReady(true);
-  }, [router]);
+    if (done) { setReady(true); return; }
+
+    supabase.auth.getSession()
+      .then(({ data }) => {
+        if (data.session) {
+          localStorage.setItem("yawmi_onboarded", "1");
+          setReady(true);
+        } else {
+          router.replace("/onboarding");
+        }
+      })
+      .catch(() => {
+        // En cas d'erreur réseau, redirige vers onboarding
+        router.replace("/onboarding");
+      });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!ready) return (
     <div className="flex min-h-screen items-center justify-center bg-[#061A12]">

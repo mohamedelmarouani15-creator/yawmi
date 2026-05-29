@@ -1,8 +1,7 @@
 "use client";
 
-"use client";
-
 import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useSettings }    from "@/hooks/useSettings";
 import { PRAYER_LABELS, PRAYER_ORDER, formatTime, type PrayerKey } from "@/lib/prayer";
@@ -10,12 +9,13 @@ import { storage, todayKey } from "@/lib/storage";
 import { Qibla, Coordinates } from "adhan";
 import Link from "next/link";
 import { Settings2, Volume2, VolumeX, ChevronDown, CheckCircle2, Circle } from "lucide-react";
+import { pageVariants, itemVariants, springTap } from "@/lib/motion";
 
 const RECITERS = [
-  { id: "alafasy",    name: "Mishary Alafasy",       src: "/audio/adhan-alafasy.mp3"    },
-  { id: "abdulbasit", name: "Abdul Basit Mujawwad",   src: "/audio/adhan-abdulbasit.mp3" },
-  { id: "thobaity",   name: "Ali Ahmed Mulla",        src: "/audio/adhan-thobaity.mp3"   },
-  { id: "husary",     name: "Mahmoud Al-Husary",      src: "/audio/adhan-husary.mp3"     },
+  { id: "alafasy",    name: "Mishary Alafasy",      src: "/audio/adhan-alafasy.mp3"    },
+  { id: "abdulbasit", name: "Abdul Basit Mujawwad", src: "/audio/adhan-abdulbasit.mp3" },
+  { id: "thobaity",   name: "Ali Ahmed Mulla",      src: "/audio/adhan-thobaity.mp3"   },
+  { id: "husary",     name: "Mahmoud Al-Husary",    src: "/audio/adhan-husary.mp3"     },
 ];
 
 function getQibla(lat: number, lng: number) {
@@ -34,7 +34,7 @@ export default function PrieresPage() {
   const { settings, save } = useSettings();
   const { bearing, dist } = getQibla(settings.lat, settings.lng);
   const [showReciters, setShowReciters] = useState(false);
-  const [donePrayers, setDonePrayers]   = useState<Partial<Record<string, boolean>>>({});
+  const [donePrayers,  setDonePrayers]  = useState<Partial<Record<string, boolean>>>({});
 
   useEffect(() => {
     const log = storage.getPrayerLog();
@@ -47,9 +47,9 @@ export default function PrieresPage() {
     setDonePrayers(next);
     const log = storage.getPrayerLog().filter(l => l.date !== todayKey());
     storage.savePrayerLog([...log, { date: todayKey(), done: next }]);
+    if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(10);
   }, [donePrayers]);
 
-  // Calcul streak
   const prayerStreak = (() => {
     const log = storage.getPrayerLog();
     const trackedKeys = PRAYER_ORDER.filter(k => k !== "sunrise");
@@ -79,10 +79,14 @@ export default function PrieresPage() {
   }
 
   return (
-    <main className="flex flex-col gap-6 px-5 pt-12 pb-4">
-
+    <motion.main
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      className="flex flex-col gap-6 px-5 pt-12 pb-4"
+    >
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <motion.div variants={itemVariants} className="flex items-start justify-between">
         <div>
           <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
             Horaires du jour
@@ -91,194 +95,200 @@ export default function PrieresPage() {
             Prières
           </h1>
         </div>
-        <Link href="/profil"
-          className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs"
-          style={{ borderColor: "rgba(212,175,55,0.3)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
-          <Settings2 size={12} /> {settings.cityName}
-        </Link>
-      </div>
+        <motion.div whileTap={{ scale: 0.94 }} transition={springTap}>
+          <Link href="/profil"
+            className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs"
+            style={{ borderColor: "rgba(212,175,55,0.3)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+            <Settings2 size={12} /> {settings.cityName}
+          </Link>
+        </motion.div>
+      </motion.div>
 
-      {/* Prochaine prière */}
-      {nextPrayer && times ? (
-        <div className="relative overflow-hidden rounded-2xl p-5 text-center"
-          style={{ background: "linear-gradient(135deg, #055C3F 0%, #033d2a 100%)", boxShadow: "0 8px 32px rgba(5,92,63,0.3)" }}>
-          <div className="pointer-events-none absolute -right-6 -top-6 h-32 w-32 rounded-full opacity-20"
-            style={{ background: "radial-gradient(circle, #D4AF37, transparent)" }} />
-          <p className="text-xs tracking-widest uppercase opacity-60" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-            Prochaine prière
-          </p>
-          <p className="mt-2 text-4xl font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
-            {PRAYER_LABELS[nextPrayer].fr}
-          </p>
-          <p className="mt-0.5 text-sm opacity-60" style={{ color: "#D4AF37", fontFamily: "var(--font-amiri)" }}>
-            {PRAYER_LABELS[nextPrayer].ar}
-          </p>
-          <p className="mt-2 text-3xl font-semibold tabular-nums" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
-            {formatTime(times[nextPrayer])}
-          </p>
-          <p className="mt-1 text-sm opacity-60" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-            dans {countdown}
-          </p>
-        </div>
-      ) : (
-        <div className="rounded-2xl p-5 text-center" style={{ background: "rgba(255,255,255,0.04)" }}>
-          <p className="text-sm opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-            Toutes les prières du jour sont passées.
-          </p>
-        </div>
-      )}
+      {/* Hero prochaine prière */}
+      <motion.div variants={itemVariants}>
+        {nextPrayer && times ? (
+          <div className="relative overflow-hidden rounded-2xl p-5 text-center"
+            style={{ background: "linear-gradient(135deg, #055C3F 0%, #033d2a 100%)", boxShadow: "0 8px 32px rgba(5,92,63,0.3)" }}>
+            <div className="pointer-events-none absolute -right-6 -top-6 h-32 w-32 rounded-full opacity-20"
+              style={{ background: "radial-gradient(circle, #D4AF37, transparent)" }} />
+            <p className="text-xs tracking-widest uppercase opacity-60" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+              Prochaine prière
+            </p>
+            <p className="mt-2 text-4xl font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+              {PRAYER_LABELS[nextPrayer].fr}
+            </p>
+            <p className="mt-0.5 text-sm opacity-60" style={{ color: "#D4AF37", fontFamily: "var(--font-amiri)" }}>
+              {PRAYER_LABELS[nextPrayer].ar}
+            </p>
+            <p className="mt-2 text-3xl font-semibold tabular-nums" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+              {formatTime(times[nextPrayer])}
+            </p>
+            <p className="mt-1 text-sm opacity-60" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+              dans {countdown}
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-2xl p-5 text-center" style={{ background: "rgba(255,255,255,0.04)" }}>
+            <p className="text-sm opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+              Toutes les prières du jour sont passées.
+            </p>
+          </div>
+        )}
+      </motion.div>
 
       {/* Adhan + récitateur */}
-      <div className="flex flex-col gap-3 rounded-2xl border px-5 py-4"
+      <motion.div variants={itemVariants} className="flex flex-col gap-3 rounded-2xl border px-5 py-4"
         style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.12)" }}>
-
         <div className="flex items-center justify-between">
           <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
             Adhan · الأذان
           </p>
-          <button onClick={() => setShowReciters(v => !v)}
+          <motion.button
+            onClick={() => setShowReciters(v => !v)}
+            whileTap={{ scale: 0.94 }}
+            transition={springTap}
             className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs"
             style={{ borderColor: "rgba(212,175,55,0.25)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
             {reciter.name} <ChevronDown size={11} />
-          </button>
+          </motion.button>
         </div>
 
-        {/* Sélecteur récitateur */}
-        {showReciters && (
-          <div className="flex flex-col gap-1.5">
-            {RECITERS.map(r => (
-              <button key={r.id} onClick={() => selectReciter(r.id)}
-                className="flex items-center justify-between rounded-xl border px-4 py-2.5 text-left"
-                style={{
-                  background: reciterId === r.id ? "rgba(5,92,63,0.25)" : "rgba(255,255,255,0.02)",
-                  borderColor: reciterId === r.id ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.06)",
-                }}>
-                <span className="text-sm" style={{ color: reciterId === r.id ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-                  {r.name}
-                </span>
-                {reciterId === r.id && <span style={{ color: "#D4AF37" }}>✓</span>}
-              </button>
-            ))}
-          </div>
-        )}
+        <AnimatePresence>
+          {showReciters && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ ease: [0.25, 0.1, 0.25, 1], duration: 0.25 }}
+              className="flex flex-col gap-1.5 overflow-hidden"
+            >
+              {RECITERS.map(r => (
+                <motion.button key={r.id} onClick={() => selectReciter(r.id)}
+                  whileTap={{ scale: 0.97 }}
+                  className="flex items-center justify-between rounded-xl border px-4 py-2.5 text-left"
+                  style={{
+                    background: reciterId === r.id ? "rgba(5,92,63,0.25)" : "rgba(255,255,255,0.02)",
+                    borderColor: reciterId === r.id ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.06)",
+                  }}>
+                  <span className="text-sm" style={{ color: reciterId === r.id ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    {r.name}
+                  </span>
+                  {reciterId === r.id && <span style={{ color: "#D4AF37" }}>✓</span>}
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <audio key={reciter.src} src={reciter.src} controls playsInline preload="auto"
           className="w-full" style={{ height: 36, borderRadius: 10 }} />
-      </div>
+      </motion.div>
 
-      {/* Liste des prières avec toggle audio/silencieux */}
-      <div>
+      {/* Liste des prières */}
+      <motion.div variants={itemVariants}>
         <div className="mb-2 flex items-center justify-between">
           <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
             Horaires du jour
           </p>
           {prayerStreak > 0 && (
             <span className="text-xs font-semibold" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
-              🔥 {prayerStreak} jour{prayerStreak > 1 ? "s" : ""}
+              ✦ {prayerStreak} jour{prayerStreak > 1 ? "s" : ""}
             </span>
           )}
         </div>
         <div className="flex flex-col gap-2">
-          {PRAYER_ORDER.map((key: PrayerKey) => {
+          {PRAYER_ORDER.map((key: PrayerKey, idx) => {
             if (!times) return null;
-            const isPast   = times[key] < new Date();
-            const isNext   = key === nextPrayer;
-            const mode     = prayerModes[key] ?? "audio";
-            const isAudio  = mode === "audio";
+            const isPast  = times[key] < new Date();
+            const isNext  = key === nextPrayer;
+            const mode    = prayerModes[key] ?? "audio";
+            const isAudio = mode === "audio";
 
             return (
-              <div key={key}
+              <motion.div
+                key={key}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ ease: [0.25, 0.1, 0.25, 1], duration: 0.32, delay: idx * 0.045 }}
                 className="flex items-center gap-3 rounded-xl border px-4 py-3.5"
                 style={{
                   background: isNext ? "rgba(5,92,63,0.2)" : "rgba(255,255,255,0.02)",
                   borderColor: isNext ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.06)",
                 }}>
-
-                {/* Indicateur */}
                 <div className="h-2 w-2 rounded-full flex-shrink-0"
                   style={{ background: isPast ? "#055C3F" : isNext ? "#D4AF37" : "rgba(255,255,255,0.15)" }} />
-
-                {/* Nom */}
                 <div className="flex-1">
-                  <p className="text-sm font-semibold"
-                    style={{ color: isNext ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  <p className="text-sm font-semibold" style={{ color: isNext ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
                     {PRAYER_LABELS[key].fr}
                   </p>
-                  <p className="text-xs opacity-40"
-                    style={{ color: "#F8F4EC", fontFamily: "var(--font-amiri)" }}>
+                  <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-amiri)" }}>
                     {PRAYER_LABELS[key].ar}
                   </p>
                 </div>
-
-                {/* Heure */}
                 <p className="text-sm font-semibold tabular-nums"
-                  style={{
-                    color: isPast ? "rgba(248,244,236,0.3)" : "#F8F4EC",
-                    fontFamily: "var(--font-dm-sans)",
-                    textDecoration: isPast ? "line-through" : "none",
-                  }}>
+                  style={{ color: isPast ? "rgba(248,244,236,0.3)" : "#F8F4EC", fontFamily: "var(--font-dm-sans)", textDecoration: isPast ? "line-through" : "none" }}>
                   {formatTime(times[key])}
                 </p>
-
-                {/* Toggle fait/non fait */}
                 {key !== "sunrise" && (
-                  <button onClick={() => togglePrayerDone(key)}
-                    className="transition-all active:scale-90"
+                  <motion.button
+                    onClick={() => togglePrayerDone(key)}
+                    whileTap={{ scale: 0.85 }}
+                    transition={springTap}
                     style={{ color: donePrayers[key] ? "#D4AF37" : "rgba(255,255,255,0.2)" }}>
-                    {donePrayers[key]
-                      ? <CheckCircle2 size={20} />
-                      : <Circle size={20} />}
-                  </button>
+                    {donePrayers[key] ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                  </motion.button>
                 )}
-
-                {/* Toggle audio/silencieux */}
-                <button onClick={() => togglePrayerMode(key)}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border transition-all active:scale-90"
+                <motion.button
+                  onClick={() => togglePrayerMode(key)}
+                  whileTap={{ scale: 0.85 }}
+                  transition={springTap}
+                  className="flex h-7 w-7 items-center justify-center rounded-full border"
                   style={{
                     borderColor: isAudio ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.1)",
                     background:  isAudio ? "rgba(212,175,55,0.12)" : "transparent",
                     color:       isAudio ? "#D4AF37" : "rgba(248,244,236,0.25)",
-                  }}
-                  title={isAudio ? "Audio activé" : "Silencieux"}>
+                  }}>
                   {isAudio ? <Volume2 size={12} /> : <VolumeX size={12} />}
-                </button>
-              </div>
+                </motion.button>
+              </motion.div>
             );
           })}
         </div>
-      </div>
+      </motion.div>
 
       {/* Qibla */}
-      <Link href="/qibla"
-        className="relative flex items-center justify-between overflow-hidden rounded-2xl border p-5 transition-all active:scale-[0.98]"
-        style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.15)" }}>
-        <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-10"
-          style={{ background: "radial-gradient(circle, #D4AF37, transparent)" }} />
-        <div className="flex flex-col gap-1">
-          <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-            Qibla · القبلة
-          </p>
-          <p className="text-3xl font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
-            {bearing}°
-          </p>
-          <p className="text-xs opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-            {dist.toLocaleString("fr-FR")} km de La Mecque
-          </p>
-        </div>
-        <div className="flex flex-col items-center gap-1">
-          <svg width="64" height="64" viewBox="0 0 64 64">
-            <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(212,175,55,0.2)" strokeWidth="1" />
-            <g transform={`rotate(${bearing}, 32, 32)`}>
-              <polygon points="32,6 37,30 32,26 27,30" fill="#D4AF37" />
-              <polygon points="32,58 27,34 32,38 37,34" fill="rgba(212,175,55,0.25)" />
-            </g>
-            <circle cx="32" cy="32" r="3" fill="#D4AF37" />
-          </svg>
-          <p className="text-xs font-semibold" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
-            Ouvrir →
-          </p>
-        </div>
-      </Link>
-    </main>
+      <motion.div variants={itemVariants} whileTap={{ scale: 0.985 }} transition={springTap}>
+        <Link href="/qibla"
+          className="relative flex items-center justify-between overflow-hidden rounded-2xl border p-5"
+          style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.15)" }}>
+          <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-10"
+            style={{ background: "radial-gradient(circle, #D4AF37, transparent)" }} />
+          <div className="flex flex-col gap-1">
+            <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+              Qibla · القبلة
+            </p>
+            <p className="text-3xl font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+              {bearing}°
+            </p>
+            <p className="text-xs opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+              {dist.toLocaleString("fr-FR")} km de La Mecque
+            </p>
+          </div>
+          <div className="flex flex-col items-center gap-1">
+            <svg width="64" height="64" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(212,175,55,0.2)" strokeWidth="1" />
+              <g transform={`rotate(${bearing}, 32, 32)`}>
+                <polygon points="32,6 37,30 32,26 27,30" fill="#D4AF37" />
+                <polygon points="32,58 27,34 32,38 37,34" fill="rgba(212,175,55,0.25)" />
+              </g>
+              <circle cx="32" cy="32" r="3" fill="#D4AF37" />
+            </svg>
+            <p className="text-xs font-semibold" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+              Ouvrir →
+            </p>
+          </div>
+        </Link>
+      </motion.div>
+    </motion.main>
   );
 }

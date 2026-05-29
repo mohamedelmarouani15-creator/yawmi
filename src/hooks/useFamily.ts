@@ -16,6 +16,8 @@ export function useFamily() {
     let cleanup: (() => void) | undefined;
 
     async function init() {
+      // Garantir l'existence de la row profil (comptes créés sans trigger)
+      await supabase.from("profiles").upsert({ id: user!.id }, { onConflict: "id", ignoreDuplicates: true });
       const { data: profile } = await supabase
         .from("profiles").select("family_id").eq("id", user!.id).single();
 
@@ -50,14 +52,34 @@ export function useFamily() {
     return () => cleanup?.();
   }, [user]);
 
-  const createFamily = useCallback(async (name: string) => {
-    if (!user) return;
-    const { data: fam } = await supabase
-      .from("families").insert({ name, created_by: user.id }).select().single();
-    if (fam) {
-      await supabase.from("profiles").update({ family_id: fam.id }).eq("id", user.id);
-      setFamily(fam);
+  const createFamily = useCallback(async (name: string): Promise<{ family: Family | null; error: string | null }> => {
+    if (!user) return { family: null, error: "Non connecté" };
+
+    const code = Array.from({ length: 6 }, () =>
+      "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[Math.floor(Math.random() * 32)]
+    ).join("");
+
+    const { data: fam, error: insertErr } = await supabase
+      .from("families")
+      .insert({ name, code, created_by: user.id })
+      .select()
+      .single();
+
+    if (insertErr || !fam) {
+      return { family: null, error: insertErr?.message ?? "Erreur lors de la création" };
     }
+
+    const { error: profileErr } = await supabase
+      .from("profiles")
+      .update({ family_id: fam.id })
+      .eq("id", user.id);
+
+    if (profileErr) {
+      return { family: null, error: profileErr.message };
+    }
+
+    setFamily(fam);
+    return { family: fam, error: null };
   }, [user]);
 
   const joinFamily = useCallback(async (code: string): Promise<boolean> => {

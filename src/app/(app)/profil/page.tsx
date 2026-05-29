@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell, BellOff, Check, LogOut, Volume2, VolumeX } from "lucide-react";
+import { Check, LogOut, Volume2, VolumeX } from "lucide-react";
 import { useAuth }        from "@/hooks/useAuth";
 import { useSettings }    from "@/hooks/useSettings";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -39,10 +39,11 @@ function getStats() {
 export default function ProfilPage() {
   const { user, signOut }   = useAuth();
   const { settings, save }  = useSettings();
-  const { enabled: notifEnabled, enable: enableNotif, disable: disableNotif, permission } = useNotifications();
-  const [citySearch, setCitySearch] = useState("");
-  const [showCities, setShowCities] = useState(false);
-  const [saved,      setSaved]      = useState(false);
+  const { permission, prefs, toggle } = useNotifications();
+  const [citySearch,   setCitySearch]   = useState("");
+  const [showCities,   setShowCities]   = useState(false);
+  const [saved,        setSaved]        = useState(false);
+  const [notifMsg,     setNotifMsg]     = useState<string | null>(null);
   const stats = getStats();
 
   const filtered = CITIES.filter(c =>
@@ -158,37 +159,51 @@ export default function ProfilPage() {
       {/* Notifications */}
       <motion.div variants={itemVariants}>
         <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-          Rappels de prières
+          Notifications
         </p>
-        <div className="flex items-center justify-between rounded-xl border px-4 py-3.5"
-          style={{
-            background: notifEnabled ? "rgba(5,92,63,0.2)" : "rgba(255,255,255,0.02)",
-            borderColor: notifEnabled ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.06)",
-          }}>
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl"
-              style={{ background: "rgba(5,92,63,0.4)", color: "#D4AF37" }}>
-              {notifEnabled ? <Bell size={16} /> : <BellOff size={16} />}
-            </div>
-            <div>
-              <p className="text-sm font-medium" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>Notifications</p>
-              <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-                {permission === "denied" ? "Bloquées dans les réglages" : notifEnabled ? "Actives pour les 5 prières" : "Désactivées"}
-              </p>
-            </div>
-          </div>
-          {permission !== "denied" && (
-            <motion.button
-              onClick={notifEnabled ? disableNotif : () => enableNotif()}
-              whileTap={{ scale: 0.93 }}
-              transition={springTap}
-              className="rounded-full px-4 py-1.5 text-xs font-semibold"
-              style={{
-                background: notifEnabled ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg,#055C3F,#0a8a5e)",
-                color: "#F8F4EC", fontFamily: "var(--font-dm-sans)",
-              }}>
-              {notifEnabled ? "Désactiver" : "Activer"}
-            </motion.button>
+        <div className="flex flex-col gap-2">
+          {([
+            { key: "prayers" as const, icon: "🕌", label: "Rappels de prières",  sub: "Horaires des 5 prières" },
+            { key: "duels"   as const, icon: "⚔️", label: "Défis famille",       sub: "Quand on te défie ou c'est ton tour" },
+            { key: "daily"   as const, icon: "📅", label: "Défi du jour",        sub: "Rappel quotidien" },
+          ]).map(({ key, icon, label, sub }) => {
+            const active = prefs[key];
+            return (
+              <motion.button key={key}
+                onClick={async () => {
+                  const result = await toggle(key, user?.id ?? undefined);
+                  if (result === "needs-standalone") setNotifMsg("📲 Ajoute l'app à l'écran d'accueil (iOS : partage → Sur l'écran d'accueil)");
+                  else if (result === "denied")       setNotifMsg("❌ Autorise les notifications dans les réglages de ton téléphone");
+                  else if (result === "unsupported")  setNotifMsg("❌ Non supporté sur ce navigateur");
+                  else                                setNotifMsg(null);
+                }}
+                whileTap={{ scale: 0.97 }} transition={springTap}
+                className="flex items-center gap-3 rounded-xl border px-4 py-3.5 text-left"
+                style={{
+                  background:   active ? "rgba(5,92,63,0.2)"        : "rgba(255,255,255,0.02)",
+                  borderColor:  active ? "rgba(212,175,55,0.3)"      : "rgba(255,255,255,0.06)",
+                }}>
+                <span className="text-xl">{icon}</span>
+                <div className="flex-1">
+                  <p className="text-sm font-medium" style={{ color: active ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    {label}
+                  </p>
+                  <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    {sub}
+                  </p>
+                </div>
+                <div className="flex h-6 w-11 items-center rounded-full px-0.5"
+                  style={{ background: active ? "#055C3F" : "rgba(255,255,255,0.1)", transition: "background 0.2s" }}>
+                  <div className="h-5 w-5 rounded-full"
+                    style={{ background: active ? "#D4AF37" : "rgba(255,255,255,0.4)", transform: active ? "translateX(20px)" : "translateX(0)", transition: "transform 0.2s" }} />
+                </div>
+              </motion.button>
+            );
+          })}
+          {notifMsg && (
+            <p className="text-xs px-1 leading-relaxed" style={{ color: "#f87171", fontFamily: "var(--font-dm-sans)" }}>
+              {notifMsg}
+            </p>
           )}
         </div>
       </motion.div>

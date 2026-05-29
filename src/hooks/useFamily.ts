@@ -27,18 +27,19 @@ export interface DailyChallengeData {
 }
 
 export interface DuelData {
-  id: string;
+  taskId: string;
+  questionIds: string[];
   challengerId: string;
+  challengerName: string;
   challengedId: string;
-  challengerName: string | null;
-  challengedName: string | null;
+  challengedName: string;
   challengerScore: number | null;
   challengedScore: number | null;
-  status: "pending" | "completed" | "expired";
-  winnerId: string | null;
   expiresAt: string;
   isChallenger: boolean;
-  questionIds: string[];
+  isChallenged: boolean;
+  myTurn: boolean;
+  status: "pending" | "challenger_played" | "completed";
 }
 
 const FAMILY_ID_KEY = "yawmi_family_id";
@@ -52,29 +53,21 @@ export function useFamily() {
   const [duels,          setDuels]          = useState<DuelData[]>([]);
   const [loading,        setLoading]        = useState(true);
 
-  // ── fetch daily challenge (with local fallback) ───────────────
+  // ── fetch daily challenge ─────────────────────────────────────
   const fetchOrCreateDaily = useCallback(async (familyId: string, myId: string) => {
     const today = new Date().toISOString().split("T")[0];
     const localKey = `yawmi_daily_${familyId}_${today}`;
-
-    // Deterministic question per day (date-seeded, no randomness between reloads)
     const hard = QUESTIONS.filter(q => q.difficulty >= 3);
     const seed = today.split("-").reduce((acc, part) => acc + parseInt(part, 10), 0);
     const localQuestion = hard[seed % hard.length];
-
-    // Load local answer cache
     type LocalAnswer = { answerIdx: number; correct: boolean; answeredAt: string };
     const localAnswerRaw = typeof window !== "undefined" ? localStorage.getItem(localKey) : null;
     const localAnswer: LocalAnswer | null = localAnswerRaw ? JSON.parse(localAnswerRaw) : null;
-
-    // Try Supabase — if table doesn't exist or RLS blocks, fall through to local
     try {
       let { data: dc, error: fetchErr } = await supabase
         .from("daily_challenges").select("*")
         .eq("family_id", familyId).eq("date", today).maybeSingle();
-
       if (fetchErr) throw fetchErr;
-
       if (!dc) {
         const { data: created, error: insertErr } = await supabase
           .from("daily_challenges")
@@ -82,20 +75,13 @@ export function useFamily() {
           .select().single();
         if (!insertErr) dc = created;
       }
-
       if (dc) {
         const question = QUESTIONS.find(q => q.id === dc!.question_id) ?? localQuestion;
         const responses = (dc.responses ?? {}) as Record<string, LocalAnswer>;
-        // Merge local answer if Supabase doesn't have it yet
-        const myRemoteAnswer = responses[myId] ?? localAnswer ?? null;
-        setDailyChallenge({ id: dc.id, date: dc.date, question, responses, myAnswer: myRemoteAnswer });
+        setDailyChallenge({ id: dc.id, date: dc.date, question, responses, myAnswer: responses[myId] ?? localAnswer ?? null });
         return;
       }
-    } catch {
-      // Supabase table missing or RLS — use pure local fallback
-    }
-
-    // ── Local fallback (no Supabase table needed) ──────────────
+    } catch { /* fallback local */ }
     setDailyChallenge({
       id: `local_${familyId}_${today}`,
       date: today,
@@ -105,26 +91,79 @@ export function useFamily() {
     });
   }, []);
 
-  // ── fetch duels (with fallback) ───────────────────────────────
-  const fetchDuels = useCallback(async (myId: string, memberProfiles: { id: string; displayName: string | null }[]) => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let data: any[] | null = null;
-    try {
-      const res = await supabase.from("duels").select("*")
-        .or(`challenger_id.eq.${myId},challenged_id.eq.${myId}`)
-        .eq("status", "pending")
-        .order("created_at", { ascending: false }).limit(10);
-      data = res.data;
-    } catch { return; } // table missing — no duels to show
-    if (!data) return;
-    const getName = (id: string) => memberProfiles.find(p => p.id === id)?.displayName ?? "Membre";
-    setDuels(data.map(d => ({
-      id: d.id, challengerId: d.challenger_id, challengedId: d.challenged_id,
-      challengerName: getName(d.challenger_id), challengedName: getName(d.challenged_id),
-      challengerScore: d.challenger_score, challengedScore: d.challenged_score,
-      status: d.status, winnerId: d.winner_id, expiresAt: d.expires_at,
-      isChallenger: d.challenger_id === myId, questionIds: d.question_ids ?? [],
-    })));
+  // ── members ───────────────────────────────────────────────────
+  const buildMemberList = useCallback(async (familyId: string, uid: string) => {
+    const { data: profs } = await supabase
+      .from("profiles").select("id, display_name").eq("family_id", familyId);
+    const ids = (profs ?? []).map(p => p.id);
+    const { data: prog } = await supabase.from("player_progress")
+      .select("user_id, xp, level, game_streak, defeated_sages, coins")
+      .in("user_id", ids.length ? ids : ["_none_"]);
+    const list: FamilyMember[] = (profs ?? []).map(p => {
+      const pr = prog?.find(x => x.user_id === p.id);
+      return {
+        id: p.id, displayName: p.display_name,
+        xp: pr?.xp ?? 0, level: pr?.level ?? 1,
+        gameStreak: pr?.game_streak ?? 0,
+        defeatedSages: (pr?.defeated_sages ?? []).length,
+        coins: pr?.coins ?? 0, isMe: p.id === uid,
+      };
+    });
+    setMembers(list.sort((a, b) => b.xp - a.xp));
+  }, []);
+
+  // ── duels — table dédiée ──────────────────────────────────────
+  const fetchAndSetDuels = useCallback(async (myId: string, familyId: string) => {
+    const { data, error } = await supabase
+      .from("duels")
+      .select("*")
+      .eq("family_id", familyId)
+      .order("created_at", { ascending: false });
+
+    if (error) { console.error("fetchDuels:", error); return; }
+    if (!data || data.length === 0) { setDuels([]); return; }
+
+    // Noms des participants
+    const allIds = [...new Set(data.flatMap((d: Record<string, string>) => [d.challenger_id, d.challenged_id]))];
+    const { data: profs } = await supabase.from("profiles")
+      .select("id, display_name")
+      .in("id", allIds);
+    const nameMap: Record<string, string> = Object.fromEntries(
+      (profs ?? []).map(p => [p.id, p.display_name ?? "Joueur"])
+    );
+
+    const parsed: DuelData[] = (data as Record<string, unknown>[])
+      .filter(d => {
+        if (d.status === "expired") return false;
+        if (d.status !== "completed" && new Date(d.expires_at as string) < new Date()) return false;
+        return true;
+      })
+      .map(d => {
+        const isChallenger = d.challenger_id === myId;
+        const isChallenged = d.challenged_id === myId;
+        const cScore = d.challenger_score !== undefined ? (d.challenger_score as number | null) : null;
+        const dScore = d.challenged_score !== undefined ? (d.challenged_score as number | null) : null;
+        const myScore = isChallenger ? cScore : dScore;
+        const myTurn = myScore === null;
+        const status: DuelData["status"] =
+          cScore !== null && dScore !== null ? "completed"
+          : cScore !== null ? "challenger_played"
+          : "pending";
+        return {
+          taskId:          d.id as string,
+          questionIds:     d.question_ids as string[],
+          challengerId:    d.challenger_id as string,
+          challengerName:  nameMap[d.challenger_id as string] ?? "Joueur",
+          challengedId:    d.challenged_id as string,
+          challengedName:  nameMap[d.challenged_id as string] ?? "Joueur",
+          challengerScore: cScore,
+          challengedScore: dScore,
+          expiresAt:       d.expires_at as string,
+          isChallenger, isChallenged, myTurn, status,
+        };
+      });
+
+    setDuels(parsed);
   }, []);
 
   // ── init ──────────────────────────────────────────────────────
@@ -134,18 +173,14 @@ export function useFamily() {
 
     async function init() {
       try {
-        // Ensure profile exists
         await supabase.from("profiles")
           .upsert({ id: user!.id }, { onConflict: "id", ignoreDuplicates: true });
 
         const { data: profile } = await supabase
           .from("profiles").select("family_id").eq("id", user!.id).single();
 
-        // Try Supabase first, fall back to localStorage cache
         const familyId = profile?.family_id ?? localStorage.getItem(FAMILY_ID_KEY);
         if (!familyId) { setLoading(false); return; }
-
-        // Sync localStorage with Supabase value
         if (profile?.family_id) localStorage.setItem(FAMILY_ID_KEY, profile.family_id);
 
         const [{ data: fam }, { data: taskRows }] = await Promise.all([
@@ -157,42 +192,37 @@ export function useFamily() {
         setFamily(fam);
         setTasks(taskRows ?? []);
 
-        // Members
-        const { data: profs } = await supabase
-          .from("profiles").select("id, display_name").eq("family_id", familyId);
-        const ids = (profs ?? []).map(p => p.id);
-        const { data: prog } = await supabase.from("player_progress")
-          .select("user_id, xp, level, game_streak, defeated_sages, coins")
-          .in("user_id", ids.length ? ids : ["_none_"]);
-        const memberList: FamilyMember[] = (profs ?? []).map(p => {
-          const pr = prog?.find(x => x.user_id === p.id);
-          return {
-            id: p.id, displayName: p.display_name,
-            xp: pr?.xp ?? 0, level: pr?.level ?? 1,
-            gameStreak: pr?.game_streak ?? 0,
-            defeatedSages: (pr?.defeated_sages ?? []).length,
-            coins: pr?.coins ?? 0, isMe: p.id === user!.id,
-          };
-        });
-        setMembers(memberList.sort((a, b) => b.xp - a.xp));
-
         await Promise.allSettled([
+          buildMemberList(familyId, user!.id),
           fetchOrCreateDaily(familyId, user!.id),
-          fetchDuels(user!.id, (profs ?? []).map(p => ({ id: p.id, displayName: p.display_name ?? null }))),
+          fetchAndSetDuels(user!.id, familyId),
         ]);
 
         setLoading(false);
 
         // Realtime
-        const channel = supabase.channel("tasks:" + familyId)
+        const channel = supabase.channel("family:" + familyId)
           .on("postgres_changes",
             { event: "*", schema: "public", table: "tasks", filter: `family_id=eq.${familyId}` },
             ({ eventType, new: n, old: o }) => {
-              if (eventType === "INSERT") setTasks(t => [n as SupaTask, ...t]);
+              if (eventType === "INSERT") setTasks(t => {
+                if (t.find(x => x.id === (n as SupaTask).id)) return t;
+                return [n as SupaTask, ...t];
+              });
               if (eventType === "UPDATE") setTasks(t => t.map(x => x.id === (n as SupaTask).id ? n as SupaTask : x));
               if (eventType === "DELETE") setTasks(t => t.filter(x => x.id !== (o as SupaTask).id));
             }
-          ).subscribe();
+          )
+          .on("postgres_changes",
+            { event: "*", schema: "public", table: "profiles", filter: `family_id=eq.${familyId}` },
+            () => { buildMemberList(familyId, user!.id); }
+          )
+          .on("postgres_changes",
+            { event: "*", schema: "public", table: "duels", filter: `family_id=eq.${familyId}` },
+            () => { fetchAndSetDuels(user!.id, familyId); }
+          )
+          .subscribe();
+
         cleanup = () => supabase.removeChannel(channel);
       } catch (e) {
         console.error("useFamily:", e);
@@ -201,7 +231,7 @@ export function useFamily() {
     }
     init();
     return () => cleanup?.();
-  }, [user, fetchOrCreateDaily, fetchDuels]);
+  }, [user, fetchOrCreateDaily, buildMemberList, fetchAndSetDuels]);
 
   // ── createFamily ──────────────────────────────────────────────
   const createFamily = useCallback(async (name: string): Promise<{ family: Family | null; error: string | null }> => {
@@ -244,35 +274,118 @@ export function useFamily() {
     const correct = dailyChallenge.question.options[answerIdx]?.correct ?? false;
     const response = { answerIdx, correct, answeredAt: new Date().toISOString() };
     const newResponses = { ...dailyChallenge.responses, [user.id]: response };
-
-    // Always save locally first (works without Supabase table)
     const today = new Date().toISOString().split("T")[0];
-    if (family) {
-      localStorage.setItem(`yawmi_daily_${family.id}_${today}`, JSON.stringify(response));
-    }
-
-    // Try Supabase (will fail silently if table missing)
+    if (family) localStorage.setItem(`yawmi_daily_${family.id}_${today}`, JSON.stringify(response));
     if (!dailyChallenge.id.startsWith("local_")) {
       try {
         await supabase.from("daily_challenges")
           .update({ responses: newResponses }).eq("id", dailyChallenge.id);
-      } catch { /* table missing — local save is enough */ }
+      } catch { /* table missing */ }
     }
-
     setDailyChallenge(p => p ? { ...p, responses: newResponses, myAnswer: response } : null);
   }, [dailyChallenge, user, family]);
 
-  // ── createDuel ────────────────────────────────────────────────
-  const createDuel = useCallback(async (challengedId: string): Promise<boolean> => {
+  // ── createDuel — table duels dédiée ──────────────────────────
+  const createDuel = useCallback(async (
+    challengedId: string,
+    challengedName: string,
+    challengerName: string,
+  ): Promise<boolean> => {
     if (!user || !family) return false;
-    const questionIds = [...QUESTIONS].sort(() => Math.random() - 0.5).slice(0, 10).map(q => q.id);
-    const { error } = await supabase.from("duels").insert({
-      challenger_id: user.id, challenged_id: challengedId,
-      family_id: family.id, question_ids: questionIds, status: "pending",
-      expires_at: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
-    });
-    return !error;
+    const questionIds = [...QUESTIONS]
+      .sort(() => Math.random() - 0.5)
+      .slice(0, 10)
+      .map(q => q.id);
+
+    const { data, error } = await supabase.from("duels").insert({
+      challenger_id: user.id,
+      challenged_id: challengedId,
+      family_id:     family.id,
+      question_ids:  questionIds,
+    }).select().single();
+
+    if (error) {
+      console.error("createDuel error:", error);
+      throw new Error(error.message ?? JSON.stringify(error));
+    }
+
+    const newDuel: DuelData = {
+      taskId:          (data as { id: string; expires_at: string }).id,
+      questionIds,
+      challengerId:    user.id,
+      challengerName,
+      challengedId,
+      challengedName,
+      challengerScore: null,
+      challengedScore: null,
+      expiresAt:       (data as { id: string; expires_at: string }).expires_at,
+      isChallenger:    true,
+      isChallenged:    false,
+      myTurn:          true,
+      status:          "pending",
+    };
+    setDuels(prev => [newDuel, ...prev]);
+
+    // Notifie le défié
+    fetch("/api/push/notify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        targetUserId: challengedId,
+        title: "⚔️ Nouveau défi !",
+        body:  `${challengerName} te défie sur Yawmi — relève le défi !`,
+        url:   "/famille",
+      }),
+    }).catch(() => {/* silencieux si pas d'abonnement */});
+
+    return true;
   }, [user, family]);
+
+  // ── recordDuelScore ───────────────────────────────────────────
+  const recordDuelScore = useCallback(async (duelId: string, score: number): Promise<void> => {
+    if (!user) return;
+    const duel = duels.find(d => d.taskId === duelId);
+    if (!duel) return;
+
+    const updates: Record<string, unknown> = {};
+    if (duel.isChallenger) updates.challenger_score = score;
+    else updates.challenged_score = score;
+
+    const otherScore = duel.isChallenger ? duel.challengedScore : duel.challengerScore;
+    if (otherScore !== null) updates.status = "completed";
+
+    const { error } = await supabase.from("duels").update(updates).eq("id", duelId);
+    if (!error) {
+      setDuels(prev => prev.map(d => {
+        if (d.taskId !== duelId) return d;
+        const cs = duel.isChallenger ? score : d.challengerScore;
+        const ds = duel.isChallenger ? d.challengedScore : score;
+        return {
+          ...d,
+          challengerScore: cs,
+          challengedScore: ds,
+          myTurn: false,
+          status: cs !== null && ds !== null ? "completed"
+                : cs !== null ? "challenger_played"
+                : "pending",
+        };
+      }));
+
+      // Si le challenger vient de jouer, notifie le défié que c'est son tour
+      if (duel.isChallenger) {
+        fetch("/api/push/notify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            targetUserId: duel.challengedId,
+            title: "⏰ À toi de jouer !",
+            body:  `${duel.challengerName} a joué son défi — réponds-lui !`,
+            url:   "/famille",
+          }),
+        }).catch(() => {});
+      }
+    }
+  }, [user, duels]);
 
   // ── tasks ─────────────────────────────────────────────────────
   const addTask = useCallback(async (text: string, member: string) => {
@@ -289,9 +402,14 @@ export function useFamily() {
   }, []);
 
   return {
-    family, tasks, members, dailyChallenge, duels, loading,
+    family,
+    tasks,
+    members,
+    dailyChallenge,
+    duels,
+    loading,
     createFamily, joinFamily, leaveFamily,
-    answerDaily, createDuel,
+    answerDaily, createDuel, recordDuelScore,
     addTask, toggleTask, removeTask,
   };
 }

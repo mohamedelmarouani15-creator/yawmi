@@ -4,31 +4,60 @@ import { useState, useEffect, useCallback } from "react";
 import { computePrayerTimes, PRAYER_LABELS, PRAYER_ORDER } from "@/lib/prayer";
 import { storage } from "@/lib/storage";
 
-const PREF_KEY = "yawmi_notif_enabled";
+// ── Clés localStorage ─────────────────────────────────────────
+const KEY_PRAYERS = "yawmi_notif_prayers";
+const KEY_DUELS   = "yawmi_notif_duels";
+const KEY_DAILY   = "yawmi_notif_daily";
+
+export type NotifCategory = "prayers" | "duels" | "daily";
+
+export interface NotifPrefs {
+  prayers: boolean;
+  duels:   boolean;
+  daily:   boolean;
+}
+
+function isStandaloneMode() {
+  if (typeof window === "undefined") return false;
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    ("standalone" in window.navigator && (window.navigator as { standalone?: boolean }).standalone === true)
+  );
+}
+
+function isIOS() {
+  if (typeof navigator === "undefined") return false;
+  return /iPad|iPhone|iPod/.test(navigator.userAgent);
+}
 
 export function useNotifications() {
-  const [permission, setPermission] = useState<NotificationPermission>("default");
-  const [enabled,    setEnabled]    = useState(false);
+  const [permission,   setPermission]   = useState<NotificationPermission>("default");
+  const [prefs,        setPrefs]        = useState<NotifPrefs>({ prayers: false, duels: false, daily: false });
+  const [supported,    setSupported]    = useState(true);
+  const [standalone,   setStandalone]   = useState(true);
 
   useEffect(() => {
+    setSupported(typeof Notification !== "undefined" && "serviceWorker" in navigator);
+    setStandalone(isStandaloneMode());
     if (typeof Notification !== "undefined") setPermission(Notification.permission);
-    setEnabled(localStorage.getItem(PREF_KEY) === "1");
+    setPrefs({
+      prayers: localStorage.getItem(KEY_PRAYERS) === "1",
+      duels:   localStorage.getItem(KEY_DUELS)   === "1",
+      daily:   localStorage.getItem(KEY_DAILY)   === "1",
+    });
   }, []);
 
-  // Planifie les notifications du jour à chaque activation
+  // ── Planifie les notifications de prière ─────────────────────
   useEffect(() => {
-    if (!enabled || permission !== "granted") return;
-
+    if (!prefs.prayers || permission !== "granted") return;
     const s     = storage.getSettings();
     const times = computePrayerTimes(s.lat, s.lng, s.method);
     const now   = new Date();
-    const ids:  ReturnType<typeof setTimeout>[] = [];
-
+    const ids: ReturnType<typeof setTimeout>[] = [];
     PRAYER_ORDER.forEach(key => {
       const t     = times[key];
       const delay = t.getTime() - now.getTime();
       if (delay <= 0 || delay > 12 * 3600 * 1000) return;
-
       ids.push(setTimeout(async () => {
         try {
           const reg = await navigator.serviceWorker.ready;
@@ -36,31 +65,62 @@ export function useNotifications() {
             body:  `Il est l'heure — ${t.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}`,
             icon:  "/icons/icon-192x192.png",
             badge: "/icons/icon-96x96.png",
-            tag:   `yawmi-${key}`,
+            tag:   `yawmi-prayer-${key}`,
           });
         } catch { /* silencieux */ }
       }, delay));
     });
-
     return () => ids.forEach(clearTimeout);
-  }, [enabled, permission]);
+  }, [prefs.prayers, permission]);
 
-  const enable = useCallback(async (): Promise<boolean> => {
-    if (typeof Notification === "undefined") return false;
+  // ── Abonnement push ───────────────────────────────────────────
+  const subscribePush = useCallback(async (userId: string): Promise<boolean> => {
+    if (!("PushManager" in window)) return false;
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      const sub = await reg.pushManager.getSubscription()
+        ?? await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
+        });
+      await fetch("/api/push/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ subscription: sub.toJSON(), userId }),
+      });
+      return true;
+    } catch { return false; }
+  }, []);
+
+  // ── Demander la permission + abonnement push ──────────────────
+  // Retourne : "granted" | "denied" | "needs-standalone"
+  const requestPermission = useCallback(async (userId?: string): Promise<string> => {
+    if (!supported) return "unsupported";
+    if (isIOS() && !isStandaloneMode()) return "needs-standalone";
     const p = await Notification.requestPermission();
     setPermission(p);
-    if (p === "granted") {
-      localStorage.setItem(PREF_KEY, "1");
-      setEnabled(true);
-      return true;
+    if (p === "granted" && userId) await subscribePush(userId);
+    return p;
+  }, [supported, subscribePush]);
+
+  // ── Activer / désactiver une catégorie ────────────────────────
+  const toggle = useCallback(async (
+    category: NotifCategory,
+    userId?: string,
+  ): Promise<string> => {
+    // Si permission pas encore accordée, la demander d'abord
+    if (permission !== "granted") {
+      const result = await requestPermission(userId);
+      if (result !== "granted") return result;
     }
-    return false;
-  }, []);
+    const next = !prefs[category];
+    const keyMap = { prayers: KEY_PRAYERS, duels: KEY_DUELS, daily: KEY_DAILY };
+    localStorage.setItem(keyMap[category], next ? "1" : "0");
+    setPrefs(p => ({ ...p, [category]: next }));
+    return "granted";
+  }, [permission, prefs, requestPermission]);
 
-  const disable = useCallback(() => {
-    localStorage.removeItem(PREF_KEY);
-    setEnabled(false);
-  }, []);
+  const anyEnabled = prefs.prayers || prefs.duels || prefs.daily;
 
-  return { permission, enabled, enable, disable };
+  return { permission, prefs, supported, standalone, anyEnabled, toggle, subscribePush, requestPermission };
 }

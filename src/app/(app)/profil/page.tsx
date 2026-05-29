@@ -172,9 +172,9 @@ export default function ProfilPage() {
               <motion.button key={key}
                 onClick={async () => {
                   const result = await toggle(key, user?.id ?? undefined);
-                  if (result === "needs-standalone") setNotifMsg("📲 Ajoute l'app à l'écran d'accueil (iOS : partage → Sur l'écran d'accueil)");
-                  else if (result === "denied")       setNotifMsg("❌ Autorise les notifications dans les réglages de ton téléphone");
-                  else if (result === "unsupported")  setNotifMsg("❌ Non supporté sur ce navigateur");
+                  if (result === "needs-standalone") setNotifMsg("📲 iOS : appuie sur Partager → « Sur l'écran d'accueil » puis relance l'app");
+                  else if (result === "denied")       setNotifMsg("❌ Autorise les notifications dans Réglages → " + (key === "prayers" ? "Notifications" : "Safari / Yawmi"));
+                  else if (result === "unsupported")  setNotifMsg(key === "prayers" ? "❌ Notifications non disponibles sur ce navigateur" : "📲 Pour les défis : ajoute l'app à l'écran d'accueil (iOS 16.4+) ou utilise Chrome sur Android");
                   else                                setNotifMsg(null);
                 }}
                 whileTap={{ scale: 0.97 }} transition={springTap}

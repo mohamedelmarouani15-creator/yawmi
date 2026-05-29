@@ -92,35 +92,56 @@ export function useNotifications() {
     } catch { return false; }
   }, []);
 
-  // ── Demander la permission + abonnement push ──────────────────
-  // Retourne : "granted" | "denied" | "needs-standalone"
-  const requestPermission = useCallback(async (userId?: string): Promise<string> => {
-    if (!supported) return "unsupported";
+  // ── Demander la permission de base (Notification) ────────────
+  const requestBasicPermission = useCallback(async (): Promise<NotificationPermission> => {
+    if (typeof Notification === "undefined") return "denied";
+    const p = await Notification.requestPermission();
+    setPermission(p);
+    return p;
+  }, []);
+
+  // ── Demander la permission + abonnement push (pour défis/daily) ──
+  const requestPushPermission = useCallback(async (userId?: string): Promise<string> => {
+    if (typeof Notification === "undefined") return "unsupported";
+    if (!("serviceWorker" in navigator) || !("PushManager" in window)) return "unsupported";
     if (isIOS() && !isStandaloneMode()) return "needs-standalone";
     const p = await Notification.requestPermission();
     setPermission(p);
     if (p === "granted" && userId) await subscribePush(userId);
     return p;
-  }, [supported, subscribePush]);
+  }, [subscribePush]);
 
   // ── Activer / désactiver une catégorie ────────────────────────
   const toggle = useCallback(async (
     category: NotifCategory,
     userId?: string,
   ): Promise<string> => {
-    // Si permission pas encore accordée, la demander d'abord
+    const keyMap = { prayers: KEY_PRAYERS, duels: KEY_DUELS, daily: KEY_DAILY };
+
+    // Prières = notification locale, pas besoin de push
+    if (category === "prayers") {
+      if (permission !== "granted") {
+        const p = await requestBasicPermission();
+        if (p !== "granted") return p === "denied" ? "denied" : "unsupported";
+      }
+      const next = !prefs.prayers;
+      localStorage.setItem(KEY_PRAYERS, next ? "1" : "0");
+      setPrefs(p => ({ ...p, prayers: next }));
+      return "granted";
+    }
+
+    // Défis / Défi du jour = push notification
     if (permission !== "granted") {
-      const result = await requestPermission(userId);
+      const result = await requestPushPermission(userId);
       if (result !== "granted") return result;
     }
     const next = !prefs[category];
-    const keyMap = { prayers: KEY_PRAYERS, duels: KEY_DUELS, daily: KEY_DAILY };
     localStorage.setItem(keyMap[category], next ? "1" : "0");
     setPrefs(p => ({ ...p, [category]: next }));
     return "granted";
-  }, [permission, prefs, requestPermission]);
+  }, [permission, prefs, requestBasicPermission, requestPushPermission]);
 
   const anyEnabled = prefs.prayers || prefs.duels || prefs.daily;
 
-  return { permission, prefs, supported, standalone, anyEnabled, toggle, subscribePush, requestPermission };
+  return { permission, prefs, supported, standalone, anyEnabled, toggle, subscribePush };
 }

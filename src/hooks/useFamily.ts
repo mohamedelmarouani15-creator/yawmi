@@ -52,37 +52,70 @@ export function useFamily() {
   const [duels,          setDuels]          = useState<DuelData[]>([]);
   const [loading,        setLoading]        = useState(true);
 
-  // ── fetch daily challenge ─────────────────────────────────────
+  // ── fetch daily challenge (with local fallback) ───────────────
   const fetchOrCreateDaily = useCallback(async (familyId: string, myId: string) => {
     const today = new Date().toISOString().split("T")[0];
-    let { data: dc } = await supabase
-      .from("daily_challenges").select("*")
-      .eq("family_id", familyId).eq("date", today).maybeSingle();
+    const localKey = `yawmi_daily_${familyId}_${today}`;
 
-    if (!dc) {
-      const hard = QUESTIONS.filter(q => q.difficulty >= 3);
-      const q = hard[Math.floor(Math.random() * hard.length)];
-      const { data: created } = await supabase
-        .from("daily_challenges")
-        .insert({ family_id: familyId, date: today, question_id: q.id, responses: {} })
-        .select().single();
-      dc = created;
+    // Deterministic question per day (date-seeded, no randomness between reloads)
+    const hard = QUESTIONS.filter(q => q.difficulty >= 3);
+    const seed = today.split("-").reduce((acc, part) => acc + parseInt(part, 10), 0);
+    const localQuestion = hard[seed % hard.length];
+
+    // Load local answer cache
+    type LocalAnswer = { answerIdx: number; correct: boolean; answeredAt: string };
+    const localAnswerRaw = typeof window !== "undefined" ? localStorage.getItem(localKey) : null;
+    const localAnswer: LocalAnswer | null = localAnswerRaw ? JSON.parse(localAnswerRaw) : null;
+
+    // Try Supabase — if table doesn't exist or RLS blocks, fall through to local
+    try {
+      let { data: dc, error: fetchErr } = await supabase
+        .from("daily_challenges").select("*")
+        .eq("family_id", familyId).eq("date", today).maybeSingle();
+
+      if (fetchErr) throw fetchErr;
+
+      if (!dc) {
+        const { data: created, error: insertErr } = await supabase
+          .from("daily_challenges")
+          .insert({ family_id: familyId, date: today, question_id: localQuestion.id, responses: {} })
+          .select().single();
+        if (!insertErr) dc = created;
+      }
+
+      if (dc) {
+        const question = QUESTIONS.find(q => q.id === dc!.question_id) ?? localQuestion;
+        const responses = (dc.responses ?? {}) as Record<string, LocalAnswer>;
+        // Merge local answer if Supabase doesn't have it yet
+        const myRemoteAnswer = responses[myId] ?? localAnswer ?? null;
+        setDailyChallenge({ id: dc.id, date: dc.date, question, responses, myAnswer: myRemoteAnswer });
+        return;
+      }
+    } catch {
+      // Supabase table missing or RLS — use pure local fallback
     }
-    if (!dc) return;
 
-    const question = QUESTIONS.find(q => q.id === dc!.question_id);
-    if (!question) return;
-
-    const responses = (dc.responses ?? {}) as Record<string, { answerIdx: number; correct: boolean; answeredAt: string }>;
-    setDailyChallenge({ id: dc.id, date: dc.date, question, responses, myAnswer: responses[myId] ?? null });
+    // ── Local fallback (no Supabase table needed) ──────────────
+    setDailyChallenge({
+      id: `local_${familyId}_${today}`,
+      date: today,
+      question: localQuestion,
+      responses: localAnswer ? { [myId]: localAnswer } : {},
+      myAnswer: localAnswer,
+    });
   }, []);
 
-  // ── fetch duels ───────────────────────────────────────────────
+  // ── fetch duels (with fallback) ───────────────────────────────
   const fetchDuels = useCallback(async (myId: string, memberProfiles: { id: string; displayName: string | null }[]) => {
-    const { data } = await supabase.from("duels").select("*")
-      .or(`challenger_id.eq.${myId},challenged_id.eq.${myId}`)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false }).limit(10);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let data: any[] | null = null;
+    try {
+      const res = await supabase.from("duels").select("*")
+        .or(`challenger_id.eq.${myId},challenged_id.eq.${myId}`)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false }).limit(10);
+      data = res.data;
+    } catch { return; } // table missing — no duels to show
     if (!data) return;
     const getName = (id: string) => memberProfiles.find(p => p.id === id)?.displayName ?? "Membre";
     setDuels(data.map(d => ({
@@ -211,9 +244,23 @@ export function useFamily() {
     const correct = dailyChallenge.question.options[answerIdx]?.correct ?? false;
     const response = { answerIdx, correct, answeredAt: new Date().toISOString() };
     const newResponses = { ...dailyChallenge.responses, [user.id]: response };
-    await supabase.from("daily_challenges").update({ responses: newResponses }).eq("id", dailyChallenge.id);
+
+    // Always save locally first (works without Supabase table)
+    const today = new Date().toISOString().split("T")[0];
+    if (family) {
+      localStorage.setItem(`yawmi_daily_${family.id}_${today}`, JSON.stringify(response));
+    }
+
+    // Try Supabase (will fail silently if table missing)
+    if (!dailyChallenge.id.startsWith("local_")) {
+      try {
+        await supabase.from("daily_challenges")
+          .update({ responses: newResponses }).eq("id", dailyChallenge.id);
+      } catch { /* table missing — local save is enough */ }
+    }
+
     setDailyChallenge(p => p ? { ...p, responses: newResponses, myAnswer: response } : null);
-  }, [dailyChallenge, user]);
+  }, [dailyChallenge, user, family]);
 
   // ── createDuel ────────────────────────────────────────────────
   const createDuel = useCallback(async (challengedId: string): Promise<boolean> => {

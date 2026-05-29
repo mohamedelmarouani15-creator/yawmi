@@ -324,38 +324,113 @@ export default function FamillePage() {
                     {/* Options */}
                     {!dailyChallenge.myAnswer ? (
                       <div className="flex flex-col gap-2">
-                        {dailyChallenge.question.options.map((opt, idx) => (
-                          <motion.button key={idx}
-                            onClick={() => handleDailyAnswer(idx)}
-                            disabled={dailyAnswer !== null}
-                            whileTap={{ scale: 0.97 }} transition={springTap}
-                            className="flex items-center gap-3 rounded-xl border px-4 py-3 text-left"
-                            style={{
-                              background: dailyAnswer === idx ? (opt.correct ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)") : "rgba(255,255,255,0.03)",
-                              borderColor: dailyAnswer === idx ? (opt.correct ? "rgba(74,222,128,0.4)" : "rgba(248,113,113,0.4)") : "rgba(255,255,255,0.08)",
-                            }}>
-                            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                              style={{ background: "rgba(255,255,255,0.06)", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-                              {["A","B","C","D"][idx]}
-                            </span>
-                            <span className="text-sm" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-                              {opt.text}
-                            </span>
-                            {dailyAnswer !== null && dailyAnswer === idx && (
-                              opt.correct
+                        {dailyChallenge.question.options.map((opt, idx) => {
+                          const pending = dailyAnswer === idx; // optimistic during this session
+                          return (
+                            <motion.button key={idx}
+                              onClick={() => !dailyAnswer && handleDailyAnswer(idx)}
+                              disabled={dailyAnswer !== null}
+                              whileTap={{ scale: 0.97 }} transition={springTap}
+                              className="flex items-center gap-3 rounded-xl border px-4 py-3 text-left"
+                              style={{
+                                background: pending ? (opt.correct ? "rgba(74,222,128,0.12)" : "rgba(248,113,113,0.12)") : "rgba(255,255,255,0.03)",
+                                borderColor: pending ? (opt.correct ? "rgba(74,222,128,0.4)" : "rgba(248,113,113,0.4)") : "rgba(255,255,255,0.08)",
+                              }}>
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                                style={{ background: "rgba(255,255,255,0.06)", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                                {["A","B","C","D"][idx]}
+                              </span>
+                              <span className="text-sm" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                                {opt.text}
+                              </span>
+                              {pending && (opt.correct
                                 ? <CheckCircle2 size={16} style={{ color: "#4ade80", marginLeft: "auto" }} />
                                 : <XCircle size={16} style={{ color: "#f87171", marginLeft: "auto" }} />
-                            )}
-                          </motion.button>
-                        ))}
+                              )}
+                            </motion.button>
+                          );
+                        })}
                       </div>
                     ) : (
-                      <div className="rounded-xl p-3 text-center"
-                        style={{ background: dailyChallenge.myAnswer.correct ? "rgba(74,222,128,0.1)" : "rgba(248,113,113,0.1)" }}>
-                        {dailyChallenge.myAnswer.correct
-                          ? <p className="text-sm font-semibold" style={{ color: "#4ade80", fontFamily: "var(--font-dm-sans)" }}>✓ Bonne réponse !</p>
-                          : <p className="text-sm font-semibold" style={{ color: "#f87171", fontFamily: "var(--font-dm-sans)" }}>✗ Mauvaise réponse</p>
-                        }
+                      /* ── Résultat : toutes les options révélées ── */
+                      <div className="flex flex-col gap-2">
+                        {/* Verdict */}
+                        <div className="flex items-center gap-2 rounded-xl px-4 py-2.5 mb-1"
+                          style={{ background: dailyChallenge.myAnswer.correct ? "rgba(74,222,128,0.1)" : "rgba(248,113,113,0.1)" }}>
+                          {dailyChallenge.myAnswer.correct
+                            ? <CheckCircle2 size={16} style={{ color: "#4ade80" }} />
+                            : <XCircle size={16} style={{ color: "#f87171" }} />
+                          }
+                          <p className="text-sm font-bold"
+                            style={{ color: dailyChallenge.myAnswer.correct ? "#4ade80" : "#f87171", fontFamily: "var(--font-dm-sans)" }}>
+                            {dailyChallenge.myAnswer.correct ? "Bonne réponse !" : "Mauvaise réponse…"}
+                          </p>
+                        </div>
+
+                        {/* Toutes les options avec correction */}
+                        {dailyChallenge.question.options.map((opt, idx) => {
+                          const wasSelected = dailyChallenge.myAnswer?.answerIdx === idx;
+                          const isCorrect   = opt.correct;
+                          let bg = "rgba(255,255,255,0.02)";
+                          let border = "rgba(255,255,255,0.06)";
+                          let textColor = "rgba(248,244,236,0.45)";
+                          let icon = null;
+                          if (isCorrect) {
+                            bg = "rgba(74,222,128,0.09)";
+                            border = "rgba(74,222,128,0.35)";
+                            textColor = "#4ade80";
+                            icon = <CheckCircle2 size={15} style={{ color: "#4ade80", flexShrink: 0 }} />;
+                          } else if (wasSelected && !isCorrect) {
+                            bg = "rgba(248,113,113,0.09)";
+                            border = "rgba(248,113,113,0.35)";
+                            textColor = "#f87171";
+                            icon = <XCircle size={15} style={{ color: "#f87171", flexShrink: 0 }} />;
+                          }
+                          return (
+                            <div key={idx} className="flex items-center gap-3 rounded-xl border px-4 py-3"
+                              style={{ background: bg, borderColor: border }}>
+                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                                style={{ background: "rgba(255,255,255,0.05)", color: textColor, fontFamily: "var(--font-dm-sans)" }}>
+                                {["A","B","C","D"][idx]}
+                              </span>
+                              <span className="flex-1 text-sm font-medium"
+                                style={{ color: textColor, fontFamily: "var(--font-dm-sans)" }}>
+                                {opt.text}
+                              </span>
+                              {icon}
+                            </div>
+                          );
+                        })}
+
+                        {/* Explication */}
+                        {dailyChallenge.question.explanation && (
+                          <div className="rounded-xl border px-4 py-3 mt-1"
+                            style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.08)" }}>
+                            <p className="text-xs font-semibold mb-1"
+                              style={{ color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-dm-sans)", letterSpacing: "0.05em" }}>
+                              EXPLICATION
+                            </p>
+                            <p className="text-sm leading-relaxed"
+                              style={{ color: "rgba(248,244,236,0.8)", fontFamily: "var(--font-dm-sans)" }}>
+                              {dailyChallenge.question.explanation}
+                            </p>
+                          </div>
+                        )}
+
+                        {/* Capsule culturelle */}
+                        {dailyChallenge.question.culturalCapsule && (
+                          <div className="rounded-xl border px-4 py-3 mt-1"
+                            style={{ background: "rgba(212,175,55,0.06)", borderColor: "rgba(212,175,55,0.2)" }}>
+                            <p className="text-xs font-semibold mb-1.5"
+                              style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                              ✦ {dailyChallenge.question.culturalCapsule.title}
+                            </p>
+                            <p className="text-sm leading-relaxed"
+                              style={{ color: "rgba(248,244,236,0.75)", fontFamily: "var(--font-dm-sans)" }}>
+                              {dailyChallenge.question.culturalCapsule.text}
+                            </p>
+                          </div>
+                        )}
                       </div>
                     )}
 

@@ -17,7 +17,17 @@ import {
 } from "@/lib/escape3d/escape-settings";
 import type { EscapeSettings } from "@/lib/escape3d/escape-settings";
 import EscapeSettingsPanel from "./EscapeSettingsPanel";
+import EscapeIntro from "./EscapeIntro";
+import EscapeTimer, { GameOver } from "./EscapeTimer";
+import RoomMap from "./RoomMap";
+import ObjectCloseup from "./ObjectCloseup";
 import { useEscapeAudio } from "./useEscapeAudio";
+import {
+  loadProgress, saveProgress, resetProgress,
+  isComplete, grantReward, loadFromSupabase,
+  PUZZLE_IDS,
+} from "@/lib/escape3d/riad-progress";
+import type { RiadProgress } from "@/lib/escape3d/riad-progress";
 
 // ── Positions caméra (hauteur œil) par pièce ──────────────────────
 // Caméras placées près de l'entrée, regardant DANS la pièce (vers le mur du fond)
@@ -192,23 +202,66 @@ function CameraController({ yawRef, pitchRef, yawVelRef, pitchVelRef, currentRef
 // ── Scène principale ──────────────────────────────────────────────
 export default function RiadScene() {
   const [room,      setRoom]      = useState<RoomId>("courtyard");
+  const [closeup,   setCloseup]   = useState<string | null>(null); // objet examiné
   const [puzzle,    setPuzzle]    = useState<string | null>(null);
-  const [solved,    setSolved]    = useState<Record<string, boolean>>({});
   const [traveling, setTraveling] = useState(false);
   const [hint,      setHint]      = useState(true);
   const [fadeOpacity, setFadeOpacity] = useState(0);
   const [fadeLabel,   setFadeLabel]   = useState("");
   const [settings, setSettings]   = useState<EscapeSettings>(() => loadEscapeSettings());
+  const [progress, setProgress]   = useState<RiadProgress>(() => loadProgress());
+  const [gameOver, setGameOver]   = useState(false);
+
+  const solved = progress.solved;
+  const allDone = isComplete(progress);
 
   const audio = useEscapeAudio();
 
-  // Applique les changements de réglages immédiatement
+  // Sync depuis Supabase au montage
+  useEffect(() => {
+    loadFromSupabase().then(remote => {
+      if (!remote) return;
+      setProgress(prev => {
+        const merged: RiadProgress = {
+          ...prev,
+          solved:      { ...prev.solved, ...remote.solved },
+          startedAt:   prev.startedAt   ?? remote.startedAt   ?? null,
+          completedAt: prev.completedAt ?? remote.completedAt ?? null,
+        };
+        saveProgress(merged);
+        return merged;
+      });
+    });
+  }, []);
+
+  // Appliquer les récompenses dès que complété
+  useEffect(() => {
+    if (allDone && !progress.rewarded) {
+      setProgress(prev => grantReward(prev));
+    }
+  }, [allDone, progress.rewarded]);
+
   const handleSettings = useCallback((s: EscapeSettings) => {
     setSettings(s);
     saveEscapeSettings(s);
     audio.setAmbientVolume(s.ambientVolume);
     audio.setUIVolume(s.uiVolume);
   }, [audio]);
+
+  const handleStart = useCallback(() => {
+    const now = Date.now();
+    setProgress(prev => {
+      const updated = { ...prev, startedAt: now };
+      saveProgress(updated);
+      return updated;
+    });
+  }, []);
+
+  const handleRestart = useCallback(() => {
+    setProgress(resetProgress());
+    setRoom("courtyard");
+    setGameOver(false);
+  }, []);
 
   const yawRef        = useRef(0);
   const pitchRef      = useRef(0);
@@ -247,24 +300,39 @@ export default function RiadScene() {
     setHint(false);
   }, [traveling, audio, settings]);
 
+  // Ouvrir l'examen d'objet (phase 1) puis le quiz (phase 2)
   const openPuzzle = useCallback((id: string) => {
-    if (!isDraggingRef.current) {
+    if (!isDraggingRef.current && !solved[id]) {
       audio.init();
       vibrate(20, settings);
-      setPuzzle(id);
+      setCloseup(id);
     }
-  }, [audio, settings]);
+  }, [audio, settings, solved]);
+
+  const startQuiz = useCallback(() => {
+    if (closeup) { setPuzzle(closeup); setCloseup(null); }
+  }, [closeup]);
 
   const solve = (ok: boolean) => {
     if (ok) { audio.playSuccess(); vibrate([40, 30, 80], settings); }
     else    { audio.playFail();    vibrate(80, settings); }
-    if (puzzle && ok) setSolved(s => ({ ...s, [puzzle]: true }));
+    if (puzzle && ok) {
+      setProgress(prev => {
+        const updated = {
+          ...prev,
+          solved: { ...prev.solved, [puzzle]: true },
+          completedAt: PUZZLE_IDS.every(id => ({ ...prev.solved, [puzzle]: true })[id])
+            ? Date.now() : prev.completedAt,
+        };
+        saveProgress(updated);
+        return updated;
+      });
+    }
     setPuzzle(null);
   };
 
-  const pDef   = puzzle ? getPuzzleById(puzzle) : null;
-  const allDone = ["lantern_bismillah","library_iqra","salon_sabr","cuisine_honey","hammam_taharah"]
-    .every(id => solved[id]);
+  const pDef      = puzzle ? getPuzzleById(puzzle) : null;
+  const closeupDef = closeup ? getPuzzleById(closeup) : null;
 
   return (
     <div style={{ position: "absolute", inset: 0, touchAction: "none" }}>
@@ -355,97 +423,123 @@ export default function RiadScene() {
         </Suspense>
       </Canvas>
 
-      {/* Panel réglages */}
+      {/* ── HUD ─────────────────────────────────────────────────── */}
+
+      {/* Réglages */}
       <EscapeSettingsPanel settings={settings} onChange={handleSettings} />
 
-      {/* Nom de la pièce */}
+      {/* Nom pièce */}
       <p style={{
-        position: "absolute", top: 18, left: "50%", transform: "translateX(-50%)",
-        zIndex: 10, pointerEvents: "none",
-        color: "#D4AF37", opacity: 0.6, fontSize: 10,
-        letterSpacing: "0.2em", textTransform: "uppercase",
-        fontFamily: "var(--font-dm-sans)", whiteSpace: "nowrap",
+        position:"absolute", top:18, left:"50%", transform:"translateX(-50%)",
+        zIndex:10, pointerEvents:"none",
+        color:"#D4AF37", opacity:0.6, fontSize:10,
+        letterSpacing:"0.2em", textTransform:"uppercase",
+        fontFamily:"var(--font-dm-sans)", whiteSpace:"nowrap",
       }}>
         {ROOM_NAMES[room]}
       </p>
 
-      {/* Dots énigmes */}
-      <div style={{ position: "absolute", top: 18, right: 18, zIndex: 10, display: "flex", gap: 6 }}>
-        {["lantern_bismillah","library_iqra","salon_sabr","cuisine_honey","hammam_taharah"].map(id => (
-          <div key={id} style={{
-            width: 7, height: 7, borderRadius: "50%",
-            background: solved[id] ? "#05C36F" : "rgba(212,175,55,0.28)",
-            boxShadow: solved[id] ? "0 0 6px #05C36F" : "none",
-            transition: "all 0.4s",
-          }} />
-        ))}
-      </div>
-
-      {/* Indice initial */}
-      {hint && (
-        <p style={{
-          position: "absolute", bottom: 36, left: "50%", transform: "translateX(-50%)",
-          zIndex: 10, pointerEvents: "none",
-          color: "rgba(212,175,55,0.5)", fontSize: 10, letterSpacing: "0.14em",
-          textTransform: "uppercase", fontFamily: "var(--font-dm-sans)", whiteSpace: "nowrap",
-          animation: "fadeOut 1s 3s forwards",
-        }}>
-          Glisse pour regarder · Touche les portes pour entrer
-        </p>
+      {/* Timer */}
+      {progress.startedAt && !allDone && !gameOver && (
+        <EscapeTimer
+          startedAt={progress.startedAt}
+          completedAt={progress.completedAt}
+          onTimeout={() => setGameOver(true)}
+        />
       )}
 
-      {/* Bouton retour */}
-      {room !== "courtyard" && !traveling && (
-        <button
-          onClick={() => goTo("courtyard")}
-          style={{
-            position: "absolute", bottom: 34, left: "50%", transform: "translateX(-50%)",
-            zIndex: 10,
-            background: "rgba(4,6,8,0.75)", border: "1px solid rgba(212,175,55,0.28)",
-            borderRadius: 24, padding: "9px 20px",
-            color: "#D4AF37", fontSize: 10, letterSpacing: "0.14em",
-            textTransform: "uppercase", fontFamily: "var(--font-dm-sans)",
-            cursor: "pointer", backdropFilter: "blur(10px)",
-          }}>
-          ← Cour centrale
-        </button>
+      {/* Minimap */}
+      {progress.startedAt && (
+        <RoomMap currentRoom={room} solved={solved} />
       )}
 
-      {/* Victoire */}
-      {allDone && (
-        <div style={{
-          position: "absolute", bottom: 90, left: 16, right: 16, zIndex: 10,
-          background: "rgba(5,92,63,0.96)", border: "1px solid rgba(5,195,111,0.55)",
-          borderRadius: 20, padding: "18px 24px", textAlign: "center",
-          backdropFilter: "blur(12px)",
-        }}>
-          <p style={{ color: "#D4AF37", fontSize: 16, fontFamily: "var(--font-dm-sans)", fontWeight: 600 }}>
-            🌙 Le riad a livré tous ses secrets
-          </p>
-          <p style={{ color: "#F8F4EC", fontSize: 12, opacity: 0.7, marginTop: 5,
-            fontFamily: "var(--font-dm-sans)" }}>
-            5 énigmes résolues — la famille s&apos;échappe
-          </p>
-        </div>
-      )}
-
-      {/* Indicateur centre écran — visible dans les pièces */}
-      {room !== "courtyard" && !puzzle && (
+      {/* Crosshair */}
+      {room !== "courtyard" && !puzzle && !closeup && (
         <div style={{
           position:"absolute", top:"50%", left:"50%",
           transform:"translate(-50%,-50%)",
           zIndex:8, pointerEvents:"none",
           width:6, height:6, borderRadius:"50%",
-          background:"rgba(212,175,55,0.7)",
-          boxShadow:"0 0 8px rgba(212,175,55,0.5)",
+          background:"rgba(212,175,55,0.65)",
+          boxShadow:"0 0 8px rgba(212,175,55,0.45)",
         }} />
       )}
 
-      {/* Modal énigme */}
+      {/* Indice swipe */}
+      {hint && progress.startedAt && (
+        <p style={{
+          position:"absolute", bottom:80, left:"50%", transform:"translateX(-50%)",
+          zIndex:10, pointerEvents:"none",
+          color:"rgba(212,175,55,0.5)", fontSize:10, letterSpacing:"0.14em",
+          textTransform:"uppercase", fontFamily:"var(--font-dm-sans)", whiteSpace:"nowrap",
+          animation:"fadeOut 1s 3s forwards",
+        }}>
+          Glisse pour regarder · Touche les portes
+        </p>
+      )}
+
+      {/* Retour cour */}
+      {room !== "courtyard" && !traveling && (
+        <button
+          onClick={() => goTo("courtyard")}
+          style={{
+            position:"absolute", bottom:28, left:"50%", transform:"translateX(-50%)",
+            zIndex:10,
+            background:"rgba(4,6,8,0.75)", border:"1px solid rgba(212,175,55,0.28)",
+            borderRadius:24, padding:"9px 20px",
+            color:"#D4AF37", fontSize:10, letterSpacing:"0.14em",
+            textTransform:"uppercase", fontFamily:"var(--font-dm-sans)",
+            cursor:"pointer", backdropFilter:"blur(10px)",
+          }}>
+          ← Cour centrale
+        </button>
+      )}
+
+      {/* ── Écrans de fin ──────────────────────────────────────── */}
+
+      {/* Victoire */}
+      {allDone && (
+        <div style={{
+          position:"absolute", bottom:80, left:16, right:16, zIndex:10,
+          background:"rgba(5,92,63,0.96)", border:"1px solid rgba(5,195,111,0.55)",
+          borderRadius:20, padding:"18px 24px", textAlign:"center",
+          backdropFilter:"blur(12px)",
+        }}>
+          <p style={{ color:"#D4AF37", fontSize:16, fontFamily:"var(--font-dm-sans)", fontWeight:600 }}>
+            🌙 Le riad a livré tous ses secrets !
+          </p>
+          <p style={{ color:"#F8F4EC", fontSize:12, opacity:0.7, marginTop:5, fontFamily:"var(--font-dm-sans)" }}>
+            +{350} XP · +{120} 🪙 · 1 📦 ajoutés à ton profil
+          </p>
+        </div>
+      )}
+
+      {/* Game over */}
+      {gameOver && !allDone && (
+        <GameOver onRestart={handleRestart} />
+      )}
+
+      {/* ── Modals ─────────────────────────────────────────────── */}
+
+      {/* Examen objet (phase 1) */}
+      {closeupDef && !puzzle && (
+        <ObjectCloseup
+          puzzle={closeupDef}
+          onSolve={startQuiz}
+          onClose={() => setCloseup(null)}
+        />
+      )}
+
+      {/* Quiz (phase 2) */}
       {pDef && (
-        <div style={{ position: "fixed", inset: 0, zIndex: 50 }}>
+        <div style={{ position:"fixed", inset:0, zIndex:50 }}>
           <PuzzleModal puzzle={pDef} onSolve={solve} onClose={() => setPuzzle(null)} />
         </div>
+      )}
+
+      {/* ── Écran d'intro ──────────────────────────────────────── */}
+      {!progress.startedAt && (
+        <EscapeIntro onStart={handleStart} />
       )}
 
       <style>{`

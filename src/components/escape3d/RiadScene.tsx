@@ -11,6 +11,7 @@ import PuzzleModal from "./PuzzleModal";
 import { getPuzzleById } from "@/lib/escape3d/puzzles";
 import { ROOM_NAMES } from "@/lib/escape3d/bounds";
 import type { RoomId } from "@/lib/escape3d/bounds";
+import { useEscapeAudio } from "./useEscapeAudio";
 
 // ── Positions caméra (hauteur œil) par pièce ──────────────────────
 // Caméras placées près de l'entrée, regardant DANS la pièce (vers le mur du fond)
@@ -113,8 +114,8 @@ function InputHandler({ yawVelRef, pitchVelRef, isDraggingRef }: {
         isDraggingRef.current = true;
       if (isDraggingRef.current) {
         // Accumule la vélocité proportionnellement au mouvement
-        yawVelRef.current   -= (e.clientX - lx) * 0.0055;
-        pitchVelRef.current += (e.clientY - ly) * 0.004;
+        yawVelRef.current   -= (e.clientX - lx) * 0.003;
+        pitchVelRef.current += (e.clientY - ly) * 0.003;
       }
       lx = e.clientX; ly = e.clientY;
     }
@@ -149,8 +150,8 @@ function CameraController({ yawRef, pitchRef, yawVelRef, pitchVelRef, currentRef
   currentRef:  React.RefObject<RoomId>;
 }) {
   useFrame(({ camera }, dt) => {
-    // Decay de l'inertie (frame-rate independent) — 0.88^(dt*60)
-    const decay = Math.pow(0.88, dt * 60);
+    // Decay de l'inertie (frame-rate independent) — 0.92^(dt*60)
+    const decay = Math.pow(0.92, dt * 60);
     yawVelRef.current   *= decay;
     pitchVelRef.current *= decay;
 
@@ -189,6 +190,9 @@ export default function RiadScene() {
   const [traveling, setTraveling] = useState(false);
   const [hint,      setHint]      = useState(true);
   const [fadeOpacity, setFadeOpacity] = useState(0);
+  const [fadeLabel,   setFadeLabel]   = useState("");
+
+  const audio = useEscapeAudio();
 
   const yawRef        = useRef(0);
   const pitchRef      = useRef(0);
@@ -206,32 +210,31 @@ export default function RiadScene() {
   // Transition fade-to-black + téléportation instantanée
   const goTo = useCallback((dest: RoomId) => {
     if (traveling || isDraggingRef.current) return;
+    audio.init();  // init au premier tap (browser policy)
+    audio.playFootstep();
+    yawRef.current      = ROOM_VIEWS[dest].yaw;
+    pitchRef.current    = 0;
+    yawVelRef.current   = 0;
+    pitchVelRef.current = 0;
+    setFadeOpacity(1);
+    setTimeout(() => {
+      currentRef.current = dest;
+      audio.changeRoom(dest);
+      setRoom(dest);
+      setTraveling(false);
+      setFadeLabel(ROOM_NAMES[dest]);
+      setTimeout(() => setFadeOpacity(0), 80);
+    }, 300);
     setTraveling(true);
     setHint(false);
-    setFadeOpacity(1);
-
-    setTimeout(() => {
-      // Téléportation instantanée
-      currentRef.current = dest;
-      yawRef.current     = ROOM_VIEWS[dest].yaw;
-      pitchRef.current   = 0;
-      yawVelRef.current  = 0;
-      pitchVelRef.current = 0;
-      setRoom(dest);
-
-      // Fade back (transition CSS 500ms)
-      requestAnimationFrame(() => {
-        setFadeOpacity(0);
-        setTimeout(() => setTraveling(false), 520);
-      });
-    }, 300);
-  }, [traveling]);
+  }, [traveling, audio]);
 
   const openPuzzle = useCallback((id: string) => {
-    if (!isDraggingRef.current) setPuzzle(id);
-  }, []);
+    if (!isDraggingRef.current) { audio.init(); setPuzzle(id); }
+  }, [audio]);
 
   const solve = (ok: boolean) => {
+    if (ok) audio.playSuccess(); else audio.playFail();
     if (puzzle && ok) setSolved(s => ({ ...s, [puzzle]: true }));
     setPuzzle(null);
   };
@@ -249,15 +252,20 @@ export default function RiadScene() {
         background: "radial-gradient(ellipse at center, transparent 58%, rgba(0,0,0,0.52) 100%)",
       }} />
 
-      {/* Overlay fade-to-black */}
+      {/* Overlay fade-to-black avec nom de pièce */}
       <div style={{
-        position: "absolute", inset: 0, zIndex: 3, pointerEvents: "none",
-        background: "rgba(0,0,0,1)",
+        position:"absolute", inset:0, zIndex:3, pointerEvents:"none",
+        background:"rgba(0,0,0,1)",
         opacity: fadeOpacity,
-        transition: fadeOpacity === 1
-          ? "opacity 0.3s ease-in"
-          : "opacity 0.5s ease-out",
-      }} />
+        transition: fadeOpacity===1 ? "opacity 0.3s ease-in" : "opacity 0.5s ease-out",
+        display:"flex", alignItems:"center", justifyContent:"center",
+      }}>
+        {fadeOpacity > 0.5 && fadeLabel && (
+          <p style={{ color:"#D4AF37", fontSize:11, letterSpacing:"0.25em", textTransform:"uppercase", fontFamily:"var(--font-dm-sans)", opacity:0.8 }}>
+            {fadeLabel}
+          </p>
+        )}
+      </div>
 
       <Canvas
         camera={{ position: [0, 1.6, 0.5], fov: 80, near: 0.05, far: 80 }}
@@ -392,6 +400,18 @@ export default function RiadScene() {
             5 énigmes résolues — la famille s&apos;échappe
           </p>
         </div>
+      )}
+
+      {/* Indicateur centre écran — visible dans les pièces */}
+      {room !== "courtyard" && !puzzle && (
+        <div style={{
+          position:"absolute", top:"50%", left:"50%",
+          transform:"translate(-50%,-50%)",
+          zIndex:8, pointerEvents:"none",
+          width:6, height:6, borderRadius:"50%",
+          background:"rgba(212,175,55,0.7)",
+          boxShadow:"0 0 8px rgba(212,175,55,0.5)",
+        }} />
       )}
 
       {/* Modal énigme */}

@@ -1310,6 +1310,416 @@ export const QUESTIONS: Question[] = [
     options: [{ text: "Al-Ikhlas", correct: false }, { text: "Al-Falaq", correct: false }, { text: "An-Nas", correct: true }, { text: "Al-Kawthar", correct: false }],
     explanation: "An-Nas (Les Hommes, sourate 114) est la dernière sourate. Avec Al-Falaq, elles forment les 'Mu'awwidhatain' — les deux sourates de refuge.",
   },
+
+  // ── DRAG & DROP — remettre dans l'ordre ──────────────────────
+  {
+    id: "drag_001", category: "religion", type: "drag_drop", difficulty: 2,
+    question: "Remets les piliers de l'Islam dans l'ordre canonique",
+    options: [
+      { text: "Shahada (Témoignage)", correct: false, position: 0 },
+      { text: "Salat (Prière)", correct: false, position: 1 },
+      { text: "Zakat (Aumône)", correct: false, position: 2 },
+      { text: "Sawm (Jeûne)", correct: false, position: 3 },
+      { text: "Hajj (Pèlerinage)", correct: false, position: 4 },
+    ],
+    minigameData: { items: ["Sawm (Jeûne)", "Hajj (Pèlerinage)", "Shahada (Témoignage)", "Salat (Prière)", "Zakat (Aumône)"] },
+  },
+  {
+    id: "drag_002", category: "history", type: "drag_drop", difficulty: 2,
+    question: "Remets les 4 califes bien guidés dans l'ordre chronologique",
+    options: [
+      { text: "Abu Bakr", correct: false, position: 0 },
+      { text: "Omar ibn al-Khattab", correct: false, position: 1 },
+      { text: "Othman ibn Affan", correct: false, position: 2 },
+      { text: "Ali ibn Abi Talib", correct: false, position: 3 },
+    ],
+    minigameData: { items: ["Ali ibn Abi Talib", "Abu Bakr", "Othman ibn Affan", "Omar ibn al-Khattab"] },
+  },
+  {
+    id: "drag_003", category: "religion", type: "drag_drop", difficulty: 3,
+    question: "Remets les mois du calendrier hijri dans l'ordre (les 4 premiers)",
+    options: [
+      { text: "Mouharram", correct: false, position: 0 },
+      { text: "Safar", correct: false, position: 1 },
+      { text: "Rabi al-Awwal", correct: false, position: 2 },
+      { text: "Rabi al-Thani", correct: false, position: 3 },
+    ],
+    minigameData: { items: ["Rabi al-Thani", "Mouharram", "Rabi al-Awwal", "Safar"] },
+  },
+  {
+    id: "drag_004", category: "quran", type: "drag_drop", difficulty: 2,
+    question: "Remets dans l'ordre les sourates du Coran par numéro (les 4 premières)",
+    options: [
+      { text: "Al-Fatiha (1)", correct: false, position: 0 },
+      { text: "Al-Baqara (2)", correct: false, position: 1 },
+      { text: "Al-Imran (3)", correct: false, position: 2 },
+      { text: "An-Nisa (4)", correct: false, position: 3 },
+    ],
+    minigameData: { items: ["An-Nisa (4)", "Al-Baqara (2)", "Al-Fatiha (1)", "Al-Imran (3)"] },
+  },
+  {
+    id: "drag_005", category: "arabic", type: "drag_drop", difficulty: 3,
+    question: "Remets les lettres de l'alphabet arabe dans l'ordre (les 4 premières)",
+    options: [
+      { text: "ا (Alif)", correct: false, position: 0 },
+      { text: "ب (Ba)", correct: false, position: 1 },
+      { text: "ت (Ta)", correct: false, position: 2 },
+      { text: "ث (Tha)", correct: false, position: 3 },
+    ],
+    minigameData: { items: ["ت (Ta)", "ب (Ba)", "ث (Tha)", "ا (Alif)"] },
+  },
+
+  // ── FILL VERSE — compléter le verset ─────────────────────────
+  {
+    id: "fill_001", category: "quran", type: "fill_verse", difficulty: 2,
+    question: "بِسْمِ اللَّهِ ___ الرَّحِيمِ",
+    options: [
+      { text: "الرَّحْمَنِ", correct: true },
+      { text: "الْكَرِيمِ", correct: false },
+      { text: "الْعَظِيمِ", correct: false },
+      { text: "الْحَلِيمِ", correct: false },
+    ],
+    minigameData: { verse: "بِسْمِ اللَّهِ ___ الرَّحِيمِ" },
+    explanation: "La Basmala complète : 'Bismi Allahi ar-Rahmani ar-Rahimi' — Au nom d'Allah, le Tout Miséricordieux, le Très Miséricordieux.",
+  },
+  {
+    id: "fill_002", category: "quran", type: "fill_verse", difficulty: 2,
+    question: "الْحَمْدُ لِلَّهِ ___ الْعَالَمِينَ",
+    options: [
+      { text: "رَبِّ", correct: true },
+      { text: "مَالِكِ", correct: false },
+      { text: "إِلَٰهِ", correct: false },
+      { text: "نُورِ", correct: false },
+    ],
+    minigameData: { verse: "الْحَمْدُ لِلَّهِ ___ الْعَالَمِينَ" },
+    explanation: "Al-Fatiha 1:2 — 'Louange à Allah, Seigneur des mondes'",
+  },
+  {
+    id: "fill_003", category: "quran", type: "fill_verse", difficulty: 3,
+    question: "قُلْ هُوَ اللَّهُ ___",
+    options: [
+      { text: "أَحَدٌ", correct: true },
+      { text: "عَظِيمٌ", correct: false },
+      { text: "كَرِيمٌ", correct: false },
+      { text: "وَاحِدٌ", correct: false },
+    ],
+    minigameData: { verse: "قُلْ هُوَ اللَّهُ ___" },
+    explanation: "Al-Ikhlas 112:1 — 'Dis : Il est Allah, l'Unique.'",
+    culturalCapsule: {
+      title: "Sourate Al-Ikhlas — un tiers du Coran",
+      text: "Le Prophète ﷺ a dit que cette sourate vaut un tiers du Coran en terme de récompense. Elle définit le Tawhid en 4 versets : unicité, éternité, sans père ni fils, sans égal.",
+    },
+  },
+  {
+    id: "fill_004", category: "religion", type: "fill_verse", difficulty: 2,
+    question: "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ وَإِنَّمَا لِكُلِّ امْرِئٍ ___",
+    options: [
+      { text: "مَا نَوَى", correct: true },
+      { text: "مَا عَمِلَ", correct: false },
+      { text: "مَا قَصَدَ", correct: false },
+      { text: "مَا أَرَادَ", correct: false },
+    ],
+    minigameData: { verse: "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ وَإِنَّمَا لِكُلِّ امْرِئٍ ___" },
+    explanation: "Premier hadith de Boukhâri et Mouslim : 'Les actes ne valent que par les intentions, et chacun n'obtiendra que ce qu'il a eu l'intention de faire.'",
+  },
+  {
+    id: "fill_005", category: "quran", type: "fill_verse", difficulty: 3,
+    question: "وَمَا خَلَقْتُ الْجِنَّ وَالْإِنسَ إِلَّا ___",
+    options: [
+      { text: "لِيَعْبُدُونِ", correct: true },
+      { text: "لِيُؤْمِنُوا", correct: false },
+      { text: "لِيَعْلَمُوا", correct: false },
+      { text: "لِيَشْكُرُوا", correct: false },
+    ],
+    minigameData: { verse: "وَمَا خَلَقْتُ الْجِنَّ وَالْإِنسَ إِلَّا ___" },
+    explanation: "Adh-Dhariyat 51:56 — 'Je n'ai créé les djinns et les hommes que pour qu'ils M'adorent.'",
+  },
+
+  // ── WHO AM I — personnages historiques ───────────────────────
+  {
+    id: "who_001", category: "history", type: "who_am_i", difficulty: 3,
+    question: "Qui suis-je ? (indice 1)",
+    options: [
+      { text: "Al-Khwarizmi", correct: true },
+      { text: "Ibn Sina", correct: false },
+      { text: "Al-Idrissi", correct: false },
+      { text: "Ibn Rushd", correct: false },
+    ],
+    minigameData: {
+      clues: [
+        "Je suis né en Ouzbékistan vers 780 ap. J-C.",
+        "J'ai travaillé à la Maison de la Sagesse de Bagdad.",
+        "Mon nom donné en latin est devenu le mot 'algorithme'.",
+        "Mon traité 'Al-jabr wa-l-muqabala' a donné le mot 'algèbre'.",
+      ],
+    },
+    culturalCapsule: {
+      title: "Al-Khwarizmi — père des mathématiques modernes",
+      text: "Muhammad ibn Musa al-Khwarizmi (780-850) a révolutionné les mathématiques avec l'algèbre et la généralisation du système décimal indien en Europe. Son nom latinisé 'Algoritmi' a donné 'algorithme' — le mot fondateur de l'informatique moderne.",
+    },
+  },
+  {
+    id: "who_002", category: "history", type: "who_am_i", difficulty: 3,
+    question: "Qui suis-je ? (indice 1)",
+    options: [
+      { text: "Ibn Battuta", correct: true },
+      { text: "Al-Idrissi", correct: false },
+      { text: "Ibn Khaldoun", correct: false },
+      { text: "Mansa Musa", correct: false },
+    ],
+    minigameData: {
+      clues: [
+        "Je suis né à Tanger au Maroc en 1304.",
+        "J'ai voyagé pendant 29 ans sans interruption.",
+        "J'ai parcouru plus de 120 000 km, soit plus que Marco Polo.",
+        "Mon livre de voyage s'appelle 'La Rihla' (le voyage).",
+      ],
+    },
+    culturalCapsule: {
+      title: "Ibn Battuta — le plus grand voyageur de l'histoire médiévale",
+      text: "Né à Tanger en 1304, Ibn Battuta parcourut l'Afrique, le Moyen-Orient, l'Inde, la Chine et le Mali. Ses récits détaillés dans la Rihla constituent une source historique inestimable sur le monde du XIVe siècle.",
+    },
+  },
+  {
+    id: "who_003", category: "history", type: "who_am_i", difficulty: 3,
+    question: "Qui suis-je ? (indice 1)",
+    options: [
+      { text: "Ibn Sina", correct: true },
+      { text: "Al-Razi", correct: false },
+      { text: "Ibn Rushd", correct: false },
+      { text: "Al-Khwarizmi", correct: false },
+    ],
+    minigameData: {
+      clues: [
+        "J'ai écrit mon premier livre de médecine à l'âge de 16 ans.",
+        "Les Latins m'appelaient 'Avicenne'.",
+        "J'ai rédigé le 'Canon de la médecine', utilisé en Europe jusqu'au XVIIe siècle.",
+        "Je suis né à Boukhara (Ouzbékistan actuel) en 980.",
+      ],
+    },
+    culturalCapsule: {
+      title: "Ibn Sina — prince des médecins",
+      text: "Abu Ali Sina (980-1037) fut médecin, philosophe, astronome et poète. Son Canon de la médecine (Al-Qanun fi't-Tibb) recense 760 médicaments et décrit de nombreuses maladies. Traduit en latin au XIIe siècle, il fut le manuel de référence des facultés de médecine européennes pendant 600 ans.",
+    },
+  },
+  {
+    id: "who_004", category: "religion", type: "who_am_i", difficulty: 2,
+    question: "Qui suis-je ? (indice 1)",
+    options: [
+      { text: "Omar ibn al-Khattab", correct: true },
+      { text: "Abu Bakr as-Siddiq", correct: false },
+      { text: "Ali ibn Abi Talib", correct: false },
+      { text: "Othman ibn Affan", correct: false },
+    ],
+    minigameData: {
+      clues: [
+        "Je suis le 2e calife bien guidé de l'Islam.",
+        "Je suis surnommé 'Al-Faruq' (celui qui distingue le vrai du faux).",
+        "Sous mon règne, l'Empire islamique s'est étendu jusqu'en Perse et en Égypte.",
+        "Le Prophète ﷺ a dit : 'Si un prophète venait après moi, ce serait Omar'.",
+      ],
+    },
+  },
+  {
+    id: "who_005", category: "history", type: "who_am_i", difficulty: 3,
+    question: "Qui suis-je ? (indice 1)",
+    options: [
+      { text: "Ibn Khaldoun", correct: true },
+      { text: "Ibn Battuta", correct: false },
+      { text: "Al-Idrissi", correct: false },
+      { text: "Ibn Rushd", correct: false },
+    ],
+    minigameData: {
+      clues: [
+        "Je suis né à Tunis en 1332.",
+        "J'ai servi comme ambassadeur auprès de Tamerlan en 1401.",
+        "Ma 'Muqaddima' est considérée comme le premier traité de sociologie.",
+        "J'ai développé la théorie de la 'Assabiyya' (cohésion sociale) pour expliquer la montée et la chute des civilisations.",
+      ],
+    },
+    culturalCapsule: {
+      title: "Ibn Khaldoun — père de la sociologie",
+      text: "Abd ar-Rahman ibn Khaldoun (1332-1406) fut le premier penseur à analyser scientifiquement les lois du changement social. Sa 'Assabiyya' (solidarité tribale) explique comment les empires naissent de l'esprit de groupe, prospèrent puis déclinent dans le luxe. Ses idées anticipent Montesquieu, Marx et Toynbee de 4 siècles.",
+    },
+  },
+
+  // ── MEMORY — trouver les paires ──────────────────────────────
+  {
+    id: "mem_001", category: "quran", type: "memory", difficulty: 2,
+    question: "Associe les sourates à leurs numéros",
+    options: [{ text: "memory", correct: true }],
+    minigameData: {
+      pairs: [
+        { front: "الفاتحة", back: "Sourate 1" },
+        { front: "البقرة", back: "Sourate 2" },
+        { front: "الإخلاص", back: "Sourate 112" },
+        { front: "الناس", back: "Sourate 114" },
+        { front: "يس", back: "Sourate 36" },
+        { front: "الكهف", back: "Sourate 18" },
+      ],
+    },
+  },
+  {
+    id: "mem_002", category: "history", type: "memory", difficulty: 3,
+    question: "Associe les savants à leurs spécialités",
+    options: [{ text: "memory", correct: true }],
+    minigameData: {
+      pairs: [
+        { front: "Al-Khwarizmi", back: "Algèbre & Maths" },
+        { front: "Ibn Sina", back: "Médecine" },
+        { front: "Ibn Khaldoun", back: "Sociologie" },
+        { front: "Al-Idrissi", back: "Cartographie" },
+        { front: "Ibn Rushd", back: "Philosophie" },
+        { front: "Ahmad Baba", back: "Manuscrits Tombouctou" },
+      ],
+    },
+  },
+  {
+    id: "mem_003", category: "religion", type: "memory", difficulty: 2,
+    question: "Associe les piliers de l'Islam à leur signification",
+    options: [{ text: "memory", correct: true }],
+    minigameData: {
+      pairs: [
+        { front: "الشهادة", back: "Témoignage de foi" },
+        { front: "الصلاة", back: "Prière 5x/jour" },
+        { front: "الزكاة", back: "Aumône légale" },
+        { front: "الصوم", back: "Jeûne du Ramadan" },
+        { front: "الحج", back: "Pèlerinage à La Mecque" },
+      ],
+    },
+  },
+  {
+    id: "mem_004", category: "arabic", type: "memory", difficulty: 2,
+    question: "Associe les lettres arabes à leur translittération",
+    options: [{ text: "memory", correct: true }],
+    minigameData: {
+      pairs: [
+        { front: "ا", back: "A (Alif)" },
+        { front: "ب", back: "B (Ba)" },
+        { front: "ج", back: "J (Jim)" },
+        { front: "د", back: "D (Dal)" },
+        { front: "ر", back: "R (Ra)" },
+        { front: "م", back: "M (Mim)" },
+      ],
+    },
+  },
+
+  // ── NOUVELLES MCQ — enrichissement ──────────────────────────
+  {
+    id: "rel_new_001", category: "religion", type: "mcq", difficulty: 2,
+    question: "Quel est le sens du mot 'Islam' en arabe ?",
+    options: [
+      { text: "Soumission à la volonté d'Allah", correct: true },
+      { text: "Paix universelle", correct: false },
+      { text: "Foi et dévotion", correct: false },
+      { text: "Chemin de vérité", correct: false },
+    ],
+    explanation: "Islam vient de la racine arabe S-L-M (سلم) qui signifie 'paix' et 'soumission'. Être musulman, c'est être en paix par la soumission à Allah.",
+  },
+  {
+    id: "rel_new_002", category: "religion", type: "mcq", difficulty: 3,
+    question: "Qu'est-ce que la 'Sunna' du Prophète ﷺ ?",
+    options: [
+      { text: "L'ensemble de ses paroles, actes et approbations tacites", correct: true },
+      { text: "Uniquement ses hadiths écrits", correct: false },
+      { text: "Les pratiques des compagnons uniquement", correct: false },
+      { text: "La deuxième source après le Coran", correct: false },
+    ],
+    explanation: "La Sunna englobe tout ce que le Prophète ﷺ a dit (qawl), fait (fi'l) ou approuvé silencieusement (taqrir). Elle est la deuxième source de droit islamique après le Coran.",
+  },
+  {
+    id: "his_new_001", category: "history", type: "mcq", difficulty: 2,
+    question: "L'Al-Qarawiyyin de Fès est considérée comme :",
+    options: [
+      { text: "La plus ancienne université au monde en activité", correct: true },
+      { text: "La plus grande mosquée d'Afrique", correct: false },
+      { text: "Le premier centre de calligraphie islamique", correct: false },
+      { text: "La principale madrasa almohade", correct: false },
+    ],
+    culturalCapsule: {
+      title: "Al-Qarawiyyin — la plus ancienne université du monde",
+      text: "Fondée en 859 à Fès par Fatima al-Fihri, une femme tunisienne, Al-Qarawiyyin est reconnue par le Guinness Book comme la plus ancienne université en activité continue. Ibn Khaldoun, Al-Idrissi et le pape Sylvestre II (qui introduisit les chiffres arabes en Europe) y ont étudié.",
+    },
+  },
+  {
+    id: "his_new_002", category: "history", type: "mcq", difficulty: 3,
+    question: "Qui a fondé Al-Qarawiyyin, la plus ancienne université du monde ?",
+    options: [
+      { text: "Fatima al-Fihri", correct: true },
+      { text: "Ibn Toumert", correct: false },
+      { text: "Moulay Idriss II", correct: false },
+      { text: "Al-Idrissi", correct: false },
+    ],
+    explanation: "Fatima al-Fihri (800-880), fille d'un riche marchand tunisien émigré à Fès, fonda Al-Qarawiyyin en 859 avec son héritage. Sa sœur Maryam fonda la mosquée des Andalous dans la même ville.",
+  },
+  {
+    id: "arabic_new_001", category: "arabic", type: "mcq", difficulty: 2,
+    question: "Comment dit-on 'merci' en arabe classique ?",
+    options: [
+      { text: "شُكْراً (Shukran)", correct: true },
+      { text: "مَرْحَباً (Marhaban)", correct: false },
+      { text: "صَبَاحُ الْخَيْرِ (Sabah al-khayr)", correct: false },
+      { text: "يَسْلَمُو (Yeslamu)", correct: false },
+    ],
+  },
+  {
+    id: "arabic_new_002", category: "arabic", type: "mcq", difficulty: 2,
+    question: "Que signifie 'Insha'Allah' (إن شاء الله) ?",
+    options: [
+      { text: "Si Allah le veut", correct: true },
+      { text: "Grâce à Allah", correct: false },
+      { text: "Allah est grand", correct: false },
+      { text: "Avec la permission d'Allah", correct: false },
+    ],
+    explanation: "Expression coranique (Coran 18:23-24) signifiant 'Si Allah le veut' — utilisée pour tout projet futur, rappel que le futur appartient à Allah.",
+  },
+  {
+    id: "dar_new_001", category: "darija", type: "mcq", difficulty: 1,
+    question: "Comment dit-on 'bonjour' en darija marocain ?",
+    options: [
+      { text: "صباح الخير (Sbah l-kheir)", correct: true },
+      { text: "مرحبا (Mrhba)", correct: false },
+      { text: "لا باس (La bas)", correct: false },
+      { text: "كيفاش (Kifash)", correct: false },
+    ],
+    explanation: "'Sbah l-kheir' est le bonjour du matin (littéralement 'matin de bien'). On répond 'Sbah n-nour' (matin de lumière).",
+  },
+  {
+    id: "dar_new_002", category: "darija", type: "mcq", difficulty: 2,
+    question: "Que veut dire 'Hamdoullah' (حمدولله) en darija ?",
+    options: [
+      { text: "Louange à Allah / tout va bien", correct: true },
+      { text: "S'il vous plaît", correct: false },
+      { text: "Au nom de Dieu", correct: false },
+      { text: "Avec votre permission", correct: false },
+    ],
+    explanation: "Contraction de 'Al-hamdulillah'. Utilisé pour dire que tout va bien, exprimer la gratitude, ou répondre à 'Comment tu vas ?'.",
+  },
+  {
+    id: "qur_new_001", category: "quran", type: "mcq", difficulty: 3,
+    question: "Quel prophète est mentionné le plus de fois dans le Coran ?",
+    options: [
+      { text: "Musa (Moïse)", correct: true },
+      { text: "Ibrahim (Abraham)", correct: false },
+      { text: "Muhammad ﷺ", correct: false },
+      { text: "Issa (Jésus)", correct: false },
+    ],
+    culturalCapsule: {
+      title: "Musa — le prophète le plus cité du Coran",
+      text: "Musa (Moïse) est mentionné 136 fois dans 36 sourates, plus que tout autre prophète. Son histoire avec Pharaon est un archétype de la lutte entre foi et tyrannie. Le Coran y revient pour enseigner la persévérance, la confiance en Allah et la libération des opprimés.",
+    },
+  },
+  {
+    id: "qur_new_002", category: "quran", type: "mcq", difficulty: 2,
+    question: "Quelle est la plus longue sourate du Coran ?",
+    options: [
+      { text: "Al-Baqara (La Vache) — 286 versets", correct: true },
+      { text: "Al-Imran — 200 versets", correct: false },
+      { text: "An-Nisa — 176 versets", correct: false },
+      { text: "Al-Maidah — 120 versets", correct: false },
+    ],
+    explanation: "Al-Baqara (Sourate 2) contient 286 versets dont le verset du Trône (Ayat al-Kursi, v.255) et les deux derniers versets (Amana ar-Rassul…) qui valent un tiers du Coran selon certains hadiths.",
+  },
 ];
 
 export function getQuestions(count = 10, history: Record<string, { nextDue: string }> = {}): Question[] {

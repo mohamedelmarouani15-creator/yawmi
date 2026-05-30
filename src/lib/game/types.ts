@@ -1,5 +1,5 @@
 export type Category = "religion" | "history" | "arabic" | "darija" | "quran";
-export type QuestionType = "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i";
+export type QuestionType = "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i" | "calligraphy";
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 export type PowerUpType = "joker50" | "bouclier" | "double_xp" | "time_freeze";
 
@@ -18,6 +18,10 @@ export interface MinigameData {
   verse?: string;
   // who_am_i: progressive clues revealed one by one
   clues?: string[];
+  // calligraphy: the Arabic letter/word to trace + stroke hints
+  letter?: string;
+  strokeHints?: string[]; // short tips on stroke order
+  passCoverage?: number;  // % coverage required to pass (default 45)
 }
 
 export interface Question {

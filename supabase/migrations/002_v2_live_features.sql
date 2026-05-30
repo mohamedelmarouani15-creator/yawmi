@@ -40,7 +40,7 @@ alter table questions
 
 alter table questions
   add constraint questions_type_check
-  check (type in ('mcq','true_false','fill_in','reorder','drag_drop','memory','fill_verse','who_am_i'));
+  check (type in ('mcq','true_false','fill_in','reorder','drag_drop','memory','fill_verse','who_am_i','calligraphy'));
 
 -- ── RLS ──────────────────────────────────────────────────────
 alter table duels_live      enable row level security;

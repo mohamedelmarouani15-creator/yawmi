@@ -1720,6 +1720,106 @@ export const QUESTIONS: Question[] = [
     ],
     explanation: "Al-Baqara (Sourate 2) contient 286 versets dont le verset du Trône (Ayat al-Kursi, v.255) et les deux derniers versets (Amana ar-Rassul…) qui valent un tiers du Coran selon certains hadiths.",
   },
+
+  // ── CALLIGRAPHIE AU DOIGT ─────────────────────────────────────
+  {
+    id: "cal_001", category: "arabic", type: "calligraphy", difficulty: 2,
+    question: "Trace la lettre : ا (Alif)",
+    options: [{ text: "calligraphy", correct: true }],
+    minigameData: {
+      letter: "ا",
+      strokeHints: ["Un seul trait vertical de haut en bas", "Commence en haut, descends droit"],
+      passCoverage: 0.35,
+    },
+    culturalCapsule: {
+      title: "Alif — première lettre de l'alphabet arabe",
+      text: "L'Alif (ا) est la première lettre de l'alphabet arabe. Elle symbolise l'unicité — un seul trait droit. Dans le style Thuluth, l'Alif peut mesurer 7 fois la hauteur d'un point de calame.",
+    },
+  },
+  {
+    id: "cal_002", category: "arabic", type: "calligraphy", difficulty: 2,
+    question: "Trace la lettre : م (Mim)",
+    options: [{ text: "calligraphy", correct: true }],
+    minigameData: {
+      letter: "م",
+      strokeHints: ["Petit cercle fermé en bas à gauche", "Courbe vers la droite puis queue vers le bas"],
+      passCoverage: 0.38,
+    },
+  },
+  {
+    id: "cal_003", category: "arabic", type: "calligraphy", difficulty: 3,
+    question: "Trace le mot : الله",
+    options: [{ text: "calligraphy", correct: true }],
+    minigameData: {
+      letter: "الله",
+      strokeHints: ["Alif (ا) en haut à droite", "Double Lam (لل) en courbe", "Ha (ه) en boucle à gauche"],
+      passCoverage: 0.40,
+    },
+    culturalCapsule: {
+      title: "الله — la calligraphie la plus sacrée",
+      text: "Le nom d'Allah en Thuluth avec ses ligatures secrètes a inspiré des générations de calligraphes depuis le VIIe siècle. Chaque trait est une méditation sur l'unicité divine.",
+    },
+  },
+  {
+    id: "cal_004", category: "arabic", type: "calligraphy", difficulty: 2,
+    question: "Trace la lettre : ب (Ba)",
+    options: [{ text: "calligraphy", correct: true }],
+    minigameData: {
+      letter: "ب",
+      strokeHints: ["Ligne horizontale légèrement courbée vers le bas", "Un point en dessous à gauche"],
+      passCoverage: 0.35,
+    },
+    explanation: "Le Ba (ب) est la 2e lettre. La Basmala commence par Bsm (بسم) — 'Au nom de'.",
+  },
+  {
+    id: "cal_005", category: "arabic", type: "calligraphy", difficulty: 2,
+    question: "Trace la lettre : ن (Noun)",
+    options: [{ text: "calligraphy", correct: true }],
+    minigameData: {
+      letter: "ن",
+      strokeHints: ["Arc de cercle ouvert vers le haut", "Un point au centre en dessus"],
+      passCoverage: 0.35,
+    },
+    culturalCapsule: {
+      title: "Noun — la lettre de la lumière",
+      text: "Le Noun (ن) ouvre la sourate Al-Qalam (68:1) : 'Noun. Par le calame et ce qu'ils écrivent.' Les calligraphes y voient un encrier — le récipient de la connaissance.",
+    },
+  },
+  {
+    id: "cal_006", category: "arabic", type: "calligraphy", difficulty: 1,
+    question: "Trace la lettre : و (Waw)",
+    options: [{ text: "calligraphy", correct: true }],
+    minigameData: {
+      letter: "و",
+      strokeHints: ["Petit cercle en haut à droite", "Queue qui descend et part vers la gauche"],
+      passCoverage: 0.32,
+    },
+    explanation: "Waw (و) est aussi la conjonction 'et'. En abjad, elle vaut 6.",
+  },
+  {
+    id: "cal_007", category: "arabic", type: "calligraphy", difficulty: 3,
+    question: "Trace le mot : نور (Nour — lumière)",
+    options: [{ text: "calligraphy", correct: true }],
+    minigameData: {
+      letter: "نور",
+      strokeHints: ["Noun (ن) : arc avec point", "Waw (و) : boucle avec queue", "Ra (ر) : courbe vers le bas"],
+      passCoverage: 0.38,
+    },
+    culturalCapsule: {
+      title: "النور — la sourate de la Lumière",
+      text: "An-Nur 24:35 : 'Allah est la Lumière des cieux et de la terre.' Ce verset a inspiré l'un des chefs-d'œuvre de la calligraphie islamique.",
+    },
+  },
+  {
+    id: "cal_008", category: "arabic", type: "calligraphy", difficulty: 3,
+    question: "Trace le mot : بسم (Bism — au nom de)",
+    options: [{ text: "calligraphy", correct: true }],
+    minigameData: {
+      letter: "بسم",
+      strokeHints: ["Ba (ب) : trait horizontal avec point", "Sin (س) : trois dents", "Mim (م) : boucle avec queue"],
+      passCoverage: 0.38,
+    },
+  },
 ];
 
 export function getQuestions(count = 10, history: Record<string, { nextDue: string }> = {}): Question[] {

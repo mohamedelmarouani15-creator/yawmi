@@ -12,10 +12,11 @@ import { gameStorage } from "@/lib/game/game-storage";
 import { POWERUPS } from "@/lib/game/powerups";
 import { springTap } from "@/lib/motion";
 import type { PowerUpType } from "@/lib/game/types";
-import DragDropGame from "@/components/minigames/DragDropGame";
-import MemoryGame   from "@/components/minigames/MemoryGame";
-import FillVerseGame from "@/components/minigames/FillVerseGame";
-import WhoAmIGame   from "@/components/minigames/WhoAmIGame";
+import DragDropGame    from "@/components/minigames/DragDropGame";
+import MemoryGame      from "@/components/minigames/MemoryGame";
+import FillVerseGame   from "@/components/minigames/FillVerseGame";
+import WhoAmIGame      from "@/components/minigames/WhoAmIGame";
+import CalligraphyGame from "@/components/minigames/CalligraphyGame";
 
 const OPTION_LABELS = ["A", "B", "C", "D"];
 
@@ -468,7 +469,7 @@ export default function QuizPage() {
           transition={{ ease: [0.25, 0.1, 0.25, 1], duration: 0.25 }}
         >
           {/* Question title — hidden for mini-games that handle it internally */}
-          {!["drag_drop","memory","fill_verse","who_am_i"].includes(currentQuestion.type) && (
+          {!["drag_drop","memory","fill_verse","who_am_i","calligraphy"].includes(currentQuestion.type) && (
             <p className="text-[19px] font-bold leading-snug mb-7"
               style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
               {currentQuestion.question}
@@ -487,6 +488,9 @@ export default function QuizPage() {
           )}
           {currentQuestion.type === "who_am_i" && !session.showResult && (
             <WhoAmIGame question={currentQuestion} color={color} onComplete={selectAnswerResult} />
+          )}
+          {currentQuestion.type === "calligraphy" && !session.showResult && (
+            <CalligraphyGame question={currentQuestion} color={color} onComplete={selectAnswerResult} />
           )}
 
           {/* ── MCQ / true_false options ── */}

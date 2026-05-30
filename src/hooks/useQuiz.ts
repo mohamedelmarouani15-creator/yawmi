@@ -91,7 +91,7 @@ export function useQuiz(locationId: string) {
     // selected === -1 means time out (no answer)
     // For mini-games (drag_drop, memory, fill_verse, who_am_i):
     // selected=0 = correct sentinel, selected=1 = wrong sentinel
-    const isMiniGame = ["drag_drop", "memory", "fill_verse", "who_am_i"].includes(q.type);
+    const isMiniGame = ["drag_drop", "memory", "fill_verse", "who_am_i", "calligraphy"].includes(q.type);
     const isCorrectRaw = selected !== null && selected >= 0
       ? isMiniGame
         ? selected === 0

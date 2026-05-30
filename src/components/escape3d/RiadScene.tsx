@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { EffectComposer, Bloom, Vignette } from "@react-three/postprocessing";
+// @react-three/postprocessing temporairement désactivé (compat R3F v9)
 import * as THREE from "three";
 import Courtyard   from "./Courtyard";
 import PlayerAvatar from "./PlayerAvatar";
@@ -109,6 +109,11 @@ export default function RiadScene() {
 
   return (
     <div style={{ position: "absolute", inset: 0, touchAction: "none" }}>
+      {/* Vignette CSS */}
+      <div style={{
+        position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none",
+        background: "radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,0.7) 100%)",
+      }} />
       {/* ── Canvas Three.js ──────────────────────────────────── */}
       <Canvas
         shadows
@@ -138,16 +143,7 @@ export default function RiadScene() {
 
         <TPSCamera target={camTarget} />
 
-        {/* Post-processing */}
-        <EffectComposer>
-          <Bloom
-            intensity={0.9}
-            luminanceThreshold={0.55}
-            luminanceSmoothing={0.3}
-            mipmapBlur
-          />
-          <Vignette offset={0.38} darkness={0.65} />
-        </EffectComposer>
+        {/* Vignette CSS — remplacement léger du post-processing */}
       </Canvas>
 
       {/* ── HUD ──────────────────────────────────────────────── */}

@@ -368,10 +368,11 @@ export default function Courtyard({ onLanternTap, puzzleSolved }: Props) {
       />
 
       {/* Orangers améliorés */}
-      <OrangeTree pos={[ 2.2, 0,  0  ]} />
-      <OrangeTree pos={[-2.2, 0,  0  ]} />
-      <OrangeTree pos={[ 0,   0,  2.2]} />
-      <OrangeTree pos={[ 0,   0, -2.2]} />
+      {/* Arbres en diagonale — dégagent les 4 axes de vue vers les portes */}
+      <OrangeTree pos={[ 2.0, 0,  2.0]} />
+      <OrangeTree pos={[-2.0, 0,  2.0]} />
+      <OrangeTree pos={[ 2.0, 0, -2.0]} />
+      <OrangeTree pos={[-2.0, 0, -2.0]} />
     </group>
   );
 }

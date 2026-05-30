@@ -17,6 +17,7 @@ import MemoryGame      from "@/components/minigames/MemoryGame";
 import FillVerseGame   from "@/components/minigames/FillVerseGame";
 import WhoAmIGame      from "@/components/minigames/WhoAmIGame";
 import CalligraphyGame from "@/components/minigames/CalligraphyGame";
+import { ArabicText }  from "@/components/ArabicText";
 
 const OPTION_LABELS = ["A", "B", "C", "D"];
 
@@ -470,10 +471,19 @@ export default function QuizPage() {
         >
           {/* Question title — hidden for mini-games that handle it internally */}
           {!["drag_drop","memory","fill_verse","who_am_i","calligraphy"].includes(currentQuestion.type) && (
-            <p className="text-[19px] font-bold leading-snug mb-7"
-              style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
-              {currentQuestion.question}
-            </p>
+            <div className="mb-7">
+              <p className="text-[19px] font-bold leading-snug"
+                style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+                {currentQuestion.question}
+              </p>
+              {/* Translittération si question en arabe */}
+              {currentQuestion.transliteration && (
+                <p className="mt-1.5 text-sm italic"
+                  style={{ color: "rgba(212,175,55,0.5)", fontFamily: "var(--font-dm-sans)" }}>
+                  {currentQuestion.transliteration}
+                </p>
+              )}
+            </div>
           )}
 
           {/* ── Mini-game renderer ── */}
@@ -546,10 +556,18 @@ export default function QuizPage() {
                     style={{ background: "rgba(255,255,255,0.05)", color: textColor, fontFamily: "var(--font-dm-sans)" }}>
                     {OPTION_LABELS[idx]}
                   </span>
-                  <span className="flex-1 text-sm font-medium"
-                    style={{ color: textColor, fontFamily: "var(--font-dm-sans)" }}>
-                    {option.text}
-                  </span>
+                  <div className="flex-1 min-w-0">
+                    <span className="text-sm font-medium block"
+                      style={{ color: textColor, fontFamily: "var(--font-dm-sans)" }}>
+                      {option.text}
+                    </span>
+                    {option.transliteration && (
+                      <span className="text-[10px] italic block mt-0.5"
+                        style={{ color: `${textColor}70`, fontFamily: "var(--font-dm-sans)" }}>
+                        {option.transliteration}
+                      </span>
+                    )}
+                  </div>
                   {icon}
                 </motion.button>
               );

@@ -6,22 +6,25 @@ export type PowerUpType = "joker50" | "bouclier" | "double_xp" | "time_freeze";
 export interface QuestionOption {
   text: string;
   correct: boolean;
-  position?: number; // for drag_drop: expected order index (0-based)
+  position?: number;       // for drag_drop: expected order index (0-based)
+  transliteration?: string; // phonetic transcription for Arabic text
 }
 
 export interface MinigameData {
   // drag_drop: items shuffled, each has position = correct index
   items?: string[];
   // memory: pairs of cards
-  pairs?: { front: string; back: string }[];
+  pairs?: { front: string; back: string; frontTranslit?: string; backTranslit?: string }[];
   // fill_verse: verse text with ___ for blanks, answer index in options
   verse?: string;
+  verseTranslit?: string; // phonetic of the verse
   // who_am_i: progressive clues revealed one by one
   clues?: string[];
   // calligraphy: the Arabic letter/word to trace + stroke hints
   letter?: string;
-  strokeHints?: string[]; // short tips on stroke order
-  passCoverage?: number;  // % coverage required to pass (default 45)
+  letterTranslit?: string; // e.g. "Alif [a]"
+  strokeHints?: string[];
+  passCoverage?: number;
 }
 
 export interface Question {
@@ -30,12 +33,16 @@ export interface Question {
   type: QuestionType;
   difficulty: Difficulty;
   question: string;
+  transliteration?: string; // phonetic for Arabic question text
   options: QuestionOption[];
   explanation?: string;
   culturalCapsule?: { title: string; text: string };
   locationId?: string;
   eventId?: string;
   minigameData?: MinigameData;
+  // Minimum Arabic level to include in quiz pool
+  // "none" = always shown, "beginner"/"intermediate"/"advanced" = requires that level
+  arabicRequired?: "none" | "beginner" | "intermediate" | "advanced";
 }
 
 export interface QuestionHistory {

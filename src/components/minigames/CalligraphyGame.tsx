@@ -3,6 +3,7 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Question } from "@/lib/game/types";
+import { ArabicText } from "@/components/ArabicText";
 
 interface Props {
   question: Question;
@@ -60,9 +61,10 @@ function drawReferenceBlack(canvas: HTMLCanvasElement, letter: string) {
 }
 
 export default function CalligraphyGame({ question, onComplete, color }: Props) {
-  const letter       = question.minigameData?.letter ?? question.question;
-  const strokeHints  = question.minigameData?.strokeHints ?? [];
-  const passThreshold = question.minigameData?.passCoverage ?? PASS_COVERAGE;
+  const letter        = question.minigameData?.letter ?? question.question;
+  const letterTranslit = question.minigameData?.letterTranslit ?? question.transliteration;
+  const strokeHints   = question.minigameData?.strokeHints ?? [];
+  const passThreshold  = question.minigameData?.passCoverage ?? PASS_COVERAGE;
 
   const visCanvasRef  = useRef<HTMLCanvasElement>(null);  // visible reference letter
   const drawCanvasRef = useRef<HTMLCanvasElement>(null);  // user drawing
@@ -195,14 +197,22 @@ export default function CalligraphyGame({ question, onComplete, color }: Props) 
     <div className="flex flex-col gap-4">
       {/* Question header */}
       <div className="text-center">
-        <p className="text-xs uppercase tracking-widest mb-1"
+        <p className="text-xs uppercase tracking-widest mb-2"
           style={{ color: "rgba(212,175,55,0.6)", fontFamily: "var(--font-dm-sans)" }}>
           Calligraphie au doigt
         </p>
-        <p className="text-base font-semibold"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
-          {question.question !== letter ? question.question : `Trace la lettre : ${letter}`}
+        <p className="text-sm mb-3"
+          style={{ color: "rgba(248,244,236,0.6)", fontFamily: "var(--font-dm-sans)" }}>
+          {question.question !== letter ? question.question : "Trace la lettre sur le canvas ci-dessous"}
         </p>
+        {/* Lettre de référence avec audio + translittération */}
+        <ArabicText
+          arabic={letter}
+          translit={letterTranslit}
+          fontSize={letter.length === 1 ? 48 : 32}
+          color={color}
+          showAudio
+        />
       </div>
 
       {/* Canvas area */}

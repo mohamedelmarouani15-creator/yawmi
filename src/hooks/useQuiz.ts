@@ -6,6 +6,7 @@ import { updateSM2 } from "@/lib/game/sm2";
 import { gameStorage } from "@/lib/game/game-storage";
 import { getJoker50Eliminations } from "@/lib/game/powerups";
 import { getActiveGameEvent } from "@/lib/game/game-events";
+import { storage } from "@/lib/storage";
 import type { Question, QuizSession, PowerUpType } from "@/lib/game/types";
 
 const XP_PER_CORRECT    = 10;
@@ -45,8 +46,9 @@ export function useQuiz(locationId: string) {
 
   // ── Start ──────────────────────────────────────────────────────
   const startQuiz = useCallback(() => {
-    const state = gameStorage.get();
-    const questions = getQuestions(10, state.questionHistory);
+    const state    = gameStorage.get();
+    const settings = storage.getSettings();
+    const questions = getQuestions(10, state.questionHistory, settings.arabicLevel ?? "beginner");
     setSession({
       locationId,
       questions,

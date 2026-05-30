@@ -1374,65 +1374,85 @@ export const QUESTIONS: Question[] = [
     id: "fill_001", category: "quran", type: "fill_verse", difficulty: 2,
     question: "بِسْمِ اللَّهِ ___ الرَّحِيمِ",
     options: [
-      { text: "الرَّحْمَنِ", correct: true },
-      { text: "الْكَرِيمِ", correct: false },
-      { text: "الْعَظِيمِ", correct: false },
-      { text: "الْحَلِيمِ", correct: false },
+      { text: "الرَّحْمَنِ", correct: true,  transliteration: "ar-Rahmāni [le Tout Miséricordieux]" },
+      { text: "الْكَرِيمِ",  correct: false, transliteration: "al-Karīmi [le Généreux]" },
+      { text: "الْعَظِيمِ",  correct: false, transliteration: "al-'Azīmi [le Très Grand]" },
+      { text: "الْحَلِيمِ",  correct: false, transliteration: "al-Halīmi [le Doux]" },
     ],
-    minigameData: { verse: "بِسْمِ اللَّهِ ___ الرَّحِيمِ" },
+    minigameData: {
+      verse: "بِسْمِ اللَّهِ ___ الرَّحِيمِ",
+      verseTranslit: "Bismi Allāhi ___ ar-Rahīmi",
+    },
     explanation: "La Basmala complète : 'Bismi Allahi ar-Rahmani ar-Rahimi' — Au nom d'Allah, le Tout Miséricordieux, le Très Miséricordieux.",
+    arabicRequired: "none",
   },
   {
     id: "fill_002", category: "quran", type: "fill_verse", difficulty: 2,
     question: "الْحَمْدُ لِلَّهِ ___ الْعَالَمِينَ",
     options: [
-      { text: "رَبِّ", correct: true },
-      { text: "مَالِكِ", correct: false },
-      { text: "إِلَٰهِ", correct: false },
-      { text: "نُورِ", correct: false },
+      { text: "رَبِّ",   correct: true,  transliteration: "Rabbi [Seigneur de]" },
+      { text: "مَالِكِ", correct: false, transliteration: "Māliki [Maître de]" },
+      { text: "إِلَٰهِ", correct: false, transliteration: "Ilāhi [Dieu de]" },
+      { text: "نُورِ",   correct: false, transliteration: "Nūri [Lumière de]" },
     ],
-    minigameData: { verse: "الْحَمْدُ لِلَّهِ ___ الْعَالَمِينَ" },
+    minigameData: {
+      verse: "الْحَمْدُ لِلَّهِ ___ الْعَالَمِينَ",
+      verseTranslit: "Al-hamdu li-Llāhi ___ al-'ālamīn",
+    },
     explanation: "Al-Fatiha 1:2 — 'Louange à Allah, Seigneur des mondes'",
+    arabicRequired: "none",
   },
   {
     id: "fill_003", category: "quran", type: "fill_verse", difficulty: 3,
     question: "قُلْ هُوَ اللَّهُ ___",
     options: [
-      { text: "أَحَدٌ", correct: true },
-      { text: "عَظِيمٌ", correct: false },
-      { text: "كَرِيمٌ", correct: false },
-      { text: "وَاحِدٌ", correct: false },
+      { text: "أَحَدٌ",  correct: true,  transliteration: "Ahadun [l'Unique]" },
+      { text: "عَظِيمٌ", correct: false, transliteration: "'Azīmun [le Très Grand]" },
+      { text: "كَرِيمٌ", correct: false, transliteration: "Karīmun [le Généreux]" },
+      { text: "وَاحِدٌ", correct: false, transliteration: "Wāhidun [l'Un]" },
     ],
-    minigameData: { verse: "قُلْ هُوَ اللَّهُ ___" },
+    minigameData: {
+      verse: "قُلْ هُوَ اللَّهُ ___",
+      verseTranslit: "Qul huwa Allāhu ___",
+    },
     explanation: "Al-Ikhlas 112:1 — 'Dis : Il est Allah, l'Unique.'",
     culturalCapsule: {
       title: "Sourate Al-Ikhlas — un tiers du Coran",
       text: "Le Prophète ﷺ a dit que cette sourate vaut un tiers du Coran en terme de récompense. Elle définit le Tawhid en 4 versets : unicité, éternité, sans père ni fils, sans égal.",
     },
+    arabicRequired: "none",
   },
   {
     id: "fill_004", category: "religion", type: "fill_verse", difficulty: 2,
     question: "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ وَإِنَّمَا لِكُلِّ امْرِئٍ ___",
     options: [
-      { text: "مَا نَوَى", correct: true },
-      { text: "مَا عَمِلَ", correct: false },
-      { text: "مَا قَصَدَ", correct: false },
-      { text: "مَا أَرَادَ", correct: false },
+      { text: "مَا نَوَى",   correct: true,  transliteration: "mā nawā [ce qu'il a eu l'intention]" },
+      { text: "مَا عَمِلَ",  correct: false, transliteration: "mā 'amila [ce qu'il a fait]" },
+      { text: "مَا قَصَدَ",  correct: false, transliteration: "mā qasada [ce qu'il a visé]" },
+      { text: "مَا أَرَادَ", correct: false, transliteration: "mā arāda [ce qu'il a voulu]" },
     ],
-    minigameData: { verse: "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ وَإِنَّمَا لِكُلِّ امْرِئٍ ___" },
+    minigameData: {
+      verse: "إِنَّمَا الْأَعْمَالُ بِالنِّيَّاتِ وَإِنَّمَا لِكُلِّ امْرِئٍ ___",
+      verseTranslit: "Innamā al-a'mālu bi-n-niyyāt, wa innamā li-kulli imri'in ___",
+    },
     explanation: "Premier hadith de Boukhâri et Mouslim : 'Les actes ne valent que par les intentions, et chacun n'obtiendra que ce qu'il a eu l'intention de faire.'",
+    arabicRequired: "none",
   },
   {
     id: "fill_005", category: "quran", type: "fill_verse", difficulty: 3,
     question: "وَمَا خَلَقْتُ الْجِنَّ وَالْإِنسَ إِلَّا ___",
     options: [
-      { text: "لِيَعْبُدُونِ", correct: true },
-      { text: "لِيُؤْمِنُوا", correct: false },
-      { text: "لِيَعْلَمُوا", correct: false },
-      { text: "لِيَشْكُرُوا", correct: false },
+      { text: "لِيَعْبُدُونِ", correct: true,  transliteration: "liya'budūni [pour qu'ils M'adorent]" },
+      { text: "لِيُؤْمِنُوا",  correct: false, transliteration: "liyu'minū [pour qu'ils croient]" },
+      { text: "لِيَعْلَمُوا",  correct: false, transliteration: "liya'lamū [pour qu'ils sachent]" },
+      { text: "لِيَشْكُرُوا", correct: false, transliteration: "liyashkurū [pour qu'ils soient reconnaissants]" },
     ],
-    minigameData: { verse: "وَمَا خَلَقْتُ الْجِنَّ وَالْإِنسَ إِلَّا ___" },
+    minigameData: {
+      verse: "وَمَا خَلَقْتُ الْجِنَّ وَالْإِنسَ إِلَّا ___",
+      verseTranslit: "Wa mā khalaqtu al-jinna wa-l-insa illā ___",
+    },
     explanation: "Adh-Dhariyat 51:56 — 'Je n'ai créé les djinns et les hommes que pour qu'ils M'adorent.'",
+    arabicRequired: "none",
   },
 
   // ── WHO AM I — personnages historiques ───────────────────────
@@ -1728,6 +1748,7 @@ export const QUESTIONS: Question[] = [
     options: [{ text: "calligraphy", correct: true }],
     minigameData: {
       letter: "ا",
+      letterTranslit: "Alif — prononcé [a] ou [ā]",
       strokeHints: ["Un seul trait vertical de haut en bas", "Commence en haut, descends droit"],
       passCoverage: 0.35,
     },
@@ -1742,6 +1763,7 @@ export const QUESTIONS: Question[] = [
     options: [{ text: "calligraphy", correct: true }],
     minigameData: {
       letter: "م",
+      letterTranslit: "Mim — prononcé [m]",
       strokeHints: ["Petit cercle fermé en bas à gauche", "Courbe vers la droite puis queue vers le bas"],
       passCoverage: 0.38,
     },
@@ -1752,6 +1774,7 @@ export const QUESTIONS: Question[] = [
     options: [{ text: "calligraphy", correct: true }],
     minigameData: {
       letter: "الله",
+      letterTranslit: "Allah [al-lāh] — le nom de Dieu",
       strokeHints: ["Alif (ا) en haut à droite", "Double Lam (لل) en courbe", "Ha (ه) en boucle à gauche"],
       passCoverage: 0.40,
     },
@@ -1766,6 +1789,7 @@ export const QUESTIONS: Question[] = [
     options: [{ text: "calligraphy", correct: true }],
     minigameData: {
       letter: "ب",
+      letterTranslit: "Ba — prononcé [b]",
       strokeHints: ["Ligne horizontale légèrement courbée vers le bas", "Un point en dessous à gauche"],
       passCoverage: 0.35,
     },
@@ -1777,6 +1801,7 @@ export const QUESTIONS: Question[] = [
     options: [{ text: "calligraphy", correct: true }],
     minigameData: {
       letter: "ن",
+      letterTranslit: "Noun — prononcé [n]",
       strokeHints: ["Arc de cercle ouvert vers le haut", "Un point au centre en dessus"],
       passCoverage: 0.35,
     },
@@ -1791,6 +1816,7 @@ export const QUESTIONS: Question[] = [
     options: [{ text: "calligraphy", correct: true }],
     minigameData: {
       letter: "و",
+      letterTranslit: "Waw — prononcé [w] ou [ū]",
       strokeHints: ["Petit cercle en haut à droite", "Queue qui descend et part vers la gauche"],
       passCoverage: 0.32,
     },
@@ -1802,6 +1828,7 @@ export const QUESTIONS: Question[] = [
     options: [{ text: "calligraphy", correct: true }],
     minigameData: {
       letter: "نور",
+      letterTranslit: "Nūr [noûr] — lumière",
       strokeHints: ["Noun (ن) : arc avec point", "Waw (و) : boucle avec queue", "Ra (ر) : courbe vers le bas"],
       passCoverage: 0.38,
     },
@@ -1816,32 +1843,49 @@ export const QUESTIONS: Question[] = [
     options: [{ text: "calligraphy", correct: true }],
     minigameData: {
       letter: "بسم",
+      letterTranslit: "Bism [biss-m] — au nom de",
       strokeHints: ["Ba (ب) : trait horizontal avec point", "Sin (س) : trois dents", "Mim (م) : boucle avec queue"],
       passCoverage: 0.38,
     },
   },
 ];
 
-export function getQuestions(count = 10, history: Record<string, { nextDue: string }> = {}): Question[] {
+type ArabicLevel = "none" | "beginner" | "intermediate" | "advanced";
+
+const ARABIC_LEVEL_ORDER: ArabicLevel[] = ["none", "beginner", "intermediate", "advanced"];
+
+function meetsArabicLevel(q: Question, userLevel: ArabicLevel): boolean {
+  const required = q.arabicRequired ?? "none";
+  return ARABIC_LEVEL_ORDER.indexOf(userLevel) >= ARABIC_LEVEL_ORDER.indexOf(required);
+}
+
+export function getQuestions(
+  count = 10,
+  history: Record<string, { nextDue: string }> = {},
+  arabicLevel: ArabicLevel = "beginner",
+): Question[] {
   const today = new Date().toISOString().split("T")[0];
 
+  // Filter by arabic level first
+  const eligible = QUESTIONS.filter(q => meetsArabicLevel(q, arabicLevel));
+
   // Priority 1: due questions (seen before, due today)
-  const due = QUESTIONS.filter(q => {
+  const due = eligible.filter(q => {
     const h = history[q.id];
     return h && h.nextDue <= today;
   });
 
   // Priority 2: unseen questions
-  const unseen = QUESTIONS.filter(q => !history[q.id]);
+  const unseen = eligible.filter(q => !history[q.id]);
 
   // Mix and cap
   const pool: Question[] = [];
-  for (const q of due)   if (pool.length < Math.ceil(count * 0.4)) pool.push(q);
+  for (const q of due)    if (pool.length < Math.ceil(count * 0.4)) pool.push(q);
   for (const q of unseen) if (pool.length < count) pool.push(q);
 
-  // Fill remainder from all questions
+  // Fill remainder from eligible questions
   if (pool.length < count) {
-    for (const q of QUESTIONS) {
+    for (const q of eligible) {
       if (!pool.find(p => p.id === q.id)) pool.push(q);
       if (pool.length >= count) break;
     }

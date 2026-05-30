@@ -9,6 +9,7 @@ export interface YawmiSettings {
   adhanReciter: string;
   prayerModes:  Partial<Record<string, "audio" | "silencieux">>;
   appMode:      "pratiquant" | "explorateur";
+  arabicLevel:  "none" | "beginner" | "intermediate" | "advanced";
 }
 
 export interface PrayerLog {
@@ -65,6 +66,7 @@ export const DEFAULT_SETTINGS: YawmiSettings = {
   adhanReciter: "alafasy",
   prayerModes:  {},
   appMode:      "pratiquant",
+  arabicLevel:  "beginner",
 };
 
 export const storage = {

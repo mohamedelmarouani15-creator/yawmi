@@ -157,6 +157,49 @@ export default function ProfilPage() {
         </div>
       </motion.div>
 
+      {/* Niveau arabe */}
+      <motion.div variants={itemVariants}>
+        <p className="mb-1 text-xs tracking-widest uppercase opacity-40"
+          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          Mon niveau en arabe
+        </p>
+        <p className="mb-3 text-xs opacity-30 leading-relaxed"
+          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          Adapte les questions de calligraphie et les versets à ton niveau
+        </p>
+        <div className="flex flex-col gap-2">
+          {([
+            { id: "none"         as const, label: "Je ne lis pas l'arabe", sub: "Aucune question d'écriture arabe", emoji: "🌱" },
+            { id: "beginner"     as const, label: "Débutant",               sub: "Je connais quelques lettres",      emoji: "📖" },
+            { id: "intermediate" as const, label: "Intermédiaire",          sub: "Je lis lentement",                 emoji: "✍️" },
+            { id: "advanced"     as const, label: "Avancé",                 sub: "Je lis et j'écris couramment",     emoji: "🎓" },
+          ] as const).map(({ id, label, sub, emoji }) => {
+            const active = (settings.arabicLevel ?? "beginner") === id;
+            return (
+              <motion.button key={id}
+                onClick={() => save({ ...settings, arabicLevel: id })}
+                whileTap={{ scale: 0.97 }} transition={springTap}
+                className="flex items-center gap-3 rounded-xl border px-4 py-3 text-left"
+                style={{
+                  background: active ? "rgba(212,175,55,0.1)" : "rgba(255,255,255,0.02)",
+                  borderColor: active ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.06)",
+                }}>
+                <span style={{ fontSize: 20 }}>{emoji}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold" style={{ color: active ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    {label}
+                  </p>
+                  <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    {sub}
+                  </p>
+                </div>
+                {active && <Check size={14} style={{ color: "#D4AF37" }} />}
+              </motion.button>
+            );
+          })}
+        </div>
+      </motion.div>
+
       {/* Mode Adhan */}
       <motion.div variants={itemVariants}>
         <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>

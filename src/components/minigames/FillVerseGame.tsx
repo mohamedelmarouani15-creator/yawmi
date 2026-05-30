@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Question } from "@/lib/game/types";
+import { useArabicAudio } from "@/hooks/useArabicAudio";
 
 interface Props {
   question: Question;
@@ -11,9 +12,11 @@ interface Props {
 }
 
 export default function FillVerseGame({ question, onComplete, color }: Props) {
-  const verse = question.minigameData?.verse ?? question.question;
-  const parts = verse.split("___");
+  const verse        = question.minigameData?.verse ?? question.question;
+  const verseTranslit = question.minigameData?.verseTranslit;
+  const parts        = verse.split("___");
   const correctOption = question.options.find(o => o.correct);
+  const { speak, speaking } = useArabicAudio();
 
   const [selected, setSelected]   = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -36,10 +39,28 @@ export default function FillVerseGame({ question, onComplete, color }: Props) {
           border: "1px solid rgba(212,175,55,0.15)",
         }}
       >
-        <p className="text-xs uppercase tracking-widest mb-3"
-          style={{ color: "rgba(212,175,55,0.5)", fontFamily: "var(--font-dm-sans)" }}>
-          Complète le verset
-        </p>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-xs uppercase tracking-widest"
+            style={{ color: "rgba(212,175,55,0.5)", fontFamily: "var(--font-dm-sans)" }}>
+            Complète le verset
+          </p>
+          {/* Audio button */}
+          <motion.button
+            onClick={() => speak(verse.replace("___", "..."))}
+            whileTap={{ scale: 0.9 }}
+            className="flex h-7 w-7 items-center justify-center rounded-full"
+            style={{ background: speaking ? "rgba(212,175,55,0.25)" : "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)" }}
+            aria-label="Écouter le verset"
+          >
+            <motion.span
+              animate={speaking ? { scale: [1, 1.3, 1] } : {}}
+              transition={{ duration: 0.6, repeat: speaking ? Infinity : 0 }}
+              style={{ fontSize: 12 }}
+            >
+              {speaking ? "🔊" : "▶"}
+            </motion.span>
+          </motion.button>
+        </div>
         <p
           className="text-lg leading-relaxed text-center"
           style={{
@@ -77,6 +98,13 @@ export default function FillVerseGame({ question, onComplete, color }: Props) {
             </span>
           ))}
         </p>
+        {/* Translittération */}
+        {verseTranslit && (
+          <p className="text-xs text-center mt-2 italic"
+            style={{ color: "rgba(212,175,55,0.45)", fontFamily: "var(--font-dm-sans)" }}>
+            {verseTranslit}
+          </p>
+        )}
       </div>
 
       {/* Options */}
@@ -102,10 +130,17 @@ export default function FillVerseGame({ question, onComplete, color }: Props) {
               key={idx}
               onClick={() => !submitted && setSelected(opt.text)}
               whileTap={!submitted ? { scale: 0.96 } : {}}
-              className="rounded-xl border py-3 px-2 text-center"
-              style={{ background: bg, borderColor: border, fontFamily: "var(--font-amiri)", direction: "rtl" }}
+              className="rounded-xl border py-2.5 px-2 text-center flex flex-col items-center gap-0.5"
+              style={{ background: bg, borderColor: border }}
             >
-              <span style={{ color: textC, fontSize: 15 }}>{opt.text}</span>
+              <span style={{ color: textC, fontSize: 15, fontFamily: "var(--font-amiri)", direction: "rtl" }}>
+                {opt.text}
+              </span>
+              {opt.transliteration && (
+                <span style={{ color: `${textC}70`, fontSize: 10, fontFamily: "var(--font-dm-sans)", fontStyle: "italic" }}>
+                  {opt.transliteration}
+                </span>
+              )}
             </motion.button>
           );
         })}

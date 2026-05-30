@@ -13,6 +13,7 @@ interface Props {
 interface Card {
   id: string;
   text: string;
+  translit?: string;
   pairId: number;
   isArabic: boolean;
 }
@@ -24,8 +25,8 @@ export default function MemoryGame({ question, onComplete, color }: Props) {
   const [cards] = useState<Card[]>(() => {
     const deck: Card[] = [];
     pairs.forEach((p, i) => {
-      deck.push({ id: `f${i}`, text: p.front, pairId: i, isArabic: /[؀-ۿ]/.test(p.front) });
-      deck.push({ id: `b${i}`, text: p.back,  pairId: i, isArabic: /[؀-ۿ]/.test(p.back) });
+      deck.push({ id: `f${i}`, text: p.front, translit: p.frontTranslit, pairId: i, isArabic: /[؀-ۿ]/.test(p.front) });
+      deck.push({ id: `b${i}`, text: p.back,  translit: p.backTranslit,  pairId: i, isArabic: /[؀-ۿ]/.test(p.back)  });
     });
     return deck.sort(() => Math.random() - 0.5);
   });
@@ -114,7 +115,7 @@ export default function MemoryGame({ question, onComplete, color }: Props) {
 
               {/* Front face (content) */}
               <div
-                className="absolute inset-0 flex items-center justify-center rounded-xl border px-1"
+                className="absolute inset-0 flex flex-col items-center justify-center rounded-xl border px-1 gap-0.5"
                 style={{
                   backfaceVisibility: "hidden",
                   transform: "rotateY(180deg)",
@@ -126,13 +127,23 @@ export default function MemoryGame({ question, onComplete, color }: Props) {
                   className="text-center leading-tight"
                   style={{
                     color: isMatched(card.id) ? "#4ade80" : "#F8F4EC",
-                    fontSize: card.isArabic ? 13 : 10,
+                    fontSize: card.isArabic ? 14 : 10,
                     fontFamily: card.isArabic ? "var(--font-amiri)" : "var(--font-dm-sans)",
                     direction: card.isArabic ? "rtl" : "ltr",
                   }}
                 >
                   {card.text}
                 </span>
+                {card.translit && (
+                  <span className="text-center leading-tight" style={{
+                    color: isMatched(card.id) ? "rgba(74,222,128,0.6)" : "rgba(248,244,236,0.35)",
+                    fontSize: 8,
+                    fontFamily: "var(--font-dm-sans)",
+                    fontStyle: "italic",
+                  }}>
+                    {card.translit}
+                  </span>
+                )}
               </div>
             </motion.div>
           </motion.div>

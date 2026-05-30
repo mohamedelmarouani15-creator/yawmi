@@ -5,6 +5,8 @@
 -- Aucun dialogue inventé mis dans la bouche des prophètes.
 -- ═══════════════════════════════════════════════════════════════
 
+-- Status 'published' pour accès famille. Valider avec une personne qualifiée
+-- avant toute diffusion publique (voir note en bas de page dans l'app).
 insert into stories (id, title, title_ar, arc_type, total_chapters, status, order_index)
 values (
   'arc_yusuf',
@@ -12,7 +14,7 @@ values (
   'قِصَّةُ يُوسُفَ',
   'prophets',
   10,
-  'draft',
+  'published',
   1
 )
 on conflict (id) do nothing;

@@ -702,6 +702,40 @@ export default function OasisPage() {
         </p>
       </div>
 
+      {/* ── Escape Game card ── */}
+      <div className="px-4 mb-2">
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={() => router.push("/escape3d")}
+          className="w-full rounded-2xl p-4 text-left flex items-center gap-4"
+          style={{
+            background: "linear-gradient(135deg,rgba(5,92,63,0.45) 0%,rgba(4,6,8,0.92) 100%)",
+            border: "1px solid rgba(5,195,111,0.35)",
+            boxShadow: "0 0 24px rgba(5,195,111,0.08)",
+          }}
+        >
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl"
+            style={{ background: "rgba(5,195,111,0.12)" }}>
+            🏰
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-0.5">
+              <span className="text-[9px] font-semibold tracking-widest uppercase"
+                style={{ color: "#05C36F", fontFamily: "var(--font-dm-sans)" }}>
+                ✦ Escape Game 3D
+              </span>
+            </div>
+            <p className="text-sm font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+              Le Riad des Secrets
+            </p>
+            <p className="text-[11px] mt-0.5" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
+              5 énigmes · 45 min · +350 XP
+            </p>
+          </div>
+          <span style={{ color: "#05C36F", fontSize: 18, flexShrink: 0 }}>→</span>
+        </motion.button>
+      </div>
+
       {/* ── Isometric SVG map ── */}
       <svg
         width={390} height={SVG_H}

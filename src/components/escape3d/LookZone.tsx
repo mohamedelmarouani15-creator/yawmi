@@ -6,11 +6,16 @@ interface Props {
   onChange: (dx: number, dy: number) => void;
 }
 
+// Seuil minimal en px pour considérer un drag (sinon c'est un tap sur un objet 3D)
+const DRAG_THRESHOLD = 8;
+const SENS = 0.004;
+
 export default function LookZone({ onChange }: Props) {
   const touchId   = useRef<number | null>(null);
+  const startPos  = useRef({ x: 0, y: 0 });
   const lastPos   = useRef({ x: 0, y: 0 });
+  const isDragging = useRef(false);
   const dotRef    = useRef<HTMLDivElement>(null);
-  const SENS      = 0.004; // sensibilité
 
   const showDot = useCallback((x: number, y: number, visible: boolean) => {
     if (!dotRef.current) return;
@@ -27,9 +32,10 @@ export default function LookZone({ onChange }: Props) {
       if (touchId.current !== null) return;
       const t = e.changedTouches[0];
       touchId.current = t.identifier;
-      lastPos.current = { x: t.clientX, y: t.clientY };
-      showDot(t.clientX, t.clientY, true);
-      e.preventDefault();
+      startPos.current = { x: t.clientX, y: t.clientY };
+      lastPos.current  = { x: t.clientX, y: t.clientY };
+      isDragging.current = false;
+      // Ne pas preventDefault ici — laisser les taps passer au canvas
     }
 
     function onMove(e: TouchEvent) {
@@ -37,12 +43,22 @@ export default function LookZone({ onChange }: Props) {
       for (let i = 0; i < e.changedTouches.length; i++) {
         const t = e.changedTouches[i];
         if (t.identifier !== touchId.current) continue;
+
+        const totalDx = t.clientX - startPos.current.x;
+        const totalDy = t.clientY - startPos.current.y;
+
+        if (!isDragging.current) {
+          // Déclencher le drag uniquement si déplacement > seuil
+          if (Math.sqrt(totalDx * totalDx + totalDy * totalDy) < DRAG_THRESHOLD) return;
+          isDragging.current = true;
+        }
+
         const dx = (t.clientX - lastPos.current.x) * SENS;
         const dy = (t.clientY - lastPos.current.y) * SENS;
         lastPos.current = { x: t.clientX, y: t.clientY };
         onChange(dx, dy);
         showDot(t.clientX, t.clientY, true);
-        e.preventDefault();
+        e.preventDefault(); // preventDefault seulement quand c'est un vrai drag
       }
     }
 
@@ -50,17 +66,17 @@ export default function LookZone({ onChange }: Props) {
       for (let i = 0; i < e.changedTouches.length; i++) {
         if (e.changedTouches[i].identifier === touchId.current) {
           touchId.current = null;
+          isDragging.current = false;
           showDot(0, 0, false);
-          onChange(0, 0);
           break;
         }
       }
     }
 
-    el.addEventListener("touchstart",  onStart, { passive: false });
+    el.addEventListener("touchstart",  onStart, { passive: true });
     el.addEventListener("touchmove",   onMove,  { passive: false });
-    el.addEventListener("touchend",    onEnd,   { passive: false });
-    el.addEventListener("touchcancel", onEnd,   { passive: false });
+    el.addEventListener("touchend",    onEnd,   { passive: true });
+    el.addEventListener("touchcancel", onEnd,   { passive: true });
     return () => {
       el.removeEventListener("touchstart",  onStart);
       el.removeEventListener("touchmove",   onMove);

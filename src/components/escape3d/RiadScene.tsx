@@ -9,6 +9,7 @@ import Courtyard from "./Courtyard";
 import { Library, Salon, Cuisine, Hammam } from "./RiadRoom";
 import PlayerAvatar from "./PlayerAvatar";
 import VirtualJoystick from "./VirtualJoystick";
+import LookZone from "./LookZone";
 import PuzzleModal from "./PuzzleModal";
 import { getPuzzleById } from "@/lib/escape3d/puzzles";
 import { PLAYER_COLORS } from "@/lib/escape3d/types";
@@ -18,48 +19,46 @@ import { isWalkable, getRoom, ROOM_NAMES } from "@/lib/escape3d/bounds";
 // Caméra fixe par pièce — comme dans les vrais escape games
 // ─────────────────────────────────────────────────────────────────
 const ROOM_CAMERAS: Record<string, {
-  offset: [number, number, number]; // position caméra relative au joueur
-  right:  [number, number];         // direction "droite" sur l'écran → [dx, dz]
-  fwd:    [number, number];         // direction "avant" sur l'écran → [dx, dz]
+  offset: [number, number, number];
+  right:  [number, number];
+  fwd:    [number, number];
 }> = {
-  courtyard: { offset: [0, 7, 5],   right: [1, 0],  fwd: [0, -1] },
-  library:   { offset: [0, 3, 4],   right: [1, 0],  fwd: [0, -1] },
-  salon:     { offset: [0, 3, -4],  right: [-1, 0], fwd: [0,  1] },
-  cuisine:   { offset: [-4, 3, 0],  right: [0, -1], fwd: [1,  0] },
-  hammam:    { offset: [4, 3, 0],   right: [0,  1], fwd: [-1, 0] },
+  courtyard: { offset: [0, 3.5, 5],  right: [1, 0],  fwd: [0, -1] },
+  library:   { offset: [0, 2.5, 4],  right: [1, 0],  fwd: [0, -1] },
+  salon:     { offset: [0, 2.5, -4], right: [-1, 0], fwd: [0,  1] },
+  cuisine:   { offset: [-4, 2.5, 0], right: [0, -1], fwd: [1,  0] },
+  hammam:    { offset: [4, 2.5, 0],  right: [0,  1], fwd: [-1, 0] },
 };
 
 const SPEED = 2.8;
 
-function Controller({ moveStick, onUpdate, roomRef }: {
-  moveStick: React.RefObject<{ x: number; y: number }>;
-  onUpdate:  (pos: [number, number, number], yaw: number) => void;
-  roomRef:   React.RefObject<string>;
+function Controller({ moveStick, lookDelta, onUpdate, roomRef }: {
+  moveStick:  React.RefObject<{ x: number; y: number }>;
+  lookDelta:  React.RefObject<{ dx: number; dy: number }>;
+  onUpdate:   (pos: [number, number, number], yaw: number) => void;
+  roomRef:    React.RefObject<string>;
 }) {
   const pos    = useRef(new THREE.Vector3(0, 0, 1.5));
-  const camPos = useRef(new THREE.Vector3(0, 7, 6.5));
-  const camTgt = useRef(new THREE.Vector3(0, 0, 1.5));
+  const camPos = useRef(new THREE.Vector3(0, 3.5, 6.5));
+  const camTgt = useRef(new THREE.Vector3(0, 0.5, 1.5));
   const yaw    = useRef(0);
-
-  // On stocke la caméra dans une ref pour l'utiliser dans useFrame
-  const cameraRef = useRef<THREE.Camera | null>(null);
+  // Pitch libre via LookZone (drag droit)
+  const pitch  = useRef(0.35); // angle vertical initial (radians, ~20°)
 
   useFrame(({ camera }, dt) => {
-    cameraRef.current = camera;
-    const room  = roomRef.current ?? "courtyard";
-    const cfg   = ROOM_CAMERAS[room] ?? ROOM_CAMERAS.courtyard;
-    const mx    = moveStick.current?.x ?? 0;
-    const my    = moveStick.current?.y ?? 0;
-    const len   = Math.sqrt(mx * mx + my * my);
+    const room = roomRef.current ?? "courtyard";
+    const cfg  = ROOM_CAMERAS[room] ?? ROOM_CAMERAS.courtyard;
+    const mx   = moveStick.current?.x ?? 0;
+    const my   = moveStick.current?.y ?? 0;
+    const len  = Math.sqrt(mx * mx + my * my);
 
-    // ── Mouvement — axes fixes par pièce, jamais de confusion ──
+    // ── Mouvement ──────────────────────────────────────────────
     if (len > 0.04) {
       const spd = SPEED * dt;
       const [rx, rz] = cfg.right;
       const [fx, fz] = cfg.fwd;
       const dx = (rx * mx + fx * my) * spd;
       const dz = (rz * mx + fz * my) * spd;
-
       const nx = pos.current.x + dx;
       const nz = pos.current.z + dz;
 
@@ -67,26 +66,33 @@ function Controller({ moveStick, onUpdate, roomRef }: {
       else if (isWalkable(nx, pos.current.z)) { pos.current.x = nx; }
       else if (isWalkable(pos.current.x, nz)) { pos.current.z = nz; }
 
-      // Orientation avatar vers la direction de déplacement
       if (Math.abs(dx) > 0.001 || Math.abs(dz) > 0.001) {
         yaw.current = Math.atan2(-dx, -dz);
       }
     }
 
-    // ── Caméra fixe — suit le joueur avec lerp doux ────────────
-    const [ox, oy, oz] = cfg.offset;
-    const targetPos = new THREE.Vector3(
-      pos.current.x + ox,
-      pos.current.y + oy,
-      pos.current.z + oz,
-    );
-    camPos.current.lerp(targetPos, 1 - Math.pow(0.002, dt));
+    // ── Look (drag droit) — ajuste yaw + pitch librement ──────
+    const ldx = lookDelta.current?.dx ?? 0;
+    const ldy = lookDelta.current?.dy ?? 0;
+    if (Math.abs(ldx) > 0 || Math.abs(ldy) > 0) {
+      yaw.current   -= ldx;
+      pitch.current  = Math.max(-0.2, Math.min(0.9, pitch.current + ldy));
+      lookDelta.current!.dx = 0;
+      lookDelta.current!.dy = 0;
+    }
+
+    // ── Caméra orbitale autour du joueur ───────────────────────
+    const dist = Math.sqrt(cfg.offset[0] ** 2 + cfg.offset[2] ** 2) || 5;
+    const camX = pos.current.x - Math.sin(yaw.current) * dist * Math.cos(pitch.current);
+    const camY = pos.current.y + cfg.offset[1] + Math.sin(pitch.current) * dist * 0.4;
+    const camZ = pos.current.z - Math.cos(yaw.current) * dist * Math.cos(pitch.current);
+
+    camPos.current.lerp(new THREE.Vector3(camX, camY, camZ), 1 - Math.pow(0.005, dt));
     camera.position.copy(camPos.current);
 
-    // Caméra regarde un point légèrement au-dessus du joueur
     camTgt.current.lerp(
-      new THREE.Vector3(pos.current.x, pos.current.y + 0.5, pos.current.z),
-      1 - Math.pow(0.002, dt),
+      new THREE.Vector3(pos.current.x, pos.current.y + 0.8, pos.current.z),
+      1 - Math.pow(0.005, dt),
     );
     camera.lookAt(camTgt.current);
 
@@ -133,10 +139,15 @@ export default function RiadScene() {
   const [solved, setSolved]  = useState<Record<string, boolean>>({});
   const [roomLabel, setRoom] = useState("Cour centrale");
 
-  const moveStick = useRef({ x: 0, y: 0 });
-  const roomRef   = useRef("courtyard");
+  const moveStick  = useRef({ x: 0, y: 0 });
+  const lookDelta  = useRef({ dx: 0, dy: 0 });
+  const roomRef    = useRef("courtyard");
 
   const onMove = useCallback((v: { x: number; y: number }) => { moveStick.current = v; }, []);
+  const onLook = useCallback((dx: number, dy: number) => {
+    lookDelta.current.dx += dx;
+    lookDelta.current.dy += dy;
+  }, []);
 
   const onUpdate = useCallback((pos: [number, number, number], yaw: number) => {
     setPos(pos); setYaw(yaw);
@@ -162,7 +173,7 @@ export default function RiadScene() {
 
       <Canvas
         shadows="soft"
-        camera={{ position: [0, 7, 6.5], fov: 55, near: 0.1, far: 80 }}
+        camera={{ position: [0, 3.5, 6.5], fov: 60, near: 0.1, far: 80 }}
         style={{ width: "100%", height: "100%" }}
         gl={{ antialias: false, alpha: false, stencil: false, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
       >
@@ -186,7 +197,7 @@ export default function RiadScene() {
           <PlayerAvatar position={playerPos} rotation={playerYaw} color={PLAYER_COLORS[0]} isLocal />
         </Float>
 
-        <Controller moveStick={moveStick} onUpdate={onUpdate} roomRef={roomRef} />
+        <Controller moveStick={moveStick} lookDelta={lookDelta} onUpdate={onUpdate} roomRef={roomRef} />
 
         <Suspense fallback={null}>
           <EffectComposer multisampling={4}>
@@ -195,10 +206,13 @@ export default function RiadScene() {
         </Suspense>
       </Canvas>
 
-      {/* Joystick — seul contrôle */}
+      {/* Joystick gauche — déplacement */}
       <div style={{ position: "absolute", bottom: 28, left: 24, zIndex: 10 }}>
         <VirtualJoystick onChange={onMove} />
       </div>
+
+      {/* Zone droite — regarder librement */}
+      <LookZone onChange={onLook} />
 
       {/* HUD */}
       <p style={{ position: "absolute", top: 18, left: "50%", transform: "translateX(-50%)", zIndex: 10, pointerEvents: "none", color: "#D4AF37", opacity: 0.65, fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "var(--font-dm-sans)", whiteSpace: "nowrap" }}>

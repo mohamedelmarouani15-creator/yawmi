@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, LogOut, Volume2, VolumeX } from "lucide-react";
 import { useAuth }        from "@/hooks/useAuth";
@@ -288,6 +289,28 @@ export default function ProfilPage() {
             </motion.div>
           )}
         </AnimatePresence>
+      </motion.div>
+
+      {/* Trophées link */}
+      <motion.div variants={itemVariants}>
+        <Link href="/profil/trophees">
+          <div className="flex items-center gap-4 rounded-2xl border px-4 py-4 mb-6"
+            style={{ background: "rgba(212,175,55,0.05)", borderColor: "rgba(212,175,55,0.2)", cursor: "pointer" }}>
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl text-2xl"
+              style={{ background: "rgba(212,175,55,0.12)" }}>
+              🏆
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-sm" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+                Trophées & Achievements
+              </p>
+              <p className="text-xs" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
+                Voir ta progression et tes médailles
+              </p>
+            </div>
+            <span style={{ color: "rgba(212,175,55,0.5)", fontSize: 18 }}>›</span>
+          </div>
+        </Link>
       </motion.div>
 
       {/* Méthode de calcul */}

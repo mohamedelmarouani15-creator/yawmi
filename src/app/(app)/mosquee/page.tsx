@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { storage } from "@/lib/storage";
+import { gameStorage } from "@/lib/game/game-storage";
 import MosqueIsometrique, { type MosqueStage } from "@/components/MosqueIsometrique";
 import { pageVariants, itemVariants } from "@/lib/motion";
+import { SAGES } from "@/lib/game/sages";
 
 const MILESTONES = [
   { streak: 0,  stade: 1, label: "Tapis de prière",      desc: "Premier pas — l'essentiel est là.",         emoji: "🕌" },
@@ -16,6 +18,8 @@ export default function MosqueePage() {
   const [streak,  setStreak]  = useState(0);
   const [stage,   setStage]   = useState<MosqueStage>(1);
   const [allDays, setAllDays] = useState(0);
+  const [mosqueObjects, setMosqueObjects] = useState<string[]>([]);
+  const [sageCards,     setSageCards]     = useState<string[]>([]);
 
   useEffect(() => {
     const log     = storage.getPrayerLog();
@@ -34,6 +38,10 @@ export default function MosqueePage() {
     setStreak(streak);
     setAllDays(total);
     setStage(streak >= 30 ? 3 : streak >= 7 ? 2 : 1);
+
+    const gameState = gameStorage.get();
+    setMosqueObjects(gameState.mosqueObjects);
+    setSageCards(gameState.sageCards);
   }, []);
 
   return (
@@ -117,6 +125,67 @@ export default function MosqueePage() {
           })}
         </div>
       </motion.div>
+
+      {/* Objets débloqués par le jeu */}
+      {mosqueObjects.length > 0 && (
+        <motion.div variants={itemVariants}>
+          <p className="text-xs tracking-widest uppercase opacity-40 mb-3"
+            style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            Objets débloqués via l&apos;Oasis
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {mosqueObjects.map(obj => {
+              const labels: Record<string, string> = {
+                lantern_1: "🪔 Lanterne", carpet_1: "🪣 Tapis", chandelier_1: "💡 Lustre",
+                mihrab_1: "🕌 Mihrab", minaret_base: "🗼 Minaret", fountain_1: "⛲ Fontaine",
+                arch_1: "🌙 Arche", tiles_1: "🔷 Zellige", calligraphy_1: "✍️ Calligraphie",
+                dome_1: "🔵 Dôme",
+              };
+              return (
+                <div key={obj} className="flex items-center gap-2 rounded-full px-3 py-1.5"
+                  style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.25)" }}>
+                  <span className="text-xs font-semibold"
+                    style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                    {labels[obj] ?? obj}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
+
+      {/* Bibliothèque des sages */}
+      {sageCards.length > 0 && (
+        <motion.div variants={itemVariants}>
+          <p className="text-xs tracking-widest uppercase opacity-40 mb-3"
+            style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            Bibliothèque des sages vaincus
+          </p>
+          <div className="grid grid-cols-2 gap-2">
+            {sageCards.map(sageId => {
+              const sage = SAGES.find(s => s.id === sageId);
+              if (!sage) return null;
+              return (
+                <div key={sageId} className="flex items-center gap-3 rounded-2xl border px-3 py-3"
+                  style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.2)" }}>
+                  <span className="text-xl">📜</span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-bold truncate"
+                      style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+                      {sage.name}
+                    </p>
+                    <p className="text-[10px] truncate opacity-45"
+                      style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                      {sage.title}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </motion.div>
+      )}
 
       {/* Message inspirant */}
       <motion.div variants={itemVariants}

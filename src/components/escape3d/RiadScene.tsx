@@ -2,15 +2,7 @@
 
 import { useRef, useState, useCallback, useEffect, Suspense } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import {
-  EffectComposer,
-  Bloom,
-  ChromaticAberration,
-  Noise,
-  N8AO,
-  SMAA,
-} from "@react-three/postprocessing";
-import { BlendFunction } from "postprocessing";
+import { EffectComposer, Bloom, SMAA } from "@react-three/postprocessing";
 import { Environment } from "@react-three/drei";
 import * as THREE from "three";
 import Courtyard from "./Courtyard";
@@ -21,12 +13,13 @@ import { ROOM_NAMES } from "@/lib/escape3d/bounds";
 import type { RoomId } from "@/lib/escape3d/bounds";
 
 // ── Positions caméra (hauteur œil) par pièce ──────────────────────
+// Caméras placées près de l'entrée, regardant DANS la pièce (vers le mur du fond)
 const ROOM_VIEWS: Record<RoomId, { pos: [number, number, number]; yaw: number }> = {
-  courtyard: { pos: [0,    1.6,  0.5],  yaw: 0           },
-  library:   { pos: [0,    1.6, -5.2],  yaw: Math.PI     },
-  salon:     { pos: [0,    1.6,  5.2],  yaw: 0           },
-  cuisine:   { pos: [5.2,  1.6,  0  ],  yaw: -Math.PI/2  },
-  hammam:    { pos: [-5.2, 1.6,  0  ],  yaw: Math.PI/2   },
+  courtyard: { pos: [0,     1.6,  0.5],  yaw: 0           }, // regard vers bibliothèque
+  library:   { pos: [0,     1.6, -4.6],  yaw: 0           }, // regard vers fond (-z)
+  salon:     { pos: [0,     1.6,  7.8],  yaw: 0           }, // regard vers fond (+z->-z)
+  cuisine:   { pos: [4.6,   1.6,  0  ],  yaw: Math.PI/2   }, // regard vers fond (+x)
+  hammam:    { pos: [-4.6,  1.6,  0  ],  yaw: -Math.PI/2  }, // regard vers fond (-x)
 };
 
 // ── Portails depuis la cour ───────────────────────────────────────
@@ -177,7 +170,7 @@ function CameraController({ yawRef, pitchRef, yawVelRef, pitchVelRef, currentRef
     // Direction de regard
     const y = yawRef.current;
     const p = pitchRef.current;
-    const D = 4;
+    const D = 10;
     camera.lookAt(
       camera.position.x + Math.sin(y) * D * Math.cos(p),
       camera.position.y + Math.sin(p) * D,
@@ -253,7 +246,7 @@ export default function RiadScene() {
       {/* Vignette */}
       <div style={{
         position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none",
-        background: "radial-gradient(ellipse at center, transparent 42%, rgba(0,0,0,0.78) 100%)",
+        background: "radial-gradient(ellipse at center, transparent 58%, rgba(0,0,0,0.52) 100%)",
       }} />
 
       {/* Overlay fade-to-black */}
@@ -277,7 +270,7 @@ export default function RiadScene() {
         style={{ width: "100%", height: "100%" }}
       >
         <color attach="background" args={["#040608"]} />
-        <fog attach="fog" args={["#040608", 14, 42]} />
+        <fog attach="fog" args={["#040608", 20, 60]} />
 
         {/* Environment nocturne pour les réflexions PBR */}
         <Environment preset="night" />
@@ -325,10 +318,7 @@ export default function RiadScene() {
         <Suspense fallback={null}>
           <EffectComposer multisampling={0}>
             <SMAA />
-            <N8AO aoRadius={5} intensity={1.5} />
-            <Bloom intensity={2.2} luminanceThreshold={0.2} luminanceSmoothing={0.5} mipmapBlur />
-            <ChromaticAberration offset={[0.0008, 0.0008] as unknown as THREE.Vector2} />
-            <Noise premultiplied={false} blendFunction={BlendFunction.ADD} opacity={0.04} />
+            <Bloom intensity={1.6} luminanceThreshold={0.28} luminanceSmoothing={0.6} mipmapBlur />
           </EffectComposer>
         </Suspense>
       </Canvas>

@@ -20,26 +20,66 @@ function RoomShell({ width = 6, depth = 5 }: {
   doorAxis?: "z" | "x";
 }) {
   const sideW = (width - DOOR_W) / 2;
+  const bz = -depth / 2; // z du mur du fond
 
   return (
     <>
-      {/* Sol — chaque pièce surcharge ce sol via son propre mesh */}
+      {/* Sol */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[width, depth]} />
         <meshStandardMaterial color="#8B6914" roughness={0.75} />
       </mesh>
 
-      {/* Plafond */}
+      {/* Plafond avec caissons */}
       <mesh position={[0, ROOM_H, 0]} rotation={[Math.PI / 2, 0, 0]}>
         <planeGeometry args={[width, depth]} />
         <meshStandardMaterial color={CEILING_COLOR} roughness={0.9} side={THREE.BackSide} />
       </mesh>
+      {/* Poutres plafond */}
+      {[-1.5, 0, 1.5].map(x => (
+        <mesh key={x} position={[x, ROOM_H - 0.08, 0]}>
+          <boxGeometry args={[0.18, 0.16, depth]} />
+          <meshStandardMaterial color="#5C3A1E" roughness={0.85} />
+        </mesh>
+      ))}
 
-      {/* Mur du fond */}
-      <mesh position={[0, ROOM_H / 2, -depth / 2]} castShadow receiveShadow>
+      {/* Mur du fond — avec lambris + niches */}
+      <mesh position={[0, ROOM_H / 2, bz]} castShadow receiveShadow>
         <boxGeometry args={[width, ROOM_H, WALL_T]} />
         <meshStandardMaterial color={WALL_COLOR} roughness={0.9} />
       </mesh>
+      {/* Lambris bas (panneau de soubassement) */}
+      <mesh position={[0, 0.45, bz + 0.03]}>
+        <boxGeometry args={[width - 0.1, 0.9, 0.05]} />
+        <meshStandardMaterial color={STONE_COLOR} roughness={0.8} />
+      </mesh>
+      {/* Frise horizontale à hauteur d'œil */}
+      <mesh position={[0, 1.05, bz + 0.03]}>
+        <boxGeometry args={[width - 0.1, 0.07, 0.04]} />
+        <meshStandardMaterial color="#B8A888" roughness={0.75} metalness={0.05} />
+      </mesh>
+      {/* 3 niches arabesques sur le mur du fond */}
+      {[-1.8, 0, 1.8].map(x => (
+        <group key={x} position={[x, 2.1, bz + 0.04]}>
+          {/* Enfoncement de niche */}
+          <mesh position={[0, 0, -0.04]}>
+            <boxGeometry args={[0.72, 1.0, 0.1]} />
+            <meshStandardMaterial color="#D8CCAC" roughness={0.95} />
+          </mesh>
+          {/* Arc de niche */}
+          <mesh position={[0, 0.5, 0]}>
+            <boxGeometry args={[0.72, 0.1, 0.06]} />
+            <meshStandardMaterial color={STONE_COLOR} roughness={0.8} />
+          </mesh>
+          {/* Pilastres */}
+          {[-0.36, 0.36].map(px => (
+            <mesh key={px} position={[px, 0, 0]}>
+              <boxGeometry args={[0.07, 1.0, 0.06]} />
+              <meshStandardMaterial color={STONE_COLOR} roughness={0.8} />
+            </mesh>
+          ))}
+        </group>
+      ))}
 
       {/* Murs latéraux */}
       <mesh position={[-width / 2, ROOM_H / 2, 0]} castShadow receiveShadow>
@@ -50,8 +90,15 @@ function RoomShell({ width = 6, depth = 5 }: {
         <boxGeometry args={[WALL_T, ROOM_H, depth]} />
         <meshStandardMaterial color={WALL_COLOR} roughness={0.9} />
       </mesh>
+      {/* Lambris murs latéraux */}
+      {[-width / 2 + 0.06, width / 2 - 0.06].map((x, i) => (
+        <mesh key={i} position={[x, 0.45, 0]}>
+          <boxGeometry args={[0.04, 0.9, depth - 0.1]} />
+          <meshStandardMaterial color={STONE_COLOR} roughness={0.8} />
+        </mesh>
+      ))}
 
-      {/* Mur d'entrée avec porte : deux segments + linteau */}
+      {/* Mur d'entrée avec porte */}
       <mesh position={[-sideW / 2 - DOOR_W / 2, ROOM_H / 2, depth / 2]} receiveShadow>
         <boxGeometry args={[sideW, ROOM_H, WALL_T]} />
         <meshStandardMaterial color={WALL_COLOR} roughness={0.9} />
@@ -60,13 +107,12 @@ function RoomShell({ width = 6, depth = 5 }: {
         <boxGeometry args={[sideW, ROOM_H, WALL_T]} />
         <meshStandardMaterial color={WALL_COLOR} roughness={0.9} />
       </mesh>
-      {/* Linteau au-dessus de la porte */}
       <mesh position={[0, DOOR_H + (ROOM_H - DOOR_H) / 2, depth / 2]} receiveShadow>
         <boxGeometry args={[DOOR_W, ROOM_H - DOOR_H, WALL_T]} />
         <meshStandardMaterial color={WALL_COLOR} roughness={0.9} />
       </mesh>
 
-      {/* Arche décorative */}
+      {/* Arche décorative porte */}
       <mesh position={[0, DOOR_H - 0.1, depth / 2 + 0.02]}>
         <boxGeometry args={[DOOR_W + 0.12, 0.14, 0.06]} />
         <meshStandardMaterial color={STONE_COLOR} roughness={0.8} />

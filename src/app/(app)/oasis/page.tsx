@@ -322,6 +322,89 @@ const FEATURE_STARS = Array.from({ length: 18 }, (_, i) => ({
   r: 1.2 + (i % 3) * 0.6,
 }));
 
+// ── Avatar marocain stylisé ────────────────────────────────────
+// Personnage en djellaba, fez, positionné sur le lieu actuel.
+// SVG dessiné dans son propre système de coordonnées (0,0 = centre pied)
+// puis translateé aux coords de la ville.
+function AvatarMarocain({ cx, cy }: { cx: number; cy: number }) {
+  // Skin, robe, accent colors
+  const skin   = "#C8956A";
+  const robe   = "#F8F4EC";
+  const robeS  = "#E8E0D0";
+  const fez    = "#C0392B";
+  const fezD   = "#96281B";
+  const belt   = "#D4AF37";
+  const shadow = "rgba(0,0,0,0.22)";
+
+  return (
+    <motion.g
+      transform={`translate(${cx},${cy})`}
+      animate={{ y: [0, -5, 0] }}
+      transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+    >
+      {/* Ground shadow */}
+      <ellipse cx={0} cy={2} rx={14} ry={4} fill={shadow} />
+
+      {/* Body — djellaba longue */}
+      <path
+        d="M -10,0 Q -13,-18 -8,-36 L 0,-40 L 8,-36 Q 13,-18 10,0 Z"
+        fill={robe} stroke={robeS} strokeWidth={0.6}
+      />
+      {/* Djellaba hood drape left */}
+      <path d="M -8,-36 Q -16,-40 -14,-52 Q -10,-48 -8,-36 Z" fill={robeS} />
+      {/* Djellaba hood drape right */}
+      <path d="M 8,-36 Q 16,-40 14,-52 Q 10,-48 8,-36 Z" fill={robeS} />
+
+      {/* Belt */}
+      <rect x={-10} y={-22} width={20} height={3} rx={1.5}
+        fill={belt} opacity={0.7} />
+
+      {/* Left arm (slight angle) */}
+      <path d="M -10,-28 Q -18,-24 -16,-18" fill="none"
+        stroke={robe} strokeWidth={5} strokeLinecap="round" />
+      {/* Left hand */}
+      <circle cx={-16} cy={-17} r={2.8} fill={skin} />
+
+      {/* Right arm */}
+      <path d="M 10,-28 Q 18,-24 16,-18" fill="none"
+        stroke={robe} strokeWidth={5} strokeLinecap="round" />
+      {/* Right hand */}
+      <circle cx={16} cy={-17} r={2.8} fill={skin} />
+
+      {/* Neck */}
+      <rect x={-3} y={-52} width={6} height={8} rx={3} fill={skin} />
+
+      {/* Head */}
+      <ellipse cx={0} cy={-58} rx={9} ry={10} fill={skin} />
+
+      {/* Fez */}
+      <ellipse cx={0} cy={-66} rx={9} ry={3} fill={fez} />
+      <rect x={-8} y={-80} width={16} height={15} rx={2}
+        fill={fez} />
+      <rect x={-9} y={-66} width={18} height={3} rx={1}
+        fill={fezD} />
+      {/* Tassel */}
+      <line x1={6} y1={-80} x2={8} y2={-72}
+        stroke={belt} strokeWidth={1} strokeLinecap="round" />
+
+      {/* Eyes */}
+      <circle cx={-3} cy={-58} r={1.2} fill="#2C1A0E" />
+      <circle cx={3}  cy={-58} r={1.2} fill="#2C1A0E" />
+
+      {/* Beard subtle */}
+      <path d="M -4,-51 Q 0,-48 4,-51" fill="none"
+        stroke="#7A5230" strokeWidth={1.2} strokeLinecap="round" />
+
+      {/* Gold halo subtle — voyageur béni */}
+      <motion.circle cx={0} cy={-58} r={13} fill="none"
+        stroke="rgba(212,175,55,0.3)" strokeWidth={0.8}
+        animate={{ opacity: [0.3, 0.6, 0.3], r: [12, 14, 12] }}
+        transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+      />
+    </motion.g>
+  );
+}
+
 // ── Smooth bezier path ─────────────────────────────────────────
 function buildPath() {
   const vis = (id: string) => ({ x: CITY_POS[id].cx, y: CITY_POS[id].cy - 100 });
@@ -759,6 +842,12 @@ export default function OasisPage() {
             </motion.g>
           );
         })}
+
+        {/* ── Avatar marocain — se positionne sur la ville actuelle ── */}
+        <AvatarMarocain
+          cx={CITY_POS[curLoc]?.cx ?? 195}
+          cy={(CITY_POS[curLoc]?.cy ?? 3050) - 185}
+        />
       </svg>
 
       <Toast msg={toast ?? ""} show={!!toast} />

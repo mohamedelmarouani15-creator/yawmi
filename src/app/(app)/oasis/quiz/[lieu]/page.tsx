@@ -546,27 +546,59 @@ export default function QuizPage() {
             )}
           </AnimatePresence>
 
-          {/* Cultural capsule */}
+          {/* Cultural capsule — moment "wow" de fierté culturelle */}
           <AnimatePresence>
             {session.showResult && currentQuestion.culturalCapsule && (
               <motion.div
-                initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
-                transition={{ delay: 0.25, duration: 0.35 }}
-                className="mt-4 rounded-2xl border p-4 overflow-hidden"
-                style={{ background: "rgba(212,175,55,0.05)", borderColor: "rgba(212,175,55,0.18)" }}
+                initial={{ opacity: 0, scale: 0.95, y: 12 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.4, type: "spring", stiffness: 300, damping: 24 }}
+                className="mt-4 overflow-hidden"
+                style={{
+                  borderRadius: 20,
+                  background: "linear-gradient(135deg, rgba(30,20,5,0.97) 0%, rgba(20,14,3,0.97) 100%)",
+                  border: "1px solid rgba(212,175,55,0.35)",
+                  boxShadow: "0 0 28px rgba(212,175,55,0.1), inset 0 1px 0 rgba(212,175,55,0.08)",
+                }}
               >
-                <p className="text-xs font-semibold mb-1" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
-                  ✦ {currentQuestion.culturalCapsule.title}
-                </p>
-                <p className="text-xs leading-relaxed opacity-65"
-                  style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                {/* Header doré */}
+                <div className="flex items-center gap-2.5 px-4 pt-4 pb-2.5"
+                  style={{ borderBottom: "1px solid rgba(212,175,55,0.12)" }}>
+                  <motion.div
+                    animate={{ rotate: [0, 5, -5, 0], scale: [1, 1.15, 1] }}
+                    transition={{ delay: 0.6, duration: 0.5 }}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+                    style={{ background: "rgba(212,175,55,0.15)", fontSize: 16 }}
+                  >
+                    ✦
+                  </motion.div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-widest mb-0.5"
+                      style={{ color: "rgba(212,175,55,0.55)", fontFamily: "var(--font-dm-sans)" }}>
+                      Capsule culturelle
+                    </p>
+                    <p className="text-sm font-bold leading-tight"
+                      style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+                      {currentQuestion.culturalCapsule.title}
+                    </p>
+                  </div>
+                </div>
+                {/* Corps */}
+                <p className="px-4 pt-3 pb-4 text-sm leading-relaxed"
+                  style={{ color: "rgba(248,244,236,0.75)", fontFamily: "var(--font-dm-sans)" }}>
                   {currentQuestion.culturalCapsule.text}
                 </p>
+                {/* Bottom ornament */}
+                <div className="mx-4 mb-3 flex items-center gap-2">
+                  <div className="flex-1 h-px" style={{ background: "rgba(212,175,55,0.12)" }} />
+                  <span className="text-[10px]" style={{ color: "rgba(212,175,55,0.35)" }}>ـ ✦ ـ</span>
+                  <div className="flex-1 h-px" style={{ background: "rgba(212,175,55,0.12)" }} />
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* Explanation */}
+          {/* Explanation (si pas de capsule) */}
           <AnimatePresence>
             {session.showResult && currentQuestion.explanation && !currentQuestion.culturalCapsule && (
               <motion.div

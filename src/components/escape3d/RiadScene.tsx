@@ -1,161 +1,233 @@
 "use client";
 
-import { useRef, useState, useCallback, Suspense } from "react";
-import { Canvas, useFrame } from "@react-three/fiber";
-import { Stars, ContactShadows, Float } from "@react-three/drei";
+import { useRef, useState, useCallback, useEffect, Suspense } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import Courtyard from "./Courtyard";
 import { Library, Salon, Cuisine, Hammam } from "./RiadRoom";
-import PlayerAvatar from "./PlayerAvatar";
-import VirtualJoystick from "./VirtualJoystick";
-import LookZone from "./LookZone";
 import PuzzleModal from "./PuzzleModal";
 import { getPuzzleById } from "@/lib/escape3d/puzzles";
-import { PLAYER_COLORS } from "@/lib/escape3d/types";
-import { isWalkable, getRoom, ROOM_NAMES } from "@/lib/escape3d/bounds";
+import { ROOM_NAMES } from "@/lib/escape3d/bounds";
+import type { RoomId } from "@/lib/escape3d/bounds";
 
-// ─────────────────────────────────────────────────────────────────
-// Caméra fixe par pièce — comme dans les vrais escape games
-// ─────────────────────────────────────────────────────────────────
-const ROOM_CAMERAS: Record<string, {
-  offset: [number, number, number];
-  right:  [number, number];
-  fwd:    [number, number];
-}> = {
-  courtyard: { offset: [0, 3.5, 5],  right: [1, 0],  fwd: [0, -1] },
-  library:   { offset: [0, 2.5, 4],  right: [1, 0],  fwd: [0, -1] },
-  salon:     { offset: [0, 2.5, -4], right: [-1, 0], fwd: [0,  1] },
-  cuisine:   { offset: [-4, 2.5, 0], right: [0, -1], fwd: [1,  0] },
-  hammam:    { offset: [4, 2.5, 0],  right: [0,  1], fwd: [-1, 0] },
+// ── Positions caméra (hauteur œil) par pièce ──────────────────────
+const ROOM_VIEWS: Record<RoomId, { pos: [number, number, number]; yaw: number }> = {
+  courtyard: { pos: [0,    1.6,  0.5],  yaw: 0           },
+  library:   { pos: [0,    1.6, -5.2],  yaw: Math.PI     },
+  salon:     { pos: [0,    1.6,  5.2],  yaw: 0           },
+  cuisine:   { pos: [5.2,  1.6,  0  ],  yaw: -Math.PI/2  },
+  hammam:    { pos: [-5.2, 1.6,  0  ],  yaw: Math.PI/2   },
 };
 
-const SPEED = 2.8;
+// ── Portails depuis la cour ───────────────────────────────────────
+const COURTYARD_DOORS: Array<{ to: RoomId; pos: [number,number,number]; rotY: number }> = [
+  { to: "library", pos: [0,   1.3, -3.4],  rotY: 0          },
+  { to: "salon",   pos: [0,   1.3,  3.4],  rotY: 0          },
+  { to: "cuisine", pos: [3.4, 1.3,  0  ],  rotY: Math.PI/2  },
+  { to: "hammam",  pos: [-3.4,1.3,  0  ],  rotY: Math.PI/2  },
+];
 
-function Controller({ moveStick, lookDelta, onUpdate, roomRef }: {
-  moveStick:  React.RefObject<{ x: number; y: number }>;
-  lookDelta:  React.RefObject<{ dx: number; dy: number }>;
-  onUpdate:   (pos: [number, number, number], yaw: number) => void;
-  roomRef:    React.RefObject<string>;
+// ── Portails retour vers la cour (depuis chaque pièce) ────────────
+const BACK_DOORS: Partial<Record<RoomId, { pos: [number,number,number]; rotY: number }>> = {
+  library: { pos: [0,   1.3, -4.1],  rotY: 0         },
+  salon:   { pos: [0,   1.3,  4.1],  rotY: 0         },
+  cuisine: { pos: [4.1, 1.3,  0  ],  rotY: Math.PI/2 },
+  hammam:  { pos: [-4.1,1.3,  0  ],  rotY: Math.PI/2 },
+};
+
+// ── Portail lumineux ──────────────────────────────────────────────
+function DoorPortal({ pos, rotY, label, onClick }: {
+  pos:     [number, number, number];
+  rotY:    number;
+  label?:  string;
+  onClick: () => void;
 }) {
-  const pos    = useRef(new THREE.Vector3(0, 0, 1.5));
-  const camPos = useRef(new THREE.Vector3(0, 3.5, 6.5));
-  const camTgt = useRef(new THREE.Vector3(0, 0.5, 1.5));
-  const yaw    = useRef(0);
-  // Pitch libre via LookZone (drag droit)
-  const pitch  = useRef(0.35); // angle vertical initial (radians, ~20°)
+  const matRef = useRef<THREE.MeshBasicMaterial>(null!);
+  useFrame(({ clock }) => {
+    if (matRef.current)
+      matRef.current.opacity = 0.08 + 0.06 * Math.sin(clock.getElapsedTime() * 2.4);
+  });
+
+  return (
+    <group position={pos} rotation={[0, rotY, 0]}>
+      {/* Zone cliquable */}
+      <mesh onClick={onClick}>
+        <planeGeometry args={[1.65, 2.65]} />
+        <meshBasicMaterial ref={matRef} color="#D4AF37" transparent opacity={0.08}
+          side={THREE.DoubleSide} depthWrite={false} />
+      </mesh>
+      {/* Linteau */}
+      <mesh position={[0, 1.33, 0.01]}>
+        <boxGeometry args={[1.72, 0.045, 0.018]} />
+        <meshBasicMaterial color="#D4AF37" transparent opacity={0.6} />
+      </mesh>
+      {/* Pieds */}
+      {([-0.835, 0.835] as const).map(x => (
+        <mesh key={x} position={[x, 0, 0.01]}>
+          <boxGeometry args={[0.028, 2.66, 0.018]} />
+          <meshBasicMaterial color="#D4AF37" transparent opacity={0.45} />
+        </mesh>
+      ))}
+      {/* Petite flèche indicateur */}
+      {label && (
+        <mesh position={[0, -1.45, 0.02]}>
+          <planeGeometry args={[0.6, 0.18]} />
+          <meshBasicMaterial color="#D4AF37" transparent opacity={0.0} />
+        </mesh>
+      )}
+    </group>
+  );
+}
+
+// ── Swipe-to-look (listeners directs sur le canvas WebGL) ─────────
+function InputHandler({ yawRef, pitchRef, isDraggingRef }: {
+  yawRef:        React.RefObject<number>;
+  pitchRef:      React.RefObject<number>;
+  isDraggingRef: React.RefObject<boolean>;
+}) {
+  const { gl } = useThree();
+
+  useEffect(() => {
+    const canvas = gl.domElement;
+    let pid: number | null = null;
+    let sx = 0, sy = 0, lx = 0, ly = 0;
+
+    function down(e: PointerEvent) {
+      if (pid !== null) return;
+      pid = e.pointerId;
+      sx = lx = e.clientX;
+      sy = ly = e.clientY;
+      isDraggingRef.current = false;
+      try { canvas.setPointerCapture(e.pointerId); } catch {}
+    }
+
+    function move(e: PointerEvent) {
+      if (e.pointerId !== pid) return;
+      if (Math.hypot(e.clientX - sx, e.clientY - sy) > 7)
+        isDraggingRef.current = true;
+      if (isDraggingRef.current) {
+        yawRef.current!  -= (e.clientX - lx) * 0.0055;
+        pitchRef.current! = Math.max(-0.42, Math.min(0.42,
+          pitchRef.current! + (e.clientY - ly) * 0.004));
+      }
+      lx = e.clientX; ly = e.clientY;
+    }
+
+    function up(e: PointerEvent) {
+      if (e.pointerId !== pid) return;
+      pid = null;
+      // Reset au prochain tick pour laisser onClick s'exécuter d'abord
+      requestAnimationFrame(() => { isDraggingRef.current = false; });
+    }
+
+    canvas.addEventListener("pointerdown",   down, { passive: true });
+    canvas.addEventListener("pointermove",   move, { passive: true });
+    canvas.addEventListener("pointerup",     up,   { passive: true });
+    canvas.addEventListener("pointercancel", up,   { passive: true });
+    return () => {
+      canvas.removeEventListener("pointerdown",   down);
+      canvas.removeEventListener("pointermove",   move);
+      canvas.removeEventListener("pointerup",     up);
+      canvas.removeEventListener("pointercancel", up);
+    };
+  }, [gl, yawRef, pitchRef, isDraggingRef]);
+
+  return null;
+}
+
+// ── Contrôleur caméra ─────────────────────────────────────────────
+function CameraController({ yawRef, pitchRef, targetRef, currentRef, onArrived }: {
+  yawRef:      React.RefObject<number>;
+  pitchRef:    React.RefObject<number>;
+  targetRef:   React.RefObject<RoomId | null>;
+  currentRef:  React.RefObject<RoomId>;
+  onArrived:   (r: RoomId) => void;
+}) {
+  const progress  = useRef(0);
+  const fromPos   = useRef(new THREE.Vector3(0, 1.6, 0.5));
+  const toPos     = useRef(new THREE.Vector3(0, 1.6, 0.5));
+  const traveling = useRef(false);
+  const destRef   = useRef<RoomId | null>(null);
 
   useFrame(({ camera }, dt) => {
-    const room = roomRef.current ?? "courtyard";
-    const cfg  = ROOM_CAMERAS[room] ?? ROOM_CAMERAS.courtyard;
-    const mx   = moveStick.current?.x ?? 0;
-    const my   = moveStick.current?.y ?? 0;
-    const len  = Math.sqrt(mx * mx + my * my);
+    // Nouvelle transition demandée
+    const target = targetRef.current;
+    if (target && !traveling.current) {
+      fromPos.current.copy(camera.position);
+      toPos.current.set(...ROOM_VIEWS[target].pos);
+      progress.current = 0;
+      traveling.current = true;
+      destRef.current = target;
+      targetRef.current = null;
+    }
 
-    // ── Mouvement ──────────────────────────────────────────────
-    if (len > 0.04) {
-      const spd = SPEED * dt;
-      const [rx, rz] = cfg.right;
-      const [fx, fz] = cfg.fwd;
-      const dx = (rx * mx + fx * my) * spd;
-      const dz = (rz * mx + fz * my) * spd;
-      const nx = pos.current.x + dx;
-      const nz = pos.current.z + dz;
-
-      if      (isWalkable(nx, nz))            { pos.current.x = nx; pos.current.z = nz; }
-      else if (isWalkable(nx, pos.current.z)) { pos.current.x = nx; }
-      else if (isWalkable(pos.current.x, nz)) { pos.current.z = nz; }
-
-      if (Math.abs(dx) > 0.001 || Math.abs(dz) > 0.001) {
-        yaw.current = Math.atan2(-dx, -dz);
+    // Animation de déplacement
+    if (traveling.current) {
+      progress.current = Math.min(progress.current + dt * 1.75, 1);
+      const t = 1 - Math.pow(1 - progress.current, 3); // ease-out cubic
+      camera.position.lerpVectors(fromPos.current, toPos.current, t);
+      if (progress.current >= 1) {
+        traveling.current = false;
+        onArrived(destRef.current!);
+        destRef.current = null;
       }
+    } else {
+      // Position fixe dans la pièce courante
+      camera.position.set(...ROOM_VIEWS[currentRef.current].pos);
     }
 
-    // ── Look (drag droit) — ajuste yaw + pitch librement ──────
-    const ldx = lookDelta.current?.dx ?? 0;
-    const ldy = lookDelta.current?.dy ?? 0;
-    if (Math.abs(ldx) > 0 || Math.abs(ldy) > 0) {
-      yaw.current   -= ldx;
-      pitch.current  = Math.max(-0.2, Math.min(0.9, pitch.current + ldy));
-      lookDelta.current!.dx = 0;
-      lookDelta.current!.dy = 0;
-    }
-
-    // ── Caméra orbitale autour du joueur ───────────────────────
-    const dist = Math.sqrt(cfg.offset[0] ** 2 + cfg.offset[2] ** 2) || 5;
-    const camX = pos.current.x - Math.sin(yaw.current) * dist * Math.cos(pitch.current);
-    const camY = pos.current.y + cfg.offset[1] + Math.sin(pitch.current) * dist * 0.4;
-    const camZ = pos.current.z - Math.cos(yaw.current) * dist * Math.cos(pitch.current);
-
-    camPos.current.lerp(new THREE.Vector3(camX, camY, camZ), 1 - Math.pow(0.005, dt));
-    camera.position.copy(camPos.current);
-
-    camTgt.current.lerp(
-      new THREE.Vector3(pos.current.x, pos.current.y + 0.8, pos.current.z),
-      1 - Math.pow(0.005, dt),
+    // Direction de regard (toujours appliquée)
+    const y = yawRef.current ?? 0;
+    const p = pitchRef.current ?? 0;
+    const D = 4;
+    camera.lookAt(
+      camera.position.x + Math.sin(y) * D * Math.cos(p),
+      camera.position.y + Math.sin(p) * D,
+      camera.position.z - Math.cos(y) * D * Math.cos(p),
     );
-    camera.lookAt(camTgt.current);
-
-    onUpdate([pos.current.x, 0, pos.current.z], yaw.current);
   });
 
   return null;
 }
 
-function LanternParticles({ position }: { position: [number, number, number] }) {
-  const ref   = useRef<THREE.Points>(null!);
-  const count = 8;
-  const buf   = useRef(Float32Array.from({ length: count * 3 }, () => (Math.random() - 0.5) * 0.35));
-  const spd   = useRef(Array.from({ length: count }, () => 0.003 + Math.random() * 0.003));
-
-  useFrame(() => {
-    const a = ref.current?.geometry.attributes.position.array as Float32Array;
-    if (!a) return;
-    for (let i = 0; i < count; i++) {
-      a[i * 3 + 1] += spd.current[i];
-      if (a[i * 3 + 1] > 1.2) {
-        a[i * 3 + 1] = 0;
-        a[i * 3]     = (Math.random() - 0.5) * 0.3;
-        a[i * 3 + 2] = (Math.random() - 0.5) * 0.3;
-      }
-    }
-    ref.current.geometry.attributes.position.needsUpdate = true;
-  });
-
-  return (
-    <points ref={ref} position={[position[0], position[1] + 1.72, position[2]]}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[buf.current, 3]} />
-      </bufferGeometry>
-      <pointsMaterial color="#FFD080" size={0.028} transparent opacity={0.55} sizeAttenuation />
-    </points>
-  );
-}
-
+// ── Scène principale ──────────────────────────────────────────────
 export default function RiadScene() {
-  const [playerPos, setPos] = useState<[number, number, number]>([0, 0, 1.5]);
-  const [playerYaw, setYaw] = useState(0);
-  const [puzzle, setPuzzle]  = useState<string | null>(null);
-  const [solved, setSolved]  = useState<Record<string, boolean>>({});
-  const [roomLabel, setRoom] = useState("Cour centrale");
+  const [room,      setRoom]      = useState<RoomId>("courtyard");
+  const [puzzle,    setPuzzle]    = useState<string | null>(null);
+  const [solved,    setSolved]    = useState<Record<string, boolean>>({});
+  const [traveling, setTraveling] = useState(false);
+  const [hint,      setHint]      = useState(true); // afficher l'indice au départ
 
-  const moveStick  = useRef({ x: 0, y: 0 });
-  const lookDelta  = useRef({ dx: 0, dy: 0 });
-  const roomRef    = useRef("courtyard");
+  const yawRef        = useRef(0);
+  const pitchRef      = useRef(0);
+  const isDraggingRef = useRef(false);
+  const targetRef     = useRef<RoomId | null>(null);
+  const currentRef    = useRef<RoomId>("courtyard");
 
-  const onMove = useCallback((v: { x: number; y: number }) => { moveStick.current = v; }, []);
-  const onLook = useCallback((dx: number, dy: number) => {
-    lookDelta.current.dx += dx;
-    lookDelta.current.dy += dy;
+  // Masquer l'indice après 4 secondes
+  useEffect(() => {
+    const t = setTimeout(() => setHint(false), 4000);
+    return () => clearTimeout(t);
   }, []);
 
-  const onUpdate = useCallback((pos: [number, number, number], yaw: number) => {
-    setPos(pos); setYaw(yaw);
-    const r = getRoom(pos[0], pos[2]);
-    if (r !== roomRef.current) {
-      roomRef.current = r;
-      setRoom(ROOM_NAMES[r]);
-    }
+  const goTo = useCallback((dest: RoomId) => {
+    if (traveling || isDraggingRef.current) return;
+    yawRef.current   = ROOM_VIEWS[dest].yaw;
+    pitchRef.current = 0;
+    targetRef.current = dest;
+    setTraveling(true);
+    setHint(false);
+  }, [traveling]);
+
+  const onArrived = useCallback((r: RoomId) => {
+    currentRef.current = r;
+    setRoom(r);
+    setTraveling(false);
+  }, []);
+
+  const openPuzzle = useCallback((id: string) => {
+    if (!isDraggingRef.current) setPuzzle(id);
   }, []);
 
   const solve = (ok: boolean) => {
@@ -169,73 +241,144 @@ export default function RiadScene() {
 
   return (
     <div style={{ position: "absolute", inset: 0, touchAction: "none" }}>
-      <div style={{ position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none", background: "radial-gradient(ellipse at center, transparent 45%, rgba(0,0,0,0.78) 100%)" }} />
+
+      {/* Vignette */}
+      <div style={{
+        position: "absolute", inset: 0, zIndex: 2, pointerEvents: "none",
+        background: "radial-gradient(ellipse at center, transparent 42%, rgba(0,0,0,0.78) 100%)",
+      }} />
 
       <Canvas
-        shadows="soft"
-        camera={{ position: [0, 3.5, 6.5], fov: 60, near: 0.1, far: 80 }}
+        camera={{ position: [0, 1.6, 0.5], fov: 80, near: 0.05, far: 80 }}
+        gl={{
+          antialias: true, alpha: false, stencil: false,
+          toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.15,
+        }}
         style={{ width: "100%", height: "100%" }}
-        gl={{ antialias: false, alpha: false, stencil: false, toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
       >
         <color attach="background" args={["#040608"]} />
-        <fog attach="fog" args={["#040608", 12, 38]} />
-        <Stars radius={32} depth={12} count={1200} factor={3} saturation={0.4} fade speed={0.4} />
+        <fog attach="fog" args={["#040608", 14, 42]} />
 
-        <Courtyard  onLanternTap={() => setPuzzle("lantern_bismillah")} puzzleSolved={solved["lantern_bismillah"]} />
-        <Library    onPuzzleTap={() => setPuzzle("library_iqra")}       solved={solved["library_iqra"]} />
-        <Salon      onPuzzleTap={() => setPuzzle("salon_sabr")}         solved={solved["salon_sabr"]} />
-        <Cuisine    onPuzzleTap={() => setPuzzle("cuisine_honey")}      solved={solved["cuisine_honey"]} />
-        <Hammam     onPuzzleTap={() => setPuzzle("hammam_taharah")}     solved={solved["hammam_taharah"]} />
+        {/* Décors */}
+        <Courtyard
+          onLanternTap={() => openPuzzle("lantern_bismillah")}
+          puzzleSolved={solved["lantern_bismillah"]}
+        />
+        <Library  onPuzzleTap={() => openPuzzle("library_iqra")}    solved={solved["library_iqra"]}    />
+        <Salon    onPuzzleTap={() => openPuzzle("salon_sabr")}      solved={solved["salon_sabr"]}      />
+        <Cuisine  onPuzzleTap={() => openPuzzle("cuisine_honey")}   solved={solved["cuisine_honey"]}   />
+        <Hammam   onPuzzleTap={() => openPuzzle("hammam_taharah")}  solved={solved["hammam_taharah"]}  />
 
-        <ContactShadows position={[0, 0.01, 0]} opacity={0.5} scale={14} blur={2.5} far={5} />
-
-        {([[2.6,0,2.6],[-2.6,0,2.6],[2.6,0,-2.6],[-2.6,0,-2.6]] as [number,number,number][]).map((p,i) => (
-          <LanternParticles key={i} position={p} />
+        {/* Portails depuis la cour */}
+        {room === "courtyard" && COURTYARD_DOORS.map(d => (
+          <DoorPortal key={d.to} pos={d.pos} rotY={d.rotY}
+            onClick={() => !traveling && goTo(d.to)} />
         ))}
 
-        <Float speed={1.2} rotationIntensity={0} floatIntensity={0.06}>
-          <PlayerAvatar position={playerPos} rotation={playerYaw} color={PLAYER_COLORS[0]} isLocal />
-        </Float>
+        {/* Portail retour */}
+        {room !== "courtyard" && BACK_DOORS[room] && (
+          <DoorPortal
+            pos={BACK_DOORS[room]!.pos}
+            rotY={BACK_DOORS[room]!.rotY}
+            onClick={() => !traveling && goTo("courtyard")}
+          />
+        )}
 
-        <Controller moveStick={moveStick} lookDelta={lookDelta} onUpdate={onUpdate} roomRef={roomRef} />
+        <InputHandler yawRef={yawRef} pitchRef={pitchRef} isDraggingRef={isDraggingRef} />
+        <CameraController
+          yawRef={yawRef} pitchRef={pitchRef}
+          targetRef={targetRef} currentRef={currentRef}
+          onArrived={onArrived}
+        />
 
         <Suspense fallback={null}>
-          <EffectComposer multisampling={4}>
-            <Bloom intensity={1.8} luminanceThreshold={0.25} luminanceSmoothing={0.6} mipmapBlur />
+          <EffectComposer multisampling={0}>
+            <Bloom intensity={1.9} luminanceThreshold={0.24} luminanceSmoothing={0.6} mipmapBlur />
           </EffectComposer>
         </Suspense>
       </Canvas>
 
-      {/* Joystick gauche — déplacement */}
-      <div style={{ position: "absolute", bottom: 28, left: 24, zIndex: 10 }}>
-        <VirtualJoystick onChange={onMove} />
-      </div>
-
-      {/* Zone droite — regarder librement */}
-      <LookZone onChange={onLook} />
-
-      {/* HUD */}
-      <p style={{ position: "absolute", top: 18, left: "50%", transform: "translateX(-50%)", zIndex: 10, pointerEvents: "none", color: "#D4AF37", opacity: 0.65, fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "var(--font-dm-sans)", whiteSpace: "nowrap" }}>
-        {roomLabel}
+      {/* Nom de la pièce */}
+      <p style={{
+        position: "absolute", top: 18, left: "50%", transform: "translateX(-50%)",
+        zIndex: 10, pointerEvents: "none",
+        color: "#D4AF37", opacity: 0.6, fontSize: 10,
+        letterSpacing: "0.2em", textTransform: "uppercase",
+        fontFamily: "var(--font-dm-sans)", whiteSpace: "nowrap",
+      }}>
+        {ROOM_NAMES[room]}
       </p>
+
+      {/* Dots énigmes */}
       <div style={{ position: "absolute", top: 18, right: 18, zIndex: 10, display: "flex", gap: 6 }}>
         {["lantern_bismillah","library_iqra","salon_sabr","cuisine_honey","hammam_taharah"].map(id => (
-          <div key={id} style={{ width: 7, height: 7, borderRadius: "50%", background: solved[id] ? "#05C36F" : "rgba(212,175,55,0.28)", boxShadow: solved[id] ? "0 0 6px #05C36F" : "none", transition: "all 0.4s" }} />
+          <div key={id} style={{
+            width: 7, height: 7, borderRadius: "50%",
+            background: solved[id] ? "#05C36F" : "rgba(212,175,55,0.28)",
+            boxShadow: solved[id] ? "0 0 6px #05C36F" : "none",
+            transition: "all 0.4s",
+          }} />
         ))}
       </div>
 
+      {/* Indice initial */}
+      {hint && (
+        <p style={{
+          position: "absolute", bottom: 36, left: "50%", transform: "translateX(-50%)",
+          zIndex: 10, pointerEvents: "none",
+          color: "rgba(212,175,55,0.5)", fontSize: 10, letterSpacing: "0.14em",
+          textTransform: "uppercase", fontFamily: "var(--font-dm-sans)", whiteSpace: "nowrap",
+          animation: "fadeOut 1s 3s forwards",
+        }}>
+          Glisse pour regarder · Touche les portes pour entrer
+        </p>
+      )}
+
+      {/* Bouton retour */}
+      {room !== "courtyard" && !traveling && (
+        <button
+          onClick={() => goTo("courtyard")}
+          style={{
+            position: "absolute", bottom: 34, left: "50%", transform: "translateX(-50%)",
+            zIndex: 10,
+            background: "rgba(4,6,8,0.75)", border: "1px solid rgba(212,175,55,0.28)",
+            borderRadius: 24, padding: "9px 20px",
+            color: "#D4AF37", fontSize: 10, letterSpacing: "0.14em",
+            textTransform: "uppercase", fontFamily: "var(--font-dm-sans)",
+            cursor: "pointer", backdropFilter: "blur(10px)",
+          }}>
+          ← Cour centrale
+        </button>
+      )}
+
+      {/* Victoire */}
       {allDone && (
-        <div style={{ position: "absolute", bottom: 120, left: 16, right: 16, zIndex: 10, background: "rgba(5,92,63,0.96)", border: "1px solid rgba(5,195,111,0.55)", borderRadius: 20, padding: "18px 24px", textAlign: "center", backdropFilter: "blur(12px)" }}>
-          <p style={{ color: "#D4AF37", fontSize: 16, fontFamily: "var(--font-dm-sans)", fontWeight: 600 }}>🌙 Le riad a livré tous ses secrets</p>
-          <p style={{ color: "#F8F4EC", fontSize: 12, opacity: 0.7, marginTop: 5, fontFamily: "var(--font-dm-sans)" }}>5 énigmes résolues — la famille s'échappe</p>
+        <div style={{
+          position: "absolute", bottom: 90, left: 16, right: 16, zIndex: 10,
+          background: "rgba(5,92,63,0.96)", border: "1px solid rgba(5,195,111,0.55)",
+          borderRadius: 20, padding: "18px 24px", textAlign: "center",
+          backdropFilter: "blur(12px)",
+        }}>
+          <p style={{ color: "#D4AF37", fontSize: 16, fontFamily: "var(--font-dm-sans)", fontWeight: 600 }}>
+            🌙 Le riad a livré tous ses secrets
+          </p>
+          <p style={{ color: "#F8F4EC", fontSize: 12, opacity: 0.7, marginTop: 5,
+            fontFamily: "var(--font-dm-sans)" }}>
+            5 énigmes résolues — la famille s'échappe
+          </p>
         </div>
       )}
 
+      {/* Modal énigme */}
       {pDef && (
         <div style={{ position: "fixed", inset: 0, zIndex: 50 }}>
           <PuzzleModal puzzle={pDef} onSolve={solve} onClose={() => setPuzzle(null)} />
         </div>
       )}
+
+      <style>{`
+        @keyframes fadeOut { to { opacity: 0; } }
+      `}</style>
     </div>
   );
 }

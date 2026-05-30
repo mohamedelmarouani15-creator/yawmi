@@ -7,7 +7,7 @@ import { Check, LogOut, Volume2, VolumeX } from "lucide-react";
 import { useAuth }        from "@/hooks/useAuth";
 import { useSettings }    from "@/hooks/useSettings";
 import { useNotifications } from "@/hooks/useNotifications";
-import { CALC_METHOD_LABELS, type CalcMethodKey } from "@/lib/prayer";
+import { CALC_METHOD_LABELS, MADHAB_LABELS, type CalcMethodKey, type MadhabKey } from "@/lib/prayer";
 import { CITIES } from "@/lib/cities";
 import { storage, todayKey } from "@/lib/storage";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
@@ -58,6 +58,10 @@ export default function ProfilPage() {
 
   function selectMethod(method: CalcMethodKey) {
     save({ ...settings, method }); flash();
+  }
+
+  function selectMadhab(madhab: MadhabKey) {
+    save({ ...settings, madhab }); flash();
   }
 
   function flash() {
@@ -375,6 +379,30 @@ export default function ProfilPage() {
                 {label}
               </span>
               {settings.method === key && <Check size={16} style={{ color: "#D4AF37" }} />}
+            </motion.button>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* École juridique pour Asr */}
+      <motion.div variants={itemVariants}>
+        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          École juridique (calcul de Asr)
+        </p>
+        <div className="flex flex-col gap-2">
+          {(Object.entries(MADHAB_LABELS) as [MadhabKey, string][]).map(([key, label]) => (
+            <motion.button key={key} onClick={() => selectMadhab(key)}
+              whileTap={{ scale: 0.97 }}
+              transition={springTap}
+              className="flex items-center justify-between rounded-xl border px-4 py-3"
+              style={{
+                background: (settings.madhab ?? "Shafi") === key ? "rgba(5,92,63,0.2)" : "rgba(255,255,255,0.02)",
+                borderColor: (settings.madhab ?? "Shafi") === key ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.06)",
+              }}>
+              <span className="text-sm" style={{ color: (settings.madhab ?? "Shafi") === key ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                {label}
+              </span>
+              {(settings.madhab ?? "Shafi") === key && <Check size={16} style={{ color: "#D4AF37" }} />}
             </motion.button>
           ))}
         </div>

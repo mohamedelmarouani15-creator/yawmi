@@ -51,7 +51,7 @@ export function useNotifications() {
   useEffect(() => {
     if (!prefs.prayers || permission !== "granted") return;
     const s     = storage.getSettings();
-    const times = computePrayerTimes(s.lat, s.lng, s.method);
+    const times = computePrayerTimes(s.lat, s.lng, s.method, s.madhab);
     const now   = new Date();
     const ids: ReturnType<typeof setTimeout>[] = [];
     PRAYER_ORDER.forEach(key => {

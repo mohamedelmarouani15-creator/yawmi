@@ -18,7 +18,7 @@ export function usePrayerTimes() {
   const [countdown, setCountdown] = useState("");
 
   useEffect(() => {
-    const t = computePrayerTimes(settings.lat, settings.lng, settings.method);
+    const t = computePrayerTimes(settings.lat, settings.lng, settings.method, settings.madhab);
     setTimes(t);
     setNext(getNextPrayer(t));
   }, [settings]);
@@ -29,7 +29,7 @@ export function usePrayerTimes() {
       const ms = msUntil(times[nextPrayer]);
       setCountdown(formatCountdown(ms));
       if (ms === 0) {
-        const fresh = computePrayerTimes(settings.lat, settings.lng, settings.method);
+        const fresh = computePrayerTimes(settings.lat, settings.lng, settings.method, settings.madhab);
         setTimes(fresh);
         setNext(getNextPrayer(fresh));
       }

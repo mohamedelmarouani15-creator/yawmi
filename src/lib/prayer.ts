@@ -1,22 +1,33 @@
-import { Coordinates, CalculationMethod, PrayerTimes, Prayer, Madhab } from "adhan";
+import { Coordinates, CalculationMethod, PrayerTimes, Madhab } from "adhan";
 
 export type CalcMethodKey =
+  | "UOIF"
   | "MuslimWorldLeague"
   | "Egyptian"
   | "Karachi"
   | "UmmAlQura"
   | "NorthAmerica"
   | "Kuwait"
-  | "Dubai";
+  | "Dubai"
+  | "MoroccoHabous";
+
+export type MadhabKey = "Shafi" | "Hanafi";
 
 export const CALC_METHOD_LABELS: Record<CalcMethodKey, string> = {
-  MuslimWorldLeague: "Ligue Islamique Mondiale",
-  Egyptian:          "Égyptien",
-  Karachi:           "Université de Karachi",
-  UmmAlQura:         "Oum Al-Qura (Mecque)",
-  NorthAmerica:      "Amérique du Nord (ISNA)",
-  Kuwait:            "Koweït",
-  Dubai:             "Dubaï",
+  UOIF:              "UOIF / France — Fajr 12° / Isha 12°",
+  MuslimWorldLeague: "Ligue Islamique Mondiale — Fajr 18° / Isha 17°",
+  Egyptian:          "Autorité Égyptienne — Fajr 19.5° / Isha 17.5°",
+  Karachi:           "Université de Karachi — Fajr 18° / Isha 18°",
+  UmmAlQura:         "Oum Al-Qura (Arabie Saoudite) — Isha = Maghrib + 90min",
+  NorthAmerica:      "ISNA (Amérique du Nord) — Fajr 15° / Isha 15°",
+  Kuwait:            "Koweït — Fajr 18° / Isha 17.5°",
+  Dubai:             "Dubaï — Fajr 18.2° / Isha 18.2°",
+  MoroccoHabous:     "Ministère des Habous (Maroc) — Fajr 18° / Isha 17°",
+};
+
+export const MADHAB_LABELS: Record<MadhabKey, string> = {
+  Shafi:  "Standard — Maliki / Chafi'i / Hanbali",
+  Hanafi: "Hanafi (Asr plus tardif)",
 };
 
 export const PRAYER_LABELS: Record<string, { fr: string; ar: string }> = {
@@ -41,15 +52,32 @@ export interface ComputedPrayerTimes {
   isha:    Date;
 }
 
+function buildParams(method: CalcMethodKey) {
+  if (method === "UOIF") {
+    const p = CalculationMethod.Other();
+    p.fajrAngle = 12;
+    p.ishaAngle = 12;
+    return p;
+  }
+  if (method === "MoroccoHabous") {
+    const p = CalculationMethod.Other();
+    p.fajrAngle = 18;
+    p.ishaAngle = 17;
+    return p;
+  }
+  return CalculationMethod[method]();
+}
+
 export function computePrayerTimes(
   lat: number,
   lng: number,
-  method: CalcMethodKey = "MuslimWorldLeague",
+  method: CalcMethodKey = "UOIF",
+  madhab: MadhabKey = "Shafi",
   date = new Date()
 ): ComputedPrayerTimes {
   const coords = new Coordinates(lat, lng);
-  const params = CalculationMethod[method]();
-  params.madhab = Madhab.Shafi;
+  const params = buildParams(method);
+  params.madhab = madhab === "Hanafi" ? Madhab.Hanafi : Madhab.Shafi;
   const pt = new PrayerTimes(coords, date, params);
 
   return {

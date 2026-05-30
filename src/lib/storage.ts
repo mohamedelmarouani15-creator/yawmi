@@ -1,10 +1,11 @@
-import type { CalcMethodKey } from "./prayer";
+import type { CalcMethodKey, MadhabKey } from "./prayer";
 
 export interface YawmiSettings {
   cityName:     string;
   lat:          number;
   lng:          number;
   method:       CalcMethodKey;
+  madhab:       MadhabKey;
   adhanMode:    "audio" | "silencieux";
   adhanReciter: string;
   prayerModes:  Partial<Record<string, "audio" | "silencieux">>;
@@ -61,7 +62,8 @@ export const DEFAULT_SETTINGS: YawmiSettings = {
   cityName:     "Paris",
   lat:          48.8566,
   lng:          2.3522,
-  method:       "MuslimWorldLeague",
+  method:       "UOIF",
+  madhab:       "Shafi",
   adhanMode:    "audio",
   adhanReciter: "alafasy",
   prayerModes:  {},

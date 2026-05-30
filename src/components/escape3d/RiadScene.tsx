@@ -3,6 +3,7 @@
 import { useRef, useState, useCallback, Suspense } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Stars, ContactShadows, Float } from "@react-three/drei";
+import LookZone from "./LookZone";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import Courtyard    from "./Courtyard";
@@ -18,9 +19,9 @@ const CAM_DIST     = 5.5;
 const CAM_ELEV     = 0.52;
 const CAM_BOUND    = 3.1;
 
-function Controller({ moveStick, lookStick, onPosRot }: {
+function Controller({ moveStick, lookDelta, onPosRot }: {
   moveStick: React.RefObject<{ x: number; y: number }>;
-  lookStick: React.RefObject<{ x: number; y: number }>;
+  lookDelta: React.RefObject<{ dx: number; dy: number }>;
   onPosRot:  (pos: [number, number, number], rot: number) => void;
 }) {
   const { camera } = useThree();
@@ -29,8 +30,10 @@ function Controller({ moveStick, lookStick, onPosRot }: {
   const camPos  = useRef(new THREE.Vector3(0, CAM_DIST * Math.sin(CAM_ELEV), CAM_DIST * Math.cos(CAM_ELEV)));
 
   useFrame((_, delta) => {
-    const lx = lookStick.current?.x ?? 0;
-    if (Math.abs(lx) > 0.05) azimuth.current += lx * 2.0 * delta;
+    // Rotation caméra via delta de drag (style Minecraft)
+    azimuth.current += lookDelta.current.dx * 60 * delta;
+    lookDelta.current.dx *= 0.85; // inertie douce
+    void delta;
 
     const mx = moveStick.current?.x ?? 0;
     const my = moveStick.current?.y ?? 0;
@@ -110,10 +113,13 @@ export default function RiadScene() {
   const [solved, setSolved] = useState<Record<string, boolean>>({});
 
   const moveStick = useRef({ x: 0, y: 0 });
-  const lookStick = useRef({ x: 0, y: 0 });
+  const lookDelta = useRef({ dx: 0, dy: 0 });
 
   const onMove   = useCallback((v: { x: number; y: number }) => { moveStick.current = v; }, []);
-  const onLook   = useCallback((v: { x: number; y: number }) => { lookStick.current = v; }, []);
+  const onLook   = useCallback((dx: number, dy: number) => {
+    lookDelta.current.dx += dx;
+    lookDelta.current.dy += dy;
+  }, []);
   const onPosRot = useCallback((pos: [number, number, number], rot: number) => {
     setPlayerPos(pos); setPlayerRot(rot);
   }, []);
@@ -175,7 +181,7 @@ export default function RiadScene() {
           <PlayerAvatar position={playerPos} rotation={playerRot} color={PLAYER_COLORS[0]} isLocal />
         </Float>
 
-        <Controller moveStick={moveStick} lookStick={lookStick} onPosRot={onPosRot} />
+        <Controller moveStick={moveStick} lookDelta={lookDelta} onPosRot={onPosRot} />
 
         {/* Post-processing */}
         <Suspense fallback={null}>
@@ -190,15 +196,13 @@ export default function RiadScene() {
         </Suspense>
       </Canvas>
 
-      {/* Double joystick */}
+      {/* Joystick gauche — déplacement */}
       <div style={{ position: "absolute", bottom: 28, left: 24, zIndex: 10 }}>
-        <p style={{ textAlign: "center", marginBottom: 5, fontSize: 9, color: "#D4AF37", opacity: 0.45, letterSpacing: "0.12em", fontFamily: "var(--font-dm-sans)", textTransform: "uppercase" }}>Déplacer</p>
         <VirtualJoystick onChange={onMove} />
       </div>
-      <div style={{ position: "absolute", bottom: 28, right: 24, zIndex: 10 }}>
-        <p style={{ textAlign: "center", marginBottom: 5, fontSize: 9, color: "#D4AF37", opacity: 0.45, letterSpacing: "0.12em", fontFamily: "var(--font-dm-sans)", textTransform: "uppercase" }}>Regarder</p>
-        <VirtualJoystick onChange={onLook} />
-      </div>
+
+      {/* Zone droite invisible — drag pour regarder (style Minecraft) */}
+      <LookZone onChange={onLook} />
 
       {/* HUD */}
       <p style={{ position: "absolute", top: 18, left: "50%", transform: "translateX(-50%)", zIndex: 10, pointerEvents: "none", color: "#D4AF37", opacity: 0.6, fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "var(--font-dm-sans)" }}>

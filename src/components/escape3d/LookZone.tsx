@@ -1,0 +1,104 @@
+"use client";
+
+import { useRef, useEffect, useCallback } from "react";
+
+interface Props {
+  onChange: (dx: number, dy: number) => void;
+}
+
+export default function LookZone({ onChange }: Props) {
+  const touchId   = useRef<number | null>(null);
+  const lastPos   = useRef({ x: 0, y: 0 });
+  const dotRef    = useRef<HTMLDivElement>(null);
+  const SENS      = 0.004; // sensibilité
+
+  const showDot = useCallback((x: number, y: number, visible: boolean) => {
+    if (!dotRef.current) return;
+    dotRef.current.style.opacity = visible ? "1" : "0";
+    dotRef.current.style.left = `${x - 20}px`;
+    dotRef.current.style.top  = `${y - 20}px`;
+  }, []);
+
+  useEffect(() => {
+    const el = document.getElementById("look-zone");
+    if (!el) return;
+
+    function onStart(e: TouchEvent) {
+      if (touchId.current !== null) return;
+      const t = e.changedTouches[0];
+      touchId.current = t.identifier;
+      lastPos.current = { x: t.clientX, y: t.clientY };
+      showDot(t.clientX, t.clientY, true);
+      e.preventDefault();
+    }
+
+    function onMove(e: TouchEvent) {
+      if (touchId.current === null) return;
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        const t = e.changedTouches[i];
+        if (t.identifier !== touchId.current) continue;
+        const dx = (t.clientX - lastPos.current.x) * SENS;
+        const dy = (t.clientY - lastPos.current.y) * SENS;
+        lastPos.current = { x: t.clientX, y: t.clientY };
+        onChange(dx, dy);
+        showDot(t.clientX, t.clientY, true);
+        e.preventDefault();
+      }
+    }
+
+    function onEnd(e: TouchEvent) {
+      for (let i = 0; i < e.changedTouches.length; i++) {
+        if (e.changedTouches[i].identifier === touchId.current) {
+          touchId.current = null;
+          showDot(0, 0, false);
+          onChange(0, 0);
+          break;
+        }
+      }
+    }
+
+    el.addEventListener("touchstart",  onStart, { passive: false });
+    el.addEventListener("touchmove",   onMove,  { passive: false });
+    el.addEventListener("touchend",    onEnd,   { passive: false });
+    el.addEventListener("touchcancel", onEnd,   { passive: false });
+    return () => {
+      el.removeEventListener("touchstart",  onStart);
+      el.removeEventListener("touchmove",   onMove);
+      el.removeEventListener("touchend",    onEnd);
+      el.removeEventListener("touchcancel", onEnd);
+    };
+  }, [onChange, showDot]);
+
+  return (
+    <>
+      {/* Zone invisible droite */}
+      <div
+        id="look-zone"
+        style={{
+          position: "absolute",
+          top: 0, right: 0,
+          width: "55%", height: "100%",
+          zIndex: 9,
+          touchAction: "none",
+          // Debug : mettre background: "rgba(255,0,0,0.05)" pour voir la zone
+        }}
+      />
+      {/* Indicateur touch — cercle subtil là où on touche */}
+      <div
+        ref={dotRef}
+        style={{
+          position: "absolute",
+          width: 40, height: 40,
+          borderRadius: "50%",
+          border: "1.5px solid rgba(212,175,55,0.4)",
+          background: "rgba(212,175,55,0.08)",
+          pointerEvents: "none",
+          zIndex: 10,
+          opacity: 0,
+          transition: "opacity 0.15s",
+          backdropFilter: "blur(2px)",
+        }}
+      />
+    </>
+  );
+}

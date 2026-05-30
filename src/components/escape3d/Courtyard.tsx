@@ -85,7 +85,7 @@ function Fountain() {
       <mesh ref={waterRef} position={[0, 0.245, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <circleGeometry args={[0.86, 48]} />
         <MeshReflectorMaterial
-          blur={[200, 100]}
+          blur={[400, 200]}
           mixStrength={60}
           roughness={0.2}
           color="#1a4a5a"
@@ -187,7 +187,7 @@ function Column({ pos }: { pos: [number, number, number] }) {
       {/* Fût cylindrique marbre */}
       <mesh castShadow receiveShadow>
         <cylinderGeometry args={[0.12, 0.15, 3.8, 12]} />
-        <meshStandardMaterial color="#E8E4D8" roughness={0.3} metalness={0.05} />
+        <meshPhysicalMaterial color="#E8E4D8" roughness={0.12} metalness={0} clearcoat={0.85} clearcoatRoughness={0.08} />
       </mesh>
       {/* Chapiteau doré */}
       <mesh position={[0, 2.05, 0]} castShadow>
@@ -235,7 +235,7 @@ function OrangeTree({ pos }: { pos: [number, number, number] }) {
       ] as [number,number,number][]).map((p, i) => (
         <mesh key={i} position={p} castShadow>
           <sphereGeometry args={[0.068, 8, 8]} />
-          <meshStandardMaterial color="#E07A0A" roughness={0.45} emissive="#E07A0A" emissiveIntensity={0.4} />
+          <meshPhysicalMaterial color="#E07A0A" roughness={0.3} metalness={0.05} clearcoat={0.4} emissive="#E07A0A" emissiveIntensity={0.3} />
         </mesh>
       ))}
     </group>

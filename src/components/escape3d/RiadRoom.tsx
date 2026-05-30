@@ -4,6 +4,7 @@ import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import { SpotLight, MeshReflectorMaterial, MeshTransmissionMaterial, Sparkles } from "@react-three/drei";
 import * as THREE from "three";
+import { makeStucco, makeMarble, makeWood, makeTerracotta, makeLightWood } from "@/lib/escape3d/textures";
 
 const DOOR_W = 1.6;
 const DOOR_H = 2.6;
@@ -18,6 +19,9 @@ const WOOD   = "#4A2E12";
 function RoomShell({ width = 6, depth = 5 }: { width?: number; depth?: number; doorAxis?: "z" | "x" }) {
   const sideW = (width - DOOR_W) / 2;
   const bz    = -depth / 2;
+
+  const stucco      = useMemo(() => typeof window !== "undefined" ? makeStucco(4) : null, []);
+  const lightWoodMap = useMemo(() => typeof window !== "undefined" ? makeLightWood() : null, []);
 
   return (
     <>
@@ -36,14 +40,14 @@ function RoomShell({ width = 6, depth = 5 }: { width?: number; depth?: number; d
       {[-1.5, 0, 1.5].map(x => (
         <mesh key={x} position={[x, ROOM_H - 0.09, 0]}>
           <boxGeometry args={[0.18, 0.18, depth]} />
-          <meshStandardMaterial color={WOOD} roughness={0.85} />
+          <meshPhysicalMaterial color="#3A1A05" roughness={0.7} metalness={0} clearcoat={0.2} clearcoatRoughness={0.5} map={lightWoodMap ?? undefined} />
         </mesh>
       ))}
 
       {/* Mur du fond */}
       <mesh position={[0, ROOM_H / 2, bz]} castShadow receiveShadow>
         <boxGeometry args={[width, ROOM_H, WALL_T]} />
-        <meshStandardMaterial color={WALL} roughness={0.9} />
+        <meshStandardMaterial color={WALL} roughness={0.82} map={stucco ?? undefined} />
       </mesh>
       {/* Lambris bas mur du fond */}
       <mesh position={[0, 0.48, bz + 0.03]}>
@@ -68,10 +72,10 @@ function RoomShell({ width = 6, depth = 5 }: { width?: number; depth?: number; d
 
       {/* Murs latéraux */}
       <mesh position={[-width / 2, ROOM_H / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[WALL_T, ROOM_H, depth]} /><meshStandardMaterial color={WALL} roughness={0.9} />
+        <boxGeometry args={[WALL_T, ROOM_H, depth]} /><meshStandardMaterial color={WALL} roughness={0.82} map={stucco ?? undefined} />
       </mesh>
       <mesh position={[width / 2, ROOM_H / 2, 0]} castShadow receiveShadow>
-        <boxGeometry args={[WALL_T, ROOM_H, depth]} /><meshStandardMaterial color={WALL} roughness={0.9} />
+        <boxGeometry args={[WALL_T, ROOM_H, depth]} /><meshStandardMaterial color={WALL} roughness={0.82} map={stucco ?? undefined} />
       </mesh>
       {/* Lambris latéraux */}
       {[-width / 2 + 0.06, width / 2 - 0.06].map((x, i) => (
@@ -83,13 +87,13 @@ function RoomShell({ width = 6, depth = 5 }: { width?: number; depth?: number; d
 
       {/* Mur d'entrée */}
       <mesh position={[-sideW / 2 - DOOR_W / 2, ROOM_H / 2, depth / 2]} receiveShadow>
-        <boxGeometry args={[sideW, ROOM_H, WALL_T]} /><meshStandardMaterial color={WALL} roughness={0.9} />
+        <boxGeometry args={[sideW, ROOM_H, WALL_T]} /><meshStandardMaterial color={WALL} roughness={0.82} map={stucco ?? undefined} />
       </mesh>
       <mesh position={[sideW / 2 + DOOR_W / 2, ROOM_H / 2, depth / 2]} receiveShadow>
-        <boxGeometry args={[sideW, ROOM_H, WALL_T]} /><meshStandardMaterial color={WALL} roughness={0.9} />
+        <boxGeometry args={[sideW, ROOM_H, WALL_T]} /><meshStandardMaterial color={WALL} roughness={0.82} map={stucco ?? undefined} />
       </mesh>
       <mesh position={[0, DOOR_H + (ROOM_H - DOOR_H) / 2, depth / 2]} receiveShadow>
-        <boxGeometry args={[DOOR_W, ROOM_H - DOOR_H, WALL_T]} /><meshStandardMaterial color={WALL} roughness={0.9} />
+        <boxGeometry args={[DOOR_W, ROOM_H - DOOR_H, WALL_T]} /><meshStandardMaterial color={WALL} roughness={0.82} map={stucco ?? undefined} />
       </mesh>
       {/* Arche porte */}
       <mesh position={[0, DOOR_H - 0.1, depth / 2 + 0.02]}>
@@ -202,6 +206,7 @@ function WallShelf({ position, rotY = 0 }: { position: [number, number, number];
 
 export function Library({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; solved?: boolean }) {
   const astroRef = useRef<THREE.PointLight>(null!);
+  const woodMap  = useMemo(() => typeof window !== "undefined" ? makeWood() : null, []);
   useFrame(({ clock }) => {
     if (astroRef.current) astroRef.current.intensity = 0.7 + 0.4 * Math.sin(clock.getElapsedTime() * 3.2);
   });
@@ -212,7 +217,7 @@ export function Library({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; sol
 
       {/* Sol bois sombre */}
       <mesh position={[0, 0.003, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[5.8, 4.8]} /><meshStandardMaterial color="#3A2208" roughness={0.82} />
+        <planeGeometry args={[5.8, 4.8]} /><meshStandardMaterial color="#3A2208" roughness={0.82} map={woodMap ?? undefined} />
       </mesh>
 
       <ambientLight intensity={0.35} color="#704020" />
@@ -221,7 +226,7 @@ export function Library({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; sol
       <SpotLight position={[0, 3.4, 0]} color="#FFB020" intensity={5} angle={0.55} penumbra={0.85} castShadow distance={8} attenuation={5} />
       <mesh position={[0, 3.25, 0]} castShadow>
         <cylinderGeometry args={[0.22, 0.04, 0.28, 10]} />
-        <meshStandardMaterial color="#D4AF37" roughness={0.25} metalness={0.75} emissive="#D4AF37" emissiveIntensity={0.5} />
+        <meshStandardMaterial color="#D4AF37" roughness={0.15} metalness={0.85} emissive="#D4AF37" emissiveIntensity={0.5} />
       </mesh>
 
       {/* 3 bibliothèques couvrant tout le mur du fond */}
@@ -251,7 +256,10 @@ export function Library({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; sol
         </mesh>
         <mesh position={[0, 0.79, 0]} rotation={[-0.3, 0, 0]} onClick={onPuzzleTap} castShadow>
           <boxGeometry args={[0.75, 0.02, 0.55]} />
-          <meshStandardMaterial color={solved ? "#D4AF37" : "#F0E8D0"} roughness={0.6} emissive={solved ? "#D4AF37" : "#C8B880"} emissiveIntensity={solved ? 0.7 : 0.2} />
+          {solved
+            ? <meshPhysicalMaterial color="#D4AF37" roughness={0.4} emissive="#D4AF37" emissiveIntensity={0.7} clearcoat={0.5} clearcoatRoughness={0.2} />
+            : <meshStandardMaterial color="#F0E8D0" roughness={0.6} emissive="#C8B880" emissiveIntensity={0.2} />
+          }
         </mesh>
         {/* 2 bougies */}
         <mesh position={[0.48, 0.84, 0.18]} castShadow>
@@ -329,7 +337,8 @@ function makeCarpet() {
 
 // ── SALON ─────────────────────────────────────────────────────────
 export function Salon({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; solved?: boolean }) {
-  const carpet = useMemo(() => typeof window !== "undefined" ? makeCarpet() : null, []);
+  const carpet  = useMemo(() => typeof window !== "undefined" ? makeCarpet() : null, []);
+  const woodMap = useMemo(() => typeof window !== "undefined" ? makeWood() : null, []);
 
   return (
     <group position={[0, 0, 6.15]}>
@@ -337,7 +346,7 @@ export function Salon({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; solve
 
       {/* Sol parquet */}
       <mesh position={[0, 0.002, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[5.8, 4.8]} /><meshStandardMaterial color="#2A1A08" roughness={0.85} />
+        <planeGeometry args={[5.8, 4.8]} /><meshStandardMaterial color="#2A1A08" roughness={0.85} map={woodMap ?? undefined} />
       </mesh>
       {/* Tapis central */}
       <mesh position={[0, 0.005, -0.3]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
@@ -354,16 +363,16 @@ export function Salon({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; solve
       </mesh>
       <mesh position={[0, 2.84, -0.3]}>
         <dodecahedronGeometry args={[0.32, 0]} />
-        <meshStandardMaterial color="#D4AF37" transparent opacity={0.5} roughness={0.1} emissive="#D4AF37" emissiveIntensity={1.1} />
+        <meshPhysicalMaterial color="#D4AF37" transmission={0.4} roughness={0.05} metalness={0.2} ior={1.5} thickness={0.3} emissive="#D4AF37" emissiveIntensity={0.8} />
       </mesh>
 
       {/* Banquette sur le mur du fond — bien visible depuis caméra */}
       <group position={[0, 0, -2.25]}>
         <mesh position={[0, 0.28, 0]} castShadow>
-          <boxGeometry args={[5.4, 0.28, 0.72]} /><meshStandardMaterial color="#6B1A1A" roughness={0.85} />
+          <boxGeometry args={[5.4, 0.28, 0.72]} /><meshPhysicalMaterial color="#6B1A1A" roughness={0.75} sheen={0.5} sheenColor="#8B2020" />
         </mesh>
         <mesh position={[0, 0.58, -0.28]}>
-          <boxGeometry args={[5.4, 0.55, 0.12]} /><meshStandardMaterial color="#8B2020" roughness={0.8} />
+          <boxGeometry args={[5.4, 0.55, 0.12]} /><meshPhysicalMaterial color="#8B2020" roughness={0.75} sheen={0.5} sheenColor="#8B2020" />
         </mesh>
         {/* Coussins sur la banquette */}
         {[-2.0, -1.0, 0, 1.0, 2.0].map(x => (
@@ -475,8 +484,8 @@ function TajineStack({ position }: { position: [number, number, number] }) {
     <group position={position}>
       {cols.map((c, i) => (
         <group key={i} position={[0, i * 0.44, 0]}>
-          <mesh castShadow><cylinderGeometry args={[0.21 - i * 0.01, 0.25 - i * 0.01, 0.2, 14]} /><meshStandardMaterial color={c} roughness={0.82} /></mesh>
-          <mesh position={[0, 0.24, 0]} castShadow><coneGeometry args={[0.21 - i * 0.01, 0.34, 14]} /><meshStandardMaterial color={c} roughness={0.82} /></mesh>
+          <mesh castShadow><cylinderGeometry args={[0.21 - i * 0.01, 0.25 - i * 0.01, 0.2, 14]} /><meshStandardMaterial color={c} roughness={0.82} metalness={0.05} /></mesh>
+          <mesh position={[0, 0.24, 0]} castShadow><coneGeometry args={[0.21 - i * 0.01, 0.34, 14]} /><meshStandardMaterial color={c} roughness={0.82} metalness={0.05} /></mesh>
         </group>
       ))}
     </group>
@@ -484,13 +493,15 @@ function TajineStack({ position }: { position: [number, number, number] }) {
 }
 
 export function Cuisine({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; solved?: boolean }) {
+  const terracottaTex = useMemo(() => typeof window !== "undefined" ? makeTerracotta() : null, []);
+
   return (
     <group position={[6.15, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
       <RoomShell width={6} depth={5} />
 
       {/* Sol terre cuite */}
       <mesh position={[0, 0.003, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[5.8, 4.8]} /><meshStandardMaterial color="#B04A18" roughness={0.85} emissive="#180600" emissiveIntensity={0.12} />
+        <planeGeometry args={[5.8, 4.8]} /><meshStandardMaterial color="#B04A18" roughness={0.85} map={terracottaTex ?? undefined} />
       </mesh>
 
       <ambientLight intensity={0.4} color="#803010" />
@@ -529,7 +540,7 @@ export function Cuisine({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; sol
       {/* Plan de travail central (hauteur d'œil depuis entrée) */}
       <group position={[0, 0, -1.8]}>
         <mesh position={[0, 0.88, 0]} castShadow>
-          <boxGeometry args={[3.0, 0.09, 0.7]} /><meshStandardMaterial color="#5C3A1E" roughness={0.78} />
+          <boxGeometry args={[3.0, 0.09, 0.7]} /><meshPhysicalMaterial color="#5C3A1E" roughness={0.78} clearcoat={0.6} clearcoatRoughness={0.3} />
         </mesh>
         {/* Mortier + pilon */}
         <mesh position={[0.6, 0.98, 0.1]} castShadow>
@@ -549,7 +560,7 @@ export function Cuisine({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; sol
         <group key={x} position={[x, 2.72, -1.0]}>
           <mesh><cylinderGeometry args={[0.015, 0.015, 0.3, 4]} /><meshStandardMaterial color="#888" roughness={0.4} /></mesh>
           <mesh position={[0, -0.2, 0]} castShadow>
-            <cylinderGeometry args={[0.1, 0.12, 0.18, 14]} /><meshStandardMaterial color="#C87820" roughness={0.28} metalness={0.7} emissive="#C87820" emissiveIntensity={0.12} />
+            <cylinderGeometry args={[0.1, 0.12, 0.18, 14]} /><meshStandardMaterial color="#C87820" roughness={0.15} metalness={0.88} emissive="#C87820" emissiveIntensity={0.12} />
           </mesh>
         </group>
       ))}
@@ -622,12 +633,14 @@ function WaterSurface({ position }: { position: [number, number, number] }) {
   return (
     <mesh ref={m} position={position} rotation={[-Math.PI / 2, 0, 0]}>
       <circleGeometry args={[0.78, 32]} />
-      <meshStandardMaterial color="#B0C8D8" roughness={0.04} metalness={0.25} transparent opacity={0.92} emissive="#8AB0C0" emissiveIntensity={0.35} />
+      <meshPhysicalMaterial color="#A8C8D8" transmission={0.5} roughness={0.02} ior={1.33} thickness={0.8} metalness={0} />
     </mesh>
   );
 }
 
 export function Hammam({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; solved?: boolean }) {
+  const marbleTex = useMemo(() => typeof window !== "undefined" ? makeMarble() : null, []);
+
   return (
     <group position={[-6.15, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
       <RoomShell width={6} depth={5} />
@@ -635,7 +648,7 @@ export function Hammam({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; solv
       {/* Sol marbre réfléchissant */}
       <mesh position={[0, 0.004, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[5.8, 4.8]} />
-        <MeshReflectorMaterial blur={[300, 150]} mixStrength={35} roughness={0.06} color="#D0CCC4" mirror={0.45} depthScale={0.4} />
+        <MeshReflectorMaterial blur={[300, 150]} mixStrength={35} roughness={0.06} color="#E0DCD4" mirror={0.45} depthScale={0.4} />
       </mesh>
 
       <ambientLight intensity={0.5} color="#1A4060" />
@@ -649,7 +662,7 @@ export function Hammam({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; solv
       {/* 2 colonnes marbre flanquant le bassin */}
       {[-1.4, 1.4].map(x => (
         <group key={x} position={[x, 0, -0.5]}>
-          <mesh castShadow><cylinderGeometry args={[0.12, 0.15, 2.8, 12]} /><meshStandardMaterial color="#E8E4D8" roughness={0.28} metalness={0.06} /></mesh>
+          <mesh castShadow><cylinderGeometry args={[0.12, 0.15, 2.8, 12]} /><meshPhysicalMaterial color="#E8E4D8" map={marbleTex ?? undefined} roughness={0.08} metalness={0} clearcoat={0.9} clearcoatRoughness={0.05} /></mesh>
           {/* Chapiteau */}
           <mesh position={[0, 1.45, 0]} castShadow><cylinderGeometry args={[0.2, 0.12, 0.18, 12]} /><meshStandardMaterial color="#D8CCAC" roughness={0.4} /></mesh>
           {/* Base */}
@@ -666,7 +679,7 @@ export function Hammam({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; solv
 
       {/* Bassin central (énigme) */}
       <group position={[0, 0, -0.5]}>
-        <mesh castShadow><cylinderGeometry args={[0.95, 1.0, 0.32, 36]} /><meshStandardMaterial color="#E8E0D0" roughness={0.28} metalness={0.06} /></mesh>
+        <mesh castShadow><cylinderGeometry args={[0.95, 1.0, 0.32, 36]} /><meshPhysicalMaterial color="#E8E0D0" roughness={0.15} metalness={0} clearcoat={0.8} clearcoatRoughness={0.05} /></mesh>
         <WaterSurface position={[0, 0.12, 0]} />
         <Sparkles count={70} scale={[2.0, 2.2, 2.0]} size={1.8} speed={0.06} color="#AACCEE" opacity={0.22} position={[0, 0.6, 0]} />
         {/* Jet d'eau central */}

@@ -3,7 +3,8 @@
 import { useRef, useState, useCallback, useEffect, Suspense } from "react";
 import { motion } from "framer-motion";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { EffectComposer, Bloom, SMAA } from "@react-three/postprocessing";
+import { EffectComposer, Bloom, SMAA, N8AO, Noise } from "@react-three/postprocessing";
+import { BlendFunction } from "postprocessing";
 import { Environment } from "@react-three/drei";
 import * as THREE from "three";
 import Courtyard from "./Courtyard";
@@ -370,7 +371,7 @@ export default function RiadScene() {
         gl={{
           antialias: false, // SMAA s'occupe de l'antialiasing
           alpha: false, stencil: false,
-          toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.15,
+          toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.25,
         }}
         shadows
         style={{ width: "100%", height: "100%" }}
@@ -425,7 +426,9 @@ export default function RiadScene() {
         <Suspense fallback={null}>
           <EffectComposer multisampling={0}>
             <SMAA />
-            <Bloom intensity={1.6} luminanceThreshold={0.28} luminanceSmoothing={0.6} mipmapBlur />
+            <N8AO aoRadius={3} intensity={0.35} halfRes />
+            <Bloom intensity={1.8} luminanceThreshold={0.25} luminanceSmoothing={0.65} mipmapBlur />
+            <Noise premultiplied={false} opacity={0.018} blendFunction={BlendFunction.ADD} />
           </EffectComposer>
         </Suspense>
       </Canvas>

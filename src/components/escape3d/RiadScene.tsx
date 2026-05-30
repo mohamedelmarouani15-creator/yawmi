@@ -18,12 +18,13 @@ import { isWalkable, getRoom, ROOM_NAMES } from "@/lib/escape3d/bounds";
 const SPEED = 3.5;
 
 // Azimuth caméra à l'entrée de chaque pièce
+// Az=0 → caméra au SUD du joueur, joueur regarde vers le NORD (into scene)
 const AUTO_AZ: Record<string, number> = {
-  courtyard: Math.PI,
-  library:   0,
-  salon:     Math.PI,
-  cuisine:  -Math.PI / 2,
-  hammam:    Math.PI / 2,
+  courtyard: 0,              // caméra au sud, joueur regarde la fontaine
+  library:   0,              // caméra au sud, joueur regarde dans la bibliothèque
+  salon:     Math.PI,        // caméra au nord, joueur regarde dans le salon
+  cuisine:  -Math.PI / 2,   // caméra à l'ouest, joueur regarde dans la cuisine
+  hammam:    Math.PI / 2,    // caméra à l'est, joueur regarde dans le hammam
 };
 
 function Scene({ moveStick, lookDelta, onPosRot, currentRoom }: {
@@ -61,14 +62,14 @@ function Scene({ moveStick, lookDelta, onPosRot, currentRoom }: {
       el.current += (0.45 - el.current) * Math.min(dt * 4, 1);
     }
 
-    // ── 2. Rotation manuelle (drag droite) ──────────────────
-    az.current += lookDelta.current.dx * 2.2;
+    // ── 2. Rotation manuelle (drag droite) — sensibilité réduite ──
+    az.current += lookDelta.current.dx * 0.7;
     el.current  = THREE.MathUtils.clamp(
-      el.current - lookDelta.current.dy * 2.2,
+      el.current - lookDelta.current.dy * 0.7,
       0.10, 1.15,
     );
-    lookDelta.current.dx = 0;
-    lookDelta.current.dy = 0;
+    lookDelta.current.dx *= 0.2; // inertie légère
+    lookDelta.current.dy *= 0.2;
 
     // ── 3. Position caméra orbitale ─────────────────────────
     const cosE = Math.cos(el.current);
@@ -96,9 +97,9 @@ function Scene({ moveStick, lookDelta, onPosRot, currentRoom }: {
         playerXZ.current.z - camera.position.z,
       ).normalize();
 
-      // Vecteur right = perpendiculaire à fwd en XZ, orienté vers la droite
-      // right = fwd tourné de -90° autour de Y
-      const rgt = new THREE.Vector3(fwd.z, 0, -fwd.x);
+      // Vecteur right = perpendiculaire à fwd, orienté vers la droite
+      // right = cross(fwd, up) = (-fwd.z, 0, fwd.x)
+      const rgt = new THREE.Vector3(-fwd.z, 0, fwd.x);
 
       const spd = SPEED * dt;
       const nx  = playerXZ.current.x + fwd.x * my * spd + rgt.x * mx * spd;

@@ -62,9 +62,9 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
 export default function FamillePage() {
   const { user } = useAuth();
   const {
-    family, tasks, members, dailyChallenge, duels, loading,
+    family, tasks, members, dailyChallenge, weeklyChallenge, duels, loading,
     createFamily, joinFamily, leaveFamily,
-    answerDaily, createDuel, recordDuelScore,
+    answerDaily, answerWeekly, createDuel, recordDuelScore,
     addTask, toggleTask, removeTask,
   } = useFamily();
 
@@ -684,6 +684,70 @@ export default function FamillePage() {
                   </div>
                 )}
               </div>
+
+              {/* ── Défi Hebdomadaire ── */}
+              {weeklyChallenge && (
+                <div className="rounded-2xl border p-4 flex flex-col gap-3"
+                  style={{ background: "rgba(96,165,250,0.04)", borderColor: "rgba(96,165,250,0.2)" }}>
+                  <div className="flex items-center gap-2">
+                    <span style={{ fontSize: 16 }}>📅</span>
+                    <span className="font-bold text-sm" style={{ color: "#60a5fa", fontFamily: "var(--font-bricolage)" }}>
+                      Défi de la Semaine
+                    </span>
+                    {weeklyChallenge.allCorrect && (
+                      <span className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                        style={{ background: "rgba(74,222,128,0.15)", color: "#4ade80", fontFamily: "var(--font-dm-sans)" }}>
+                        ✓ Famille parfaite !
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm font-semibold leading-snug"
+                    style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+                    {weeklyChallenge.question.question}
+                  </p>
+                  {!weeklyChallenge.myAnswer ? (
+                    <div className="flex flex-col gap-2">
+                      {weeklyChallenge.question.options.map((opt, idx) => (
+                        <motion.button key={idx}
+                          onClick={() => answerWeekly(idx)}
+                          whileTap={{ scale: 0.97 }}
+                          className="flex items-center gap-3 rounded-xl border px-3 py-2.5 text-left"
+                          style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(96,165,250,0.2)" }}>
+                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                            style={{ background: "rgba(96,165,250,0.1)", color: "#60a5fa", fontFamily: "var(--font-dm-sans)" }}>
+                            {String.fromCharCode(65 + idx)}
+                          </span>
+                          <span className="text-sm" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                            {opt.text}
+                          </span>
+                        </motion.button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm font-semibold"
+                      style={{ color: weeklyChallenge.myAnswer.correct ? "#4ade80" : "#f87171", fontFamily: "var(--font-dm-sans)" }}>
+                      {weeklyChallenge.myAnswer.correct ? "✓ Bonne réponse !" : "✗ Mauvaise réponse…"}
+                    </p>
+                  )}
+                  {/* Réponses membres */}
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {members.map(m => {
+                      const ans = weeklyChallenge.answers[m.id];
+                      return (
+                        <div key={m.id} className="flex items-center gap-1.5 rounded-full px-2.5 py-1"
+                          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                          <span className="text-xs" style={{ color: "rgba(248,244,236,0.6)", fontFamily: "var(--font-dm-sans)" }}>
+                            {m.displayName ?? "?"}
+                          </span>
+                          <span className="text-xs">
+                            {ans ? (ans.correct ? "✓" : "✗") : "…"}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {/* ── Duels ── */}
               <div className="flex flex-col gap-3">

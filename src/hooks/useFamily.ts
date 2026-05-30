@@ -26,6 +26,16 @@ export interface DailyChallengeData {
   myAnswer: { answerIdx: number; correct: boolean } | null;
 }
 
+export interface WeeklyChallengeData {
+  id: string;
+  weekStart: string;
+  question: Question;
+  answers: Record<string, { answerIdx: number; correct: boolean; answeredAt: string }>;
+  myAnswer: { answerIdx: number; correct: boolean } | null;
+  allCorrect: boolean;
+  memberCount: number;
+}
+
 export interface DuelData {
   taskId: string;
   questionIds: string[];
@@ -49,9 +59,10 @@ export function useFamily() {
   const [family,         setFamily]         = useState<Family | null>(null);
   const [tasks,          setTasks]          = useState<SupaTask[]>([]);
   const [members,        setMembers]        = useState<FamilyMember[]>([]);
-  const [dailyChallenge, setDailyChallenge] = useState<DailyChallengeData | null>(null);
-  const [duels,          setDuels]          = useState<DuelData[]>([]);
-  const [loading,        setLoading]        = useState(true);
+  const [dailyChallenge,  setDailyChallenge]  = useState<DailyChallengeData | null>(null);
+  const [weeklyChallenge, setWeeklyChallenge] = useState<WeeklyChallengeData | null>(null);
+  const [duels,           setDuels]           = useState<DuelData[]>([]);
+  const [loading,         setLoading]         = useState(true);
 
   // ── fetch daily challenge ─────────────────────────────────────
   const fetchOrCreateDaily = useCallback(async (familyId: string, myId: string) => {
@@ -166,6 +177,47 @@ export function useFamily() {
     setDuels(parsed);
   }, []);
 
+  // ── Weekly challenge fetch/create ────────────────────────────
+  const fetchOrCreateWeekly = useCallback(async (familyId: string, myId: string, memberCount: number) => {
+    const now = new Date();
+    const dayOfWeek = now.getDay();
+    const diff = (dayOfWeek + 6) % 7;
+    const weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - diff);
+    const weekStartStr = weekStart.toISOString().split("T")[0];
+
+    const hard = QUESTIONS.filter(q => q.difficulty >= 4);
+    const seed = weekStartStr.split("-").reduce((acc, p) => acc + parseInt(p, 10), 0);
+    const fallbackQ = hard[seed % hard.length] ?? QUESTIONS[0];
+
+    try {
+      let { data: wc } = await supabase
+        .from("weekly_challenges")
+        .select("*")
+        .eq("family_id", familyId)
+        .eq("week_start", weekStartStr)
+        .maybeSingle();
+
+      if (!wc) {
+        const { data: created } = await supabase
+          .from("weekly_challenges")
+          .insert({ family_id: familyId, week_start: weekStartStr, question_id: fallbackQ.id, answers: {} })
+          .select().single();
+        wc = created;
+      }
+
+      if (wc) {
+        type AnswerEntry = { answerIdx: number; correct: boolean; answeredAt: string };
+        const answers = (wc.answers ?? {}) as Record<string, AnswerEntry>;
+        const myAns = answers[myId] ?? null;
+        const answeredCount = Object.keys(answers).length;
+        const allCorrect = answeredCount === memberCount && Object.values(answers).every(a => a.correct);
+        const question = QUESTIONS.find(q => q.id === (wc as { question_id: string }).question_id) ?? fallbackQ;
+        setWeeklyChallenge({ id: (wc as { id: string }).id, weekStart: weekStartStr, question, answers, myAnswer: myAns, allCorrect, memberCount });
+      }
+    } catch { /* no-op */ }
+  }, []);
+
   // ── init ──────────────────────────────────────────────────────
   useEffect(() => {
     if (!user) { setLoading(false); return; }
@@ -197,6 +249,12 @@ export function useFamily() {
           fetchOrCreateDaily(familyId, user!.id),
           fetchAndSetDuels(user!.id, familyId),
         ]);
+
+        // Weekly challenge (after members are loaded so we know count)
+        const { data: membProfiles } = await supabase
+          .from("profiles").select("id").eq("family_id", familyId);
+        const membCount = membProfiles?.length ?? 1;
+        await fetchOrCreateWeekly(familyId, user!.id, membCount);
 
         setLoading(false);
 
@@ -231,7 +289,7 @@ export function useFamily() {
     }
     init();
     return () => cleanup?.();
-  }, [user, fetchOrCreateDaily, buildMemberList, fetchAndSetDuels]);
+  }, [user, fetchOrCreateDaily, fetchOrCreateWeekly, buildMemberList, fetchAndSetDuels]);
 
   // ── createFamily ──────────────────────────────────────────────
   const createFamily = useCallback(async (name: string): Promise<{ family: Family | null; error: string | null }> => {
@@ -401,15 +459,29 @@ export function useFamily() {
     await supabase.from("tasks").delete().eq("id", id);
   }, []);
 
+  const answerWeekly = useCallback(async (answerIdx: number) => {
+    if (!weeklyChallenge || !user) return;
+    const correct = weeklyChallenge.question.options[answerIdx]?.correct ?? false;
+    const response = { answerIdx, correct, answeredAt: new Date().toISOString() };
+    const newAnswers = { ...weeklyChallenge.answers, [user.id]: response };
+    const answeredCount = Object.keys(newAnswers).length;
+    const allCorrect = answeredCount === weeklyChallenge.memberCount && Object.values(newAnswers).every(a => a.correct);
+    setWeeklyChallenge({ ...weeklyChallenge, answers: newAnswers, myAnswer: response, allCorrect });
+    await supabase.from("weekly_challenges")
+      .update({ answers: newAnswers }).eq("id", weeklyChallenge.id);
+  }, [weeklyChallenge, user]);
+
   return {
     family,
     tasks,
     members,
     dailyChallenge,
+    weeklyChallenge,
     duels,
     loading,
     createFamily, joinFamily, leaveFamily,
-    answerDaily, createDuel, recordDuelScore,
+    answerDaily, answerWeekly, createDuel, recordDuelScore,
     addTask, toggleTask, removeTask,
+    fetchOrCreateWeekly,
   };
 }

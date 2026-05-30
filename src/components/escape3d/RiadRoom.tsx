@@ -126,9 +126,9 @@ export function Library({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; sol
       <RoomShell width={6} depth={5} doorAxis="z" />
 
       {/* Lumières */}
-      <ambientLight intensity={0.15} color="#3a2a10" />
-      <pointLight ref={candleRef} position={[0, 2.5, 0]} color="#D4922A" intensity={1.8} distance={6} decay={2} castShadow />
-      <pointLight position={[0, 1.2, -1.5]} color="#C4801A" intensity={0.8} distance={4} decay={2} />
+      <ambientLight intensity={0.65} color="#c09040" />
+      <pointLight ref={candleRef} position={[0, 2.5, 0]} color="#D4922A" intensity={2.5} distance={8} decay={2} castShadow />
+      <pointLight position={[0, 1.2, -1.5]} color="#C4801A" intensity={1.2} distance={5} decay={2} />
 
       {/* Bibliothèques */}
       <Bookshelf position={[-2.2, 1.4, -2.3]} />
@@ -192,9 +192,9 @@ export function Salon({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; solve
     <group position={[0, 0, 6.15]}>
       <RoomShell width={6} depth={5} doorAxis="z" />
 
-      <ambientLight intensity={0.18} color="#2a1a30" />
-      <pointLight position={[0, 2.8, 0]} color="#C878D4" intensity={1.5} distance={6} decay={2} castShadow />
-      <pointLight position={[1.5, 1.5, -1]} color="#D4AF37" intensity={0.9} distance={4} decay={2} />
+      <ambientLight intensity={0.7} color="#b090c0" />
+      <pointLight position={[0, 2.8, 0]} color="#C878D4" intensity={2.2} distance={8} decay={2} castShadow />
+      <pointLight position={[1.5, 1.5, -1]} color="#D4AF37" intensity={1.2} distance={5} decay={2} />
 
       {/* Tapis */}
       <mesh position={[0, 0.005, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
@@ -258,8 +258,8 @@ export function Cuisine({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; sol
     <group position={[6.15, 0, 0]} rotation={[0, -Math.PI / 2, 0]}>
       <RoomShell width={6} depth={5} doorAxis="z" />
 
-      <ambientLight intensity={0.2} color="#2a1a08" />
-      <pointLight position={[0, 2.5, 0]} color="#E0780A" intensity={2.0} distance={7} decay={2} castShadow />
+      <ambientLight intensity={0.7} color="#c07030" />
+      <pointLight position={[0, 2.5, 0]} color="#E0780A" intensity={2.8} distance={9} decay={2} castShadow />
 
       {/* Sol carrelage terre cuite */}
       <mesh position={[0, 0.004, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
@@ -361,8 +361,8 @@ export function Hammam({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; solv
     <group position={[-6.15, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
       <RoomShell width={6} depth={5} doorAxis="z" />
 
-      <ambientLight intensity={0.22} color="#102030" />
-      <pointLight position={[0, 2.8, 0]} color="#88BBDD" intensity={1.4} distance={7} decay={2} castShadow />
+      <ambientLight intensity={0.7} color="#4080a0" />
+      <pointLight position={[0, 2.8, 0]} color="#88BBDD" intensity={2.2} distance={9} decay={2} castShadow />
 
       {/* Sol marbre */}
       <mesh position={[0, 0.004, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>

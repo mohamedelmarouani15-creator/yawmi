@@ -15,66 +15,118 @@ import { getPuzzleById } from "@/lib/escape3d/puzzles";
 import { PLAYER_COLORS } from "@/lib/escape3d/types";
 import { isWalkable, getRoom, ROOM_NAMES } from "@/lib/escape3d/bounds";
 
-const WALK_SPEED   = 3.0;
-const PLAYER_BOUND = 2.8;
-const CAM_DIST     = 5.5;
-const CAM_ELEV     = 0.52;
-const CAM_BOUND    = 3.1;
+const WALK_SPEED = 3.2;
+const CAM_DIST   = 5.5;
 
-function Controller({ moveStick, lookDelta, onPosRot }: {
-  moveStick: React.RefObject<{ x: number; y: number }>;
-  lookDelta: React.RefObject<{ dx: number; dy: number }>;
-  onPosRot:  (pos: [number, number, number], rot: number) => void;
+// Azimuth cible par pièce — caméra se place automatiquement pour voir l'intérieur
+const ROOM_AZIMUTH: Record<string, number> = {
+  courtyard: Math.PI,
+  library:   0,
+  salon:     Math.PI,
+  cuisine:  -Math.PI / 2,
+  hammam:    Math.PI / 2,
+};
+
+// Élévation cible par pièce
+const ROOM_ELEVATION: Record<string, number> = {
+  courtyard: 0.52,
+  library:   0.42,
+  salon:     0.42,
+  cuisine:   0.42,
+  hammam:    0.42,
+};
+
+function Controller({ moveStick, lookDelta, onPosRot, currentRoom }: {
+  moveStick:   React.RefObject<{ x: number; y: number }>;
+  lookDelta:   React.RefObject<{ dx: number; dy: number }>;
+  onPosRot:    (pos: [number, number, number], rot: number) => void;
+  currentRoom: string;
 }) {
   const { camera } = useThree();
-  const pos      = useRef(new THREE.Vector3(0, 0, 1.5));
-  const azimuth  = useRef(Math.PI);
-  const elevation = useRef(CAM_ELEV); // angle vertical dynamique
-  const camPos   = useRef(new THREE.Vector3(0, CAM_DIST * Math.sin(CAM_ELEV), CAM_DIST * Math.cos(CAM_ELEV)));
+  const pos       = useRef(new THREE.Vector3(0, 0, 1.5));
+  const azimuth   = useRef(Math.PI);
+  const elevation = useRef(0.52);
+  const camPos    = useRef(new THREE.Vector3(0, 3.2, 5.5));
+  const prevRoom  = useRef("courtyard");
 
   useFrame((_, delta) => {
-    // Rotation caméra via delta de drag (style Minecraft)
-    azimuth.current   += lookDelta.current.dx * 60 * delta;
-    elevation.current  = THREE.MathUtils.clamp(
-      elevation.current - lookDelta.current.dy * 60 * delta,
-      0.15,  // min : ~8° (pas trop bas)
-      1.2,   // max : ~68° (pas derrière la tête)
-    );
-    lookDelta.current.dx *= 0.82;
-    lookDelta.current.dy *= 0.82;
-    void delta;
+    // ── Auto-orientation à l'entrée d'une pièce ──────────────
+    if (currentRoom !== prevRoom.current) {
+      prevRoom.current = currentRoom;
+      // On ne force pas l'angle si l'utilisateur est en train de drag
+    }
+    const targetAz  = ROOM_AZIMUTH[currentRoom]  ?? Math.PI;
+    const targetEl  = ROOM_ELEVATION[currentRoom] ?? 0.52;
 
-    const mx = moveStick.current?.x ?? 0;
-    const my = moveStick.current?.y ?? 0;
-    const len = Math.sqrt(mx * mx + my * my);
-    if (len > 0.06) {
-      const fwdX = -Math.sin(azimuth.current);
-      const fwdZ = -Math.cos(azimuth.current);
-      const rgtX =  Math.cos(azimuth.current);
-      const rgtZ = -Math.sin(azimuth.current);
-      const spd = WALK_SPEED * delta;
-      const nx = pos.current.x + (fwdX * my + rgtX * mx) * spd;
-      const nz = pos.current.z + (fwdZ * my + rgtZ * mx) * spd;
-      if (isWalkable(nx, pos.current.z)) pos.current.x = nx;
-      if (isWalkable(pos.current.x, nz)) pos.current.z = nz;
+    // Ajustement automatique doux — seulement si le drag est inactif
+    const dragging = Math.abs(lookDelta.current.dx) > 0.001 || Math.abs(lookDelta.current.dy) > 0.001;
+    if (!dragging) {
+      // Diff angulaire la plus courte
+      let diff = targetAz - azimuth.current;
+      while (diff >  Math.PI) diff -= 2 * Math.PI;
+      while (diff < -Math.PI) diff += 2 * Math.PI;
+      azimuth.current   += diff   * Math.min(delta * 3.5, 1);
+      elevation.current += (targetEl - elevation.current) * Math.min(delta * 3.5, 1);
     }
 
-    const cosE = Math.cos(elevation.current), sinE = Math.sin(elevation.current);
-    const targetCam = new THREE.Vector3(
-      THREE.MathUtils.clamp(pos.current.x + Math.sin(azimuth.current) * CAM_DIST * cosE, -CAM_BOUND, CAM_BOUND),
-      pos.current.y + CAM_DIST * sinE,
-      THREE.MathUtils.clamp(pos.current.z + Math.cos(azimuth.current) * CAM_DIST * cosE, -CAM_BOUND, CAM_BOUND),
+    // ── Drag manuel ───────────────────────────────────────────
+    azimuth.current   += lookDelta.current.dx * 55 * delta;
+    elevation.current  = THREE.MathUtils.clamp(
+      elevation.current - lookDelta.current.dy * 55 * delta,
+      0.12, 1.1,
     );
-    camPos.current.lerp(targetCam, 1 - Math.pow(0.005, delta));
+    lookDelta.current.dx *= 0.80;
+    lookDelta.current.dy *= 0.80;
+
+    // ── Mouvement relatif à l'écran ───────────────────────────
+    // La caméra regarde le joueur → on dérive fwd/right de la caméra
+    const mx  = moveStick.current?.x ?? 0;
+    const my  = moveStick.current?.y ?? 0;
+    const len = Math.sqrt(mx * mx + my * my);
+    if (len > 0.06) {
+      // Vecteur "vers l'écran" = direction caméra → joueur, projeté XZ
+      const toCam = new THREE.Vector3(
+        camPos.current.x - pos.current.x,
+        0,
+        camPos.current.z - pos.current.z,
+      ).normalize();
+      // Forward = vers le fond de l'écran (oppose de toCam)
+      const fwdX = -toCam.x, fwdZ = -toCam.z;
+      const rgtX = -toCam.z, rgtZ =  toCam.x; // perpendiculaire
+      const spd  = WALK_SPEED * delta;
+      const nx   = pos.current.x + (fwdX * my + rgtX * mx) * spd;
+      const nz   = pos.current.z + (fwdZ * my + rgtZ * mx) * spd;
+      if (isWalkable(nx,             pos.current.z)) pos.current.x = nx;
+      if (isWalkable(pos.current.x,  nz))            pos.current.z = nz;
+    }
+
+    // ── Caméra orbitale ───────────────────────────────────────
+    const cosE = Math.cos(elevation.current);
+    const sinE = Math.sin(elevation.current);
+
+    // Bounds caméra dynamiques selon la pièce
+    const inRoom = currentRoom !== "courtyard";
+    const bound  = inRoom ? 7.5 : 3.2;
+
+    const targetCam = new THREE.Vector3(
+      THREE.MathUtils.clamp(pos.current.x + Math.sin(azimuth.current) * CAM_DIST * cosE, -bound, bound),
+      pos.current.y + CAM_DIST * sinE,
+      THREE.MathUtils.clamp(pos.current.z + Math.cos(azimuth.current) * CAM_DIST * cosE, -bound, bound),
+    );
+    camPos.current.lerp(targetCam, 1 - Math.pow(0.004, delta));
     camera.position.copy(camPos.current);
     camera.lookAt(pos.current.x, pos.current.y + 0.7, pos.current.z);
 
-    const moveAngle = len > 0.06 ? -azimuth.current + Math.atan2(mx, my) : 0;
-    onPosRot([pos.current.x, 0, pos.current.z], moveAngle);
+    const faceAng = len > 0.06 ? Math.atan2(mx, my) + azimuth.current - Math.PI : playerFaceRef.current;
+    playerFaceRef.current = faceAng;
+    onPosRot([pos.current.x, 0, pos.current.z], faceAng);
   });
 
   return null;
 }
+
+// Ref externe pour la direction du visage
+const playerFaceRef = { current: 0 };
 
 // Particules flottantes autour des lanternes
 function LanternParticles({ position }: { position: [number, number, number] }) {
@@ -151,7 +203,7 @@ export default function RiadScene() {
 
       <Canvas
         shadows="soft"
-        camera={{ position: [0, CAM_DIST * Math.sin(CAM_ELEV), CAM_DIST * Math.cos(CAM_ELEV)], fov: 60, near: 0.1, far: 80 }}
+        camera={{ position: [0, 3.2, 5.5], fov: 60, near: 0.1, far: 80 }}
         style={{ width: "100%", height: "100%" }}
         gl={{
           antialias: false, // postprocessing gère l'AA
@@ -196,7 +248,7 @@ export default function RiadScene() {
           <PlayerAvatar position={playerPos} rotation={playerRot} color={PLAYER_COLORS[0]} isLocal />
         </Float>
 
-        <Controller moveStick={moveStick} lookDelta={lookDelta} onPosRot={onPosRot} />
+        <Controller moveStick={moveStick} lookDelta={lookDelta} onPosRot={onPosRot} currentRoom={currentRoom} />
 
         {/* Post-processing */}
         <Suspense fallback={null}>

@@ -16,6 +16,7 @@ import type { ComputedPrayerTimes } from "@/lib/prayer";
 import type { MosqueStage } from "@/components/MosqueIsometrique";
 import dynamic from "next/dynamic";
 const MosqueIsometrique = dynamic(() => import("@/components/MosqueIsometrique"), { ssr: false });
+import { EventBanner } from "@/components/EventBanner";
 
 const DAILY_DHIKRS = [
   { ar: "سُبْحَانَ اللّهِ وَبِحَمْدِهِ", fr: "Subhan Allahi wa bihamdihi" },
@@ -110,6 +111,9 @@ export default function AccueilPage() {
       animate="animate"
       className="flex flex-col gap-6 px-5 pt-12 pb-4"
     >
+      {/* Bannière événement islamique spécial */}
+      <EventBanner />
+
       {/* Header */}
       <motion.div variants={itemVariants} className="flex items-start justify-between">
         <div>

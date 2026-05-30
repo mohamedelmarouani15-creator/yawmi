@@ -5,6 +5,7 @@ import { getQuestions } from "@/lib/game/questions";
 import { updateSM2 } from "@/lib/game/sm2";
 import { gameStorage } from "@/lib/game/game-storage";
 import { getJoker50Eliminations } from "@/lib/game/powerups";
+import { getActiveGameEvent } from "@/lib/game/game-events";
 import type { Question, QuizSession, PowerUpType } from "@/lib/game/types";
 
 const XP_PER_CORRECT    = 10;
@@ -114,7 +115,8 @@ export function useQuiz(locationId: string) {
     const newAnswers = [...session.answers];
     newAnswers[session.currentIndex] = isCorrect;
 
-    const xpMultiplier = session.doubleXpActive ? 2 : 1;
+    const eventMultiplier = getActiveGameEvent()?.rewardMultiplier ?? 1;
+    const xpMultiplier = (session.doubleXpActive ? 2 : 1) * eventMultiplier;
     const addedXP    = isCorrect ? XP_PER_CORRECT * xpMultiplier : 0;
     const addedCoins = isCorrect ? COINS_PER_CORRECT : 0;
 

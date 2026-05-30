@@ -50,7 +50,8 @@ export function useCompanion(): UseCompanionReturn {
     }
 
     if (!res.ok) {
-      const fallback = "Je rencontre une difficulté. Réessaie dans un instant.";
+      const errData = await res.json().catch(() => ({}));
+      const fallback = errData.message ?? "Je rencontre une difficulté. Réessaie dans un instant.";
       setError(fallback);
       return fallback;
     }

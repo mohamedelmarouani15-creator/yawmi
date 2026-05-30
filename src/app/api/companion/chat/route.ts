@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
   try {
     reply = await askCompanion(userMessage, context, history);
   } catch (err) {
-    console.error("[companion/chat] Gemini error:", err);
+    console.error("[companion/chat] AI error:", err);
     return NextResponse.json(
       { error: "ai_error", message: "Je rencontre une difficulté. Réessaie dans un instant." },
       { status: 503 }

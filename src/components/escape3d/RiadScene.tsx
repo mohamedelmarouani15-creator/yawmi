@@ -2,7 +2,16 @@
 
 import { useRef, useState, useCallback, useEffect, Suspense } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { EffectComposer, Bloom } from "@react-three/postprocessing";
+import {
+  EffectComposer,
+  Bloom,
+  ChromaticAberration,
+  Noise,
+  N8AO,
+  SMAA,
+} from "@react-three/postprocessing";
+import { BlendFunction } from "postprocessing";
+import { Environment } from "@react-three/drei";
 import * as THREE from "three";
 import Courtyard from "./Courtyard";
 import { Library, Salon, Cuisine, Hammam } from "./RiadRoom";
@@ -80,10 +89,10 @@ function DoorPortal({ pos, rotY, label, onClick }: {
   );
 }
 
-// ── Swipe-to-look (listeners directs sur le canvas WebGL) ─────────
-function InputHandler({ yawRef, pitchRef, isDraggingRef }: {
-  yawRef:        React.RefObject<number>;
-  pitchRef:      React.RefObject<number>;
+// ── Swipe-to-look avec inertie ─────────────────────────────────────
+function InputHandler({ yawVelRef, pitchVelRef, isDraggingRef }: {
+  yawVelRef:     React.RefObject<number>;
+  pitchVelRef:   React.RefObject<number>;
   isDraggingRef: React.RefObject<boolean>;
 }) {
   const { gl } = useThree();
@@ -99,6 +108,9 @@ function InputHandler({ yawRef, pitchRef, isDraggingRef }: {
       sx = lx = e.clientX;
       sy = ly = e.clientY;
       isDraggingRef.current = false;
+      // Couper l'inertie quand on recommence à toucher
+      yawVelRef.current   = 0;
+      pitchVelRef.current = 0;
       try { canvas.setPointerCapture(e.pointerId); } catch {}
     }
 
@@ -107,9 +119,9 @@ function InputHandler({ yawRef, pitchRef, isDraggingRef }: {
       if (Math.hypot(e.clientX - sx, e.clientY - sy) > 7)
         isDraggingRef.current = true;
       if (isDraggingRef.current) {
-        yawRef.current!  -= (e.clientX - lx) * 0.0055;
-        pitchRef.current! = Math.max(-0.42, Math.min(0.42,
-          pitchRef.current! + (e.clientY - ly) * 0.004));
+        // Accumule la vélocité proportionnellement au mouvement
+        yawVelRef.current   -= (e.clientX - lx) * 0.0055;
+        pitchVelRef.current += (e.clientY - ly) * 0.004;
       }
       lx = e.clientX; ly = e.clientY;
     }
@@ -117,7 +129,6 @@ function InputHandler({ yawRef, pitchRef, isDraggingRef }: {
     function up(e: PointerEvent) {
       if (e.pointerId !== pid) return;
       pid = null;
-      // Reset au prochain tick pour laisser onClick s'exécuter d'abord
       requestAnimationFrame(() => { isDraggingRef.current = false; });
     }
 
@@ -131,55 +142,41 @@ function InputHandler({ yawRef, pitchRef, isDraggingRef }: {
       canvas.removeEventListener("pointerup",     up);
       canvas.removeEventListener("pointercancel", up);
     };
-  }, [gl, yawRef, pitchRef, isDraggingRef]);
+  }, [gl, yawVelRef, pitchVelRef, isDraggingRef]);
 
   return null;
 }
 
-// ── Contrôleur caméra ─────────────────────────────────────────────
-function CameraController({ yawRef, pitchRef, targetRef, currentRef, onArrived }: {
+// ── Contrôleur caméra avec inertie ───────────────────────────────
+function CameraController({ yawRef, pitchRef, yawVelRef, pitchVelRef, currentRef }: {
   yawRef:      React.RefObject<number>;
   pitchRef:    React.RefObject<number>;
-  targetRef:   React.RefObject<RoomId | null>;
+  yawVelRef:   React.RefObject<number>;
+  pitchVelRef: React.RefObject<number>;
   currentRef:  React.RefObject<RoomId>;
-  onArrived:   (r: RoomId) => void;
 }) {
-  const progress  = useRef(0);
-  const fromPos   = useRef(new THREE.Vector3(0, 1.6, 0.5));
-  const toPos     = useRef(new THREE.Vector3(0, 1.6, 0.5));
-  const traveling = useRef(false);
-  const destRef   = useRef<RoomId | null>(null);
-
   useFrame(({ camera }, dt) => {
-    // Nouvelle transition demandée
-    const target = targetRef.current;
-    if (target && !traveling.current) {
-      fromPos.current.copy(camera.position);
-      toPos.current.set(...ROOM_VIEWS[target].pos);
-      progress.current = 0;
-      traveling.current = true;
-      destRef.current = target;
-      targetRef.current = null;
-    }
+    // Decay de l'inertie (frame-rate independent) — 0.88^(dt*60)
+    const decay = Math.pow(0.88, dt * 60);
+    yawVelRef.current   *= decay;
+    pitchVelRef.current *= decay;
 
-    // Animation de déplacement
-    if (traveling.current) {
-      progress.current = Math.min(progress.current + dt * 1.75, 1);
-      const t = 1 - Math.pow(1 - progress.current, 3); // ease-out cubic
-      camera.position.lerpVectors(fromPos.current, toPos.current, t);
-      if (progress.current >= 1) {
-        traveling.current = false;
-        onArrived(destRef.current!);
-        destRef.current = null;
-      }
-    } else {
-      // Position fixe dans la pièce courante
-      camera.position.set(...ROOM_VIEWS[currentRef.current].pos);
-    }
+    // Seuil minimal pour éviter la dérive infinie
+    if (Math.abs(yawVelRef.current)   < 0.0001) yawVelRef.current   = 0;
+    if (Math.abs(pitchVelRef.current) < 0.0001) pitchVelRef.current = 0;
 
-    // Direction de regard (toujours appliquée)
-    const y = yawRef.current ?? 0;
-    const p = pitchRef.current ?? 0;
+    // Intégration des vélocités dans yaw/pitch
+    yawRef.current   = (yawRef.current   ?? 0) + yawVelRef.current;
+    pitchRef.current = Math.max(-0.42, Math.min(0.42,
+      (pitchRef.current ?? 0) + pitchVelRef.current
+    ));
+
+    // Position fixe dans la pièce courante (téléportation gérée par goTo)
+    camera.position.set(...ROOM_VIEWS[currentRef.current].pos);
+
+    // Direction de regard
+    const y = yawRef.current;
+    const p = pitchRef.current;
     const D = 4;
     camera.lookAt(
       camera.position.x + Math.sin(y) * D * Math.cos(p),
@@ -197,12 +194,14 @@ export default function RiadScene() {
   const [puzzle,    setPuzzle]    = useState<string | null>(null);
   const [solved,    setSolved]    = useState<Record<string, boolean>>({});
   const [traveling, setTraveling] = useState(false);
-  const [hint,      setHint]      = useState(true); // afficher l'indice au départ
+  const [hint,      setHint]      = useState(true);
+  const [fadeOpacity, setFadeOpacity] = useState(0);
 
   const yawRef        = useRef(0);
   const pitchRef      = useRef(0);
+  const yawVelRef     = useRef(0);
+  const pitchVelRef   = useRef(0);
   const isDraggingRef = useRef(false);
-  const targetRef     = useRef<RoomId | null>(null);
   const currentRef    = useRef<RoomId>("courtyard");
 
   // Masquer l'indice après 4 secondes
@@ -211,20 +210,29 @@ export default function RiadScene() {
     return () => clearTimeout(t);
   }, []);
 
+  // Transition fade-to-black + téléportation instantanée
   const goTo = useCallback((dest: RoomId) => {
     if (traveling || isDraggingRef.current) return;
-    yawRef.current   = ROOM_VIEWS[dest].yaw;
-    pitchRef.current = 0;
-    targetRef.current = dest;
     setTraveling(true);
     setHint(false);
-  }, [traveling]);
+    setFadeOpacity(1);
 
-  const onArrived = useCallback((r: RoomId) => {
-    currentRef.current = r;
-    setRoom(r);
-    setTraveling(false);
-  }, []);
+    setTimeout(() => {
+      // Téléportation instantanée
+      currentRef.current = dest;
+      yawRef.current     = ROOM_VIEWS[dest].yaw;
+      pitchRef.current   = 0;
+      yawVelRef.current  = 0;
+      pitchVelRef.current = 0;
+      setRoom(dest);
+
+      // Fade back (transition CSS 500ms)
+      requestAnimationFrame(() => {
+        setFadeOpacity(0);
+        setTimeout(() => setTraveling(false), 520);
+      });
+    }, 300);
+  }, [traveling]);
 
   const openPuzzle = useCallback((id: string) => {
     if (!isDraggingRef.current) setPuzzle(id);
@@ -248,16 +256,33 @@ export default function RiadScene() {
         background: "radial-gradient(ellipse at center, transparent 42%, rgba(0,0,0,0.78) 100%)",
       }} />
 
+      {/* Overlay fade-to-black */}
+      <div style={{
+        position: "absolute", inset: 0, zIndex: 3, pointerEvents: "none",
+        background: "rgba(0,0,0,1)",
+        opacity: fadeOpacity,
+        transition: fadeOpacity === 1
+          ? "opacity 0.3s ease-in"
+          : "opacity 0.5s ease-out",
+      }} />
+
       <Canvas
         camera={{ position: [0, 1.6, 0.5], fov: 80, near: 0.05, far: 80 }}
         gl={{
-          antialias: true, alpha: false, stencil: false,
+          antialias: false, // SMAA s'occupe de l'antialiasing
+          alpha: false, stencil: false,
           toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.15,
         }}
+        shadows
         style={{ width: "100%", height: "100%" }}
       >
         <color attach="background" args={["#040608"]} />
         <fog attach="fog" args={["#040608", 14, 42]} />
+
+        {/* Environment nocturne pour les réflexions PBR */}
+        <Environment preset="night" />
+
+        {/* Ombres douces globales */}
 
         {/* Décors */}
         <Courtyard
@@ -284,16 +309,26 @@ export default function RiadScene() {
           />
         )}
 
-        <InputHandler yawRef={yawRef} pitchRef={pitchRef} isDraggingRef={isDraggingRef} />
+        <InputHandler
+          yawVelRef={yawVelRef}
+          pitchVelRef={pitchVelRef}
+          isDraggingRef={isDraggingRef}
+        />
         <CameraController
-          yawRef={yawRef} pitchRef={pitchRef}
-          targetRef={targetRef} currentRef={currentRef}
-          onArrived={onArrived}
+          yawRef={yawRef}
+          pitchRef={pitchRef}
+          yawVelRef={yawVelRef}
+          pitchVelRef={pitchVelRef}
+          currentRef={currentRef}
         />
 
         <Suspense fallback={null}>
           <EffectComposer multisampling={0}>
-            <Bloom intensity={1.9} luminanceThreshold={0.24} luminanceSmoothing={0.6} mipmapBlur />
+            <SMAA />
+            <N8AO aoRadius={5} intensity={1.5} />
+            <Bloom intensity={2.2} luminanceThreshold={0.2} luminanceSmoothing={0.5} mipmapBlur />
+            <ChromaticAberration offset={[0.0008, 0.0008] as unknown as THREE.Vector2} />
+            <Noise premultiplied={false} blendFunction={BlendFunction.ADD} opacity={0.04} />
           </EffectComposer>
         </Suspense>
       </Canvas>
@@ -364,7 +399,7 @@ export default function RiadScene() {
           </p>
           <p style={{ color: "#F8F4EC", fontSize: 12, opacity: 0.7, marginTop: 5,
             fontFamily: "var(--font-dm-sans)" }}>
-            5 énigmes résolues — la famille s'échappe
+            5 énigmes résolues — la famille s&apos;échappe
           </p>
         </div>
       )}

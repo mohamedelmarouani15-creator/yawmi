@@ -163,15 +163,53 @@ export function useEscapeAudio() {
 
   // ── API publique ────────────────────────────────────────────────
 
+  // Noeuds de volume séparés pour ambient vs UI
+  const ambientBusRef = useRef<GainNode | null>(null);
+  const uiBusRef      = useRef<GainNode | null>(null);
+
+  function getAmbientBus(): GainNode {
+    const c = getCtx(); const m = masterRef.current!;
+    if (!ambientBusRef.current) {
+      ambientBusRef.current = c.createGain();
+      ambientBusRef.current.gain.value = 0.75;
+      ambientBusRef.current.connect(m);
+    }
+    return ambientBusRef.current;
+  }
+
+  function getUIBus(): GainNode {
+    const c = getCtx(); const m = masterRef.current!;
+    if (!uiBusRef.current) {
+      uiBusRef.current = c.createGain();
+      uiBusRef.current.gain.value = 0.80;
+      uiBusRef.current.connect(m);
+    }
+    return uiBusRef.current;
+  }
+
+  const setAmbientVolume = useCallback((v: number) => {
+    if (!ambientBusRef.current) return;
+    ambientBusRef.current.gain.setTargetAtTime(v, getCtx().currentTime, 0.2);
+  }, []);
+
+  const setUIVolume = useCallback((v: number) => {
+    if (!uiBusRef.current) return;
+    uiBusRef.current.gain.setTargetAtTime(v, getCtx().currentTime, 0.2);
+  }, []);
+
   const init = useCallback(() => {
     if (readyRef.current) return;
     readyRef.current = true;
     const c = getCtx();
     if (c.state === "suspended") c.resume();
+    // Re-route les roomGains vers ambientBus
+    const bus = getAmbientBus();
+    Object.values(roomsRef.current).forEach(r => { try { r?.gain.disconnect(); r?.gain.connect(bus); } catch {} });
     if (!roomsRef.current.courtyard) {
-      roomsRef.current.courtyard = buildRoom("courtyard");
+      const r = buildRoom("courtyard");
+      r.gain.disconnect(); r.gain.connect(bus);
+      roomsRef.current.courtyard = r;
     }
-    // Fade in très progressif (2s) pour ne pas surprendre
     roomsRef.current.courtyard!.gain.gain.setTargetAtTime(0.9, c.currentTime, 2.0);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -244,5 +282,5 @@ export function useEscapeAudio() {
     ctxRef.current?.close();
   }, []);
 
-  return { init, changeRoom, playFootstep, playSuccess, playFail };
+  return { init, changeRoom, playFootstep, playSuccess, playFail, setAmbientVolume, setUIVolume };
 }

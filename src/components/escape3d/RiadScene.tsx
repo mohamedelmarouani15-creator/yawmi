@@ -11,6 +11,12 @@ import PuzzleModal from "./PuzzleModal";
 import { getPuzzleById } from "@/lib/escape3d/puzzles";
 import { ROOM_NAMES } from "@/lib/escape3d/bounds";
 import type { RoomId } from "@/lib/escape3d/bounds";
+import {
+  loadEscapeSettings, saveEscapeSettings,
+  vibrate, TRANSITION_MS,
+} from "@/lib/escape3d/escape-settings";
+import type { EscapeSettings } from "@/lib/escape3d/escape-settings";
+import EscapeSettingsPanel from "./EscapeSettingsPanel";
 import { useEscapeAudio } from "./useEscapeAudio";
 
 // ── Positions caméra (hauteur œil) par pièce ──────────────────────
@@ -84,10 +90,11 @@ function DoorPortal({ pos, rotY, label, onClick }: {
 }
 
 // ── Swipe-to-look avec inertie ─────────────────────────────────────
-function InputHandler({ yawVelRef, pitchVelRef, isDraggingRef }: {
+function InputHandler({ yawVelRef, pitchVelRef, isDraggingRef, sensitivity }: {
   yawVelRef:     React.RefObject<number>;
   pitchVelRef:   React.RefObject<number>;
   isDraggingRef: React.RefObject<boolean>;
+  sensitivity:   number;
 }) {
   const { gl } = useThree();
 
@@ -114,8 +121,8 @@ function InputHandler({ yawVelRef, pitchVelRef, isDraggingRef }: {
         isDraggingRef.current = true;
       if (isDraggingRef.current) {
         // Accumule la vélocité proportionnellement au mouvement
-        yawVelRef.current   -= (e.clientX - lx) * 0.003;
-        pitchVelRef.current += (e.clientY - ly) * 0.003;
+        yawVelRef.current   -= (e.clientX - lx) * 0.003 * sensitivity;
+        pitchVelRef.current += (e.clientY - ly) * 0.003 * sensitivity;
       }
       lx = e.clientX; ly = e.clientY;
     }
@@ -191,8 +198,17 @@ export default function RiadScene() {
   const [hint,      setHint]      = useState(true);
   const [fadeOpacity, setFadeOpacity] = useState(0);
   const [fadeLabel,   setFadeLabel]   = useState("");
+  const [settings, setSettings]   = useState<EscapeSettings>(() => loadEscapeSettings());
 
   const audio = useEscapeAudio();
+
+  // Applique les changements de réglages immédiatement
+  const handleSettings = useCallback((s: EscapeSettings) => {
+    setSettings(s);
+    saveEscapeSettings(s);
+    audio.setAmbientVolume(s.ambientVolume);
+    audio.setUIVolume(s.uiVolume);
+  }, [audio]);
 
   const yawRef        = useRef(0);
   const pitchRef      = useRef(0);
@@ -210,31 +226,38 @@ export default function RiadScene() {
   // Transition fade-to-black + téléportation instantanée
   const goTo = useCallback((dest: RoomId) => {
     if (traveling || isDraggingRef.current) return;
-    audio.init();  // init au premier tap (browser policy)
+    audio.init();
     audio.playFootstep();
+    vibrate(30, settings);
     yawRef.current      = ROOM_VIEWS[dest].yaw;
     pitchRef.current    = 0;
     yawVelRef.current   = 0;
     pitchVelRef.current = 0;
+    const ms = TRANSITION_MS[settings.transitionSpeed];
     setFadeOpacity(1);
+    setFadeLabel(ROOM_NAMES[dest]);
     setTimeout(() => {
       currentRef.current = dest;
       audio.changeRoom(dest);
       setRoom(dest);
       setTraveling(false);
-      setFadeLabel(ROOM_NAMES[dest]);
-      setTimeout(() => setFadeOpacity(0), 80);
-    }, 300);
+      setTimeout(() => setFadeOpacity(0), 60);
+    }, ms);
     setTraveling(true);
     setHint(false);
-  }, [traveling, audio]);
+  }, [traveling, audio, settings]);
 
   const openPuzzle = useCallback((id: string) => {
-    if (!isDraggingRef.current) { audio.init(); setPuzzle(id); }
-  }, [audio]);
+    if (!isDraggingRef.current) {
+      audio.init();
+      vibrate(20, settings);
+      setPuzzle(id);
+    }
+  }, [audio, settings]);
 
   const solve = (ok: boolean) => {
-    if (ok) audio.playSuccess(); else audio.playFail();
+    if (ok) { audio.playSuccess(); vibrate([40, 30, 80], settings); }
+    else    { audio.playFail();    vibrate(80, settings); }
     if (puzzle && ok) setSolved(s => ({ ...s, [puzzle]: true }));
     setPuzzle(null);
   };
@@ -314,6 +337,7 @@ export default function RiadScene() {
           yawVelRef={yawVelRef}
           pitchVelRef={pitchVelRef}
           isDraggingRef={isDraggingRef}
+          sensitivity={settings.sensitivity}
         />
         <CameraController
           yawRef={yawRef}
@@ -330,6 +354,9 @@ export default function RiadScene() {
           </EffectComposer>
         </Suspense>
       </Canvas>
+
+      {/* Panel réglages */}
+      <EscapeSettingsPanel settings={settings} onChange={handleSettings} />
 
       {/* Nom de la pièce */}
       <p style={{

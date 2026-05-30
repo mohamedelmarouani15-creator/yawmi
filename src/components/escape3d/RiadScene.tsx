@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useCallback, useEffect, Suspense } from "react";
+import { motion } from "framer-motion";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { EffectComposer, Bloom, SMAA } from "@react-three/postprocessing";
 import { Environment } from "@react-three/drei";
@@ -8,7 +9,7 @@ import * as THREE from "three";
 import Courtyard from "./Courtyard";
 import { Library, Salon, Cuisine, Hammam } from "./RiadRoom";
 import PuzzleModal from "./PuzzleModal";
-import { getPuzzleById } from "@/lib/escape3d/puzzles";
+import { getPuzzleById, getPuzzlesForRoom } from "@/lib/escape3d/puzzles";
 import { ROOM_NAMES } from "@/lib/escape3d/bounds";
 import type { RoomId } from "@/lib/escape3d/bounds";
 import {
@@ -331,8 +332,14 @@ export default function RiadScene() {
     setPuzzle(null);
   };
 
-  const pDef      = puzzle ? getPuzzleById(puzzle) : null;
+  const pDef      = puzzle  ? getPuzzleById(puzzle)  : null;
   const closeupDef = closeup ? getPuzzleById(closeup) : null;
+
+  // Hint de la pièce courante (objet à trouver)
+  const roomPuzzleDef = getPuzzlesForRoom(room)[0];
+  const roomHint = roomPuzzleDef && !solved[roomPuzzleDef.id]
+    ? roomPuzzleDef.roomHint
+    : null;
 
   return (
     <div style={{ position: "absolute", inset: 0, touchAction: "none" }}>
@@ -453,6 +460,32 @@ export default function RiadScene() {
         <RoomMap currentRoom={room} solved={solved} />
       )}
 
+      {/* Hint objet de la pièce — bannière dorée persistante */}
+      {roomHint && !puzzle && !closeup && (
+        <motion.div
+          key={room}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          style={{
+            position: "absolute", bottom: 72, left: 16, right: 16, zIndex: 10,
+            background: "rgba(10,15,13,0.88)", border: "1px solid rgba(212,175,55,0.3)",
+            borderRadius: 16, padding: "10px 16px",
+            display: "flex", alignItems: "center", gap: 10,
+            backdropFilter: "blur(8px)",
+          }}
+        >
+          <span style={{ fontSize: 18, flexShrink: 0 }}>👆</span>
+          <p style={{
+            color: "#F8F4EC", fontSize: 12, fontFamily: "var(--font-dm-sans)",
+            margin: 0, lineHeight: 1.4,
+          }}>
+            <span style={{ color: "#D4AF37", fontWeight: 600 }}>Cherche l&apos;objet : </span>
+            {roomHint}
+          </p>
+        </motion.div>
+      )}
+
       {/* Crosshair */}
       {room !== "courtyard" && !puzzle && !closeup && (
         <div style={{
@@ -533,7 +566,7 @@ export default function RiadScene() {
       {/* Quiz (phase 2) */}
       {pDef && (
         <div style={{ position:"fixed", inset:0, zIndex:50 }}>
-          <PuzzleModal puzzle={pDef} onSolve={solve} onClose={() => setPuzzle(null)} />
+          <PuzzleModal puzzle={pDef} difficulty={settings.difficulty} onSolve={solve} onClose={() => setPuzzle(null)} />
         </div>
       )}
 

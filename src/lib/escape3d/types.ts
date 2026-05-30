@@ -25,16 +25,20 @@ export interface PuzzleDef {
   id:          string;
   title:       string;
   description: string;
-  objectId:    string;        // which 3D object triggers this puzzle
+  objectId:    string;
   type:        "arabic_word" | "quran_verse" | "history" | "calligraphy";
   question:    string;
   hint1:       string;
   hint2:       string;
   hint3:       string;
   answer:      string;
-  options?:    string[];      // for multiple choice
+  options?:    string[];   // options en arabe
+  optionsFr?:  string[];   // traduction française des options
+  phonetics?:  string[];   // translittération phonétique
   explanation: string;
   xpReward:    number;
+  // Objet interactif : description pour le joueur
+  roomHint:    string;     // ex: "Touche la lanterne dorée"
 }
 
 export const PLAYER_COLORS = [

@@ -3,8 +3,9 @@ export interface EscapeSettings {
   uiVolume:       number;   // 0–1 : pas, succès, échec
   vibrations:     boolean;  // retour haptique (Vibration API)
   sensitivity:    number;   // 0.5–2.0 : multiplicateur sensibilité swipe
-  quality:        "low" | "high"; // low = sans SMAA, high = SMAA+Bloom
-  transitionSpeed: "slow" | "normal" | "fast"; // durée du fade entre pièces
+  quality:         "low" | "high";
+  transitionSpeed: "slow" | "normal" | "fast";
+  difficulty:      "debutant" | "intermediaire" | "expert";
 }
 
 export const DEFAULT: EscapeSettings = {
@@ -14,6 +15,7 @@ export const DEFAULT: EscapeSettings = {
   sensitivity:     1.0,
   quality:         "high",
   transitionSpeed: "normal",
+  difficulty:      "intermediaire",
 };
 
 const KEY = "yawmi_escape_settings";

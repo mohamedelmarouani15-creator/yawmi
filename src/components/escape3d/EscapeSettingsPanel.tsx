@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings, X, Volume2, VolumeX, Smartphone, SmartphoneNfc, Eye, Zap, Wind } from "lucide-react";
+import { Settings, X, Volume2, VolumeX, Smartphone, SmartphoneNfc, Eye, Zap, Wind, GraduationCap } from "lucide-react";
 import type { EscapeSettings } from "@/lib/escape3d/escape-settings";
 
 interface Props {
@@ -266,6 +266,26 @@ export default function EscapeSettingsPanel({ settings, onChange }: Props) {
                       { v: "fast",   label: "Rapide"  },
                     ]}
                     onChange={v => set("transitionSpeed", v)}
+                  />
+                </Row>
+
+                <div style={{ height: 1, background: "rgba(212,175,55,0.08)" }} />
+
+                {/* Difficulté */}
+                <Row icon={<GraduationCap size={15} />} label="Niveau des énigmes"
+                  sub={
+                    settings.difficulty === "debutant"       ? "Français + arabe — idéal pour découvrir" :
+                    settings.difficulty === "intermediaire"  ? "Arabe + phonétique — pour progresser" :
+                                                               "Arabe seul — pour les confirmés"
+                  }>
+                  <ThreeWay<EscapeSettings["difficulty"]>
+                    value={settings.difficulty}
+                    options={[
+                      { v: "debutant",      label: "🌱 Débutant"      },
+                      { v: "intermediaire", label: "🌙 Inter."        },
+                      { v: "expert",        label: "⭐ Expert"         },
+                    ]}
+                    onChange={v => set("difficulty", v)}
                   />
                 </Row>
 

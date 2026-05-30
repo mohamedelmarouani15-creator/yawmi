@@ -3,14 +3,49 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { PuzzleDef } from "@/lib/escape3d/types";
+import type { EscapeSettings } from "@/lib/escape3d/escape-settings";
 
 interface Props {
-  puzzle:   PuzzleDef;
-  onSolve:  (correct: boolean) => void;
-  onClose:  () => void;
+  puzzle:     PuzzleDef;
+  difficulty: EscapeSettings["difficulty"];
+  onSolve:   (correct: boolean) => void;
+  onClose:   () => void;
 }
 
-export default function PuzzleModal({ puzzle, onSolve, onClose }: Props) {
+// Rendu d'une option selon le niveau
+function OptionLabel({ arabic, fr, phonetic, difficulty }: {
+  arabic:    string;
+  fr?:       string;
+  phonetic?: string;
+  difficulty: EscapeSettings["difficulty"];
+}) {
+  if (difficulty === "expert") {
+    return <span style={{ fontSize: 18, direction: "rtl" }}>{arabic}</span>;
+  }
+
+  if (difficulty === "intermediaire") {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 2, textAlign: "right" }}>
+        <span style={{ fontSize: 16, direction: "rtl" }}>{arabic}</span>
+        {phonetic && (
+          <span style={{ fontSize: 11, color: "rgba(248,244,236,0.5)", fontStyle: "italic", direction: "ltr", textAlign: "left" }}>
+            {phonetic}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  // Débutant : français en grand + arabe en petit
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+      <span style={{ fontSize: 14, fontWeight: 600 }}>{fr ?? arabic}</span>
+      <span style={{ fontSize: 12, direction: "rtl", color: "rgba(248,244,236,0.5)" }}>{arabic}</span>
+    </div>
+  );
+}
+
+export default function PuzzleModal({ puzzle, difficulty, onSolve, onClose }: Props) {
   const [selected,   setSelected]   = useState<string | null>(null);
   const [revealed,   setRevealed]   = useState(false);
   const [hintsUsed,  setHintsUsed]  = useState(0);
@@ -28,7 +63,6 @@ export default function PuzzleModal({ puzzle, onSolve, onClose }: Props) {
 
   function requestHint() {
     if (hintsUsed >= 3) {
-      // 3ème indice = révèle la réponse
       setShowHint(hints[2]);
       setTimeout(() => {
         setSelected(puzzle.answer);
@@ -44,7 +78,7 @@ export default function PuzzleModal({ puzzle, onSolve, onClose }: Props) {
   function optionStyle(opt: string): React.CSSProperties {
     if (!revealed) {
       return {
-        background: selected === opt ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.04)",
+        background:  selected === opt ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.04)",
         borderColor: selected === opt ? "#D4AF37" : "rgba(255,255,255,0.1)",
       };
     }
@@ -53,13 +87,21 @@ export default function PuzzleModal({ puzzle, onSolve, onClose }: Props) {
     return { background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)", opacity: 0.4 };
   }
 
+  // Badge niveau
+  const diffLabel = difficulty === "debutant" ? "🌱 Débutant"
+    : difficulty === "intermediaire" ? "🌙 Intermédiaire"
+    : "⭐ Expert";
+  const diffColor = difficulty === "debutant" ? "#4ade80"
+    : difficulty === "intermediaire" ? "#D4AF37"
+    : "#f59e0b";
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-end justify-center pb-6 px-4"
-      style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)" }}
+      style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)" }}
     >
       <motion.div
         initial={{ y: 80, opacity: 0 }}
@@ -73,10 +115,16 @@ export default function PuzzleModal({ puzzle, onSolve, onClose }: Props) {
         <div className="px-5 pt-5 pb-3 flex items-start justify-between"
           style={{ borderBottom: "1px solid rgba(212,175,55,0.12)" }}>
           <div>
-            <p className="text-xs tracking-widest uppercase mb-1"
-              style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)", opacity: 0.7 }}>
-              Énigme
-            </p>
+            <div className="flex items-center gap-2 mb-1">
+              <p className="text-xs tracking-widest uppercase"
+                style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)", opacity: 0.7 }}>
+                Énigme
+              </p>
+              <span className="text-[10px] px-2 py-0.5 rounded-full"
+                style={{ background: `${diffColor}18`, color: diffColor, fontFamily: "var(--font-dm-sans)", border: `1px solid ${diffColor}40` }}>
+                {diffLabel}
+              </span>
+            </div>
             <h3 className="text-base font-semibold"
               style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
               {puzzle.title}
@@ -105,12 +153,7 @@ export default function PuzzleModal({ puzzle, onSolve, onClose }: Props) {
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               className="mx-5 mb-3 px-4 py-3 rounded-xl text-sm italic"
-              style={{
-                background: "rgba(212,175,55,0.1)",
-                borderLeft: "3px solid #D4AF37",
-                color: "#D4AF37",
-                fontFamily: "var(--font-dm-sans)",
-              }}>
+              style={{ background: "rgba(212,175,55,0.1)", borderLeft: "3px solid #D4AF37", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
               🕯 {showHint}
             </motion.div>
           )}
@@ -118,26 +161,26 @@ export default function PuzzleModal({ puzzle, onSolve, onClose }: Props) {
 
         {/* Options */}
         <div className="px-5 pb-4 flex flex-col gap-2">
-          {puzzle.options?.map(opt => (
+          {(puzzle.options ?? []).map((opt, idx) => (
             <motion.button
               key={opt}
               whileTap={{ scale: revealed ? 1 : 0.97 }}
               onClick={() => handleAnswer(opt)}
               disabled={revealed}
-              className="rounded-xl border px-4 py-3 text-right text-base"
-              style={{
-                ...optionStyle(opt),
-                color: "#F8F4EC",
-                fontFamily: "var(--font-dm-sans)",
-                direction: "rtl",
-                transition: "all 0.3s",
-              }}>
-              {opt}
+              className="rounded-xl border px-4 py-3 text-left"
+              style={{ ...optionStyle(opt), color: "#F8F4EC", fontFamily: "var(--font-dm-sans)", transition: "all 0.3s" }}
+            >
+              <OptionLabel
+                arabic={opt}
+                fr={puzzle.optionsFr?.[idx]}
+                phonetic={puzzle.phonetics?.[idx]}
+                difficulty={difficulty}
+              />
             </motion.button>
           ))}
         </div>
 
-        {/* Explication après réponse */}
+        {/* Explication post-réponse */}
         <AnimatePresence>
           {revealed && (
             <motion.div
@@ -156,12 +199,7 @@ export default function PuzzleModal({ puzzle, onSolve, onClose }: Props) {
             <button
               onClick={requestHint}
               className="text-xs px-4 py-2 rounded-full"
-              style={{
-                color: "#D4AF37",
-                background: "rgba(212,175,55,0.1)",
-                border: "1px solid rgba(212,175,55,0.25)",
-                fontFamily: "var(--font-dm-sans)",
-              }}>
+              style={{ color: "#D4AF37", background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.25)", fontFamily: "var(--font-dm-sans)" }}>
               {hintsUsed < 3 ? `Indice (${3 - hintsUsed} restants)` : "Voir la réponse"}
             </button>
             <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>

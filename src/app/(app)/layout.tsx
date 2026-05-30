@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import BottomNav          from "@/components/BottomNav";
 import PageWrapper        from "@/components/PageWrapper";
 import OfflineBanner      from "@/components/OfflineBanner";
+import Parchemin          from "@/components/Parchemin";
+import { useCompanion }   from "@/hooks/useCompanion";
 import { useNotifications } from "@/hooks/useNotifications";
 import { supabase } from "@/lib/supabase";
 import { computePrayerTimes, PRAYER_ORDER, PRAYER_LABELS } from "@/lib/prayer";
@@ -40,6 +42,16 @@ function NotifScheduler() {
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return null;
+}
+
+function AppWithCompanion({ children }: { children: React.ReactNode }) {
+  const { send } = useCompanion();
+  return (
+    <>
+      {children}
+      <Parchemin onSend={send} />
+    </>
+  );
 }
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -85,7 +97,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <OfflineBanner />
       <NotifScheduler />
       <PageWrapper>
-        <div className="flex-1 pb-20">{children}</div>
+        <div className="flex-1 pb-20">
+          <AppWithCompanion>{children}</AppWithCompanion>
+        </div>
       </PageWrapper>
       <BottomNav />
     </div>

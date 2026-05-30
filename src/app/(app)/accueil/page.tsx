@@ -17,6 +17,8 @@ import type { MosqueStage } from "@/components/MosqueIsometrique";
 import dynamic from "next/dynamic";
 const MosqueIsometrique = dynamic(() => import("@/components/MosqueIsometrique"), { ssr: false });
 import { EventBanner } from "@/components/EventBanner";
+import { AnimatePresence, motion as m2 } from "framer-motion";
+import { useContextualMessage } from "@/hooks/useContextualMessage";
 
 const DAILY_DHIKRS = [
   { ar: "سُبْحَانَ اللّهِ وَبِحَمْدِهِ", fr: "Subhan Allahi wa bihamdihi" },
@@ -78,6 +80,7 @@ export default function AccueilPage() {
   const { times, nextPrayer, countdown } = usePrayerTimes();
   const { settings } = useSettings();
   const { user }     = useAuth();
+  const { message: ctxMsg, dismiss: dismissCtx } = useContextualMessage();
   const [stats,       setStats]      = useState({ totalDhikr: 0, tasksDone: 0, tasksTotal: 0 });
   const [azkarStatus, setAzkarStatus] = useState({ showMatin: false, showSoir: false, matinDone: false, soirDone: false });
   const [mosqueData,  setMosqueData]  = useState<{ stage: MosqueStage; streak: number }>({ stage: 1, streak: 0 });
@@ -113,6 +116,36 @@ export default function AccueilPage() {
     >
       {/* Bannière événement islamique spécial */}
       <EventBanner />
+
+      {/* Message contextuel du Compagnon — 1 par jour max */}
+      <AnimatePresence>
+        {ctxMsg && (
+          <m2.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3 }}
+            className="mx-4 mt-2 rounded-2xl px-4 py-3 flex items-start gap-3"
+            style={{
+              background: "rgba(212,175,55,0.07)",
+              border: "1px solid rgba(212,175,55,0.2)",
+            }}
+          >
+            <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>📜</span>
+            <p className="flex-1 text-sm leading-relaxed"
+              style={{ color: "rgba(248,244,236,0.75)", fontFamily: "var(--font-dm-sans)" }}>
+              {ctxMsg.text}
+            </p>
+            <button
+              onClick={dismissCtx}
+              style={{ color: "rgba(248,244,236,0.3)", fontSize: 16, flexShrink: 0, marginTop: 1 }}
+              aria-label="Fermer"
+            >
+              ✕
+            </button>
+          </m2.div>
+        )}
+      </AnimatePresence>
 
       {/* Header */}
       <motion.div variants={itemVariants} className="flex items-start justify-between">

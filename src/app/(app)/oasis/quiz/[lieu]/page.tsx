@@ -12,6 +12,10 @@ import { gameStorage } from "@/lib/game/game-storage";
 import { POWERUPS } from "@/lib/game/powerups";
 import { springTap } from "@/lib/motion";
 import type { PowerUpType } from "@/lib/game/types";
+import DragDropGame from "@/components/minigames/DragDropGame";
+import MemoryGame   from "@/components/minigames/MemoryGame";
+import FillVerseGame from "@/components/minigames/FillVerseGame";
+import WhoAmIGame   from "@/components/minigames/WhoAmIGame";
 
 const OPTION_LABELS = ["A", "B", "C", "D"];
 
@@ -172,7 +176,7 @@ export default function QuizPage() {
   const router = useRouter();
   const { state, addReward, defeatSage, unlockLocation, refresh } = useGameState();
   const {
-    session, startQuiz, selectAnswer, confirmAnswer, usePowerUp,
+    session, startQuiz, selectAnswer, selectAnswerResult, confirmAnswer, usePowerUp,
     currentQuestion, correctCount, score, QUESTION_TIME,
   } = useQuiz(lieu);
   const [showResult, setShowResult] = useState(false);
@@ -463,12 +467,30 @@ export default function QuizPage() {
           exit={{ opacity: 0, x: -16 }}
           transition={{ ease: [0.25, 0.1, 0.25, 1], duration: 0.25 }}
         >
-          <p className="text-[19px] font-bold leading-snug mb-7"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
-            {currentQuestion.question}
-          </p>
+          {/* Question title — hidden for mini-games that handle it internally */}
+          {!["drag_drop","memory","fill_verse","who_am_i"].includes(currentQuestion.type) && (
+            <p className="text-[19px] font-bold leading-snug mb-7"
+              style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+              {currentQuestion.question}
+            </p>
+          )}
 
-          {/* Options */}
+          {/* ── Mini-game renderer ── */}
+          {currentQuestion.type === "drag_drop" && !session.showResult && (
+            <DragDropGame question={currentQuestion} color={color} onComplete={selectAnswerResult} />
+          )}
+          {currentQuestion.type === "memory" && !session.showResult && (
+            <MemoryGame question={currentQuestion} color={color} onComplete={selectAnswerResult} />
+          )}
+          {currentQuestion.type === "fill_verse" && !session.showResult && (
+            <FillVerseGame question={currentQuestion} color={color} onComplete={selectAnswerResult} />
+          )}
+          {currentQuestion.type === "who_am_i" && !session.showResult && (
+            <WhoAmIGame question={currentQuestion} color={color} onComplete={selectAnswerResult} />
+          )}
+
+          {/* ── MCQ / true_false options ── */}
+          {["mcq","true_false","fill_in","reorder"].includes(currentQuestion.type) && (
           <div className="flex flex-col gap-2.5">
             {currentQuestion.options.map((option, idx) => {
               const hidden = session.hiddenOptions.includes(idx);
@@ -529,6 +551,7 @@ export default function QuizPage() {
               );
             })}
           </div>
+          )} {/* end MCQ block */}
 
           {/* Confirm button */}
           <AnimatePresence>

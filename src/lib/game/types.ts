@@ -1,11 +1,23 @@
 export type Category = "religion" | "history" | "arabic" | "darija" | "quran";
-export type QuestionType = "mcq" | "true_false" | "fill_in" | "reorder";
+export type QuestionType = "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i";
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 export type PowerUpType = "joker50" | "bouclier" | "double_xp" | "time_freeze";
 
 export interface QuestionOption {
   text: string;
   correct: boolean;
+  position?: number; // for drag_drop: expected order index (0-based)
+}
+
+export interface MinigameData {
+  // drag_drop: items shuffled, each has position = correct index
+  items?: string[];
+  // memory: pairs of cards
+  pairs?: { front: string; back: string }[];
+  // fill_verse: verse text with ___ for blanks, answer index in options
+  verse?: string;
+  // who_am_i: progressive clues revealed one by one
+  clues?: string[];
 }
 
 export interface Question {
@@ -19,6 +31,7 @@ export interface Question {
   culturalCapsule?: { title: string; text: string };
   locationId?: string;
   eventId?: string;
+  minigameData?: MinigameData;
 }
 
 export interface QuestionHistory {

@@ -66,10 +66,18 @@ export function useQuiz(locationId: string) {
     });
   }, [locationId]);
 
-  // ── Select answer ─────────────────────────────────────────────
+  // ── Select answer (MCQ) ───────────────────────────────────────
   const selectAnswer = useCallback((optionIndex: number) => {
     if (!session || session.showResult || session.finished) return;
     setSession(s => s ? { ...s, selectedOption: optionIndex, showResult: true, timerActive: false } : s);
+  }, [session]);
+
+  // ── Select answer (mini-games) — passes boolean result directly ─
+  const selectAnswerResult = useCallback((isCorrect: boolean) => {
+    if (!session || session.showResult || session.finished) return;
+    // Map to option index: 0 = correct sentinel, 1 = wrong sentinel
+    const idx = isCorrect ? 0 : 1;
+    setSession(s => s ? { ...s, selectedOption: idx, showResult: true, timerActive: false } : s);
   }, [session]);
 
   // ── Confirm / advance ─────────────────────────────────────────
@@ -80,8 +88,13 @@ export function useQuiz(locationId: string) {
     const selected = session.selectedOption;
 
     // selected === -1 means time out (no answer)
+    // For mini-games (drag_drop, memory, fill_verse, who_am_i):
+    // selected=0 = correct sentinel, selected=1 = wrong sentinel
+    const isMiniGame = ["drag_drop", "memory", "fill_verse", "who_am_i"].includes(q.type);
     const isCorrectRaw = selected !== null && selected >= 0
-      ? (q.options[selected]?.correct ?? false)
+      ? isMiniGame
+        ? selected === 0
+        : (q.options[selected]?.correct ?? false)
       : false;
 
     // Bouclier forgives one wrong
@@ -176,6 +189,7 @@ export function useQuiz(locationId: string) {
     session,
     startQuiz,
     selectAnswer,
+    selectAnswerResult,
     confirmAnswer,
     usePowerUp,
     currentQuestion,

@@ -7,11 +7,13 @@ import LookZone from "./LookZone";
 import { EffectComposer, Bloom } from "@react-three/postprocessing";
 import * as THREE from "three";
 import Courtyard    from "./Courtyard";
+import { Library, Salon, Cuisine, Hammam } from "./RiadRoom";
 import PlayerAvatar from "./PlayerAvatar";
 import VirtualJoystick from "./VirtualJoystick";
 import PuzzleModal  from "./PuzzleModal";
 import { getPuzzleById } from "@/lib/escape3d/puzzles";
 import { PLAYER_COLORS } from "@/lib/escape3d/types";
+import { isWalkable, getRoom, ROOM_NAMES } from "@/lib/escape3d/bounds";
 
 const WALK_SPEED   = 3.0;
 const PLAYER_BOUND = 2.8;
@@ -51,10 +53,10 @@ function Controller({ moveStick, lookDelta, onPosRot }: {
       const rgtX =  Math.cos(azimuth.current);
       const rgtZ = -Math.sin(azimuth.current);
       const spd = WALK_SPEED * delta;
-      pos.current.x = THREE.MathUtils.clamp(pos.current.x + (fwdX * my + rgtX * mx) * spd, -PLAYER_BOUND, PLAYER_BOUND);
-      pos.current.z = THREE.MathUtils.clamp(pos.current.z + (fwdZ * my + rgtZ * mx) * spd, -PLAYER_BOUND, PLAYER_BOUND);
-      const d = Math.sqrt(pos.current.x ** 2 + pos.current.z ** 2);
-      if (d < 1.2) { pos.current.x *= 1.2 / d; pos.current.z *= 1.2 / d; }
+      const nx = pos.current.x + (fwdX * my + rgtX * mx) * spd;
+      const nz = pos.current.z + (fwdZ * my + rgtZ * mx) * spd;
+      if (isWalkable(nx, pos.current.z)) pos.current.x = nx;
+      if (isWalkable(pos.current.x, nz)) pos.current.z = nz;
     }
 
     const cosE = Math.cos(elevation.current), sinE = Math.sin(elevation.current);
@@ -118,6 +120,7 @@ export default function RiadScene() {
   const [playerRot, setPlayerRot] = useState(0);
   const [activePuzzleId, setActive] = useState<string | null>(null);
   const [solved, setSolved] = useState<Record<string, boolean>>({});
+  const [currentRoom, setCurrentRoom] = useState("courtyard");
 
   const moveStick = useRef({ x: 0, y: 0 });
   const lookDelta = useRef({ dx: 0, dy: 0 });
@@ -129,6 +132,7 @@ export default function RiadScene() {
   }, []);
   const onPosRot = useCallback((pos: [number, number, number], rot: number) => {
     setPlayerPos(pos); setPlayerRot(rot);
+    setCurrentRoom(getRoom(pos[0], pos[2]));
   }, []);
 
   const puzzle      = activePuzzleId ? getPuzzleById(activePuzzleId) : null;
@@ -167,6 +171,10 @@ export default function RiadScene() {
           onLanternTap={() => setActive("lantern_bismillah")}
           puzzleSolved={solved["lantern_bismillah"]}
         />
+        <Library  onPuzzleTap={() => setActive("library_iqra")}    solved={solved["library_iqra"]} />
+        <Salon    onPuzzleTap={() => setActive("salon_sabr")}       solved={solved["salon_sabr"]} />
+        <Cuisine  onPuzzleTap={() => setActive("cuisine_honey")}    solved={solved["cuisine_honey"]} />
+        <Hammam   onPuzzleTap={() => setActive("hammam_taharah")}   solved={solved["hammam_taharah"]} />
 
         {/* Ombres au contact */}
         <ContactShadows
@@ -212,17 +220,22 @@ export default function RiadScene() {
       <LookZone onChange={onLook} />
 
       {/* HUD */}
-      <p style={{ position: "absolute", top: 18, left: "50%", transform: "translateX(-50%)", zIndex: 10, pointerEvents: "none", color: "#D4AF37", opacity: 0.6, fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "var(--font-dm-sans)" }}>
-        Le Riad
+      {/* Nom de la pièce */}
+      <p style={{ position: "absolute", top: 18, left: "50%", transform: "translateX(-50%)", zIndex: 10, pointerEvents: "none", color: "#D4AF37", opacity: 0.65, fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "var(--font-dm-sans)", whiteSpace: "nowrap" }}>
+        {ROOM_NAMES[currentRoom as keyof typeof ROOM_NAMES] ?? "Le Riad"}
       </p>
+      {/* Compteur d'énigmes */}
       <div style={{ position: "absolute", top: 18, right: 18, zIndex: 10, display: "flex", alignItems: "center", gap: 7 }}>
-        <div style={{ width: 7, height: 7, borderRadius: "50%", background: solved["lantern_bismillah"] ? "#05C36F" : "#D4AF37", boxShadow: `0 0 8px ${solved["lantern_bismillah"] ? "#05C36F" : "#D4AF37"}` }} />
-        <span style={{ fontSize: 10, color: "#F8F4EC", opacity: 0.5, fontFamily: "var(--font-dm-sans)" }}>Énigme 1/1</span>
+        {(["lantern_bismillah","library_iqra","salon_sabr","cuisine_honey","hammam_taharah"] as const).map(id => (
+          <div key={id} style={{ width: 7, height: 7, borderRadius: "50%", background: solved[id] ? "#05C36F" : "rgba(212,175,55,0.35)", boxShadow: solved[id] ? "0 0 6px #05C36F" : "none" }} />
+        ))}
       </div>
 
-      {solved["lantern_bismillah"] && (
-        <div style={{ position: "absolute", bottom: 155, left: 16, right: 16, zIndex: 10, background: "rgba(5,92,63,0.95)", border: "1px solid rgba(5,195,111,0.5)", borderRadius: 16, padding: "14px 20px", textAlign: "center", backdropFilter: "blur(8px)" }}>
-          <p style={{ color: "#F8F4EC", fontSize: 15, fontFamily: "var(--font-dm-sans)" }}>✨ Bismillah — le riad s'illumine</p>
+      {/* Message victoire totale */}
+      {["lantern_bismillah","library_iqra","salon_sabr","cuisine_honey","hammam_taharah"].every(id => solved[id]) && (
+        <div style={{ position: "absolute", bottom: 155, left: 16, right: 16, zIndex: 10, background: "rgba(5,92,63,0.96)", border: "1px solid rgba(5,195,111,0.6)", borderRadius: 20, padding: "18px 24px", textAlign: "center", backdropFilter: "blur(12px)" }}>
+          <p style={{ color: "#D4AF37", fontSize: 17, fontFamily: "var(--font-dm-sans)", fontWeight: 600 }}>🌙 Le riad a révélé tous ses secrets</p>
+          <p style={{ color: "#F8F4EC", fontSize: 12, opacity: 0.7, marginTop: 6, fontFamily: "var(--font-dm-sans)" }}>5 énigmes résolues — la famille s'échappe ensemble</p>
         </div>
       )}
 

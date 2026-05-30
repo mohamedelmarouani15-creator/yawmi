@@ -106,14 +106,52 @@ function Fountain() {
   );
 }
 
-function Wall({ pos, rot }: { pos: [number, number, number]; rot: [number, number, number] }) {
+const DOOR_W = 1.6;
+const DOOR_H = 2.6;
+
+function Wall({ pos, rot, hasDoor = false }: { pos: [number, number, number]; rot: [number, number, number]; hasDoor?: boolean }) {
   const W = 7; const H = 3.8;
+  const sideW = (W - DOOR_W) / 2;
+
   return (
     <group position={pos} rotation={rot}>
-      <mesh castShadow receiveShadow>
-        <boxGeometry args={[W, H, 0.24]} />
-        <meshStandardMaterial color="#EDE5D0" roughness={0.92} metalness={0.0} />
-      </mesh>
+      {hasDoor ? (
+        <>
+          {/* Mur gauche */}
+          <mesh position={[-sideW / 2 - DOOR_W / 2, 0, 0]} castShadow receiveShadow>
+            <boxGeometry args={[sideW, H, 0.24]} />
+            <meshStandardMaterial color="#EDE5D0" roughness={0.92} />
+          </mesh>
+          {/* Mur droit */}
+          <mesh position={[ sideW / 2 + DOOR_W / 2, 0, 0]} castShadow receiveShadow>
+            <boxGeometry args={[sideW, H, 0.24]} />
+            <meshStandardMaterial color="#EDE5D0" roughness={0.92} />
+          </mesh>
+          {/* Linteau */}
+          <mesh position={[0, DOOR_H / 2 + (H - DOOR_H) / 2, 0]} receiveShadow>
+            <boxGeometry args={[DOOR_W, H - DOOR_H, 0.24]} />
+            <meshStandardMaterial color="#EDE5D0" roughness={0.92} />
+          </mesh>
+          {/* Arche */}
+          <mesh position={[0, DOOR_H - 0.08, 0.12]}>
+            <boxGeometry args={[DOOR_W + 0.14, 0.14, 0.08]} />
+            <meshStandardMaterial color="#C4B89A" roughness={0.8} />
+          </mesh>
+          <mesh position={[-DOOR_W / 2 - 0.07, DOOR_H / 2 - H / 2, 0.12]}>
+            <boxGeometry args={[0.1, DOOR_H, 0.08]} />
+            <meshStandardMaterial color="#C4B89A" roughness={0.8} />
+          </mesh>
+          <mesh position={[ DOOR_W / 2 + 0.07, DOOR_H / 2 - H / 2, 0.12]}>
+            <boxGeometry args={[0.1, DOOR_H, 0.08]} />
+            <meshStandardMaterial color="#C4B89A" roughness={0.8} />
+          </mesh>
+        </>
+      ) : (
+        <mesh castShadow receiveShadow>
+          <boxGeometry args={[W, H, 0.24]} />
+          <meshStandardMaterial color="#EDE5D0" roughness={0.92} metalness={0.0} />
+        </mesh>
+      )}
       {/* Corniche sculptée */}
       <mesh position={[0, H / 2 + 0.06, 0.06]} castShadow>
         <boxGeometry args={[W + 0.12, 0.22, 0.32]} />
@@ -236,11 +274,11 @@ export default function Courtyard({ onLanternTap, puzzleSolved }: Props) {
         <meshStandardMaterial color="#B8AA88" roughness={0.78} />
       </mesh>
 
-      {/* Murs */}
-      <Wall pos={[0, H / 2, -W / 2]} rot={[0, 0, 0]} />
-      <Wall pos={[0, H / 2,  W / 2]} rot={[0, Math.PI, 0]} />
-      <Wall pos={[-W / 2, H / 2, 0]} rot={[0,  Math.PI / 2, 0]} />
-      <Wall pos={[ W / 2, H / 2, 0]} rot={[0, -Math.PI / 2, 0]} />
+      {/* Murs — tous avec portes */}
+      <Wall pos={[0, H / 2, -W / 2]} rot={[0, 0, 0]}            hasDoor />
+      <Wall pos={[0, H / 2,  W / 2]} rot={[0, Math.PI, 0]}      hasDoor />
+      <Wall pos={[-W / 2, H / 2, 0]} rot={[0,  Math.PI / 2, 0]} hasDoor />
+      <Wall pos={[ W / 2, H / 2, 0]} rot={[0, -Math.PI / 2, 0]} hasDoor />
 
       {/* Fontaine */}
       <Fountain />

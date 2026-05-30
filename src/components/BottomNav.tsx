@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, Moon, Compass, RotateCcw, Users } from "lucide-react";
+import { Home, Moon, Compass, BookOpen, Users } from "lucide-react";
 
 const NAV_ITEMS = [
   { href: "/accueil",  label: "Accueil",  Icon: Home       },
   { href: "/prieres",  label: "Prières",  Icon: Moon       },
   { href: "/oasis",    label: "Oasis",    Icon: Compass    },
-  { href: "/dhikr",    label: "Dhikr",    Icon: RotateCcw  },
+  { href: "/histoire", label: "Histoire", Icon: BookOpen   },
   { href: "/famille",  label: "Famille",  Icon: Users      },
 ];
 

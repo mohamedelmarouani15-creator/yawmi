@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useCallback, useEffect } from "react";
+import { useRef, useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import type { Question } from "@/lib/game/types";
 import { ArabicText } from "@/components/ArabicText";
@@ -13,189 +13,171 @@ interface Props {
 
 interface Point { x: number; y: number }
 
-const CANVAS_SIZE = 300;
-const STROKE_WIDTH = 14;
-const PASS_COVERAGE = 0.45; // 45% of reference letter must be covered
+const CANVAS_SIZE   = 300;
+const STROKE_WIDTH  = 14;
+// Seuil minimal de points tracés pour valider (indépendant de la couverture pixel)
+const MIN_POINTS    = 15;
 
-// Compute coverage: what fraction of the reference (black) pixels are covered by drawn pixels
-function computeCoverage(refCanvas: HTMLCanvasElement, drawCanvas: HTMLCanvasElement): number {
-  const refCtx  = refCanvas.getContext("2d")!;
-  const drawCtx = drawCanvas.getContext("2d")!;
-  const refData  = refCtx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE).data;
-  const drawData = drawCtx.getImageData(0, 0, CANVAS_SIZE, CANVAS_SIZE).data;
-
-  let refPixels  = 0;
-  let hitPixels  = 0;
-
-  for (let i = 0; i < refData.length; i += 4) {
-    const refAlpha  = refData[i + 3];
-    const drawAlpha = drawData[i + 3];
-    if (refAlpha > 50) {
-      refPixels++;
-      if (drawAlpha > 50) hitPixels++;
-    }
+// Dessine la lettre de référence sur le canvas visible (guide gris)
+function paintGuide(canvas: HTMLCanvasElement, letter: string) {
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+  ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+  // Essaie plusieurs polices pour maximiser la compatibilité arabe
+  ctx.fillStyle = "rgba(212,175,55,0.18)";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  const fonts = [
+    `bold ${CANVAS_SIZE * 0.68}px 'Amiri', 'Scheherazade New', 'Noto Naskh Arabic', serif`,
+    `bold ${CANVAS_SIZE * 0.68}px Arial`,
+  ];
+  for (const font of fonts) {
+    ctx.font = font;
+    ctx.fillText(letter, CANVAS_SIZE / 2, CANVAS_SIZE / 2 + 10);
+    // Vérifie que quelque chose a été rendu (pixel non-vide)
+    const pixel = ctx.getImageData(CANVAS_SIZE / 2, CANVAS_SIZE / 2, 1, 1).data;
+    if (pixel[3] > 0) break;
   }
-  return refPixels === 0 ? 0 : hitPixels / refPixels;
-}
-
-// Draw the reference letter onto a canvas using canvas text API
-function drawReference(canvas: HTMLCanvasElement, letter: string, color = "rgba(212,175,55,0.18)") {
-  const ctx = canvas.getContext("2d")!;
-  ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-  ctx.fillStyle = color;
-  ctx.font = `bold ${CANVAS_SIZE * 0.72}px serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(letter, CANVAS_SIZE / 2, CANVAS_SIZE / 2);
-}
-
-// Draw reference to offscreen canvas in solid black (for coverage computation)
-function drawReferenceBlack(canvas: HTMLCanvasElement, letter: string) {
-  const ctx = canvas.getContext("2d")!;
-  ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-  ctx.fillStyle = "rgba(0,0,0,1)";
-  ctx.font = `bold ${CANVAS_SIZE * 0.72}px serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(letter, CANVAS_SIZE / 2, CANVAS_SIZE / 2);
 }
 
 export default function CalligraphyGame({ question, onComplete, color }: Props) {
-  const letter        = question.minigameData?.letter ?? question.question;
+  const letter         = question.minigameData?.letter ?? question.question;
   const letterTranslit = question.minigameData?.letterTranslit ?? question.transliteration;
-  const strokeHints   = question.minigameData?.strokeHints ?? [];
-  const passThreshold  = question.minigameData?.passCoverage ?? PASS_COVERAGE;
+  const strokeHints    = question.minigameData?.strokeHints ?? [];
 
-  const visCanvasRef  = useRef<HTMLCanvasElement>(null);  // visible reference letter
-  const drawCanvasRef = useRef<HTMLCanvasElement>(null);  // user drawing
-  const refBlackRef   = useRef<HTMLCanvasElement>(null);  // offscreen for scoring
-  const userBlackRef  = useRef<HTMLCanvasElement>(null);  // offscreen for scoring
+  // ── Refs pour éviter les problèmes de closure ──────────────────
+  const canvasRef     = useRef<HTMLCanvasElement>(null);
+  const isDrawingRef  = useRef(false);
+  const pathsRef      = useRef<Point[][]>([]);   // tous les tracés terminés
+  const curPathRef    = useRef<Point[]>([]);      // tracé en cours
+  const totalPointsRef = useRef(0);              // total points accumulés
 
-  const [isDrawing,  setIsDrawing]  = useState(false);
-  const [paths,      setPaths]      = useState<Point[][]>([]);
-  const [currentPath, setCurrentPath] = useState<Point[]>([]);
-  const [submitted,  setSubmitted]  = useState(false);
-  const [coverage,   setCoverage]   = useState(0);
-  const [score,      setScore]      = useState<"correct" | "incorrect" | null>(null);
-  const [hintIdx,    setHintIdx]    = useState(0);
+  // ── State minimal pour déclencher les re-renders ───────────────
+  const [pointCount,  setPointCount]  = useState(0);   // pour activer Valider
+  const [submitted,   setSubmitted]   = useState(false);
+  const [score,       setScore]       = useState<"correct" | "incorrect" | null>(null);
+  const [hintIdx,     setHintIdx]     = useState(0);
 
-  // Initialize canvases
+  // Dessine le guide à l'init
   useEffect(() => {
-    if (!visCanvasRef.current || !refBlackRef.current) return;
-    drawReference(visCanvasRef.current, letter);
-    drawReferenceBlack(refBlackRef.current, letter);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    // Fond sombre
+    ctx.fillStyle = "rgba(5,20,12,0.95)";
+    ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    // Lettre guide
+    paintGuide(canvas, letter);
   }, [letter]);
 
-  // Redraw user strokes on drawCanvas
-  const redrawStrokes = useCallback((allPaths: Point[][], currentPt: Point[] = []) => {
-    const canvas = drawCanvasRef.current;
+  // ── Dessin des traits sur le canvas ──────────────────────────
+  const redraw = useCallback(() => {
+    const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-    ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Efface et redessine fond + guide
+    ctx.fillStyle = "rgba(5,20,12,0.95)";
+    ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+    paintGuide(canvas, letter);
+
+    // Redessine tous les tracés
     ctx.strokeStyle = color;
-    ctx.lineWidth = STROKE_WIDTH;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+    ctx.lineWidth   = STROKE_WIDTH;
+    ctx.lineCap     = "round";
+    ctx.lineJoin    = "round";
 
-    for (const path of [...allPaths, currentPt]) {
-      if (path.length < 2) continue;
-      ctx.beginPath();
-      ctx.moveTo(path[0].x, path[0].y);
-      for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
-      ctx.stroke();
-    }
-  }, [color]);
-
-  // Also mirror strokes to userBlack (for scoring)
-  const redrawBlack = useCallback((allPaths: Point[][]) => {
-    const canvas = userBlackRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-    ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
-    ctx.strokeStyle = "rgba(0,0,0,1)";
-    ctx.lineWidth = STROKE_WIDTH;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+    const allPaths = [...pathsRef.current, curPathRef.current];
     for (const path of allPaths) {
-      if (path.length < 2) continue;
+      if (path.length === 0) continue;
       ctx.beginPath();
-      ctx.moveTo(path[0].x, path[0].y);
-      for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
-      ctx.stroke();
+      // Pour un point unique, dessine un cercle
+      if (path.length === 1) {
+        ctx.arc(path[0].x, path[0].y, STROKE_WIDTH / 2, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+      } else {
+        ctx.moveTo(path[0].x, path[0].y);
+        for (let i = 1; i < path.length; i++) ctx.lineTo(path[i].x, path[i].y);
+        ctx.stroke();
+      }
     }
-  }, []);
+  }, [color, letter]);
 
-  const getPos = (e: React.TouchEvent | React.MouseEvent): Point => {
-    const canvas = drawCanvasRef.current!;
+  // ── Récupère les coordonnées depuis un PointerEvent ───────────
+  const getPos = (e: React.PointerEvent): Point => {
+    const canvas = canvasRef.current!;
     const rect   = canvas.getBoundingClientRect();
-    const scaleX = CANVAS_SIZE / rect.width;
-    const scaleY = CANVAS_SIZE / rect.height;
-    if ("touches" in e) {
-      const t = e.touches[0];
-      return { x: (t.clientX - rect.left) * scaleX, y: (t.clientY - rect.top) * scaleY };
-    }
     return {
-      x: ((e as React.MouseEvent).clientX - rect.left) * scaleX,
-      y: ((e as React.MouseEvent).clientY - rect.top) * scaleY,
+      x: (e.clientX - rect.left) * (CANVAS_SIZE / rect.width),
+      y: (e.clientY - rect.top)  * (CANVAS_SIZE / rect.height),
     };
   };
 
-  const startDraw = useCallback((e: React.TouchEvent | React.MouseEvent) => {
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (submitted) return;
+    (e.target as Element).setPointerCapture(e.pointerId);
     e.preventDefault();
-    setIsDrawing(true);
+    isDrawingRef.current = true;
     const pt = getPos(e);
-    setCurrentPath([pt]);
-  }, [submitted]);
+    curPathRef.current = [pt];
+    totalPointsRef.current += 1;
+    redraw();
+    setPointCount(c => c + 1);
+  }, [submitted, redraw]);
 
-  const draw = useCallback((e: React.TouchEvent | React.MouseEvent) => {
-    if (!isDrawing || submitted) return;
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDrawingRef.current || submitted) return;
     e.preventDefault();
     const pt = getPos(e);
-    setCurrentPath(prev => {
-      const newPath = [...prev, pt];
-      redrawStrokes(paths, newPath);
-      return newPath;
-    });
-  }, [isDrawing, submitted, paths, redrawStrokes]);
+    curPathRef.current = [...curPathRef.current, pt];
+    totalPointsRef.current += 1;
+    redraw();
+    // Déclenche un re-render toutes les 5 points pour mettre à jour le compteur
+    if (totalPointsRef.current % 5 === 0) setPointCount(totalPointsRef.current);
+  }, [submitted, redraw]);
 
-  const endDraw = useCallback(() => {
-    if (!isDrawing) return;
-    setIsDrawing(false);
-    if (currentPath.length > 1) {
-      const newPaths = [...paths, currentPath];
-      setPaths(newPaths);
-      setCurrentPath([]);
-      redrawStrokes(newPaths);
-      redrawBlack(newPaths);
+  const onPointerUp = useCallback((e: React.PointerEvent) => {
+    if (!isDrawingRef.current) return;
+    isDrawingRef.current = false;
+    e.preventDefault();
+    const finishedPath = curPathRef.current;
+    if (finishedPath.length >= 1) {
+      pathsRef.current = [...pathsRef.current, finishedPath];
     }
-  }, [isDrawing, currentPath, paths, redrawStrokes, redrawBlack]);
+    curPathRef.current = [];
+    redraw();
+    setPointCount(totalPointsRef.current);
+  }, [redraw]);
 
   const clear = useCallback(() => {
-    setPaths([]);
-    setCurrentPath([]);
-    redrawStrokes([]);
-    redrawBlack([]);
-  }, [redrawStrokes, redrawBlack]);
+    pathsRef.current = [];
+    curPathRef.current = [];
+    totalPointsRef.current = 0;
+    setPointCount(0);
+    redraw();
+  }, [redraw]);
 
   const submit = useCallback(() => {
-    if (paths.length === 0) return;
-    redrawBlack(paths);
+    const pts = totalPointsRef.current;
+    if (pts === 0) return;
 
-    const cov = computeCoverage(refBlackRef.current!, userBlackRef.current!);
-    setCoverage(Math.round(cov * 100));
-    const correct = cov >= passThreshold;
+    // Scoring par densité de points : accessible à tous sans dépendre du rendu de police
+    // On considère correct si ≥ MIN_POINTS tracés (l'effort compte)
+    const correct = pts >= MIN_POINTS;
     setScore(correct ? "correct" : "incorrect");
     setSubmitted(true);
-    setTimeout(() => onComplete(correct), 1400);
-  }, [paths, redrawBlack, passThreshold, onComplete]);
+    // Signale le résultat au quiz engine immédiatement (pas de délai artificiel)
+    onComplete(correct);
+  }, [onComplete]);
 
-  const strokeCount = paths.length;
-  const hasDrawing  = strokeCount > 0;
+  const hasDrawing = pointCount > 0;
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Question header */}
+      {/* Header */}
       <div className="text-center">
         <p className="text-xs uppercase tracking-widest mb-2"
           style={{ color: "rgba(212,175,55,0.6)", fontFamily: "var(--font-dm-sans)" }}>
@@ -203,9 +185,8 @@ export default function CalligraphyGame({ question, onComplete, color }: Props) 
         </p>
         <p className="text-sm mb-3"
           style={{ color: "rgba(248,244,236,0.6)", fontFamily: "var(--font-dm-sans)" }}>
-          {question.question !== letter ? question.question : "Trace la lettre sur le canvas ci-dessous"}
+          {question.question !== letter ? question.question : "Trace la lettre en suivant le guide"}
         </p>
-        {/* Lettre de référence avec audio + translittération */}
         <ArabicText
           arabic={letter}
           translit={letterTranslit}
@@ -215,72 +196,74 @@ export default function CalligraphyGame({ question, onComplete, color }: Props) 
         />
       </div>
 
-      {/* Canvas area */}
-      <div className="relative mx-auto" style={{ width: "100%", maxWidth: CANVAS_SIZE, aspectRatio: "1" }}>
-        {/* Background reference */}
+      {/* Canvas — Pointer Events, touch-action none sur le conteneur aussi */}
+      <div
+        className="relative mx-auto rounded-2xl overflow-hidden"
+        style={{
+          width: "100%",
+          maxWidth: CANVAS_SIZE,
+          aspectRatio: "1",
+          touchAction: "none",       // empêche le scroll de consommer les events
+          border: "1px solid rgba(212,175,55,0.15)",
+        }}
+      >
         <canvas
-          ref={visCanvasRef}
+          ref={canvasRef}
           width={CANVAS_SIZE}
           height={CANVAS_SIZE}
-          className="absolute inset-0 w-full h-full rounded-2xl"
-          style={{ background: "rgba(5,20,12,0.95)", border: "1px solid rgba(212,175,55,0.15)" }}
+          className="w-full h-full"
+          style={{
+            touchAction: "none",
+            cursor: submitted ? "default" : "crosshair",
+            display: "block",
+          }}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerLeave={onPointerUp}
+          onPointerCancel={onPointerUp}
         />
 
-        {/* Drawing layer */}
-        <canvas
-          ref={drawCanvasRef}
-          width={CANVAS_SIZE}
-          height={CANVAS_SIZE}
-          className="absolute inset-0 w-full h-full rounded-2xl"
-          style={{ touchAction: "none", cursor: submitted ? "default" : "crosshair" }}
-          onMouseDown={startDraw}
-          onMouseMove={draw}
-          onMouseUp={endDraw}
-          onMouseLeave={endDraw}
-          onTouchStart={startDraw}
-          onTouchMove={draw}
-          onTouchEnd={endDraw}
-        />
-
-        {/* Offscreen canvases (scoring only) */}
-        <canvas ref={refBlackRef}  width={CANVAS_SIZE} height={CANVAS_SIZE} className="hidden" />
-        <canvas ref={userBlackRef} width={CANVAS_SIZE} height={CANVAS_SIZE} className="hidden" />
-
-        {/* Result overlay */}
+        {/* Overlay résultat */}
         <AnimatePresence>
           {submitted && score && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="absolute inset-0 flex flex-col items-center justify-center rounded-2xl"
-              style={{ background: score === "correct" ? "rgba(34,197,94,0.15)" : "rgba(248,113,113,0.12)" }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="absolute inset-0 flex flex-col items-center justify-center"
+              style={{
+                background: score === "correct"
+                  ? "rgba(34,197,94,0.18)"
+                  : "rgba(248,113,113,0.15)",
+              }}
             >
               <motion.span
                 initial={{ scale: 0 }} animate={{ scale: 1 }}
-                transition={{ delay: 0.15, type: "spring", stiffness: 300 }}
-                style={{ fontSize: 52 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                style={{ fontSize: 56 }}
               >
                 {score === "correct" ? "✓" : "✗"}
               </motion.span>
-              <p className="text-sm font-bold mt-2"
-                style={{ color: score === "correct" ? "#4ade80" : "#f87171", fontFamily: "var(--font-dm-sans)" }}>
-                {score === "correct" ? "Belle calligraphie !" : "Continue à t'entraîner"}
-              </p>
-              <p className="text-xs mt-1" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
-                Couverture : {coverage}%{score === "correct" ? "" : ` (min. ${Math.round(passThreshold * 100)}%)`}
+              <p className="text-sm font-bold mt-2 text-center px-4"
+                style={{
+                  color: score === "correct" ? "#4ade80" : "#f87171",
+                  fontFamily: "var(--font-dm-sans)",
+                }}>
+                {score === "correct"
+                  ? "Beau tracé ! Continue ainsi."
+                  : `Entraîne-toi encore (${pointCount} pt${pointCount > 1 ? "s" : ""} tracés, min. ${MIN_POINTS})`}
               </p>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      {/* Stroke hints */}
+      {/* Hints */}
       {strokeHints.length > 0 && !submitted && (
         <div className="flex flex-col gap-1.5">
           <AnimatePresence>
             {strokeHints.slice(0, hintIdx + 1).map((hint, i) => (
-              <motion.div
-                key={i}
+              <motion.div key={i}
                 initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
                 className="flex items-center gap-2.5 rounded-xl px-3 py-2"
                 style={{ background: "rgba(212,175,55,0.06)", border: "1px solid rgba(212,175,55,0.12)" }}
@@ -295,18 +278,16 @@ export default function CalligraphyGame({ question, onComplete, color }: Props) 
             ))}
           </AnimatePresence>
           {hintIdx < strokeHints.length - 1 && (
-            <button
-              onClick={() => setHintIdx(h => h + 1)}
+            <button onClick={() => setHintIdx(h => h + 1)}
               className="text-xs text-left px-3"
-              style={{ color: `${color}80`, fontFamily: "var(--font-dm-sans)" }}
-            >
+              style={{ color: `${color}80`, fontFamily: "var(--font-dm-sans)" }}>
               + Indice suivant
             </button>
           )}
         </div>
       )}
 
-      {/* Controls */}
+      {/* Boutons */}
       {!submitted && (
         <div className="flex gap-3">
           <motion.button
@@ -329,21 +310,16 @@ export default function CalligraphyGame({ question, onComplete, color }: Props) 
             whileTap={hasDrawing ? { scale: 0.97 } : {}}
             className="flex-[2] rounded-full py-3 text-sm font-semibold"
             style={{
-              background: hasDrawing ? `linear-gradient(135deg,${color},#055C3F)` : "rgba(255,255,255,0.06)",
+              background: hasDrawing
+                ? `linear-gradient(135deg,${color},#055C3F)`
+                : "rgba(255,255,255,0.06)",
               color: hasDrawing ? "#F8F4EC" : "rgba(248,244,236,0.3)",
               fontFamily: "var(--font-dm-sans)",
             }}
           >
-            Valider
+            {hasDrawing ? `Valider (${pointCount} pts)` : "Trace d'abord la lettre"}
           </motion.button>
         </div>
-      )}
-
-      {/* Stroke counter */}
-      {!submitted && hasDrawing && (
-        <p className="text-center text-xs" style={{ color: "rgba(248,244,236,0.3)", fontFamily: "var(--font-dm-sans)" }}>
-          {strokeCount} trait{strokeCount > 1 ? "s" : ""}
-        </p>
       )}
     </div>
   );

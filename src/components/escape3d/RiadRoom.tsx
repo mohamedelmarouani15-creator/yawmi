@@ -150,158 +150,393 @@ function FireFlame({ position, scale = 1 }: { position: [number, number, number]
   );
 }
 
-// ── BIBLIOTHÈQUE ─────────────────────────────────────────────────
-function BigBookshelf({ position, rotY = 0 }: { position: [number, number, number]; rotY?: number }) {
-  const colors = ["#8B0000","#1A3A6A","#1A5C2A","#8B6914","#4A1A8B","#8B4A1A","#2A4A6A","#6B1A1A"];
+// ── BIBLIOTHÈQUE ISLAMIQUE ────────────────────────────────────────
+
+function makeSpine(title: string, bg: string, fg = "#D4AF37"): THREE.CanvasTexture {
+  const w = 26, h = 170;
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d")!;
+  // Fond
+  ctx.fillStyle = bg; ctx.fillRect(0, 0, w, h);
+  // Bandes haut/bas
+  ctx.fillStyle = fg + "55"; ctx.fillRect(0, 0, w, 12); ctx.fillRect(0, h-12, w, 12);
+  // Bordure
+  ctx.strokeStyle = fg; ctx.lineWidth = 0.8; ctx.strokeRect(1.5, 1.5, w-3, h-3);
+  // Titre vertical
+  ctx.save();
+  ctx.translate(w/2, h/2); ctx.rotate(-Math.PI/2);
+  ctx.fillStyle = fg; ctx.font = "bold 9px Arial";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillText(title.length > 18 ? title.slice(0,17)+"…" : title, 0, 0);
+  ctx.restore();
+  const tex = new THREE.CanvasTexture(c);
+  return tex;
+}
+
+function makeOpenQuran(): THREE.CanvasTexture {
+  const w = 512, h = 380;
+  const c = document.createElement("canvas");
+  c.width = w; c.height = h;
+  const ctx = c.getContext("2d")!;
+  ctx.fillStyle = "#F8F3E4"; ctx.fillRect(0, 0, w, h);
+  // Séparation reliure
+  ctx.fillStyle = "#D0BF9A"; ctx.fillRect(w/2-2, 0, 4, h);
+  // Cadres dorés page gauche
+  ctx.strokeStyle = "#D4AF37"; ctx.lineWidth = 2.5;
+  ctx.strokeRect(10, 10, w/2-14, h-20);
+  ctx.strokeRect(16, 16, w/2-26, h-32);
+  // Cadres dorés page droite
+  ctx.strokeRect(w/2+4, 10, w/2-14, h-20);
+  ctx.strokeRect(w/2+10, 16, w/2-26, h-32);
+  // Bismillah doré en haut
+  ctx.fillStyle = "#8B6200"; ctx.font = "bold 15px serif"; ctx.textAlign = "center";
+  ctx.fillText("بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ", w/4, 38);
+  ctx.fillText("بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ", 3*w/4, 38);
+  // Versets arabes (réels)
+  const versets = [
+    "قُلْ هُوَ اللَّهُ أَحَدٌ","اللَّهُ الصَّمَدُ","لَمْ يَلِدْ وَلَمْ يُولَدْ",
+    "وَلَمْ يَكُن لَّهُ كُفُوًا أَحَدٌ","وَالْعَصْرِ","إِنَّ الْإِنسَانَ لَفِي خُسْرٍ",
+    "إِلَّا الَّذِينَ آمَنُوا","وَعَمِلُوا الصَّالِحَاتِ","وَتَوَاصَوْا بِالْحَقِّ",
+    "وَتَوَاصَوْا بِالصَّبْرِ","الرَّحْمَنُ عَلَّمَ الْقُرْآنَ",
+  ];
+  ctx.fillStyle = "#1A1008"; ctx.font = "12px serif"; ctx.textAlign = "right";
+  versets.forEach((v, i) => {
+    const y = 60 + i * 24;
+    ctx.fillText(v, w/2 - 18, y);
+    ctx.fillText(versets[(i+4)%versets.length], w - 18, y);
+  });
+  // Numéros de page
+  ctx.fillStyle = "#8B6200"; ctx.font = "10px serif"; ctx.textAlign = "center";
+  ctx.fillText("٥٤", w/4, h-16); ctx.fillText("٥٥", 3*w/4, h-16);
+  return new THREE.CanvasTexture(c);
+}
+
+const SERIES = [
+  { t:"القرآن الكريم",       bg:"#1A5C2A", fg:"#D4AF37",  vols:10, h:0.43, tk:0.055 },
+  { t:"صحيح البخاري",        bg:"#1A2A70", fg:"#C8D4FF",  vols:9,  h:0.39, tk:0.042 },
+  { t:"صحيح مسلم",          bg:"#15205A", fg:"#C8D4FF",  vols:8,  h:0.37, tk:0.040 },
+  { t:"تفسير ابن كثير",      bg:"#5C3A1E", fg:"#D4AF37",  vols:8,  h:0.39, tk:0.042 },
+  { t:"السيرة النبوية",      bg:"#6A1A48", fg:"#FFD0E4",  vols:5,  h:0.41, tk:0.042 },
+  { t:"الفقه الإسلامي",     bg:"#6A1A1A", fg:"#FFD0D0",  vols:6,  h:0.37, tk:0.040 },
+  { t:"رياض الصالحين",      bg:"#1A5C4A", fg:"#D4AF37",  vols:2,  h:0.41, tk:0.055 },
+  { t:"البداية والنهاية",    bg:"#3A5C1A", fg:"#D0FFD0",  vols:14, h:0.35, tk:0.036 },
+  { t:"مختار الصحاح",       bg:"#4A1A5C", fg:"#E0D0FF",  vols:2,  h:0.39, tk:0.052 },
+  { t:"إحياء علوم الدين",   bg:"#5C2A1A", fg:"#D4AF37",  vols:4,  h:0.39, tk:0.050 },
+  { t:"سنن أبي داود",       bg:"#1A3A5C", fg:"#C8D4FF",  vols:7,  h:0.37, tk:0.040 },
+  { t:"مقدمة ابن خلدون",    bg:"#2A3A5C", fg:"#D4AF37",  vols:1,  h:0.45, tk:0.072 },
+  { t:"الموطأ",             bg:"#2A5C3A", fg:"#D4AF37",  vols:2,  h:0.37, tk:0.055 },
+  { t:"ألفية ابن مالك",     bg:"#5C4A1A", fg:"#D4AF37",  vols:1,  h:0.39, tk:0.065 },
+];
+
+function MassiveShelf({ position, rotY = 0, si = 0 }: {
+  position: [number, number, number];
+  rotY?: number;
+  si?: number;
+}) {
+  const textures = useMemo(() =>
+    typeof window !== "undefined"
+      ? SERIES.map(s => makeSpine(s.t, s.bg, s.fg))
+      : SERIES.map(() => null),
+    []
+  );
+
+  const SW = 1.82, SH = 3.4, SD = 0.36;
+  const ROWS = 6, ROW_H = SH / ROWS;
+
   return (
     <group position={position} rotation={[0, rotY, 0]}>
-      {/* Caisse */}
+      {/* Corps bois foncé */}
       <mesh castShadow>
-        <boxGeometry args={[2.5, 3.3, 0.38]} />
-        <meshStandardMaterial color="#3A1E08" roughness={0.88} />
+        <boxGeometry args={[SW, SH, SD]} />
+        <meshPhysicalMaterial color="#1E0C04" roughness={0.72} metalness={0} clearcoat={0.35} clearcoatRoughness={0.45} />
       </mesh>
-      {/* 5 étagères */}
-      {[0.28, 0.88, 1.46, 2.04, 2.62].map(y => (
-        <mesh key={y} position={[0, y - 1.65 + 1.65, 0.08]}>
-          <boxGeometry args={[2.3, 0.06, 0.34]} /><meshStandardMaterial color="#2A1208" roughness={0.85} />
+      {/* Planches */}
+      {Array.from({ length: ROWS + 1 }, (_, i) => (
+        <mesh key={i} position={[0, -SH/2 + i * ROW_H, 0.02]}>
+          <boxGeometry args={[SW - 0.06, 0.038, SD - 0.04]} />
+          <meshPhysicalMaterial color="#120802" roughness={0.68} clearcoat={0.4} />
         </mesh>
       ))}
-      {/* Livres — 5 rangées × 9 livres */}
-      {Array.from({ length: 45 }, (_, i) => {
-        const row = Math.floor(i / 9);
-        const col = i % 9;
-        const tilted = i % 8 === 5;
-        const h = 0.32 + (i % 4) * 0.06;
+      {/* Livres rangée par rangée */}
+      {Array.from({ length: ROWS }, (_, row) => {
+        const rowY = -SH/2 + row * ROW_H + ROW_H / 2;
+        const ser = SERIES[(si + row) % SERIES.length];
+        const tex = textures[(si + row) % textures.length];
+        const booksPerRow = Math.floor((SW - 0.06) / (ser.tk + 0.004));
+        const totalW = booksPerRow * (ser.tk + 0.004);
+        const startX = -totalW / 2 + ser.tk / 2;
+        return Array.from({ length: booksPerRow }, (_, b) => {
+          const bx = startX + b * (ser.tk + 0.004);
+          const bh = ser.h * (0.88 + (b % 5) * 0.06);
+          const tilt = b === booksPerRow - 2 ? 0.18 : 0;
+          return (
+            <mesh key={`${row}-${b}`}
+              position={[bx, rowY + (bh - ser.h) * 0.5, 0.04]}
+              rotation={[0, 0, tilt]}
+              castShadow>
+              <boxGeometry args={[ser.tk, bh, 0.28]} />
+              <meshStandardMaterial
+                map={tex ?? undefined}
+                color={ser.bg}
+                roughness={0.88}
+                emissive={ser.bg}
+                emissiveIntensity={0.05}
+              />
+            </mesh>
+          );
+        });
+      })}
+    </group>
+  );
+}
+
+function OctaChandelier({ position }: { position: [number, number, number] }) {
+  const lRef = useRef<THREE.PointLight>(null!);
+  useFrame(({ clock }) => {
+    if (lRef.current) lRef.current.intensity = 3.8 + 0.6 * Math.sin(clock.getElapsedTime() * 5.8);
+  });
+  const arms = 8;
+  return (
+    <group position={position}>
+      {/* Chaîne */}
+      <mesh position={[0, 0.2, 0]}>
+        <cylinderGeometry args={[0.007, 0.007, 0.4, 6]} />
+        <meshStandardMaterial color="#D4AF37" roughness={0.18} metalness={0.82} />
+      </mesh>
+      {/* Corps octogonal */}
+      <mesh>
+        <cylinderGeometry args={[0.16, 0.11, 0.28, 8]} />
+        <meshStandardMaterial color="#D4AF37" roughness={0.18} metalness={0.78} emissive="#D4AF37" emissiveIntensity={0.22} />
+      </mesh>
+      {/* Anneau */}
+      <mesh position={[0, -0.06, 0]}>
+        <torusGeometry args={[0.21, 0.013, 6, 24]} />
+        <meshStandardMaterial color="#D4AF37" roughness={0.15} metalness={0.82} emissive="#D4AF37" emissiveIntensity={0.28} />
+      </mesh>
+      {/* 8 bras + bougies */}
+      {Array.from({ length: arms }, (_, i) => {
+        const a = (i / arms) * Math.PI * 2;
+        const r = 0.42;
+        const ax = Math.cos(a) * r, az = Math.sin(a) * r;
         return (
-          <mesh key={i} position={[-1.0 + col * 0.24, -1.5 + row * 0.58 + h / 2, 0.1]}
-            rotation={[0, 0, tilted ? -0.22 : 0]} castShadow>
-            <boxGeometry args={[0.18, h, 0.26]} />
-            <meshStandardMaterial color={colors[i % colors.length]} roughness={0.9} emissive={colors[i % colors.length]} emissiveIntensity={0.06} />
+          <group key={i}>
+            <mesh position={[ax*0.5, -0.06, az*0.5]} rotation={[0, -a, Math.PI/10]}>
+              <cylinderGeometry args={[0.007, 0.009, r, 5]} />
+              <meshStandardMaterial color="#D4AF37" roughness={0.2} metalness={0.8} />
+            </mesh>
+            <mesh position={[ax, -0.13, az]}>
+              <cylinderGeometry args={[0.022, 0.018, 0.06, 8]} />
+              <meshStandardMaterial color="#D4AF37" roughness={0.2} metalness={0.8} emissive="#D4AF37" emissiveIntensity={0.3} />
+            </mesh>
+            <mesh position={[ax, -0.08, az]}>
+              <cylinderGeometry args={[0.014, 0.016, 0.09, 8]} />
+              <meshStandardMaterial color="#F5F0E8" roughness={0.65} emissive="#FFE8A0" emissiveIntensity={0.2} />
+            </mesh>
+            <Flame position={[ax, -0.025, az]} />
+          </group>
+        );
+      })}
+      <pointLight ref={lRef} color="#FFB528" intensity={3.8} distance={9} decay={2} castShadow shadow-mapSize-width={512} shadow-mapSize-height={512} />
+    </group>
+  );
+}
+
+function Tasbih({ position }: { position: [number, number, number] }) {
+  const count = 33;
+  const rx = 0.14, rz = 0.09;
+  return (
+    <group position={position}>
+      {Array.from({ length: count }, (_, i) => {
+        const angle = (i / count) * Math.PI * 2;
+        const isMain = i % 11 === 0;
+        return (
+          <mesh key={i} position={[Math.cos(angle)*rx, 0, Math.sin(angle)*rz]} castShadow>
+            <sphereGeometry args={[isMain ? 0.011 : 0.007, 6, 6]} />
+            <meshPhysicalMaterial
+              color={isMain ? "#D4AF37" : "#8B4A1A"}
+              roughness={isMain ? 0.18 : 0.3}
+              metalness={isMain ? 0.5 : 0.05}
+              clearcoat={isMain ? 0.9 : 0.5}
+            />
           </mesh>
         );
       })}
-      {/* Quelques objets déco sur une étagère */}
-      <mesh position={[0.85, -0.2, 0.14]} castShadow>
-        <cylinderGeometry args={[0.06, 0.05, 0.22, 8]} /><meshStandardMaterial color="#D4AF37" roughness={0.3} metalness={0.7} emissive="#D4AF37" emissiveIntensity={0.2} />
+      <mesh position={[0, 0, -(rz + 0.04)]}>
+        <cylinderGeometry args={[0.003, 0.003, 0.07, 4]} />
+        <meshStandardMaterial color="#D4AF37" roughness={0.25} metalness={0.75} />
       </mesh>
     </group>
   );
 }
 
-function WallShelf({ position, rotY = 0 }: { position: [number, number, number]; rotY?: number }) {
-  const colors = ["#8B0000","#1A5C2A","#8B6914","#4A1A8B"];
+function Mashrabiya({ position }: { position: [number, number, number] }) {
+  const sz = 0.9, cell = 7;
+  const cs = sz / cell;
   return (
-    <group position={position} rotation={[0, rotY, 0]}>
-      <mesh castShadow><boxGeometry args={[1.6, 0.07, 0.28]} /><meshStandardMaterial color={WOOD} roughness={0.85} /></mesh>
-      <mesh position={[0, -0.14, 0]}><boxGeometry args={[1.6, 0.22, 0.04]} /><meshStandardMaterial color={WOOD} roughness={0.85} /></mesh>
-      {Array.from({ length: 7 }, (_, i) => (
-        <mesh key={i} position={[-0.6 + i * 0.2, 0.1 + (i % 3) * 0.04, 0.05]} castShadow>
-          <boxGeometry args={[0.14, 0.26 + (i % 3) * 0.06, 0.2]} />
-          <meshStandardMaterial color={colors[i % 4]} roughness={0.9} />
+    <group position={position}>
+      <mesh>
+        <boxGeometry args={[sz+0.1, sz+0.1, 0.04]} />
+        <meshPhysicalMaterial color="#2A1008" roughness={0.58} clearcoat={0.35} />
+      </mesh>
+      {Array.from({length:cell+1},(_,i)=>(
+        <mesh key={`h${i}`} position={[0,-sz/2+i*cs,0.015]}>
+          <boxGeometry args={[sz,0.011,0.022]}/>
+          <meshPhysicalMaterial color="#3A1808" roughness={0.55} clearcoat={0.4}/>
         </mesh>
       ))}
+      {Array.from({length:cell+1},(_,i)=>(
+        <mesh key={`v${i}`} position={[-sz/2+i*cs,0,0.015]}>
+          <boxGeometry args={[0.011,sz,0.022]}/>
+          <meshPhysicalMaterial color="#3A1808" roughness={0.55} clearcoat={0.4}/>
+        </mesh>
+      ))}
+      <pointLight position={[0.3,0,0.4]} color="#FFA850" intensity={2.8} distance={5} decay={2}/>
+      <mesh position={[0,0,-0.018]}>
+        <planeGeometry args={[sz,sz]}/>
+        <meshBasicMaterial color="#FFA050" transparent opacity={0.14}/>
+      </mesh>
     </group>
   );
 }
 
 export function Library({ onPuzzleTap, solved }: { onPuzzleTap?: () => void; solved?: boolean }) {
   const astroRef = useRef<THREE.PointLight>(null!);
-  const woodMap  = useMemo(() => typeof window !== "undefined" ? makeWood() : null, []);
+  const woodTex  = useMemo(() => typeof window !== "undefined" ? makeWood() : null, []);
+  const quranTex = useMemo(() => typeof window !== "undefined" ? makeOpenQuran() : null, []);
+
   useFrame(({ clock }) => {
-    if (astroRef.current) astroRef.current.intensity = 0.7 + 0.4 * Math.sin(clock.getElapsedTime() * 3.2);
+    if (astroRef.current)
+      astroRef.current.intensity = 0.6 + 0.45 * Math.sin(clock.getElapsedTime() * 3.2);
   });
 
   return (
     <group position={[0, 0, -6.15]}>
       <RoomShell width={6} depth={5} />
 
-      {/* Sol bois sombre */}
-      <mesh position={[0, 0.003, 0]} rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[5.8, 4.8]} /><meshStandardMaterial color="#3A2208" roughness={0.82} map={woodMap ?? undefined} />
+      {/* Sol parquet */}
+      <mesh position={[0, 0.003, 0]} rotation={[-Math.PI/2, 0, 0]} receiveShadow>
+        <planeGeometry args={[5.8, 4.8]} />
+        <meshPhysicalMaterial color="#1E0C04" roughness={0.68} clearcoat={0.22} clearcoatRoughness={0.5} map={woodTex ?? undefined} />
       </mesh>
 
-      <ambientLight intensity={0.35} color="#704020" />
+      {/* Ambiant très chaud */}
+      <ambientLight intensity={0.22} color="#703020" />
 
-      {/* SpotLight chandelier central */}
-      <SpotLight position={[0, 3.4, 0]} color="#FFB020" intensity={5} angle={0.55} penumbra={0.85} castShadow distance={8} attenuation={5} />
-      <mesh position={[0, 3.25, 0]} castShadow>
-        <cylinderGeometry args={[0.22, 0.04, 0.28, 10]} />
-        <meshStandardMaterial color="#D4AF37" roughness={0.15} metalness={0.85} emissive="#D4AF37" emissiveIntensity={0.5} />
-      </mesh>
+      {/* Chandelier octogonal */}
+      <OctaChandelier position={[0, 3.28, -0.4]} />
 
-      {/* 3 bibliothèques couvrant tout le mur du fond */}
-      <BigBookshelf position={[-1.8, 1.65, -2.28]} />
-      <BigBookshelf position={[ 1.8, 1.65, -2.28]} />
-      <BigBookshelf position={[ 0,   1.65, -2.28]} />
+      {/* MUR DU FOND — 3 bibliothèques pleine hauteur */}
+      <MassiveShelf position={[-1.82, 1.7, -2.3]}  si={0} />
+      <MassiveShelf position={[0,     1.7, -2.3]}   si={4} />
+      <MassiveShelf position={[1.82,  1.7, -2.3]}   si={8} />
 
-      {/* Étagères murales sur mur gauche (visibles depuis caméra) */}
-      <WallShelf position={[-2.86, 1.9, -1.2]} rotY={Math.PI / 2} />
-      <WallShelf position={[-2.86, 1.25, -0.2]} rotY={Math.PI / 2} />
-      <WallShelf position={[-2.86, 2.55, -0.2]} rotY={Math.PI / 2} />
+      {/* MUR GAUCHE — 2 bibliothèques */}
+      <MassiveShelf position={[-2.84, 1.7, -1.1]} rotY={Math.PI/2} si={2} />
+      <MassiveShelf position={[-2.84, 1.7,  0.8]} rotY={Math.PI/2} si={6} />
 
-      {/* Fenêtre avec lumière sur mur droit */}
-      <mesh position={[2.88, 2.0, -0.5]}>
-        <boxGeometry args={[0.04, 0.9, 0.7]} />
-        <meshStandardMaterial color="#C8D8F0" transparent opacity={0.35} emissive="#9AB8E0" emissiveIntensity={0.8} />
-      </mesh>
-      <pointLight position={[2.5, 2.0, -0.5]} color="#C8D8F0" intensity={1.5} distance={4} decay={2} />
+      {/* MUR DROIT — fenêtre + bibliothèque */}
+      <Mashrabiya position={[2.88, 2.18, -0.8]} />
+      <MassiveShelf position={[2.84, 1.7, 0.8]} rotY={-Math.PI/2} si={10} />
 
-      {/* Pupitre avec manuscrit */}
-      <group position={[0, 0, -0.8]}>
-        <mesh position={[0, 0.72, 0]} castShadow>
-          <boxGeometry args={[1.3, 0.07, 0.9]} /><meshStandardMaterial color="#5C3A1E" roughness={0.8} />
+      {/* GRAND BUREAU DE LECTURE */}
+      <group position={[0, 0, -0.7]}>
+        {/* Surface */}
+        <mesh position={[0, 0.84, 0]} castShadow>
+          <boxGeometry args={[1.65, 0.07, 1.05]} />
+          <meshPhysicalMaterial color="#3A1A06" roughness={0.62} clearcoat={0.55} clearcoatRoughness={0.28} />
         </mesh>
-        <mesh position={[0, 0.36, 0]}>
-          <cylinderGeometry args={[0.07, 0.09, 0.72, 8]} /><meshStandardMaterial color={WOOD} roughness={0.85} />
-        </mesh>
-        <mesh position={[0, 0.79, 0]} rotation={[-0.3, 0, 0]} onClick={onPuzzleTap} castShadow>
-          <boxGeometry args={[0.75, 0.02, 0.55]} />
-          {solved
-            ? <meshPhysicalMaterial color="#D4AF37" roughness={0.4} emissive="#D4AF37" emissiveIntensity={0.7} clearcoat={0.5} clearcoatRoughness={0.2} />
-            : <meshStandardMaterial color="#F0E8D0" roughness={0.6} emissive="#C8B880" emissiveIntensity={0.2} />
-          }
-        </mesh>
-        {/* 2 bougies */}
-        <mesh position={[0.48, 0.84, 0.18]} castShadow>
-          <cylinderGeometry args={[0.02, 0.025, 0.14, 6]} /><meshStandardMaterial color="#F5F0E0" roughness={0.6} emissive="#FFE8A0" emissiveIntensity={0.3} />
-        </mesh>
-        <Flame position={[0.48, 0.96, 0.18]} />
-        <mesh position={[-0.4, 0.8, 0.12]} castShadow>
-          <cylinderGeometry args={[0.018, 0.022, 0.09, 6]} /><meshStandardMaterial color="#F5F0E0" roughness={0.6} emissive="#FFE8A0" emissiveIntensity={0.3} />
-        </mesh>
-        <Flame position={[-0.4, 0.88, 0.12]} />
+        {/* 4 pieds */}
+        {([[-0.68,-0.38],[-0.68,0.38],[0.68,-0.38],[0.68,0.38]] as [number,number][]).map(([x,z],i)=>(
+          <mesh key={i} position={[x, 0.42, z]} castShadow>
+            <cylinderGeometry args={[0.038, 0.055, 0.84, 8]} />
+            <meshPhysicalMaterial color="#2A1008" roughness={0.6} clearcoat={0.3} />
+          </mesh>
+        ))}
+        {/* Pupitre incliné avec Coran */}
+        <group position={[0, 0.92, -0.28]} rotation={[-0.32, 0, 0]}>
+          <mesh castShadow>
+            <boxGeometry args={[0.82, 0.04, 0.58]} />
+            <meshPhysicalMaterial color="#2A1008" roughness={0.58} clearcoat={0.45} />
+          </mesh>
+          {/* Coran ouvert — objet interactif */}
+          <mesh position={[0, 0.028, 0]} onClick={onPuzzleTap} castShadow>
+            <boxGeometry args={[0.74, 0.016, 0.52]} />
+            <meshPhysicalMaterial
+              map={quranTex ?? undefined}
+              color={solved ? "#D4AF37" : "#F5EDD8"}
+              roughness={0.48}
+              emissive={solved ? "#D4AF37" : "#E8D890"}
+              emissiveIntensity={solved ? 0.6 : 0.14}
+            />
+          </mesh>
+        </group>
+        {/* Tasbih */}
+        <Tasbih position={[-0.52, 0.88, 0.22]} />
+        {/* Encrier + qalam */}
+        <group position={[0.55, 0.9, 0.12]}>
+          <mesh castShadow>
+            <cylinderGeometry args={[0.048, 0.038, 0.065, 10]} />
+            <meshPhysicalMaterial color="#1A0808" roughness={0.25} metalness={0.1} clearcoat={0.85} />
+          </mesh>
+          <mesh position={[0.12, 0.055, 0]} rotation={[0,0,-0.28]} castShadow>
+            <cylinderGeometry args={[0.006, 0.009, 0.24, 6]} />
+            <meshStandardMaterial color="#C8A055" roughness={0.68} />
+          </mesh>
+        </group>
+        {/* 2 chandelles sur le bureau */}
+        {([-0.62, 0.55] as const).map((x,i) => (
+          <group key={i} position={[x, 0.88, -0.3]}>
+            <mesh castShadow>
+              <cylinderGeometry args={[0.018, 0.022, 0.12, 8]} />
+              <meshStandardMaterial color="#F5F0E8" roughness={0.62} emissive="#FFE8A0" emissiveIntensity={0.22} />
+            </mesh>
+            <Flame position={[x, 1.01, -0.3]} />
+          </group>
+        ))}
       </group>
 
-      {/* Globe terrestre */}
-      <group position={[1.6, 0, -0.5]}>
-        <mesh position={[0, 0.72, 0]} castShadow>
-          <cylinderGeometry args={[0.04, 0.08, 0.72, 8]} /><meshStandardMaterial color={WOOD} roughness={0.85} />
+      {/* ASTROLABE amélioré */}
+      <group position={[-1.82, 1.55, -0.95]}>
+        <mesh castShadow rotation={[0.3, 0.5, 0]}>
+          <torusGeometry args={[0.27, 0.026, 8, 24]} />
+          <meshPhysicalMaterial color="#D4AF37" roughness={0.14} metalness={0.86} clearcoat={0.65} emissive="#D4AF37" emissiveIntensity={0.32} />
         </mesh>
-        <mesh position={[0, 1.05, 0]} rotation={[0.3, 0, 0]} castShadow>
-          <sphereGeometry args={[0.22, 16, 16]} /><meshStandardMaterial color="#1A4A6A" roughness={0.5} metalness={0.1} emissive="#0A2A4A" emissiveIntensity={0.2} />
+        <mesh rotation={[0.3, 0.5+Math.PI/4, 0]}>
+          <torusGeometry args={[0.25, 0.012, 6, 16]} />
+          <meshStandardMaterial color="#B88820" roughness={0.18} metalness={0.82} emissive="#B88820" emissiveIntensity={0.22} />
         </mesh>
+        <mesh rotation={[0.3, 0.5, 0]}>
+          <circleGeometry args={[0.09, 16]} />
+          <meshStandardMaterial color="#D4AF37" roughness={0.12} metalness={0.82} emissive="#D4AF37" emissiveIntensity={0.45} />
+        </mesh>
+        <pointLight ref={astroRef} color="#D4AF37" intensity={0.6} distance={1.8} decay={2} />
       </group>
 
-      {/* Astrolabe */}
-      <mesh position={[-1.8, 1.55, -0.9]} castShadow rotation={[0.3, 0.5, 0]}>
-        <torusGeometry args={[0.26, 0.028, 8, 24]} />
-        <meshStandardMaterial color="#D4AF37" roughness={0.22} metalness={0.82} emissive="#D4AF37" emissiveIntensity={0.35} />
-      </mesh>
-      <pointLight ref={astroRef} position={[-1.8, 1.55, -0.9]} color="#D4AF37" intensity={0.7} distance={1.8} decay={2} />
-
-      {/* Parchemins roulés sur étagères */}
-      {[[0.8, 1.55, -2.05], [-0.8, 1.55, -2.05], [0.8, 2.15, -2.05]].map(([x, y, z], i) => (
-        <mesh key={i} position={[x, y, z]} rotation={[Math.PI / 2, 0, 0]} castShadow>
-          <cylinderGeometry args={[0.04, 0.04, 0.28, 8]} /><meshStandardMaterial color="#F0E8D0" roughness={0.7} />
+      {/* GLOBE TERRESTRE */}
+      <group position={[1.62, 0, -0.5]}>
+        <mesh position={[0, 0.72, 0]} castShadow>
+          <cylinderGeometry args={[0.038, 0.075, 0.72, 8]} />
+          <meshPhysicalMaterial color="#2A1008" roughness={0.68} clearcoat={0.3} />
         </mesh>
-      ))}
+        <mesh position={[0, 1.08, 0]} rotation={[0.28, 0, 0]} castShadow>
+          <sphereGeometry args={[0.22, 18, 18]} />
+          <meshPhysicalMaterial color="#1A4A6A" roughness={0.42} metalness={0.04} clearcoat={0.55} emissive="#0A2A45" emissiveIntensity={0.18} />
+        </mesh>
+        <mesh position={[0, 1.08, 0]} rotation={[0.28, 0.5, 0]}>
+          <torusGeometry args={[0.235, 0.008, 6, 24]} />
+          <meshStandardMaterial color="#D4AF37" roughness={0.18} metalness={0.82} emissive="#D4AF37" emissiveIntensity={0.22} />
+        </mesh>
+      </group>
 
       {/* Dust Sparkles */}
-      <Sparkles count={35} scale={3} size={0.35} speed={0.04} color="#FFE8A0" opacity={0.28} position={[0, 2, -1]} />
+      <Sparkles count={45} scale={3.2} size={0.32} speed={0.04} color="#FFE8A0" opacity={0.26} position={[0, 2.1, -1]} />
 
+      {/* Anneau interactif */}
       {!solved && onPuzzleTap && (
-        <mesh position={[0, 1.15, -0.8]} rotation={[-Math.PI / 2, 0, 0]}>
-          <ringGeometry args={[0.13, 0.19, 24]} /><meshBasicMaterial color="#D4AF37" transparent opacity={0.6} />
+        <mesh position={[0, 1.22, -0.7]} rotation={[-Math.PI/2, 0, 0]}>
+          <ringGeometry args={[0.14, 0.2, 24]} />
+          <meshBasicMaterial color="#D4AF37" transparent opacity={0.65} />
         </mesh>
       )}
     </group>

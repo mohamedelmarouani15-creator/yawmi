@@ -13,7 +13,11 @@ const RiadScene = dynamic(
 
 export default function Escape3DPage() {
   return (
-    <div className="fixed inset-0 bg-black" style={{ zIndex: 40 }}>
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 40,
+      width: "100vw", height: "100dvh",
+      background: "#080D10", overflow: "hidden",
+    }}>
       {/* Retour */}
       <Link
         href="/oasis/escape"
@@ -30,7 +34,11 @@ export default function Escape3DPage() {
 
       <Suspense
         fallback={
-          <div className="flex h-full items-center justify-center flex-col gap-4">
+          <div style={{
+            width: "100%", height: "100%",
+            display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center", gap: 16,
+          }}>
             <div className="w-10 h-10 rounded-full border-2 border-yellow-500 border-t-transparent animate-spin" />
             <p className="text-xs tracking-widest uppercase opacity-50"
               style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>

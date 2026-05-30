@@ -108,13 +108,13 @@ export default function RiadScene() {
   }
 
   return (
-    <div className="relative w-full h-full" style={{ touchAction: "none" }}>
+    <div style={{ position: "absolute", inset: 0, touchAction: "none" }}>
       {/* ── Canvas Three.js ──────────────────────────────────── */}
       <Canvas
         shadows
         gl={{ antialias: true, powerPreference: "high-performance" }}
         camera={{ fov: 60, near: 0.1, far: 80 }}
-        style={{ background: "#080D10" }}
+        style={{ width: "100%", height: "100%", background: "#080D10" }}
       >
         <fog attach="fog" args={["#080D10", 14, 38]} />
 

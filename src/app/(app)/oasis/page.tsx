@@ -2,6 +2,7 @@
 
 import { useRef, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { useGameState } from "@/hooks/useGameState";
 import { LOCATIONS } from "@/lib/game/locations";
@@ -658,13 +659,15 @@ export default function OasisPage() {
               <span className="text-xs">🪙</span>
               <span className="text-xs font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>{coins}</span>
             </div>
-            {chests > 0 && (
+            <Link href="/oasis/shop">
               <div className="flex items-center gap-1 rounded-full px-2.5 py-1"
-                style={{ background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)" }}>
-                <span className="text-xs">📦</span>
-                <span className="text-xs font-bold" style={{ color: "#a78bfa", fontFamily: "var(--font-dm-sans)" }}>{chests}</span>
+                style={{ background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)", cursor: "pointer" }}>
+                <span className="text-xs">{chests > 0 ? "📦" : "🛒"}</span>
+                {chests > 0 && (
+                  <span className="text-xs font-bold" style={{ color: "#a78bfa", fontFamily: "var(--font-dm-sans)" }}>{chests}</span>
+                )}
               </div>
-            )}
+            </Link>
           </div>
         </div>
 

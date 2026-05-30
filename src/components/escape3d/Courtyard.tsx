@@ -144,9 +144,10 @@ export default function Courtyard({ onLanternTap, puzzleSolved }: Props) {
       </mesh>
       <StarField />
 
-      {/* Éclairage ambiant nuit */}
-      <ambientLight intensity={0.18} color="#2a3560" />
-      <hemisphereLight args={["#1a2850", "#080D10", 0.25]} />
+      {/* Éclairage */}
+      <ambientLight intensity={1.2} color="#ffe8b0" />
+      <pointLight position={[0, 3, 0]} intensity={3} color="#D4AF37" distance={12} />
+      <pointLight position={[0, 3, 0]} intensity={1.5} color="#ffffff" distance={15} />
 
       {/* Sol zellige (vert profond) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>

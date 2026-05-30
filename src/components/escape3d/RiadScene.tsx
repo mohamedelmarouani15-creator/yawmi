@@ -92,7 +92,7 @@ export default function RiadScene() {
         style={{ width: "100%", height: "100%" }}
         gl={{ antialias: true }}
       >
-        <color attach="background" args={["#080D18"]} />
+        <color attach="background" args={["#0A1020"]} />
         <fog attach="fog" args={["#080D18", 12, 38]} />
 
         <Courtyard

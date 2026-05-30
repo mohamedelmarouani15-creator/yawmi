@@ -25,14 +25,21 @@ function Controller({ moveStick, lookDelta, onPosRot }: {
   onPosRot:  (pos: [number, number, number], rot: number) => void;
 }) {
   const { camera } = useThree();
-  const pos     = useRef(new THREE.Vector3(0, 0, 1.5));
-  const azimuth = useRef(Math.PI);
-  const camPos  = useRef(new THREE.Vector3(0, CAM_DIST * Math.sin(CAM_ELEV), CAM_DIST * Math.cos(CAM_ELEV)));
+  const pos      = useRef(new THREE.Vector3(0, 0, 1.5));
+  const azimuth  = useRef(Math.PI);
+  const elevation = useRef(CAM_ELEV); // angle vertical dynamique
+  const camPos   = useRef(new THREE.Vector3(0, CAM_DIST * Math.sin(CAM_ELEV), CAM_DIST * Math.cos(CAM_ELEV)));
 
   useFrame((_, delta) => {
     // Rotation caméra via delta de drag (style Minecraft)
-    azimuth.current += lookDelta.current.dx * 60 * delta;
-    lookDelta.current.dx *= 0.85; // inertie douce
+    azimuth.current   += lookDelta.current.dx * 60 * delta;
+    elevation.current  = THREE.MathUtils.clamp(
+      elevation.current - lookDelta.current.dy * 60 * delta,
+      0.15,  // min : ~8° (pas trop bas)
+      1.2,   // max : ~68° (pas derrière la tête)
+    );
+    lookDelta.current.dx *= 0.82;
+    lookDelta.current.dy *= 0.82;
     void delta;
 
     const mx = moveStick.current?.x ?? 0;
@@ -50,7 +57,7 @@ function Controller({ moveStick, lookDelta, onPosRot }: {
       if (d < 1.2) { pos.current.x *= 1.2 / d; pos.current.z *= 1.2 / d; }
     }
 
-    const cosE = Math.cos(CAM_ELEV), sinE = Math.sin(CAM_ELEV);
+    const cosE = Math.cos(elevation.current), sinE = Math.sin(elevation.current);
     const targetCam = new THREE.Vector3(
       THREE.MathUtils.clamp(pos.current.x + Math.sin(azimuth.current) * CAM_DIST * cosE, -CAM_BOUND, CAM_BOUND),
       pos.current.y + CAM_DIST * sinE,

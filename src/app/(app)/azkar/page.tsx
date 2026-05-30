@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon, RotateCcw } from "lucide-react";
 import { AZKAR_MATIN, AZKAR_SOIR, type Zikr } from "@/lib/azkar";
@@ -12,7 +13,8 @@ type Session = "matin" | "soir";
 const SESSION_KEY = (s: Session) => `azkar_${s}_${todayKey()}`;
 
 export default function AzkarPage() {
-  const [session, setSession] = useState<Session>("matin");
+  const params = useSearchParams();
+  const [session, setSession] = useState<Session>(params.get("session") === "soir" ? "soir" : "matin");
   const [counts,  setCounts]  = useState<Record<string, number>>({});
 
   const azkar = session === "matin" ? AZKAR_MATIN : AZKAR_SOIR;
@@ -148,6 +150,10 @@ export default function AzkarPage() {
                 <p className="text-right text-lg leading-loose font-medium"
                   style={{ color: done ? "rgba(248,244,236,0.4)" : "#F8F4EC", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
                   {zikr.ar}
+                </p>
+                <p className="text-xs leading-relaxed opacity-40 italic"
+                  style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                  {zikr.transliteration}
                 </p>
                 <p className="text-xs leading-relaxed opacity-50"
                   style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>

@@ -256,6 +256,74 @@ export default function PrieresPage() {
         </div>
       </motion.div>
 
+      {/* Calendrier mensuel */}
+      <motion.div variants={itemVariants}>
+        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          Ce mois-ci · pratique privée
+        </p>
+        <div className="rounded-2xl border p-4" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}>
+          {(() => {
+            const log   = storage.getPrayerLog();
+            const now   = new Date();
+            const year  = now.getFullYear();
+            const month = now.getMonth();
+            const tracked = PRAYER_ORDER.filter(k => k !== "sunrise");
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            const firstDow    = new Date(year, month, 1).getDay();
+            const pad = firstDow === 0 ? 6 : firstDow - 1;
+            const DAY_LABELS = ["L","M","M","J","V","S","D"];
+            return (
+              <div>
+                <div className="grid grid-cols-7 mb-1">
+                  {DAY_LABELS.map((d, i) => (
+                    <div key={i} className="text-center text-xs pb-1 opacity-30"
+                      style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>{d}</div>
+                  ))}
+                </div>
+                <div className="grid grid-cols-7 gap-1">
+                  {Array.from({ length: pad }).map((_, i) => <div key={`p${i}`} />)}
+                  {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
+                    const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                    const entry   = log.find(l => l.date === dateKey);
+                    const isToday = dateKey === todayKey();
+                    const isFuture = new Date(year, month, day) > now;
+                    const allDone = !isFuture && !!entry && tracked.every(k => entry.done[k]);
+                    const someDone = !isFuture && !!entry && tracked.some(k => entry.done[k]);
+                    return (
+                      <div key={day} className="flex flex-col items-center gap-0.5">
+                        <div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium"
+                          style={{
+                            background: allDone  ? "#055C3F"
+                                      : someDone ? "rgba(5,92,63,0.3)"
+                                      : isToday  ? "rgba(212,175,55,0.15)"
+                                      : "transparent",
+                            border: isToday ? "1px solid rgba(212,175,55,0.5)" : "none",
+                            color: allDone ? "#F8F4EC" : isToday ? "#D4AF37" : isFuture ? "rgba(248,244,236,0.2)" : "rgba(248,244,236,0.5)",
+                            fontFamily: "var(--font-dm-sans)",
+                          }}>
+                          {day}
+                        </div>
+                        {allDone && <div className="h-1 w-1 rounded-full" style={{ background: "#D4AF37" }} />}
+                      </div>
+                    );
+                  })}
+                </div>
+                <div className="flex items-center gap-4 mt-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-3 w-3 rounded-full" style={{ background: "#055C3F" }} />
+                    <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>5 prières</p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="h-3 w-3 rounded-full" style={{ background: "rgba(5,92,63,0.3)" }} />
+                    <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>Partiel</p>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+        </div>
+      </motion.div>
+
       {/* Qibla */}
       <motion.div variants={itemVariants} whileTap={{ scale: 0.985 }} transition={springTap}>
         <Link href="/qibla"

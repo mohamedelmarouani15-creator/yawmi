@@ -8,6 +8,7 @@ export interface YawmiSettings {
   adhanMode:    "audio" | "silencieux";
   adhanReciter: string;
   prayerModes:  Partial<Record<string, "audio" | "silencieux">>;
+  appMode:      "pratiquant" | "explorateur";
 }
 
 export interface PrayerLog {
@@ -63,6 +64,7 @@ export const DEFAULT_SETTINGS: YawmiSettings = {
   adhanMode:    "audio",
   adhanReciter: "alafasy",
   prayerModes:  {},
+  appMode:      "pratiquant",
 };
 
 export const storage = {

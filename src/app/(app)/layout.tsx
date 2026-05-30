@@ -7,9 +7,38 @@ import PageWrapper        from "@/components/PageWrapper";
 import OfflineBanner      from "@/components/OfflineBanner";
 import { useNotifications } from "@/hooks/useNotifications";
 import { supabase } from "@/lib/supabase";
+import { computePrayerTimes, PRAYER_ORDER, PRAYER_LABELS } from "@/lib/prayer";
+import { storage } from "@/lib/storage";
 
 function NotifScheduler() {
   useNotifications();
+
+  // ── Adhan automatique ─────────────────────────────────────────
+  useEffect(() => {
+    const s = storage.getSettings();
+    if (s.adhanMode !== "audio") return;
+    const reciterId = s.adhanReciter ?? "alafasy";
+    const times = computePrayerTimes(s.lat, s.lng, s.method);
+    const now   = new Date();
+    const ids: ReturnType<typeof setTimeout>[] = [];
+
+    PRAYER_ORDER.forEach(key => {
+      if (key === "sunrise") return;
+      const t     = times[key];
+      const delay = t.getTime() - now.getTime();
+      if (delay <= 0 || delay > 14 * 3600_000) return;
+      ids.push(setTimeout(() => {
+        try {
+          const audio = new Audio(`/audio/adhan-${reciterId}.mp3`);
+          audio.volume = 0.8;
+          audio.play().catch(() => {});
+        } catch { /* silencieux */ }
+      }, delay));
+    });
+
+    return () => ids.forEach(clearTimeout);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   return null;
 }
 

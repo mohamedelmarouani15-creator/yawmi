@@ -118,6 +118,44 @@ export default function ProfilPage() {
         ))}
       </motion.div>
 
+      {/* Mode app */}
+      <motion.div variants={itemVariants}>
+        <p className="mb-1 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          Mon mode
+        </p>
+        <p className="mb-3 text-xs opacity-30 leading-relaxed" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          Change le ton et le rythme de l'app
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {([
+            { id: "pratiquant"  as const, label: "Pratiquant",  sub: "Suivi complet, streaks, jeu" },
+            { id: "explorateur" as const, label: "Explorateur", sub: "Découverte, sans pression" },
+          ]).map(({ id, label, sub }) => {
+            const active = (settings.appMode ?? "pratiquant") === id;
+            return (
+              <motion.button key={id}
+                onClick={() => { save({ ...settings, appMode: id }); flash(); }}
+                whileTap={{ scale: 0.95 }} transition={springTap}
+                className="flex flex-col gap-1 rounded-xl border px-4 py-3.5 text-left"
+                style={{
+                  background: active ? "rgba(5,92,63,0.25)" : "rgba(255,255,255,0.02)",
+                  borderColor: active ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.06)",
+                }}>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold" style={{ color: active ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    {label}
+                  </p>
+                  {active && <Check size={14} style={{ color: "#D4AF37" }} />}
+                </div>
+                <p className="text-xs opacity-40 leading-tight" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  {sub}
+                </p>
+              </motion.button>
+            );
+          })}
+        </div>
+      </motion.div>
+
       {/* Mode Adhan */}
       <motion.div variants={itemVariants}>
         <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>

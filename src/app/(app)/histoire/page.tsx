@@ -18,14 +18,13 @@ const ARCS = [
     description: "Dix chapitres pour découvrir l'histoire de Yûsuf — la jalousie, le puits, l'Égypte, la prison et le pardon.",
   },
 
-  // ── Bientôt disponibles ──────────────────────────────────────
   {
     id: "arc_ibrahim",
     title: "Ibrahim et le Feu",
     titleAr: "إِبْرَاهِيمُ وَالنَّارُ",
     subtitle: "Le père des prophètes — Sourates 21, 37",
     chapters: 8,
-    status: "coming_soon",
+    status: "available",
     color: "#f97316",
     emoji: "🔥",
     description: "De la destruction des idoles à la construction de la Ka'ba — le courage inébranlable d'Ibrahim face au roi Nimrod.",
@@ -36,7 +35,7 @@ const ARCS = [
     titleAr: "مُوسَى وَفِرْعَوْنُ",
     subtitle: "La confrontation des prophètes — Sourate 20",
     chapters: 10,
-    status: "coming_soon",
+    status: "available",
     color: "#06b6d4",
     emoji: "🌊",
     description: "Du berceau sur le Nil à la traversée de la mer Rouge — Moussa face au plus grand tyran de son époque.",
@@ -47,7 +46,7 @@ const ARCS = [
     titleAr: "مَرْيَمُ الصِّدِّيقَةُ",
     subtitle: "La femme la plus mentionnée — Sourate 19",
     chapters: 6,
-    status: "coming_soon",
+    status: "available",
     color: "#a78bfa",
     emoji: "🌿",
     description: "L'histoire de la femme la plus mentionnée dans le Coran — sa dévotion, sa pureté et la naissance miraculeuse.",
@@ -58,7 +57,7 @@ const ARCS = [
     titleAr: "السِّيرَةُ النَّبَوِيَّةُ",
     subtitle: "De La Mecque à Médine",
     chapters: 12,
-    status: "coming_soon",
+    status: "available",
     color: "#34d399",
     emoji: "🌙",
     description: "Les grandes étapes de la vie du Prophète Muhammad ﷺ — la révélation, les épreuves et la construction de la communauté.",
@@ -69,7 +68,7 @@ const ARCS = [
     titleAr: "الصَّحَابَةُ الْكِرَامُ",
     subtitle: "Histoires de courage et de foi",
     chapters: 10,
-    status: "coming_soon",
+    status: "available",
     color: "#fbbf24",
     emoji: "🛡️",
     description: "Abu Bakr, Omar, Bilal, Khadija, Fatima — les hommes et femmes qui ont porté l'islam à ses débuts.",
@@ -80,7 +79,7 @@ const ARCS = [
     titleAr: "الْهِجْرَةُ الْمُبَارَكَةُ",
     subtitle: "Le début du calendrier islamique",
     chapters: 5,
-    status: "coming_soon",
+    status: "available",
     color: "#60a5fa",
     emoji: "🐫",
     description: "La migration de La Mecque à Médine — un voyage de foi qui a changé le cours de l'histoire.",
@@ -91,7 +90,7 @@ const ARCS = [
     titleAr: "إِسْمَاعِيلُ وَالذَّبْحُ",
     subtitle: "L'origine de l'Aïd al-Adha — Sourate 37",
     chapters: 4,
-    status: "coming_soon",
+    status: "available",
     color: "#f43f5e",
     emoji: "🐑",
     description: "Le test suprême d'Ibrahim et de son fils Ismaïl — la naissance du sacrifice et de la foi absolue.",
@@ -102,7 +101,7 @@ const ARCS = [
     titleAr: "الْإِسْرَاءُ وَالْمِعْرَاجُ",
     subtitle: "Le voyage nocturne — Sourate 17",
     chapters: 5,
-    status: "coming_soon",
+    status: "available",
     color: "#c084fc",
     emoji: "✨",
     description: "Le voyage miraculeuse du Prophète ﷺ de La Mecque à Jérusalem, puis son ascension aux sept cieux.",
@@ -113,7 +112,7 @@ const ARCS = [
     titleAr: "سُلَيْمَانُ الْحَكِيمُ",
     subtitle: "Sagesse et pouvoir — Sourates 21, 27",
     chapters: 7,
-    status: "coming_soon",
+    status: "available",
     color: "#84cc16",
     emoji: "👑",
     description: "Le roi qui parlait aux oiseaux et commandait aux djinns — l'histoire de la sagesse divine au service de la justice.",
@@ -268,7 +267,7 @@ export default function HistoirePage() {
         style={{ borderColor: "rgba(212,175,55,0.12)", background: "rgba(212,175,55,0.04)" }}>
         <p className="text-xs leading-relaxed opacity-50 text-center"
           style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-          ✦ Sources : Coran (Sourate Yûsuf, 12) uniquement.
+          ✦ Sources : Coran & Sîra fiable. Aucun dialogue inventé dans la bouche des prophètes.
           Ce contenu est en cours de validation religieuse avant diffusion publique.
         </p>
       </motion.div>

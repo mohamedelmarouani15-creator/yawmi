@@ -22,13 +22,20 @@ export async function GET(req: NextRequest) {
   const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
   if (authErr || !user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  // Récupère le chapitre
-  const { data: chapter, error } = await supabase
-    .from("story_chapters")
-    .select("*")
-    .eq("story_id", storyId)
-    .eq("chapter_number", chapterN)
-    .single();
+  // Récupère le chapitre et le total de l'arc en parallèle
+  const [{ data: chapter, error }, { data: story }] = await Promise.all([
+    supabase
+      .from("story_chapters")
+      .select("*")
+      .eq("story_id", storyId)
+      .eq("chapter_number", chapterN)
+      .single(),
+    supabase
+      .from("stories")
+      .select("total_chapters")
+      .eq("id", storyId)
+      .single(),
+  ]);
 
   if (error || !chapter) return NextResponse.json({ error: "chapter_not_found" }, { status: 404 });
 
@@ -40,5 +47,5 @@ export async function GET(req: NextRequest) {
     .eq("story_id", storyId)
     .single();
 
-  return NextResponse.json({ chapter, progress });
+  return NextResponse.json({ chapter, progress, totalChapters: story?.total_chapters ?? null });
 }

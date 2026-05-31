@@ -3,11 +3,12 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ChevronRight, Volume2 } from "lucide-react";
+import { ArrowLeft, ChevronRight, Volume2, Play, Pause, Square } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { gameStorage } from "@/lib/game/game-storage";
 import { springTap } from "@/lib/motion";
 import { useArabicAudio } from "@/hooks/useArabicAudio";
+import { useNarrator, ARC_AMBIENT_LABEL } from "@/hooks/useNarrator";
 
 // ── Types ──────────────────────────────────────────────────────
 interface Vocabulary {
@@ -243,13 +244,15 @@ export default function ChapterPage() {
   const chapterN = parseInt(chapter, 10);
   const router   = useRouter();
 
-  const [data,         setData]         = useState<Chapter | null>(null);
-  const [phase,        setPhase]        = useState<"reading" | "vocab" | "questions" | "reward">("reading");
-  const [qIndex,       setQIndex]       = useState(0);
-  const [correctCount, setCorrectCount] = useState(0);
-  const [rewards,      setRewards]      = useState<Record<string, unknown> | null>(null);
-  const [loading,      setLoading]      = useState(true);
+  const [data,          setData]          = useState<Chapter | null>(null);
+  const [totalChapters, setTotalChapters] = useState<number>(10);
+  const [phase,         setPhase]         = useState<"reading" | "vocab" | "questions" | "reward">("reading");
+  const [qIndex,        setQIndex]        = useState(0);
+  const [correctCount,  setCorrectCount]  = useState(0);
+  const [rewards,       setRewards]       = useState<Record<string, unknown> | null>(null);
+  const [loading,       setLoading]       = useState(true);
   const { speak }      = useArabicAudio();
+  const narrator       = useNarrator(storyId, chapterN);
 
   useEffect(() => {
     async function load() {
@@ -262,6 +265,7 @@ export default function ChapterPage() {
       if (!res.ok) { router.back(); return; }
       const json = await res.json();
       setData(json.chapter);
+      if (json.totalChapters) setTotalChapters(json.totalChapters);
       setLoading(false);
     }
     load();
@@ -327,7 +331,7 @@ export default function ChapterPage() {
 
   // ── Phase : récompense finale ──────────────────────────────
   if (phase === "reward") {
-    const isLast = chapterN === 10;
+    const isLast = chapterN >= totalChapters;
     return (
       <div className="flex flex-col items-center justify-center min-h-screen gap-6 px-6"
         style={{ background: "linear-gradient(180deg,#020a05 0%,#061A12 100%)" }}>
@@ -426,6 +430,70 @@ export default function ChapterPage() {
             initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -16 }}
             className="flex flex-col gap-6"
           >
+            {/* Barre narrateur */}
+            <div className="flex items-center gap-3 rounded-2xl border px-4 py-3"
+              style={{ background: "rgba(212,175,55,0.06)", borderColor: "rgba(212,175,55,0.18)" }}>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold truncate"
+                  style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                  🎧 {ARC_AMBIENT_LABEL[storyId] ?? "Ambiance"}
+                </p>
+                <p className="text-xs opacity-40 truncate"
+                  style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  {narrator.isLoading ? "Génération en cours…" : narrator.isPlaying ? "Narration en cours…" : narrator.isPaused ? "En pause" : "Écouter l'histoire"}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {!narrator.isPlaying && !narrator.isPaused && !narrator.isLoading && (
+                  <motion.button
+                    onClick={async () => {
+                      const { data: { session } } = await supabase.auth.getSession();
+                      if (session) narrator.start(data.narrative, session.access_token);
+                    }}
+                    whileTap={{ scale: 0.9 }}
+                    className="flex h-9 w-9 items-center justify-center rounded-full"
+                    style={{ background: "rgba(212,175,55,0.15)", color: "#D4AF37" }}>
+                    <Play size={16} fill="#D4AF37" />
+                  </motion.button>
+                )}
+                {narrator.isLoading && (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    className="h-9 w-9 rounded-full border-2"
+                    style={{ borderColor: "#D4AF37", borderTopColor: "transparent" }}
+                  />
+                )}
+                {narrator.isPlaying && (
+                  <motion.button
+                    onClick={narrator.pause}
+                    whileTap={{ scale: 0.9 }}
+                    className="flex h-9 w-9 items-center justify-center rounded-full"
+                    style={{ background: "rgba(212,175,55,0.15)", color: "#D4AF37" }}>
+                    <Pause size={16} />
+                  </motion.button>
+                )}
+                {narrator.isPaused && (
+                  <motion.button
+                    onClick={narrator.resume}
+                    whileTap={{ scale: 0.9 }}
+                    className="flex h-9 w-9 items-center justify-center rounded-full"
+                    style={{ background: "rgba(212,175,55,0.15)", color: "#D4AF37" }}>
+                    <Play size={16} fill="#D4AF37" />
+                  </motion.button>
+                )}
+                {(narrator.isPlaying || narrator.isPaused) && (
+                  <motion.button
+                    onClick={narrator.stop}
+                    whileTap={{ scale: 0.9 }}
+                    className="flex h-9 w-9 items-center justify-center rounded-full"
+                    style={{ background: "rgba(248,113,113,0.1)", color: "#f87171" }}>
+                    <Square size={14} fill="#f87171" />
+                  </motion.button>
+                )}
+              </div>
+            </div>
+
             {/* Récit */}
             <div className="flex flex-col gap-4">
               {data.narrative.split("\n\n").map((para, i) => (
@@ -437,7 +505,7 @@ export default function ChapterPage() {
             </div>
 
             <motion.button
-              onClick={() => setPhase("vocab")}
+              onClick={() => { narrator.stop(); setPhase("vocab"); }}
               whileTap={{ scale: 0.97 }} transition={springTap}
               className="w-full rounded-full py-4 text-sm font-semibold flex items-center justify-center gap-2"
               style={{ background: `linear-gradient(135deg,${color},#8B6914)`, color: "#0A1A0E", fontFamily: "var(--font-dm-sans)" }}>

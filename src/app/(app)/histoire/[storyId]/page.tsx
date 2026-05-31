@@ -55,7 +55,16 @@ export default function StoryChaptersPage() {
   const completed = progress?.completed_chapters ?? [];
 
   const TITLES: Record<string, string> = {
-    arc_yusuf: "L'histoire de Yûsuf",
+    arc_yusuf:      "L'histoire de Yûsuf",
+    arc_ibrahim:    "Ibrahim et le Feu",
+    arc_moussa:     "Moussa et Pharaon",
+    arc_maryam:     "Maryam, la choisie",
+    arc_sira:       "La Sîra — La vie du Prophète ﷺ",
+    arc_sahaba:     "Les Compagnons du Prophète ﷺ",
+    arc_hijra:      "La Hijra — La Grande Migration",
+    arc_ismail:     "Ismaïl et le Sacrifice",
+    arc_isra_miraj: "Al-Isrâ wal-Miraj",
+    arc_souleimane: "Souleimane, le Roi Sage",
   };
 
   return (

@@ -50,16 +50,21 @@ function splitIntoSlides(narrative: string, max = 5): string[] {
 }
 
 interface Props {
-  narrative:  string;
-  storyId:    string;
-  chapterN:   number;
-  onComplete: () => void;
+  narrative:    string;
+  storyId?:     string;
+  chapterN?:    number;
+  themeColor?:  string;   // override arc color (ex: depuis l'Oasis)
+  themeEmoji?:  string;   // override arc emoji
+  label?:       string;   // label affiché en haut à gauche
+  onComplete:   () => void;
 }
 
-export default function StoryPrologue({ narrative, storyId, chapterN, onComplete }: Props) {
+export default function StoryPrologue({
+  narrative, storyId, chapterN, themeColor, themeEmoji, label, onComplete,
+}: Props) {
   const slides   = splitIntoSlides(narrative);
-  const color    = ARC_COLOR[storyId]  ?? "#D4AF37";
-  const emoji    = ARC_EMOJI[storyId]  ?? "✦";
+  const color    = themeColor ?? (storyId ? (ARC_COLOR[storyId] ?? "#D4AF37") : "#D4AF37");
+  const emoji    = themeEmoji ?? (storyId ? (ARC_EMOJI[storyId] ?? "✦") : "✦");
   const [index,     setIndex]     = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -154,7 +159,7 @@ export default function StoryPrologue({ narrative, storyId, chapterN, onComplete
           <span style={{ fontSize: 20 }}>{emoji}</span>
           <p className="text-xs tracking-widest uppercase opacity-50"
             style={{ color, fontFamily: "var(--font-dm-sans)" }}>
-            Chapitre {chapterN} · Moment {index + 1}/{slides.length}
+            {label ?? (chapterN ? `Chapitre ${chapterN} · ` : "")}Moment {index + 1}/{slides.length}
           </p>
         </div>
         <button

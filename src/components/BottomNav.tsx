@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, Compass, BookOpen, Users, RotateCcw } from "lucide-react";
+import { Home, Compass, BookOpen, Users } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
-import { CrescentStar } from "@/components/IslamicIcons";
+import { CrescentStar, TasbihIcon } from "@/components/IslamicIcons";
 import type React from "react";
 
 type NavItem = { href: string; label: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number }> };
@@ -19,13 +19,13 @@ const NAV_DEFAULT: NavItem[] = [
   { href: "/famille",  label: "Famille",  Icon: Users      },
 ];
 
-// Enfants : jeu en avant, pratique sacrée essentielle
+// Enfants : jeu + histoires animées en avant, pratique sacrée
 const NAV_KIDS: NavItem[] = [
   { href: "/accueil",  label: "Accueil",  Icon: Home       },
   { href: "/prieres",  label: "Prières",  Icon: CrescentStar },
   { href: "/oasis",    label: "Jouer",    Icon: Compass    },
-  { href: "/coran",    label: "Coran",    Icon: BookOpen   },
-  { href: "/dhikr",    label: "Dhikr",    Icon: RotateCcw  },
+  { href: "/histoire", label: "Histoires",Icon: BookOpen   },
+  { href: "/dhikr",    label: "Dhikr",    Icon: TasbihIcon },
 ];
 
 // Aînés : navigation réduite, pages essentielles uniquement
@@ -33,7 +33,7 @@ const NAV_ELDER: NavItem[] = [
   { href: "/accueil",  label: "Accueil",  Icon: Home       },
   { href: "/prieres",  label: "Prières",  Icon: CrescentStar },
   { href: "/coran",    label: "Coran",    Icon: BookOpen   },
-  { href: "/dhikr",    label: "Dhikr",    Icon: RotateCcw  },
+  { href: "/dhikr",    label: "Dhikr",    Icon: TasbihIcon },
   { href: "/famille",  label: "Famille",  Icon: Users      },
 ];
 

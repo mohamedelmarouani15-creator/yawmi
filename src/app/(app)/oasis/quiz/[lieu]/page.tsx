@@ -10,8 +10,18 @@ import { getLocation } from "@/lib/game/locations";
 import { getSageForLocation } from "@/lib/game/sages";
 import { gameStorage } from "@/lib/game/game-storage";
 import { POWERUPS } from "@/lib/game/powerups";
-import { springTap } from "@/lib/motion";
+import { springTap }      from "@/lib/motion";
+import { useSettings }    from "@/hooks/useSettings";
+import { ageGroupToMode } from "@/hooks/useAgeMode";
+import StoryPrologue      from "@/components/StoryPrologue";
 import type { PowerUpType } from "@/lib/game/types";
+
+const CITY_EMOJI: Record<string, string> = {
+  medine:     "🌙", fes:        "🏺", cordoue:    "🌹",
+  marrakech:  "🏜️", damas:      "🌸", bagdad:     "📚",
+  samarcande: "🛤️", tombouctou: "🏛️", le_caire:   "🎓",
+  la_mecque:  "🕋",
+};
 import DragDropGame    from "@/components/minigames/DragDropGame";
 import MemoryGame      from "@/components/minigames/MemoryGame";
 import FillVerseGame   from "@/components/minigames/FillVerseGame";
@@ -191,7 +201,13 @@ export default function QuizPage() {
   const sage     = getSageForLocation(lieu);
   const color    = location?.color ?? "#D4AF37";
 
-  useEffect(() => { startQuiz(); }, []); // eslint-disable-line
+  const { settings }   = useSettings();
+  const ageMode        = ageGroupToMode(settings.ageGroup);
+  const isKids         = ageMode === "kids";
+  const [prologueDone, setPrologueDone] = useState(!isKids);
+
+  // Démarre le quiz seulement après le prologue (kids) ou immédiatement (autres)
+  useEffect(() => { if (prologueDone) startQuiz(); }, [prologueDone]); // eslint-disable-line
 
   // Save rewards when quiz finishes
   useEffect(() => {
@@ -248,6 +264,25 @@ export default function QuizPage() {
     usePowerUp(type);
     refresh();
   };
+
+  // ── Prologue animé (mode kids) ───────────────────────────────
+  if (!prologueDone && location) {
+    const narrative = [
+      `Tu arrives à ${location.nameFr}, ${location.country}.`,
+      location.description,
+      sage ? `Le sage ${sage.name} t'attend ici. ${sage.dialogueIntro}` : "",
+    ].filter(Boolean).join("\n\n");
+
+    return (
+      <StoryPrologue
+        narrative={narrative}
+        themeColor={location.color}
+        themeEmoji={CITY_EMOJI[lieu] ?? "🌍"}
+        label={location.nameFr}
+        onComplete={() => setPrologueDone(true)}
+      />
+    );
+  }
 
   // ── Loading ──────────────────────────────────────────────────
   if (!session || !currentQuestion) {

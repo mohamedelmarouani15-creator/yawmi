@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createHash } from "crypto";
+import { logger } from "@/lib/logger";
 
 const BUCKET = "narrate-cache";
 
@@ -57,21 +58,21 @@ export async function POST(req: NextRequest) {
     body:    params.toString(),
   });
   if (!vr.ok) {
-    console.error("[narrate] VoiceRSS HTTP error:", vr.status);
+    logger.error("narrate", "VoiceRSS HTTP error:", vr.status);
     return new NextResponse("tts_failed", { status: 502 });
   }
 
   const audio = await vr.arrayBuffer();
   const check = new TextDecoder().decode(audio.slice(0, 20));
   if (check.startsWith("ERROR")) {
-    console.error("[narrate] VoiceRSS:", check);
+    logger.error("narrate", "VoiceRSS:", check);
     return new NextResponse(check, { status: 502 });
   }
 
   // ── Mettre en cache (fire-and-forget) ─────────────────────
   supabase.storage.from(BUCKET)
     .upload(key, new Uint8Array(audio), { contentType: "audio/mpeg", upsert: false })
-    .catch(e => console.warn("[narrate] cache upload failed:", e));
+    .catch(e => logger.warn("narrate", "cache upload failed:", e));
 
   return new NextResponse(audio, {
     headers: { "Content-Type": "audio/mpeg", "X-Cache": "MISS" },

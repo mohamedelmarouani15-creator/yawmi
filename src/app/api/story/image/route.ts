@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { logger } from "@/lib/logger";
 
 const BUCKET    = "story-images";
 const BASE_URL  = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest) {
   );
 
   if (!startRes.ok) {
-    console.error("[story/image] Replicate start:", startRes.status, await startRes.text());
+    logger.error("story/image", "Replicate start:", startRes.status, await startRes.text());
     return new NextResponse("generation_failed", { status: 502 });
   }
 
@@ -104,7 +105,7 @@ export async function POST(req: NextRequest) {
 
   await supabase.storage.from(BUCKET)
     .upload(key, new Uint8Array(imgBuf), { contentType: "image/jpeg", upsert: false })
-    .catch(e => console.warn("[story/image] cache upload:", e));
+    .catch(e => logger.warn("story/image", "cache upload:", e));
 
   return NextResponse.json({ url: publicUrl(key), cached: false });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Copy, Loader2, Plus, Trash2, UserPlus, LogIn, CheckCircle2, XCircle,
@@ -8,10 +8,11 @@ import {
 } from "lucide-react";
 import { useAuth }   from "@/hooks/useAuth";
 import { useFamily } from "@/hooks/useFamily";
-import type { FamilyMember, DuelData } from "@/hooks/useFamily";
-import { QUESTIONS } from "@/lib/game/questions";
+import type { DuelData } from "@/hooks/useFamily";
 import Link from "next/link";
 import { springTap } from "@/lib/motion";
+import DuelQuizModal  from "@/components/famille/DuelQuizModal";
+import NoFamilySetup  from "@/components/famille/NoFamilySetup";
 
 // ── helpers ────────────────────────────────────────────────────
 const RANK_EMOJI = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"];
@@ -69,9 +70,6 @@ export default function FamillePage() {
   } = useFamily();
 
   const [tab,          setTab]          = useState<Tab>("defis");
-  const [mode,         setMode]         = useState<"create" | "join" | null>(null);
-  const [actionLoad,   setActionLoad]   = useState(false);
-  const [formError,    setFormError]    = useState("");
   const [copied,       setCopied]       = useState(false);
   const [taskText,     setTaskText]     = useState("");
   const [taskMember,   setTaskMember]   = useState("Tous");
@@ -81,16 +79,7 @@ export default function FamillePage() {
   const [duelError,    setDuelError]    = useState<string | null>(null);
   const [dailyAnswer,  setDailyAnswer]  = useState<number | null>(null);
   const [leaveConfirm, setLeaveConfirm] = useState(false);
-  // Quiz inline pour jouer un duel
   const [activeDuel,   setActiveDuel]   = useState<DuelData | null>(null);
-  const [duelQIdx,     setDuelQIdx]     = useState(0);
-  const [duelAnswers,  setDuelAnswers]  = useState<(boolean | null)[]>([]);
-  const [duelSelected, setDuelSelected] = useState<number | null>(null);
-  const [duelShowResult, setDuelShowResult] = useState(false);
-  const [duelDone,     setDuelDone]     = useState(false);
-
-  const familyInputRef = useRef<HTMLInputElement>(null);
-  const joinInputRef   = useRef<HTMLInputElement>(null);
 
   // ── Actions ────────────────────────────────────────────────────
   function copyCode() {
@@ -98,24 +87,6 @@ export default function FamillePage() {
     navigator.clipboard.writeText(family.code);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
-  }
-
-  async function handleCreate() {
-    const nom = familyInputRef.current?.value.trim() ?? "";
-    if (!nom) return;
-    setActionLoad(true); setFormError("");
-    const { error } = await createFamily(nom);
-    if (error) { setFormError(error); setActionLoad(false); }
-    else window.location.href = "/famille";
-  }
-
-  async function handleJoin() {
-    const code = joinInputRef.current?.value.trim().toUpperCase() ?? "";
-    if (!code) return;
-    setActionLoad(true); setFormError("");
-    const ok = await joinFamily(code);
-    if (!ok) { setFormError("Code introuvable — vérifie l'orthographe."); setActionLoad(false); }
-    else window.location.href = "/famille";
   }
 
   async function submitTask() {
@@ -144,47 +115,6 @@ export default function FamillePage() {
       setDuelError(`Erreur : ${e instanceof Error ? e.message : String(e)}`);
       setDuelTarget(null);
     }
-  }
-
-  function startDuelQuiz(duel: DuelData) {
-    setActiveDuel(duel);
-    setDuelQIdx(0);
-    setDuelAnswers(new Array(duel.questionIds.length).fill(null));
-    setDuelSelected(null);
-    setDuelShowResult(false);
-    setDuelDone(false);
-  }
-
-  function selectDuelAnswer(idx: number) {
-    if (duelShowResult || !activeDuel) return;
-    setDuelSelected(idx);
-    setDuelShowResult(true);
-  }
-
-  async function nextDuelQuestion() {
-    if (!activeDuel) return;
-    const q = QUESTIONS.find(q => q.id === activeDuel.questionIds[duelQIdx]);
-    const correct = q?.options[duelSelected ?? -1]?.correct ?? false;
-    const newAnswers = [...duelAnswers];
-    newAnswers[duelQIdx] = correct;
-
-    const isLast = duelQIdx === activeDuel.questionIds.length - 1;
-    if (isLast) {
-      const score = newAnswers.filter(Boolean).length;
-      setDuelAnswers(newAnswers);
-      setDuelDone(true);
-      await recordDuelScore(activeDuel.taskId, score);
-    } else {
-      setDuelAnswers(newAnswers);
-      setDuelQIdx(i => i + 1);
-      setDuelSelected(null);
-      setDuelShowResult(false);
-    }
-  }
-
-  function closeDuelQuiz() {
-    setActiveDuel(null);
-    setDuelDone(false);
   }
 
   async function handleDailyAnswer(idx: number) {
@@ -222,236 +152,20 @@ export default function FamillePage() {
   );
 
   // ── No family ──────────────────────────────────────────────────
-  if (!family) return (
-    <div className="flex flex-col gap-5 px-5 pt-12 pb-32">
-      <div>
-        <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>Espace partagé</p>
-        <h1 className="mt-1 text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>Famille</h1>
-      </div>
-
-      {mode === null && (
-        <div className="flex flex-col gap-3 mt-2">
-          {[
-            { id: "create" as const, title: "Créer une famille", sub: "Génère un code à partager", icon: "🏡" },
-            { id: "join"   as const, title: "Rejoindre une famille", sub: "Entre le code reçu", icon: "🔑" },
-          ].map(opt => (
-            <motion.button key={opt.id} onClick={() => setMode(opt.id)}
-              whileTap={{ scale: 0.97 }} transition={springTap}
-              className="flex items-center gap-4 rounded-2xl border p-5 text-left"
-              style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.15)" }}>
-              <span className="text-2xl">{opt.icon}</span>
-              <div>
-                <p className="font-semibold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>{opt.title}</p>
-                <p className="mt-0.5 text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{opt.sub}</p>
-              </div>
-            </motion.button>
-          ))}
-        </div>
-      )}
-
-      {mode === "create" && (
-        <div className="flex flex-col gap-3">
-          <input ref={familyInputRef} placeholder="Nom de votre famille…"
-            autoCapitalize="words"
-            onKeyDown={e => { if (e.key === "Enter") handleCreate(); }}
-            className="w-full rounded-2xl bg-transparent px-4 py-3.5 text-base outline-none"
-            style={{ border: "1px solid rgba(212,175,55,0.35)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
-          />
-          {formError && <p className="text-sm" style={{ color: "#f87171", fontFamily: "var(--font-dm-sans)" }}>{formError}</p>}
-          <motion.button onClick={handleCreate} disabled={actionLoad}
-            whileTap={{ scale: 0.97 }} transition={springTap}
-            className="w-full rounded-full py-3.5 text-sm font-bold"
-            style={{ background: "var(--gradient-primary)", color: "var(--text)",
-              fontFamily: "var(--font-dm-sans)", opacity: actionLoad ? 0.5 : 1 }}>
-            {actionLoad ? "Création…" : "Créer ma famille →"}
-          </motion.button>
-          <button onClick={() => { setMode(null); setFormError(""); }}
-            className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            Annuler
-          </button>
-        </div>
-      )}
-
-      {mode === "join" && (
-        <div className="flex flex-col gap-3">
-          <input ref={joinInputRef} placeholder="Code (ex: AB12CD)"
-            autoCapitalize="characters"
-            onKeyDown={e => { if (e.key === "Enter") handleJoin(); }}
-            className="w-full rounded-2xl bg-transparent px-4 py-3.5 text-base outline-none tracking-widest"
-            style={{ border: "1px solid rgba(212,175,55,0.35)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}
-          />
-          {formError && <p className="text-sm" style={{ color: "#f87171", fontFamily: "var(--font-dm-sans)" }}>{formError}</p>}
-          <motion.button onClick={handleJoin} disabled={actionLoad}
-            whileTap={{ scale: 0.97 }} transition={springTap}
-            className="w-full rounded-full py-3.5 text-sm font-bold"
-            style={{ background: "var(--gradient-primary)", color: "var(--text)",
-              fontFamily: "var(--font-dm-sans)", opacity: actionLoad ? 0.5 : 1 }}>
-            {actionLoad ? "Connexion…" : "Rejoindre →"}
-          </motion.button>
-          <button onClick={() => setMode(null)}
-            className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            Annuler
-          </button>
-        </div>
-      )}
-    </div>
-  );
+  if (!family) return <NoFamilySetup onCreateFamily={createFamily} onJoinFamily={joinFamily} />;
 
   // ── With family ────────────────────────────────────────────────
   const pending   = tasks.filter(t => !t.done);
   const completed = tasks.filter(t => t.done);
   const myRank = members.findIndex(m => m.isMe) + 1;
 
-  // ── Quiz duel inline (modal plein écran) ──────────────────────
-  if (activeDuel) {
-    const qId = activeDuel.questionIds[duelQIdx];
-    const question = QUESTIONS.find(q => q.id === qId);
-    const total = activeDuel.questionIds.length;
-    const score = duelAnswers.filter(Boolean).length;
-
-    if (duelDone) {
-      const theirScore = activeDuel.isChallenger ? activeDuel.challengedScore : activeDuel.challengerScore;
-      const theirName  = activeDuel.isChallenger ? activeDuel.challengedName  : activeDuel.challengerName;
-      return (
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="flex flex-col items-center px-5 pt-16 pb-32 text-center"
-          style={{ minHeight: "100dvh", background: "var(--bg)" }}>
-          <div className="text-5xl mb-4">
-            {theirScore === null ? "⏳" : score > theirScore ? "🏆" : score === theirScore ? "🤝" : "😔"}
-          </div>
-          <p className="text-2xl font-bold mb-2" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-            {theirScore === null ? "Score enregistré !" : score > theirScore ? "Victoire !" : score === theirScore ? "Égalité !" : "Défaite…"}
-          </p>
-          <p className="text-sm opacity-60 mb-6" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            Ton score : <strong style={{ color: "var(--gold)" }}>{score}/{total}</strong>
-            {theirScore !== null && ` · ${theirName} : ${theirScore}/${total}`}
-            {theirScore === null && ` · En attente de ${theirName}`}
-          </p>
-          <motion.button onClick={closeDuelQuiz} whileTap={{ scale: 0.96 }} transition={springTap}
-            className="rounded-full px-8 py-3.5 text-sm font-bold"
-            style={{ background: "var(--gradient-primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            Retour à la famille
-          </motion.button>
-        </motion.div>
-      );
-    }
-
-    if (!question) {
-      closeDuelQuiz();
-      return null;
-    }
-
-    return (
-      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-        className="flex flex-col px-5 pt-11 pb-8"
-        style={{ minHeight: "100dvh", background: "var(--bg)" }}>
-        {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <button onClick={closeDuelQuiz}
-            className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            ✕ Annuler
-          </button>
-          <div className="text-center">
-            <p className="text-xs font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
-              DUEL · {activeDuel.isChallenger ? activeDuel.challengedName : activeDuel.challengerName}
-            </p>
-            <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-              Question {duelQIdx + 1}/{total}
-            </p>
-          </div>
-          <span className="text-xs font-bold" style={{ color: "#4ade80", fontFamily: "var(--font-dm-sans)" }}>
-            {score} ✓
-          </span>
-        </div>
-
-        {/* Progress */}
-        <div className="h-1.5 rounded-full overflow-hidden mb-6"
-          style={{ background: "rgba(255,255,255,0.06)" }}>
-          <div className="h-full rounded-full"
-            style={{ width: `${(duelQIdx / total) * 100}%`, background: "var(--gradient-bar)" }} />
-        </div>
-
-        {/* Category */}
-        <span className="inline-block self-start rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider mb-4"
-          style={{ background: "rgba(212,175,55,0.1)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)", border: "1px solid rgba(212,175,55,0.2)" }}>
-          {question.category}
-        </span>
-
-        {/* Question */}
-        <p className="text-lg font-bold leading-snug mb-6"
-          style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-          {question.question}
-        </p>
-
-        {/* Options */}
-        <div className="flex flex-col gap-2.5">
-          {question.options.map((opt, idx) => {
-            const selected = duelSelected === idx;
-            const correct  = opt.correct;
-            let bg = "rgba(255,255,255,0.03)";
-            let border = "rgba(255,255,255,0.07)";
-            let color = "var(--text)";
-            let icon = null;
-            if (duelShowResult && correct) {
-              bg = "rgba(74,222,128,0.1)"; border = "rgba(74,222,128,0.4)"; color = "#4ade80";
-              icon = <CheckCircle2 size={16} style={{ color: "#4ade80" }} />;
-            } else if (duelShowResult && selected && !correct) {
-              bg = "rgba(248,113,113,0.1)"; border = "rgba(248,113,113,0.4)"; color = "#f87171";
-              icon = <XCircle size={16} style={{ color: "#f87171" }} />;
-            } else if (selected) {
-              bg = "rgba(212,175,55,0.1)"; border = "var(--gold)"; color = "var(--gold)";
-            }
-            return (
-              <motion.button key={idx}
-                onClick={() => selectDuelAnswer(idx)}
-                disabled={duelShowResult}
-                whileTap={!duelShowResult ? { scale: 0.97 } : {}} transition={springTap}
-                className="flex items-center gap-3 rounded-2xl border px-4 py-3.5 text-left"
-                style={{ background: bg, borderColor: border, opacity: duelShowResult && !selected && !correct ? 0.4 : 1 }}>
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                  style={{ background: "rgba(255,255,255,0.06)", color, fontFamily: "var(--font-dm-sans)" }}>
-                  {["A","B","C","D"][idx]}
-                </span>
-                <span className="flex-1 text-sm font-medium" style={{ color, fontFamily: "var(--font-dm-sans)" }}>
-                  {opt.text}
-                </span>
-                {icon}
-              </motion.button>
-            );
-          })}
-        </div>
-
-        {/* Explanation + Next */}
-        <AnimatePresence>
-          {duelShowResult && (
-            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-              className="mt-4 flex flex-col gap-3">
-              {(question.explanation || question.culturalCapsule) && (
-                <div className="rounded-2xl border p-4"
-                  style={{ background: question.culturalCapsule ? "rgba(212,175,55,0.05)" : "rgba(255,255,255,0.03)",
-                    borderColor: question.culturalCapsule ? "rgba(212,175,55,0.18)" : "rgba(255,255,255,0.07)" }}>
-                  {question.culturalCapsule && (
-                    <p className="text-xs font-bold mb-1.5" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
-                      ✦ {question.culturalCapsule.title}
-                    </p>
-                  )}
-                  <p className="text-sm leading-relaxed opacity-80"
-                    style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                    {question.culturalCapsule?.text ?? question.explanation}
-                  </p>
-                </div>
-              )}
-              <motion.button onClick={nextDuelQuestion} whileTap={{ scale: 0.96 }} transition={springTap}
-                className="w-full rounded-full py-3.5 text-sm font-bold"
-                style={{ background: "var(--gradient-primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                {duelQIdx < total - 1 ? "Question suivante →" : "Voir mon score"}
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
-    );
-  }
+  if (activeDuel) return (
+    <DuelQuizModal
+      duel={activeDuel}
+      onClose={() => setActiveDuel(null)}
+      onScore={recordDuelScore}
+    />
+  );
 
   return (
     <div className="flex flex-col pb-24" style={{ minHeight: "100dvh" }}>
@@ -859,7 +573,7 @@ export default function FamillePage() {
                           </p>
                         )}
                         <motion.button
-                          onClick={() => startDuelQuiz(d)}
+                          onClick={() => setActiveDuel(d)}
                           whileTap={{ scale: 0.97 }} transition={springTap}
                           className="flex w-full items-center justify-center gap-2 rounded-full py-2.5 text-sm font-bold"
                           style={{ background: "var(--gradient-gold)", color: "var(--bg)", fontFamily: "var(--font-dm-sans)" }}>

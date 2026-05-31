@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { askCompanion } from "@/lib/ai/companion";
 import type { CompanionContext, AIMessage } from "@/lib/ai/companion";
+import { logger } from "@/lib/logger";
 
 const DAILY_LIMIT = 20; // requêtes/jour/utilisateur
 
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
   try {
     reply = await askCompanion(userMessage, context, history);
   } catch (err) {
-    console.error("[companion/chat] AI error:", err);
+    logger.error("companion/chat", "AI error:", err);
     return NextResponse.json(
       { error: "ai_error", message: "Je rencontre une difficulté. Réessaie dans un instant." },
       { status: 503 }

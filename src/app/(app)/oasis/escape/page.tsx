@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Lock, Clock, Users } from "lucide-react";
+import { ArrowLeft, Lock, Clock, Users, Boxes } from "lucide-react";
 
 // ── Données des jeux ──────────────────────────────────────────────────
 const GAMES = [
@@ -291,6 +291,82 @@ export default function EscapeSelectPage() {
             Explore des lieux historiques islamiques · Résous des énigmes
           </p>
         </motion.div>
+      </div>
+
+      {/* ── Expériences phares ───────────────────────────────── */}
+      <div style={{ paddingLeft: 16, paddingRight: 16, display: "flex", flexDirection: "column", gap: 12, marginBottom: 24 }}>
+
+        {/* Tombouctou */}
+        <motion.button
+          onClick={() => router.push("/escape/tombouctou")}
+          whileTap={{ scale: 0.97 }}
+          style={{
+            width: "100%", borderRadius: 16, border: "1px solid rgba(212,175,55,0.55)",
+            padding: "18px 20px", textAlign: "left", position: "relative", overflow: "hidden",
+            background: "linear-gradient(135deg,rgba(212,175,55,0.18) 0%,rgba(6,10,6,0.97) 60%,rgba(1,8,4,1) 100%)",
+            boxShadow: "0 0 36px rgba(212,175,55,0.12)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{
+              width: 46, height: 46, borderRadius: 12, flexShrink: 0,
+              background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.25)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <Boxes size={22} style={{ color: "#D4AF37" }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ color: "#D4AF37", fontSize: 10, fontWeight: 700, textTransform: "uppercase",
+                letterSpacing: "0.1em", fontFamily: "var(--font-dm-sans)", marginBottom: 2 }}>
+                ✦ Exclusif · Escape islamique
+              </p>
+              <p style={{ color: "var(--text)", fontSize: 15, fontWeight: 700,
+                fontFamily: "var(--font-bricolage)", marginBottom: 2 }}>
+                La Bibliothèque de Tombouctou
+              </p>
+              <p style={{ color: "rgba(248,244,236,0.5)", fontSize: 11, fontFamily: "var(--font-dm-sans)" }}>
+                Sauve 5 manuscrits · 30 min · Histoire vraie
+              </p>
+            </div>
+            <span style={{ color: "#D4AF37", fontSize: 18 }}>→</span>
+          </div>
+        </motion.button>
+
+        {/* Riad 3D */}
+        <motion.button
+          onClick={() => router.push("/escape3d")}
+          whileTap={{ scale: 0.97 }}
+          style={{
+            width: "100%", borderRadius: 16, border: "1px solid rgba(5,195,111,0.4)",
+            padding: "18px 20px", textAlign: "left",
+            background: "linear-gradient(135deg,rgba(5,92,63,0.35) 0%,rgba(4,6,8,0.9) 100%)",
+            boxShadow: "0 0 28px rgba(5,195,111,0.1)",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+            <div style={{
+              width: 46, height: 46, borderRadius: 12, flexShrink: 0,
+              background: "rgba(5,195,111,0.15)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>
+              <Boxes size={22} style={{ color: "#05C36F" }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <p style={{ color: "#05C36F", fontSize: 10, fontWeight: 700, textTransform: "uppercase",
+                letterSpacing: "0.1em", fontFamily: "var(--font-dm-sans)", marginBottom: 2 }}>
+                ✦ Expérience 3D
+              </p>
+              <p style={{ color: "var(--text)", fontSize: 15, fontWeight: 700,
+                fontFamily: "var(--font-bricolage)", marginBottom: 2 }}>
+                Le Riad des Secrets
+              </p>
+              <p style={{ color: "rgba(248,244,236,0.45)", fontSize: 11, fontFamily: "var(--font-dm-sans)" }}>
+                Explore le riad · 5 énigmes en arabe
+              </p>
+            </div>
+            <span style={{ color: "#05C36F", fontSize: 18 }}>→</span>
+          </div>
+        </motion.button>
       </div>
 
       {/* Grille de cartes */}

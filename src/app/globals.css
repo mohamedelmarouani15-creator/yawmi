@@ -221,8 +221,10 @@ body {
 .age-kids .rounded-xl {
   border-radius: 1rem !important;
 }
-/* Icônes légèrement plus grandes */
-.age-kids svg {
+/* Icônes légèrement plus grandes — limité aux icônes, pas aux SVG de carte */
+.age-kids nav svg,
+.age-kids button svg,
+.age-kids a svg {
   transform: scale(1.1);
   transform-origin: center;
 }
@@ -258,8 +260,10 @@ body {
   min-height: 58px;
   font-size: 1.05em;
 }
-/* Icônes agrandies */
-.age-elder svg {
+/* Icônes agrandies — limité aux icônes, pas aux SVG de carte */
+.age-elder nav svg,
+.age-elder button svg,
+.age-elder a svg {
   transform: scale(1.18);
   transform-origin: center;
 }

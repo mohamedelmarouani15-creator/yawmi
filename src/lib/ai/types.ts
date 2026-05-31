@@ -7,9 +7,12 @@ export interface AIMessage {
 
 export interface CompanionContext {
   // Profil utilisateur
-  firstName:    string | null;
-  arabicLevel:  "none" | "beginner" | "intermediate" | "advanced";
-  appMode:      "pratiquant" | "explorateur";
+  firstName:     string | null;
+  arabicLevel:   "none" | "beginner" | "intermediate" | "advanced";
+  appMode:       "pratiquant" | "explorateur";
+  ageGroup?:     string | null;
+  mainObjective?: string | null;
+  motherTongue?:  string | null;
   // Performance jeu V2
   categoryLevels:  Record<string, number>; // { religion: 4, arabic: 2, … }
   gameStreak:      number;

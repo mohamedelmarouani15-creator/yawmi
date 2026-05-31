@@ -63,14 +63,14 @@ export async function GET(req: NextRequest) {
   // ── Récupère les données ──────────────────────────────────────
   const [{ data: mem }, { data: progress }, { data: profile }] = await Promise.all([
     supabase.from("companion_memory")
-      .select("arabic_level, strong_categories, weak_categories, tone_preference, last_session_at")
+      .select("arabic_level, app_mode, strong_categories, weak_categories, tone_preference, last_session_at")
       .eq("user_id", userId)
       .single(),
     supabase.from("player_progress")
       .select("category_levels, game_streak, defeated_sages")
       .eq("user_id", userId)
       .single(),
-    supabase.from("profiles").select("display_name").eq("id", userId).single(),
+    supabase.from("profiles").select("display_name, age_group, main_objective, mother_tongue, app_mode").eq("id", userId).single(),
   ]);
 
   const gameStreak     = progress?.game_streak ?? 0;
@@ -81,10 +81,14 @@ export async function GET(req: NextRequest) {
   if (!trigger) return NextResponse.json({ message: null });
 
   // ── Génère le message contextuel ─────────────────────────────
+  const p = profile as Record<string, string | null> | null;
   const context: CompanionContext = {
-    firstName:        profile?.display_name ?? null,
+    firstName:        p?.display_name ?? null,
     arabicLevel:      (mem?.arabic_level ?? "beginner") as CompanionContext["arabicLevel"],
-    appMode:          "pratiquant",
+    appMode:          ((p?.app_mode ?? mem?.app_mode ?? "pratiquant") as CompanionContext["appMode"]),
+    ageGroup:         p?.age_group ?? null,
+    mainObjective:    p?.main_objective ?? null,
+    motherTongue:     p?.mother_tongue ?? null,
     categoryLevels:   (progress?.category_levels as Record<string, number>) ?? {},
     gameStreak,
     totalCorrect:     0,

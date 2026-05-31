@@ -11,6 +11,10 @@ export interface YawmiSettings {
   prayerModes:  Partial<Record<string, "audio" | "silencieux">>;
   appMode:      "pratiquant" | "explorateur";
   arabicLevel:  "none" | "beginner" | "intermediate" | "advanced";
+  // Profil onboarding (ajouté V1.1)
+  ageGroup:      "4-10" | "11-17" | "18-35" | "36-55" | "55+" | null;
+  mainObjective: "apprendre" | "pratiquer" | "explorer" | null;
+  motherTongue:  "français" | "arabe" | "darija" | "autre" | null;
 }
 
 export interface PrayerLog {
@@ -69,10 +73,16 @@ export const DEFAULT_SETTINGS: YawmiSettings = {
   prayerModes:  {},
   appMode:      "pratiquant",
   arabicLevel:  "beginner",
+  ageGroup:     null,
+  mainObjective: null,
+  motherTongue:  null,
 };
 
 export const storage = {
-  getSettings:    ()  => get<YawmiSettings>(KEYS.settings, DEFAULT_SETTINGS),
+  getSettings: (): YawmiSettings => ({
+    ...DEFAULT_SETTINGS,
+    ...get<Partial<YawmiSettings>>(KEYS.settings, {}),
+  }),
   saveSettings:   (s: YawmiSettings) => set(KEYS.settings, s),
 
   getTasks:       ()  => get<Task[]>(KEYS.tasks, []),

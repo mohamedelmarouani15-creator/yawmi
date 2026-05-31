@@ -44,8 +44,11 @@ export function buildContextBlock(ctx: CompanionContext): string {
   const parts: string[] = ["[CONTEXTE APPRENANT — confidentiel, ne pas afficher à l'utilisateur]"];
 
   if (ctx.firstName) parts.push(`Prénom : ${ctx.firstName}`);
+  if (ctx.ageGroup)      parts.push(`Tranche d'âge : ${ctx.ageGroup}`);
+  if (ctx.motherTongue)  parts.push(`Langue maternelle : ${ctx.motherTongue}`);
   parts.push(`Niveau arabe : ${ctx.arabicLevel}`);
   parts.push(`Mode : ${ctx.appMode}`);
+  if (ctx.mainObjective) parts.push(`Objectif : ${ctx.mainObjective}`);
   parts.push(`Streak : ${ctx.gameStreak} jour(s) consécutifs`);
 
   // Niveaux par catégorie

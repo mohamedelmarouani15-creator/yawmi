@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { storage } from "@/lib/storage";
 import { idbSet, idbGet, idbDel } from "@/lib/idb";
 import { favorites } from "@/lib/favorites";
-import { ArrowLeft, BookOpen, Bookmark, BookmarkCheck, Download, Loader2, Trash2, WifiOff } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowLeft, BookOpen, Bookmark, BookmarkCheck, Download, Loader2, Moon, Trash2, WifiOff, X } from "lucide-react";
 import QuranPlayer from "@/components/QuranPlayer";
 
 interface Surah { number: number; name: string; englishName: string; numberOfAyahs: number; }
@@ -27,7 +28,27 @@ export default function CoranPage() {
   const [playingAyah,   setPlayingAyah]   = useState(1);
   const [showPlayer,    setShowPlayer]    = useState(false);
   const [favs,          setFavs]          = useState<Set<string>>(new Set());
+  const [nightMode,     setNightMode]     = useState(false);
+  const [sleepTimer,    setSleepTimer]    = useState<number | null>(null);
+  const sleepRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reading = storage.getReading();
+
+  function exitNightMode() {
+    setNightMode(false);
+    setSleepTimer(null);
+    if (sleepRef.current) { clearTimeout(sleepRef.current); sleepRef.current = null; }
+  }
+
+  function applyTimer(mins: number | null) {
+    if (sleepRef.current) { clearTimeout(sleepRef.current); sleepRef.current = null; }
+    setSleepTimer(mins);
+    if (mins !== null) {
+      sleepRef.current = setTimeout(() => {
+        exitNightMode();
+        setShowPlayer(false);
+      }, mins * 60_000);
+    }
+  }
 
   useEffect(() => {
     const all = favorites.getAll();
@@ -167,6 +188,17 @@ export default function CoranPage() {
             }}>
             {showPlayer ? "⏹" : "▶"} Audio
           </button>
+          <button
+            onClick={() => { setNightMode(true); setShowPlayer(true); }}
+            className="flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold"
+            style={{
+              borderColor: "rgba(212,175,55,0.25)",
+              color: "rgba(212,175,55,0.7)",
+              background: "rgba(0,0,0,0.3)",
+              fontFamily: "var(--font-dm-sans)",
+            }}>
+            <Moon size={11} /> Nuit
+          </button>
         </div>
 
         {loading ? (
@@ -224,6 +256,70 @@ export default function CoranPage() {
             currentAyah={playingAyah}
             onAyahChange={setPlayingAyah}
           />
+        )}
+
+        {/* ── Mode Nuit ──────────────────────────────────────────── */}
+        {nightMode && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black"
+            onClick={exitNightMode}
+          >
+            {/* Bouton fermeture */}
+            <button
+              onClick={e => { e.stopPropagation(); exitNightMode(); }}
+              className="absolute right-6 top-10 rounded-full p-2"
+              style={{ color: "rgba(248,244,236,0.18)" }}>
+              <X size={20} />
+            </button>
+
+            {/* Halo pulsant */}
+            <motion.div
+              animate={{ scale: [0.92, 1.08, 0.92], opacity: [0.18, 0.38, 0.18] }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+              className="h-36 w-36 rounded-full"
+              style={{ background: "radial-gradient(circle, rgba(5,92,63,0.7) 0%, transparent 70%)" }}
+            />
+
+            {/* Infos sourate — très atténuées */}
+            <div className="mt-8 flex flex-col items-center gap-2" style={{ opacity: 0.22 }}>
+              <p className="text-2xl" style={{ color: "#D4AF37", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
+                {surah?.name}
+              </p>
+              <p className="text-xs tracking-widest uppercase" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                {surah?.englishName} · verset {playingAyah}
+              </p>
+            </div>
+
+            {/* Timer de sommeil */}
+            <div
+              className="absolute bottom-12 flex items-center gap-4"
+              style={{ opacity: 0.25 }}
+              onClick={e => e.stopPropagation()}>
+              <span className="text-xs" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                Arrêt auto :
+              </span>
+              {([null, 15, 30, 60] as const).map(mins => {
+                const active = sleepTimer === mins;
+                return (
+                  <button key={mins ?? "inf"}
+                    onClick={() => applyTimer(mins)}
+                    className="rounded-full border px-2.5 py-1 text-xs"
+                    style={{
+                      borderColor: active ? "rgba(212,175,55,0.6)" : "rgba(255,255,255,0.2)",
+                      color: active ? "#D4AF37" : "#F8F4EC",
+                      fontFamily: "var(--font-dm-sans)",
+                      background: active ? "rgba(212,175,55,0.08)" : "transparent",
+                    }}>
+                    {mins === null ? "∞" : `${mins}m`}
+                  </button>
+                );
+              })}
+            </div>
+          </motion.div>
         )}
       </main>
     );

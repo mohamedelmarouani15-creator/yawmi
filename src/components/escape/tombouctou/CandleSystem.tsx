@@ -29,13 +29,16 @@ const BASE_INTENSITY = [0.85, 0.75, 0.90, 0.70, 0.80, 0.88, 0.72, 0.83, 0.76, 0.
 
 interface Props {
   tensionLevelRef: React.MutableRefObject<number>;
+  isMobile?: boolean;
 }
 
 // Couleurs normale → tension
 const COLOR_NORMAL  = new THREE.Color("#FF8C42");
 const COLOR_TENSION = new THREE.Color("#FF2008");
 
-export default function CandleSystem({ tensionLevelRef }: Props) {
+export default function CandleSystem({ tensionLevelRef, isMobile = false }: Props) {
+  // Sur mobile : 6 bougies (tables + chandelier), sinon 12
+  const positions  = isMobile ? CANDLE_POSITIONS.slice(0, 7) : CANDLE_POSITIONS;
   const lightRefs = useRef<(THREE.PointLight | null)[]>([]);
   const flameRefs = useRef<(THREE.Mesh | null)[]>([]);
   const innerRefs = useRef<(THREE.Mesh | null)[]>([]);
@@ -75,7 +78,7 @@ export default function CandleSystem({ tensionLevelRef }: Props) {
 
   return (
     <>
-      {CANDLE_POSITIONS.map((pos, i) => (
+      {positions.map((pos, i) => (
         <group key={i} position={pos}>
           {/* Lumière point — pas d'ombre pour la performance mobile */}
           <pointLight

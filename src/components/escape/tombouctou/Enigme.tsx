@@ -12,6 +12,7 @@ import VersetFinal        from "./enigmes/VersetFinal";
 
 interface Props {
   manuscriptId: number;
+  canSeeHint:   (id: number) => boolean;
   onSolve:  (id: number) => void;
   onClose:  () => void;
   onError:  () => void;
@@ -25,7 +26,7 @@ const ENIGME_COMPONENTS = {
   verset:    VersetFinal,
 } as const;
 
-export default function Enigme({ manuscriptId, onSolve, onClose, onError }: Props) {
+export default function Enigme({ manuscriptId, canSeeHint, onSolve, onClose, onError }: Props) {
   const m    = MANUSCRIPTS[manuscriptId];
   if (!m) return null;
 
@@ -104,6 +105,21 @@ export default function Enigme({ manuscriptId, onSolve, onClose, onError }: Prop
               {m.titleAr}
             </p>
           </div>
+
+          {/* Indice réservé à un autre gardien */}
+          {!canSeeHint(manuscriptId) && (
+            <div style={{
+              background: "rgba(212,175,55,0.06)",
+              border: "1px solid rgba(212,175,55,0.2)",
+              borderRadius: 12, padding: "12px 16px", marginBottom: 16,
+            }}>
+              <p style={{ color: "rgba(212,175,55,0.65)", fontSize: 12,
+                fontStyle: "italic", fontFamily: "Georgia, serif", lineHeight: 1.65, margin: 0 }}>
+                🧙 « Cet indice appartient à un autre gardien.
+                Demande-lui ce qu'il a vu… »
+              </p>
+            </div>
+          )}
 
           {/* Énigme */}
           <EnigmeComp

@@ -18,10 +18,14 @@ import VictorySequence    from "./VictorySequence";
 import VirtualJoystick    from "@/components/escape3d/VirtualJoystick";
 import LookZone           from "@/components/escape3d/LookZone";
 import { useTombouctouAudio } from "@/hooks/useTombouctouAudio";
+import { useTombouctouSession } from "@/hooks/useTombouctouSession";
 import { MANUSCRIPTS }    from "@/lib/escape/tombouctou";
+import FamilyLobby        from "./FamilyLobby";
+import OtherPlayers       from "./OtherPlayers";
+import { useAuth }        from "@/hooks/useAuth";
 
 // ── Constantes navigation ────────────────────────────────────────
-const SPEED       = 3.8
+const SPEED       = 4.2
 const BOUNDS      = { x: 8.8, z: 6.8 }
 const PITCH_LIMIT = Math.PI / 2.8
 
@@ -275,8 +279,15 @@ interface CtrlProps {
   pitchRef:    React.MutableRefObject<number>;
 }
 
-function CameraController({ joystickRef, keysRef, yawRef, pitchRef }: CtrlProps) {
+interface CtrlPropsExt extends CtrlProps {
+  sendPosition?: (x: number, y: number, z: number) => void;
+}
+
+function CameraController({ joystickRef, keysRef, yawRef, pitchRef, sendPosition }: CtrlPropsExt) {
   const { camera } = useThree();
+  // Momentum (Phase 6)
+  const velX = useRef(0);
+  const velZ = useRef(0);
 
   useFrame((_, delta) => {
     const keys = keysRef.current;
@@ -298,8 +309,13 @@ function CameraController({ joystickRef, keysRef, yawRef, pitchRef }: CtrlProps)
     const len = Math.sqrt(fx * fx + fz * fz);
     if (len > 1) { fx /= len; fz /= len; }
 
-    const nx = camera.position.x + fx * SPEED * dt;
-    const nz = camera.position.z + fz * SPEED * dt;
+    // Momentum : accélération lisse (ACCEL haute = très réactif)
+    const ACCEL = 10;
+    velX.current += (fx * SPEED - velX.current) * ACCEL * dt;
+    velZ.current += (fz * SPEED - velZ.current) * ACCEL * dt;
+
+    const nx = camera.position.x + velX.current * dt;
+    const nz = camera.position.z + velZ.current * dt;
     const cx = Math.max(-BOUNDS.x, Math.min(BOUNDS.x, nx));
     const cz = Math.max(-BOUNDS.z, Math.min(BOUNDS.z, nz));
 
@@ -310,6 +326,9 @@ function CameraController({ joystickRef, keysRef, yawRef, pitchRef }: CtrlProps)
     camera.rotation.order = "YXZ";
     camera.rotation.y = yawRef.current;
     camera.rotation.x = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, pitchRef.current));
+
+    // Broadcast position (Mode Famille)
+    sendPosition?.(camera.position.x, camera.position.y, camera.position.z);
   });
 
   return null;
@@ -326,6 +345,7 @@ export default function TombouctouScene() {
   const [locked,           setLocked]           = useState(false);
   const [isMobile,         setIsMobile]         = useState(false);
   const [firstTime,        setFirstTime]        = useState(true);
+  const [showLobby,        setShowLobby]        = useState(true);
   // Manuscrits
   const [solvedMs,         setSolvedMs]         = useState<boolean[]>(Array(5).fill(false));
   const [nearbyMs,         setNearbyMs]         = useState<number | null>(null);
@@ -348,7 +368,12 @@ export default function TombouctouScene() {
   const pitchRef           = useRef(-0.05);
   const containerRef       = useRef<HTMLDivElement>(null);
 
+  const { user } = useAuth();
   const { startAudio, stopAudio, setTension: setAudioTension } = useTombouctouAudio();
+
+  // ── Session famille (Phase 5) ────────────────────────────────
+  const displayName = user?.email?.split("@")[0] ?? "Gardien";
+  const session = useTombouctouSession(user?.id ?? null, displayName);
 
   // ── Init ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -417,8 +442,10 @@ export default function TombouctouScene() {
     setSolvedMs(prev => { const n=[...prev]; n[id]=true; return n; });
     solvedRef.current[id] = true;
     setRevealingMs(id);
-    // Jouer le son enigme-resolue (synthétisé via audio hook)
-  }, []);
+    // Broadcaster aux autres joueurs (Mode Famille)
+    const title = MANUSCRIPTS[id]?.title ?? "";
+    session.sendSolved(id, title);
+  }, [session]);
 
   const handleCloseReveal = useCallback(() => {
     setRevealingMs(null);
@@ -466,7 +493,9 @@ export default function TombouctouScene() {
 
   useEffect(() => () => stopAudio(), [stopAudio]);
 
-  const dpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio, 2) : 1;
+  const dpr = typeof window !== "undefined"
+    ? (isMobile ? Math.min(window.devicePixelRatio, 1.5) : Math.min(window.devicePixelRatio, 2))
+    : 1;
 
   return (
     <div ref={containerRef} onClick={handleClick}
@@ -490,7 +519,7 @@ export default function TombouctouScene() {
 
         {/* Scène */}
         <LibraryEnvironment />
-        <CandleSystem tensionLevelRef={tensionLevelRef} />
+        <CandleSystem tensionLevelRef={tensionLevelRef} isMobile={isMobile} />
         <AstrolabeDecor />
 
         {/* Manuscrits 3D */}
@@ -503,6 +532,11 @@ export default function TombouctouScene() {
             isSolved={solvedMs[m.id]}
           />
         ))}
+
+        {/* Autres joueurs (Mode Famille) */}
+        {session.isMultiplayer && (
+          <OtherPlayers players={session.players} myUserId={user?.id ?? null} />
+        )}
 
         {/* Détecteur de proximité */}
         <ProximityChecker
@@ -519,6 +553,7 @@ export default function TombouctouScene() {
               keysRef={keysRef}
               yawRef={yawRef}
               pitchRef={pitchRef}
+              sendPosition={session.sendPosition}
             />
         }
 
@@ -534,13 +569,63 @@ export default function TombouctouScene() {
         </EffectComposer>
       </Canvas>
 
+      {/* ── Lobby famille (avant intro) ── */}
+      {showLobby && !introComplete && (
+        <FamilyLobby
+          onSolo={() => setShowLobby(false)}
+          onCreateFamily={(code) => { session.createSession(); setShowLobby(false); }}
+          onJoinFamily={(code) => { session.joinSession(code); setShowLobby(false); }}
+          roleLabel={session.roleLabel}
+          myRole={session.myRole}
+          sessionCode={session.sessionCode}
+          playerCount={session.players.length}
+        />
+      )}
+
+      {/* ── Notifications famille ── */}
+      <div style={{
+        position: "fixed", top: 60, left: "50%", transform: "translateX(-50%)",
+        zIndex: 85, display: "flex", flexDirection: "column", gap: 6, width: "90%", maxWidth: 380,
+        pointerEvents: "none",
+      }}>
+        {session.notifications.map(n => (
+          <motion.div key={n.id}
+            initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            style={{
+              background: "rgba(4,14,8,0.88)", backdropFilter: "blur(8px)",
+              border: "1px solid rgba(212,175,55,0.28)", borderRadius: 10,
+              padding: "8px 14px", textAlign: "center",
+            }}>
+            <p style={{ color: "rgba(212,175,55,0.85)", fontSize: 12, margin: 0,
+              fontFamily: "var(--font-dm-sans, system-ui)" }}>{n.text}</p>
+          </motion.div>
+        ))}
+      </div>
+
+      {/* ── Badge rôle (Mode Famille) ── */}
+      {session.isMultiplayer && introComplete && !victoryActive && (
+        <div style={{
+          position: "fixed", top: 16, left: 16, zIndex: 80,
+          background: "rgba(4,14,8,0.82)", backdropFilter: "blur(6px)",
+          border: "1px solid rgba(212,175,55,0.22)", borderRadius: 10,
+          padding: "6px 12px",
+        }}>
+          <p style={{ color: "#D4AF37", fontSize: 11, letterSpacing: "0.12em",
+            fontFamily: "var(--font-dm-sans, system-ui)", margin: 0 }}>
+            {session.roleLabel}
+          </p>
+        </div>
+      )}
+
       {/* ── Enigme overlay ── */}
       {activeEnigme !== null && (
         <Enigme
           manuscriptId={activeEnigme}
+          canSeeHint={session.canSeeHint}
           onSolve={handleSolve}
           onClose={() => setActiveEnigme(null)}
-          onError={() => {/* feedback audio géré dans les composants */}}
+          onError={() => {}}
         />
       )}
 

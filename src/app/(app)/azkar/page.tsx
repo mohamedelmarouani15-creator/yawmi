@@ -171,10 +171,16 @@ export default function AzkarPage() {
                 <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
                   {zikr.source}
                 </p>
-                <p className="text-right text-lg leading-loose font-medium"
+                <p lang="ar" className="text-right text-lg leading-loose font-medium"
                   style={{ color: done ? "rgba(248,244,236,0.4)" : "#F8F4EC", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
                   {zikr.ar}
                 </p>
+                {zikr.darija && (
+                  <p lang="ar" className="text-right text-sm leading-relaxed"
+                    style={{ color: "rgba(212,175,55,0.55)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
+                    {zikr.darija}
+                  </p>
+                )}
                 <p className="text-xs leading-relaxed opacity-40 italic"
                   style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
                   {zikr.transliteration}

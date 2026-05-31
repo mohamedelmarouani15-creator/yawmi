@@ -3,6 +3,7 @@ export interface Zikr {
   ar:             string;
   transliteration:string;
   fr:             string;
+  darija?:        string;
   count:          number;
   source:         string;
 }
@@ -69,6 +70,7 @@ export const AZKAR_MATIN: Zikr[] = [
     ar: "لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
     transliteration: "La ilaha illallahu wahdahu la sharika lah, lahul-mulku wa lahul-hamd, wa huwa 'ala kulli shay'in qadir.",
     fr: "Nul dieu hormis Allah, seul sans associé. À Lui le Royaume et la louange.",
+    darija: "ما كاين إله غير الله وحدو بلا شريك، ليه الملك وليه الحمد",
     source: "Mouslim",
   },
   {
@@ -76,6 +78,7 @@ export const AZKAR_MATIN: Zikr[] = [
     ar: "سُبْحَانَ اللَّهِ وَبِحَمْدِهِ",
     transliteration: "Subhanallahi wa bihamdihi.",
     fr: "Gloire à Allah et Sa louange",
+    darija: "سبحان الله ومحمده",
     source: "Mouslim",
   },
   {
@@ -83,6 +86,7 @@ export const AZKAR_MATIN: Zikr[] = [
     ar: "اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّدٍ",
     transliteration: "Allahumma salli wa sallim 'ala nabiyyina Muhammad.",
     fr: "Ô Allah, envoie Tes bénédictions et la paix sur notre Prophète Muhammad ﷺ",
+    darija: "اللهم صلي وسلم على سيدنا محمد",
     source: "Al-Albani",
   },
   {
@@ -136,6 +140,7 @@ export const AZKAR_SOIR: Zikr[] = [
     ar: "لَا إِلَهَ إِلَّا اللَّهُ وَحْدَهُ لَا شَرِيكَ لَهُ، لَهُ الْمُلْكُ وَلَهُ الْحَمْدُ، وَهُوَ عَلَى كُلِّ شَيْءٍ قَدِيرٌ",
     transliteration: "La ilaha illallahu wahdahu la sharika lah, lahul-mulku wa lahul-hamd, wa huwa 'ala kulli shay'in qadir.",
     fr: "Nul dieu hormis Allah, seul sans associé. À Lui le Royaume et la louange.",
+    darija: "ما كاين إله غير الله وحدو بلا شريك، ليه الملك وليه الحمد",
     source: "Mouslim",
   },
   {
@@ -143,6 +148,7 @@ export const AZKAR_SOIR: Zikr[] = [
     ar: "اللَّهُمَّ صَلِّ وَسَلِّمْ عَلَى نَبِيِّنَا مُحَمَّدٍ",
     transliteration: "Allahumma salli wa sallim 'ala nabiyyina Muhammad.",
     fr: "Ô Allah, envoie Tes bénédictions et la paix sur notre Prophète Muhammad ﷺ",
+    darija: "اللهم صلي وسلم على سيدنا محمد",
     source: "Al-Albani",
   },
 ];

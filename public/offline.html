@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Yawmi — Hors-ligne</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #061A12;
+      color: #F8F4EC;
+      font-family: system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      text-align: center;
+      padding: 2rem;
+    }
+    .arabic {
+      font-size: 3rem;
+      color: #D4AF37;
+      direction: rtl;
+      font-family: serif;
+    }
+    h1 { font-size: 1.75rem; font-weight: 800; }
+    p { opacity: 0.5; font-size: 0.9rem; line-height: 1.6; max-width: 280px; }
+    .dhikr {
+      margin-top: 1rem;
+      padding: 1rem 2rem;
+      border: 1px solid rgba(212,175,55,0.2);
+      border-radius: 1rem;
+      background: rgba(5,92,63,0.1);
+    }
+    .dhikr p { opacity: 0.7; font-size: 0.8rem; margin-top: 0.5rem; }
+    button {
+      margin-top: 0.5rem;
+      padding: 0.75rem 2rem;
+      border-radius: 9999px;
+      background: linear-gradient(135deg, #055C3F, #0a8a5e);
+      color: #F8F4EC;
+      font-size: 0.875rem;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="arabic">يومي</div>
+  <h1>Pas de connexion</h1>
+  <p>Tu es hors-ligne. Les prières en cache et le Coran téléchargé restent disponibles.</p>
+  <div class="dhikr">
+    <div class="arabic" style="font-size:1.5rem">سُبْحَانَ اللَّهِ وَبِحَمْدِهِ</div>
+    <p>Subhanallahi wa bihamdihi — profites-en pour faire ton dhikr</p>
+  </div>
+  <button onclick="location.reload()">Réessayer</button>
+</body>
+</html>

@@ -4,13 +4,15 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, RotateCcw } from "lucide-react";
 import { TasbihIcon, Star8 } from "@/components/IslamicIcons";
+import { useSettings } from "@/hooks/useSettings";
+import { ageGroupToMode } from "@/hooks/useAgeMode";
 import { storage, todayKey } from "@/lib/storage";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
 
 const DHIKRS = [
-  { id: "subhan",  label: "Subhan Allah",   arabic: "سُبْحَانَ اللّهِ",   target: 33 },
-  { id: "hamdou",  label: "Alhamdulillah",  arabic: "الْحَمْدُ لِلَّهِ",  target: 33 },
-  { id: "akbar",   label: "Allahu Akbar",   arabic: "اللَّهُ أَكْبَرُ",   target: 34 },
+  { id: "subhan",  label: "Subhan Allah",   emoji: "🌿", arabic: "سُبْحَانَ اللّهِ",   target: 33 },
+  { id: "hamdou",  label: "Alhamdulillah",  emoji: "🙏", arabic: "الْحَمْدُ لِلَّهِ",  target: 33 },
+  { id: "akbar",   label: "Allahu Akbar",   emoji: "✨", arabic: "اللَّهُ أَكْبَرُ",   target: 34 },
 ];
 
 function loadCounts(): Record<string, number> {
@@ -45,15 +47,17 @@ export default function DhikrPage() {
   const [counts,    setCounts]    = useState<Record<string, number>>({});
   const [streak,    setStreak]    = useState(0);
   const [showBurst, setShowBurst] = useState(false);
+  const { settings } = useSettings();
+  const ageMode = ageGroupToMode(settings.ageGroup);
 
   useEffect(() => {
     setCounts(loadCounts());
     setStreak(getStreak());
   }, []);
 
-  const dhikr  = DHIKRS[current];
-  const taps   = counts[dhikr.id] ?? 0;
-  const done   = taps >= dhikr.target;
+  const dhikr   = DHIKRS[current];
+  const taps    = counts[dhikr.id] ?? 0;
+  const done    = taps >= dhikr.target;
   const allDone = DHIKRS.every(d => (counts[d.id] ?? 0) >= d.target);
   const progress = Math.min(taps / dhikr.target, 1);
 
@@ -97,15 +101,31 @@ export default function DhikrPage() {
       {/* Header */}
       <motion.div variants={itemVariants} className="flex w-full items-start justify-between">
         <div>
-          <div className="flex items-center gap-1.5">
-            <TasbihIcon size={13} style={{ color: "var(--gold)", opacity: 0.6 }} />
-            <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-              Tasbih
-            </p>
-          </div>
-          <h1 className="mt-1 text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-            Dhikr
-          </h1>
+          {ageMode === "kids" ? (
+            <>
+              <div className="flex items-center gap-2">
+                <span style={{ fontSize: 22 }}>📿</span>
+                <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Mon Dhikr du jour
+                </p>
+              </div>
+              <h1 className="mt-1 text-2xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
+                {dhikr.emoji} {dhikr.label}
+              </h1>
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-1.5">
+                <TasbihIcon size={13} style={{ color: "var(--gold)", opacity: 0.6 }} />
+                <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Tasbih
+                </p>
+              </div>
+              <h1 className="mt-1 text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+                Dhikr
+              </h1>
+            </>
+          )}
         </div>
         {streak > 0 && (
           <motion.div
@@ -130,7 +150,7 @@ export default function DhikrPage() {
               onClick={() => setCurrent(i)}
               whileTap={{ scale: 0.94 }}
               transition={springTap}
-              className="flex-1 rounded-xl py-2 text-xs font-semibold"
+              className="flex-1 rounded-xl py-2.5 text-xs font-semibold"
               style={{
                 background: isActive ? "rgba(5,92,63,0.5)" : isDone ? "rgba(5,92,63,0.15)" : "rgba(255,255,255,0.04)",
                 color: isActive ? "var(--gold)" : isDone ? "#4ade80" : "rgba(248,244,236,0.4)",
@@ -138,7 +158,15 @@ export default function DhikrPage() {
                 fontFamily: "var(--font-dm-sans)",
               }}
             >
-              {isDone ? <Check size={14} className="mx-auto" /> : d.label.split(" ")[0]}
+              {isDone ? (
+                <Check size={14} className="mx-auto" />
+              ) : ageMode === "kids" ? (
+                <span>{d.emoji} {d.label.split(" ")[0]}</span>
+              ) : ageMode === "elder" ? (
+                <span style={{ fontSize: 11 }}>{d.label}</span>
+              ) : (
+                d.label.split(" ")[0]
+              )}
             </motion.button>
           );
         })}
@@ -148,8 +176,13 @@ export default function DhikrPage() {
       <motion.p
         key={dhikr.id}
         variants={itemVariants}
-        className="text-center text-3xl font-bold leading-relaxed"
-        style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)", direction: "rtl" }}
+        className="text-center font-bold leading-relaxed"
+        style={{
+          fontSize: ageMode === "elder" ? 38 : 30,
+          color: "var(--gold)",
+          fontFamily: "var(--font-amiri)",
+          direction: "rtl",
+        }}
       >
         {dhikr.arabic}
       </motion.p>
@@ -157,7 +190,7 @@ export default function DhikrPage() {
       {/* Compteur circulaire + bouton */}
       <motion.div variants={itemVariants} className="relative flex items-center justify-center">
 
-        {/* Burst ring on completion */}
+        {/* Burst ring */}
         <AnimatePresence>
           {showBurst && (
             <motion.div
@@ -197,9 +230,7 @@ export default function DhikrPage() {
           className="absolute flex flex-col items-center justify-center rounded-full select-none"
           style={{
             width: 140, height: 140,
-            background: done
-              ? "var(--gradient-gold)"
-              : "var(--gradient-primary)",
+            background: done ? "var(--gradient-gold)" : "var(--gradient-primary)",
             boxShadow: done
               ? "0 0 48px rgba(212,175,55,0.45), 0 0 90px rgba(212,175,55,0.18), inset 0 1px 0 rgba(255,255,255,0.2)"
               : "0 0 40px rgba(5,92,63,0.5), 0 0 80px rgba(5,92,63,0.2), inset 0 1px 0 rgba(255,255,255,0.12)",
@@ -210,8 +241,12 @@ export default function DhikrPage() {
             initial={{ scale: 1.25, opacity: 0.7 }}
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 500, damping: 25 }}
-            className="text-5xl font-bold"
-            style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}
+            style={{
+              fontSize: ageMode === "elder" ? 52 : 48,
+              fontWeight: 700,
+              color: "var(--text)",
+              fontFamily: "var(--font-bricolage)",
+            }}
           >
             {taps}
           </motion.span>
@@ -223,15 +258,18 @@ export default function DhikrPage() {
 
       {/* Boutons action */}
       <motion.div variants={itemVariants} className="flex gap-3">
-        <motion.button
-          onClick={reset}
-          whileTap={{ scale: 0.94 }}
-          transition={springTap}
-          className="flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm"
-          style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}
-        >
-          <RotateCcw size={14} /> Réinitialiser
-        </motion.button>
+        {/* Reset — masqué pour les enfants */}
+        {ageMode !== "kids" && (
+          <motion.button
+            onClick={reset}
+            whileTap={{ scale: 0.94 }}
+            transition={springTap}
+            className="flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm"
+            style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}
+          >
+            <RotateCcw size={14} /> Réinitialiser
+          </motion.button>
+        )}
 
         <AnimatePresence>
           {done && current < DHIKRS.length - 1 && (
@@ -245,24 +283,44 @@ export default function DhikrPage() {
               className="rounded-full px-5 py-2.5 text-sm font-semibold"
               style={{ background: "var(--gradient-primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
             >
-              Suivant →
+              {ageMode === "kids" ? `${DHIKRS[current + 1].emoji} Suivant !` : "Suivant →"}
             </motion.button>
           )}
         </AnimatePresence>
       </motion.div>
 
+      {/* Message de fin */}
       <AnimatePresence>
         {allDone && (
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             transition={{ delay: 0.2, duration: 0.4 }}
-            className="text-center text-sm"
-            style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}
+            className="text-center"
           >
-            ✦ Tasbih du jour complété — barakAllahu fik
-          </motion.p>
+            {ageMode === "kids" ? (
+              <>
+                <motion.p
+                  animate={{ scale: [1, 1.15, 1] }}
+                  transition={{ duration: 0.5, delay: 0.3 }}
+                  style={{ fontSize: 40 }}
+                >
+                  🎉
+                </motion.p>
+                <p className="text-base font-bold mt-1" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
+                  Bravo ! Tasbih complété !
+                </p>
+                <p className="text-xs opacity-60 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Qu&apos;Allah t&apos;accepte — barak Allahu fik
+                </p>
+              </>
+            ) : (
+              <p className="text-sm" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+                ✦ Tasbih du jour complété — barakAllahu fik
+              </p>
+            )}
+          </motion.div>
         )}
       </AnimatePresence>
     </motion.main>

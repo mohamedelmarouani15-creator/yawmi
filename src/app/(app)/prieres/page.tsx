@@ -10,6 +10,7 @@ import { Qibla, Coordinates } from "adhan";
 import Link from "next/link";
 import { Settings2, Volume2, VolumeX, ChevronDown, CheckCircle2, Circle } from "lucide-react";
 import { MosqueIcon, CrescentStar } from "@/components/IslamicIcons";
+import { ageGroupToMode } from "@/hooks/useAgeMode";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
 
 const RECITERS = [
@@ -18,6 +19,10 @@ const RECITERS = [
   { id: "thobaity",   name: "Ali Ahmed Mulla",      src: "/audio/adhan-thobaity.mp3"   },
   { id: "husary",     name: "Mahmoud Al-Husary",    src: "/audio/adhan-husary.mp3"     },
 ];
+
+const PRAYER_EMOJI: Record<string, string> = {
+  fajr: "🌙", sunrise: "🌅", dhuhr: "☀️", asr: "🌤️", maghrib: "🌆", isha: "⭐",
+};
 
 function getQibla(lat: number, lng: number) {
   const coords = new Coordinates(lat, lng);
@@ -33,6 +38,7 @@ function getQibla(lat: number, lng: number) {
 export default function PrieresPage() {
   const { times, nextPrayer, countdown } = usePrayerTimes();
   const { settings, save } = useSettings();
+  const ageMode = ageGroupToMode(settings.ageGroup);
   const { bearing, dist } = getQibla(settings.lat, settings.lng);
   const [showReciters, setShowReciters] = useState(false);
   const [donePrayers,  setDonePrayers]  = useState<Partial<Record<string, boolean>>>({});
@@ -86,27 +92,39 @@ export default function PrieresPage() {
       animate="animate"
       className="flex flex-col gap-6 px-5 pt-12 pb-4"
     >
-      {/* Header */}
-      <motion.div variants={itemVariants} className="flex items-start justify-between">
-        <div>
-          <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            Horaires du jour
+      {/* Header — mascotte kids */}
+      {ageMode === "kids" ? (
+        <motion.div variants={itemVariants} className="flex flex-col items-center gap-2 py-1">
+          <span style={{ fontSize: 44 }}>🕌</span>
+          <h1 className="text-xl font-bold text-center" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
+            Mes Prières du jour
+          </h1>
+          <p className="text-xs opacity-50 text-center" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            {settings.cityName} · {prayerStreak > 0 ? `${prayerStreak} jour${prayerStreak > 1 ? "s" : ""} de suite !` : "Coche chaque prière"}
           </p>
-          <div className="flex items-center gap-2 mt-1">
-            <MosqueIcon size={22} style={{ color: "var(--gold)" }} />
-            <h1 className="text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-              Prières
-            </h1>
-          </div>
-        </div>
-        <motion.div whileTap={{ scale: 0.94 }} transition={springTap}>
-          <Link href="/profil"
-            className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs"
-            style={{ borderColor: "rgba(212,175,55,0.3)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
-            <Settings2 size={12} /> {settings.cityName}
-          </Link>
         </motion.div>
-      </motion.div>
+      ) : (
+        <motion.div variants={itemVariants} className="flex items-start justify-between">
+          <div>
+            <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              Horaires du jour
+            </p>
+            <div className="flex items-center gap-2 mt-1">
+              <MosqueIcon size={22} style={{ color: "var(--gold)" }} />
+              <h1 className="text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+                Prières
+              </h1>
+            </div>
+          </div>
+          <motion.div whileTap={{ scale: 0.94 }} transition={springTap}>
+            <Link href="/profil"
+              className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs"
+              style={{ borderColor: "rgba(212,175,55,0.3)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+              <Settings2 size={12} /> {settings.cityName}
+            </Link>
+          </motion.div>
+        </motion.div>
+      )}
 
       {/* Hero prochaine prière */}
       <motion.div variants={itemVariants}>
@@ -119,12 +137,17 @@ export default function PrieresPage() {
             <p className="text-xs tracking-widest uppercase opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               Prochaine prière
             </p>
-            <p className="mt-2 text-4xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
+            {ageMode === "kids" && (
+              <p className="mt-1 text-3xl">{PRAYER_EMOJI[nextPrayer]}</p>
+            )}
+            <p className="mt-1 text-4xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
               {PRAYER_LABELS[nextPrayer].fr}
             </p>
-            <p className="mt-0.5 text-sm opacity-60" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)" }}>
-              {PRAYER_LABELS[nextPrayer].ar}
-            </p>
+            {ageMode !== "kids" && (
+              <p className="mt-0.5 text-sm opacity-60" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)" }}>
+                {PRAYER_LABELS[nextPrayer].ar}
+              </p>
+            )}
             <p className="mt-2 text-3xl font-semibold tabular-nums" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
               {formatTime(times[nextPrayer])}
             </p>
@@ -141,61 +164,61 @@ export default function PrieresPage() {
         )}
       </motion.div>
 
-      {/* Adhan + récitateur */}
-      <motion.div variants={itemVariants} className="flex flex-col gap-3 rounded-2xl border px-5 py-4"
-        style={{ background: "rgba(255,255,255,0.02)", borderColor: "var(--gold-faint)" }}>
-        <div className="flex items-center justify-between">
-          <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            Adhan · الأذان
-          </p>
-          <motion.button
-            onClick={() => setShowReciters(v => !v)}
-            whileTap={{ scale: 0.94 }}
-            transition={springTap}
-            className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs"
-            style={{ borderColor: "rgba(212,175,55,0.25)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
-            {reciter.name} <ChevronDown size={11} />
-          </motion.button>
-        </div>
-
-        <AnimatePresence>
-          {showReciters && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ ease: [0.25, 0.1, 0.25, 1], duration: 0.25 }}
-              className="flex flex-col gap-1.5 overflow-hidden"
-            >
-              {RECITERS.map(r => (
-                <motion.button key={r.id} onClick={() => selectReciter(r.id)}
-                  whileTap={{ scale: 0.97 }}
-                  className="flex items-center justify-between rounded-xl border px-4 py-2.5 text-left"
-                  style={{
-                    background: reciterId === r.id ? "var(--bg-primary)" : "rgba(255,255,255,0.02)",
-                    borderColor: reciterId === r.id ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.06)",
-                  }}>
-                  <span className="text-sm" style={{ color: reciterId === r.id ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                    {r.name}
-                  </span>
-                  {reciterId === r.id && <span style={{ color: "var(--gold)" }}>✓</span>}
-                </motion.button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <audio key={reciter.src} src={reciter.src} controls playsInline preload="auto"
-          className="w-full" style={{ height: 36, borderRadius: 10 }} />
-      </motion.div>
+      {/* Adhan + récitateur — masqué pour kids et elder */}
+      {ageMode !== "kids" && ageMode !== "elder" && (
+        <motion.div variants={itemVariants} className="flex flex-col gap-3 rounded-2xl border px-5 py-4"
+          style={{ background: "rgba(255,255,255,0.02)", borderColor: "var(--gold-faint)" }}>
+          <div className="flex items-center justify-between">
+            <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              Adhan · الأذان
+            </p>
+            <motion.button
+              onClick={() => setShowReciters(v => !v)}
+              whileTap={{ scale: 0.94 }}
+              transition={springTap}
+              className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs"
+              style={{ borderColor: "rgba(212,175,55,0.25)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+              {reciter.name} <ChevronDown size={11} />
+            </motion.button>
+          </div>
+          <AnimatePresence>
+            {showReciters && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ ease: [0.25, 0.1, 0.25, 1], duration: 0.25 }}
+                className="flex flex-col gap-1.5 overflow-hidden"
+              >
+                {RECITERS.map(r => (
+                  <motion.button key={r.id} onClick={() => selectReciter(r.id)}
+                    whileTap={{ scale: 0.97 }}
+                    className="flex items-center justify-between rounded-xl border px-4 py-2.5 text-left"
+                    style={{
+                      background: reciterId === r.id ? "var(--bg-primary)" : "rgba(255,255,255,0.02)",
+                      borderColor: reciterId === r.id ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.06)",
+                    }}>
+                    <span className="text-sm" style={{ color: reciterId === r.id ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                      {r.name}
+                    </span>
+                    {reciterId === r.id && <span style={{ color: "var(--gold)" }}>✓</span>}
+                  </motion.button>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+          <audio key={reciter.src} src={reciter.src} controls playsInline preload="auto"
+            className="w-full" style={{ height: 36, borderRadius: 10 }} />
+        </motion.div>
+      )}
 
       {/* Liste des prières */}
       <motion.div variants={itemVariants}>
         <div className="mb-2 flex items-center justify-between">
           <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            Horaires du jour
+            {ageMode === "kids" ? "Coche tes prières ✓" : "Horaires du jour"}
           </p>
-          {prayerStreak > 0 && (
+          {prayerStreak > 0 && ageMode !== "kids" && (
             <span className="text-xs font-semibold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
               ✦ {prayerStreak} jour{prayerStreak > 1 ? "s" : ""}
             </span>
@@ -217,117 +240,138 @@ export default function PrieresPage() {
                 transition={{ ease: [0.25, 0.1, 0.25, 1], duration: 0.32, delay: idx * 0.045 }}
                 className="flex items-center gap-3 rounded-xl border px-4 py-3.5"
                 style={{
-                  background: isNext ? "rgba(5,92,63,0.2)" : "rgba(255,255,255,0.02)",
-                  borderColor: isNext ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.06)",
+                  background: isNext ? "rgba(5,92,63,0.2)" : donePrayers[key] ? "rgba(5,92,63,0.08)" : "rgba(255,255,255,0.02)",
+                  borderColor: isNext ? "rgba(212,175,55,0.3)" : donePrayers[key] ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.06)",
                 }}>
-                <div className="h-2 w-2 rounded-full flex-shrink-0"
-                  style={{ background: isPast ? "var(--primary)" : isNext ? "var(--gold)" : "rgba(255,255,255,0.15)" }} />
+                {/* Indicateur : emoji pour kids, dot sinon */}
+                {ageMode === "kids" ? (
+                  <span style={{ fontSize: 20, flexShrink: 0 }}>{PRAYER_EMOJI[key]}</span>
+                ) : (
+                  <div className="h-2 w-2 rounded-full flex-shrink-0"
+                    style={{ background: isPast ? "var(--primary)" : isNext ? "var(--gold)" : "rgba(255,255,255,0.15)" }} />
+                )}
+
                 <div className="flex-1">
                   <p className="text-sm font-semibold" style={{ color: isNext ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {PRAYER_LABELS[key].fr}
                   </p>
-                  <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-amiri)" }}>
-                    {PRAYER_LABELS[key].ar}
-                  </p>
+                  {ageMode !== "kids" && (
+                    <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-amiri)" }}>
+                      {PRAYER_LABELS[key].ar}
+                    </p>
+                  )}
                 </div>
+
                 <p className="text-sm font-semibold tabular-nums"
-                  style={{ color: isPast ? "var(--text-dim)" : "var(--text)", fontFamily: "var(--font-dm-sans)", textDecoration: isPast ? "line-through" : "none" }}>
+                  style={{
+                    color: isPast && !donePrayers[key] ? "var(--text-dim)" : "var(--text)",
+                    fontFamily: "var(--font-dm-sans)",
+                    textDecoration: isPast && !donePrayers[key] && ageMode !== "kids" ? "line-through" : "none",
+                  }}>
                   {formatTime(times[key])}
                 </p>
+
+                {/* Cochage fait/pas fait */}
                 {key !== "sunrise" && (
                   <motion.button
                     onClick={() => togglePrayerDone(key)}
                     whileTap={{ scale: 0.85 }}
                     transition={springTap}
                     style={{ color: donePrayers[key] ? "var(--gold)" : "rgba(255,255,255,0.2)" }}>
-                    {donePrayers[key] ? <CheckCircle2 size={20} /> : <Circle size={20} />}
+                    {donePrayers[key] ? <CheckCircle2 size={ageMode === "kids" ? 26 : 20} /> : <Circle size={ageMode === "kids" ? 26 : 20} />}
                   </motion.button>
                 )}
-                <motion.button
-                  onClick={() => togglePrayerMode(key)}
-                  whileTap={{ scale: 0.85 }}
-                  transition={springTap}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border"
-                  style={{
-                    borderColor: isAudio ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.1)",
-                    background:  isAudio ? "var(--gold-faint)" : "transparent",
-                    color:       isAudio ? "var(--gold)" : "rgba(248,244,236,0.25)",
-                  }}>
-                  {isAudio ? <Volume2 size={12} /> : <VolumeX size={12} />}
-                </motion.button>
+
+                {/* Toggle son — masqué pour kids et elder */}
+                {ageMode !== "kids" && ageMode !== "elder" && (
+                  <motion.button
+                    onClick={() => togglePrayerMode(key)}
+                    whileTap={{ scale: 0.85 }}
+                    transition={springTap}
+                    className="flex h-7 w-7 items-center justify-center rounded-full border"
+                    style={{
+                      borderColor: isAudio ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.1)",
+                      background:  isAudio ? "var(--gold-faint)" : "transparent",
+                      color:       isAudio ? "var(--gold)" : "rgba(248,244,236,0.25)",
+                    }}>
+                    {isAudio ? <Volume2 size={12} /> : <VolumeX size={12} />}
+                  </motion.button>
+                )}
               </motion.div>
             );
           })}
         </div>
       </motion.div>
 
-      {/* Calendrier mensuel */}
-      <motion.div variants={itemVariants}>
-        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          Ce mois-ci · pratique privée
-        </p>
-        <div className="rounded-2xl border p-4" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}>
-          {(() => {
-            const log   = storage.getPrayerLog();
-            const now   = new Date();
-            const year  = now.getFullYear();
-            const month = now.getMonth();
-            const tracked = PRAYER_ORDER.filter(k => k !== "sunrise");
-            const daysInMonth = new Date(year, month + 1, 0).getDate();
-            const firstDow    = new Date(year, month, 1).getDay();
-            const pad = firstDow === 0 ? 6 : firstDow - 1;
-            const DAY_LABELS = ["L","M","M","J","V","S","D"];
-            return (
-              <div>
-                <div className="grid grid-cols-7 mb-1">
-                  {DAY_LABELS.map((d, i) => (
-                    <div key={i} className="text-center text-xs pb-1 opacity-30"
-                      style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{d}</div>
-                  ))}
-                </div>
-                <div className="grid grid-cols-7 gap-1">
-                  {Array.from({ length: pad }).map((_, i) => <div key={`p${i}`} />)}
-                  {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
-                    const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
-                    const entry   = log.find(l => l.date === dateKey);
-                    const isToday = dateKey === todayKey();
-                    const isFuture = new Date(year, month, day) > now;
-                    const allDone = !isFuture && !!entry && tracked.every(k => entry.done[k]);
-                    const someDone = !isFuture && !!entry && tracked.some(k => entry.done[k]);
-                    return (
-                      <div key={day} className="flex flex-col items-center gap-0.5">
-                        <div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium"
-                          style={{
-                            background: allDone  ? "var(--primary)"
-                                      : someDone ? "rgba(5,92,63,0.3)"
-                                      : isToday  ? "rgba(212,175,55,0.15)"
-                                      : "transparent",
-                            border: isToday ? "1px solid rgba(212,175,55,0.5)" : "none",
-                            color: allDone ? "var(--text)" : isToday ? "var(--gold)" : isFuture ? "rgba(248,244,236,0.2)" : "var(--text-muted)",
-                            fontFamily: "var(--font-dm-sans)",
-                          }}>
-                          {day}
+      {/* Calendrier mensuel — masqué pour kids */}
+      {ageMode !== "kids" && (
+        <motion.div variants={itemVariants}>
+          <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            Ce mois-ci · pratique privée
+          </p>
+          <div className="rounded-2xl border p-4" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}>
+            {(() => {
+              const log   = storage.getPrayerLog();
+              const now   = new Date();
+              const year  = now.getFullYear();
+              const month = now.getMonth();
+              const tracked = PRAYER_ORDER.filter(k => k !== "sunrise");
+              const daysInMonth = new Date(year, month + 1, 0).getDate();
+              const firstDow    = new Date(year, month, 1).getDay();
+              const pad = firstDow === 0 ? 6 : firstDow - 1;
+              const DAY_LABELS = ["L","M","M","J","V","S","D"];
+              return (
+                <div>
+                  <div className="grid grid-cols-7 mb-1">
+                    {DAY_LABELS.map((d, i) => (
+                      <div key={i} className="text-center text-xs pb-1 opacity-30"
+                        style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{d}</div>
+                    ))}
+                  </div>
+                  <div className="grid grid-cols-7 gap-1">
+                    {Array.from({ length: pad }).map((_, i) => <div key={`p${i}`} />)}
+                    {Array.from({ length: daysInMonth }, (_, i) => i + 1).map(day => {
+                      const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                      const entry   = log.find(l => l.date === dateKey);
+                      const isToday = dateKey === todayKey();
+                      const isFuture = new Date(year, month, day) > now;
+                      const allDone = !isFuture && !!entry && tracked.every(k => entry.done[k]);
+                      const someDone = !isFuture && !!entry && tracked.some(k => entry.done[k]);
+                      return (
+                        <div key={day} className="flex flex-col items-center gap-0.5">
+                          <div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium"
+                            style={{
+                              background: allDone  ? "var(--primary)"
+                                        : someDone ? "rgba(5,92,63,0.3)"
+                                        : isToday  ? "rgba(212,175,55,0.15)"
+                                        : "transparent",
+                              border: isToday ? "1px solid rgba(212,175,55,0.5)" : "none",
+                              color: allDone ? "var(--text)" : isToday ? "var(--gold)" : isFuture ? "rgba(248,244,236,0.2)" : "var(--text-muted)",
+                              fontFamily: "var(--font-dm-sans)",
+                            }}>
+                            {day}
+                          </div>
+                          {allDone && <div className="h-1 w-1 rounded-full" style={{ background: "var(--gold)" }} />}
                         </div>
-                        {allDone && <div className="h-1 w-1 rounded-full" style={{ background: "var(--gold)" }} />}
-                      </div>
-                    );
-                  })}
-                </div>
-                <div className="flex items-center gap-4 mt-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-                  <div className="flex items-center gap-1.5">
-                    <div className="h-3 w-3 rounded-full" style={{ background: "var(--primary)" }} />
-                    <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>5 prières</p>
+                      );
+                    })}
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="h-3 w-3 rounded-full" style={{ background: "rgba(5,92,63,0.3)" }} />
-                    <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>Partiel</p>
+                  <div className="flex items-center gap-4 mt-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-3 w-3 rounded-full" style={{ background: "var(--primary)" }} />
+                      <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>5 prières</p>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <div className="h-3 w-3 rounded-full" style={{ background: "rgba(5,92,63,0.3)" }} />
+                      <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>Partiel</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })()}
-        </div>
-      </motion.div>
+              );
+            })()}
+          </div>
+        </motion.div>
+      )}
 
       {/* Qibla */}
       <motion.div variants={itemVariants} whileTap={{ scale: 0.985 }} transition={springTap}>
@@ -335,10 +379,10 @@ export default function PrieresPage() {
           className="relative flex items-center justify-between overflow-hidden rounded-2xl border p-5"
           style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.15)" }}>
           <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-10"
-            style={{ background: "radial-gradient(circle, #D4AF37, transparent)" }} />
+            style={{ background: "radial-gradient(circle, var(--gold), transparent)" }} />
           <div className="flex flex-col gap-1">
             <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-              Qibla · القبلة
+              {ageMode === "kids" ? "Direction La Mecque 🕋" : "Qibla · القبلة"}
             </p>
             <p className="text-3xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
               {bearing}°

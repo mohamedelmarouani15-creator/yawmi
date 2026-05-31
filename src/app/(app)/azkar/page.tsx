@@ -3,10 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sun, Moon, RotateCcw } from "lucide-react";
+import { Sun, Moon, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { AZKAR_MATIN, AZKAR_SOIR, type Zikr } from "@/lib/azkar";
 import { storage, todayKey } from "@/lib/storage";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
+import { useZikrAudio, type AudioRate } from "@/hooks/useZikrAudio";
 
 type Session = "matin" | "soir";
 
@@ -16,6 +17,7 @@ export default function AzkarPage() {
   const params = useSearchParams();
   const [session, setSession] = useState<Session>(params.get("session") === "soir" ? "soir" : "matin");
   const [counts,  setCounts]  = useState<Record<string, number>>({});
+  const { playingId, rate, setRate, toggle, stop, supported } = useZikrAudio();
 
   const azkar = session === "matin" ? AZKAR_MATIN : AZKAR_SOIR;
 
@@ -53,7 +55,7 @@ export default function AzkarPage() {
       className="flex flex-col gap-5 px-5 pt-12 pb-24"
     >
       {/* Header */}
-      <motion.div variants={itemVariants} className="flex items-start justify-between">
+      <motion.div variants={itemVariants} className="flex items-start justify-between gap-2">
         <div>
           <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
             {session === "matin" ? "Après Fajr" : "Après Asr"}
@@ -62,28 +64,50 @@ export default function AzkarPage() {
             Azkar
           </h1>
         </div>
-        <div className="flex items-center gap-1.5 rounded-full border px-1.5 py-1"
-          style={{ borderColor: "rgba(212,175,55,0.2)" }}>
-          {(["matin", "soir"] as Session[]).map(s => (
-            <motion.button
-              key={s}
-              onClick={() => setSession(s)}
-              whileTap={{ scale: 0.93 }}
-              transition={springTap}
-              className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold"
-              style={{
-                background: session === s ? "rgba(5,92,63,0.5)" : "transparent",
-                color: session === s ? "#D4AF37" : "rgba(248,244,236,0.4)",
-                border: session === s ? "1px solid rgba(212,175,55,0.3)" : "1px solid transparent",
-                fontFamily: "var(--font-dm-sans)",
-              }}
-            >
-              {s === "matin"
-                ? <><Sun size={11} /> Matin</>
-                : <><Moon size={11} /> Soir</>
-              }
-            </motion.button>
-          ))}
+        <div className="flex flex-col items-end gap-2">
+          {/* Toggle matin/soir */}
+          <div className="flex items-center gap-1.5 rounded-full border px-1.5 py-1"
+            style={{ borderColor: "rgba(212,175,55,0.2)" }}>
+            {(["matin", "soir"] as Session[]).map(s => (
+              <motion.button
+                key={s}
+                onClick={() => { stop(); setSession(s); }}
+                whileTap={{ scale: 0.93 }}
+                transition={springTap}
+                className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold"
+                style={{
+                  background: session === s ? "rgba(5,92,63,0.5)" : "transparent",
+                  color: session === s ? "#D4AF37" : "rgba(248,244,236,0.4)",
+                  border: session === s ? "1px solid rgba(212,175,55,0.3)" : "1px solid transparent",
+                  fontFamily: "var(--font-dm-sans)",
+                }}
+              >
+                {s === "matin"
+                  ? <><Sun size={11} /> Matin</>
+                  : <><Moon size={11} /> Soir</>
+                }
+              </motion.button>
+            ))}
+          </div>
+          {/* Vitesse de lecture */}
+          {supported && (
+            <div className="flex items-center gap-1">
+              <Volume2 size={10} style={{ color: "rgba(212,175,55,0.4)" }} />
+              {([0.55, 0.75, 1.0] as AudioRate[]).map(r => (
+                <button key={r}
+                  onClick={() => setRate(r)}
+                  className="rounded-full px-2 py-0.5 text-xs"
+                  style={{
+                    background: rate === r ? "rgba(212,175,55,0.15)" : "transparent",
+                    color: rate === r ? "#D4AF37" : "rgba(248,244,236,0.3)",
+                    border: rate === r ? "1px solid rgba(212,175,55,0.3)" : "1px solid transparent",
+                    fontFamily: "var(--font-dm-sans)",
+                  }}>
+                  {r === 0.55 ? "Lent" : r === 0.75 ? "Moyen" : "Normal"}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </motion.div>
 
@@ -169,6 +193,32 @@ export default function AzkarPage() {
                     />
                   </div>
                   <div className="flex items-center gap-2">
+                    {/* Bouton audio */}
+                    {supported && (
+                      <motion.button
+                        onClick={() => toggle(zikr.id, zikr.ar)}
+                        whileTap={{ scale: 0.85 }} transition={springTap}
+                        className="relative flex h-7 w-7 items-center justify-center rounded-full border"
+                        style={{
+                          borderColor: playingId === zikr.id ? "rgba(212,175,55,0.5)" : "rgba(255,255,255,0.1)",
+                          background: playingId === zikr.id ? "rgba(212,175,55,0.1)" : "rgba(255,255,255,0.03)",
+                          color: playingId === zikr.id ? "#D4AF37" : "rgba(248,244,236,0.35)",
+                        }}>
+                        {playingId === zikr.id ? (
+                          <>
+                            <motion.span
+                              className="absolute inset-0 rounded-full"
+                              animate={{ scale: [1, 1.5], opacity: [0.3, 0] }}
+                              transition={{ duration: 1.2, repeat: Infinity }}
+                              style={{ background: "rgba(212,175,55,0.25)" }}
+                            />
+                            <VolumeX size={12} />
+                          </>
+                        ) : (
+                          <Volume2 size={12} />
+                        )}
+                      </motion.button>
+                    )}
                     {!done && (
                       <motion.button
                         onClick={() => reset(zikr.id)}

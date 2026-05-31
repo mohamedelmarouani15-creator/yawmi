@@ -89,8 +89,9 @@ function playPageTurn(ctx: AudioContext, dest: AudioNode) {
 
 // ── Hook public ──────────────────────────────────────────────────
 export function useTombouctouAudio() {
-  const ctxRef     = useRef<AudioContext | null>(null);
-  const startedRef = useRef(false);
+  const ctxRef          = useRef<AudioContext | null>(null);
+  const startedRef      = useRef(false);
+  const tensionGainRef  = useRef<GainNode | null>(null);
 
   const startAudio = useCallback(() => {
     if (startedRef.current) return;
@@ -148,8 +149,24 @@ export function useTombouctouAudio() {
       osc.start();
     });
 
-    // 4. Feuilletage ─ toutes les 10-22 secondes
-    const schedulePage = () => {
+    // 4. Layer tension ─ grondement sourd (activé progressivement par setTension)
+    const tensionOsc1 = ctx.createOscillator();
+    tensionOsc1.type  = "sine"; tensionOsc1.frequency.value = 38;
+    const tensionOsc2 = ctx.createOscillator();
+    tensionOsc2.type  = "sine"; tensionOsc2.frequency.value = 61;
+    const tensionLP   = ctx.createBiquadFilter();
+    tensionLP.type    = "lowpass"; tensionLP.frequency.value = 120;
+    const tensionGain = ctx.createGain();
+    tensionGain.gain.value = 0; // silencieux au début
+    tensionGainRef.current  = tensionGain;
+    tensionOsc1.connect(tensionLP);
+    tensionOsc2.connect(tensionLP);
+    tensionLP.connect(tensionGain);
+    tensionGain.connect(reverb);
+    tensionOsc1.start(); tensionOsc2.start();
+
+    // 5. Feuilletage ─ toutes les 10-22 secondes
+    const schedulePage = () => { // eslint-disable-line prefer-const
       const delay = 10000 + Math.random() * 12000;
       setTimeout(() => {
         if (ctxRef.current) { playPageTurn(ctx, master); schedulePage(); }
@@ -165,5 +182,19 @@ export function useTombouctouAudio() {
     startedRef.current = false;
   }, []);
 
-  return { startAudio, stopAudio };
+  // Activé progressivement par le GameTimer quand chrono < 5min
+  const setTension = useCallback((level: number) => {
+    const ctx = ctxRef.current;
+    if (!ctx) return;
+    // On stocke les nœuds gain dans les refs pour les modifier
+    if (tensionGainRef.current) {
+      tensionGainRef.current.gain.setTargetAtTime(
+        level * 0.18,
+        ctx.currentTime,
+        2.0 // rampe douce sur 2s
+      );
+    }
+  }, []);
+
+  return { startAudio, stopAudio, setTension };
 }

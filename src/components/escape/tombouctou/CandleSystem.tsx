@@ -27,27 +27,44 @@ const CANDLE_POSITIONS: [number, number, number][] = [
 // Intensité de base différente par bougie (diversité visuelle)
 const BASE_INTENSITY = [0.85, 0.75, 0.90, 0.70, 0.80, 0.88, 0.72, 0.83, 0.76, 0.87, 0.79, 0.95];
 
-export default function CandleSystem() {
+interface Props {
+  tensionLevelRef: React.MutableRefObject<number>;
+}
+
+// Couleurs normale → tension
+const COLOR_NORMAL  = new THREE.Color("#FF8C42");
+const COLOR_TENSION = new THREE.Color("#FF2008");
+
+export default function CandleSystem({ tensionLevelRef }: Props) {
   const lightRefs = useRef<(THREE.PointLight | null)[]>([]);
   const flameRefs = useRef<(THREE.Mesh | null)[]>([]);
   const innerRefs = useRef<(THREE.Mesh | null)[]>([]);
+  const lerpColor = new THREE.Color();
 
   useFrame(({ clock }) => {
-    const t = clock.getElapsedTime();
+    const t       = clock.getElapsedTime();
+    const tension = tensionLevelRef.current;
+
+    // Couleur interpolée selon tension
+    lerpColor.lerpColors(COLOR_NORMAL, COLOR_TENSION, tension);
+
     lightRefs.current.forEach((light, i) => {
       if (!light) return;
       const base  = BASE_INTENSITY[i] ?? 0.8;
       const phase = i * 1.7;
-      // Formule exacte du cahier des charges
-      light.intensity = base
+      light.intensity = (base + tension * 0.3)
         + Math.sin(t * 3.5 + phase) * 0.25
         + (Math.random() - 0.5) * 0.05;
+      light.color.copy(lerpColor);
     });
     flameRefs.current.forEach((flame, i) => {
       if (!flame) return;
       const phase = i * 1.7;
       flame.scale.y = 1 + Math.sin(t * 4.0 + phase) * 0.22;
       flame.rotation.z = Math.sin(t * 7.0 + phase) * 0.055;
+      if ((flame.material as THREE.MeshBasicMaterial).color) {
+        (flame.material as THREE.MeshBasicMaterial).color.copy(lerpColor);
+      }
     });
     innerRefs.current.forEach((inner, i) => {
       if (!inner) return;

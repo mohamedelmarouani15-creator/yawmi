@@ -7,7 +7,7 @@ import { Check, LogOut, Volume2, VolumeX, Star, Zap, Moon, Home, Crown } from "l
 import { useAuth }        from "@/hooks/useAuth";
 import { useSettings }    from "@/hooks/useSettings";
 import { useNotifications } from "@/hooks/useNotifications";
-import { CALC_METHOD_LABELS, MADHAB_LABELS, type CalcMethodKey, type MadhabKey } from "@/lib/prayer";
+import { CALC_METHOD_LABELS, MADHAB_LABELS, computePrayerTimes, type CalcMethodKey, type MadhabKey } from "@/lib/prayer";
 import { CITIES } from "@/lib/cities";
 import { storage, todayKey } from "@/lib/storage";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
@@ -226,6 +226,56 @@ export default function ProfilPage() {
                   {active && <Check size={14} style={{ color: "var(--gold)" }} />}
                 </div>
                 <p className="text-xs opacity-40 leading-tight" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  {sub}
+                </p>
+              </motion.button>
+            );
+          })}
+        </div>
+      </motion.div>
+
+      {/* Thème d'affichage */}
+      <motion.div variants={itemVariants}>
+        <p className="mb-1 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+          Thème d&apos;affichage
+        </p>
+        <p className="mb-3 text-xs opacity-30 leading-relaxed" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+          Nuit par défaut — passe au jour manuellement ou automatiquement
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          {([
+            { id: "night" as const, emoji: "🌙", label: "Nuit",  sub: "Sombre" },
+            { id: "day"   as const, emoji: "☀️", label: "Jour",  sub: "Clair"  },
+            { id: "auto"  as const, emoji: "🌅", label: "Auto",  sub: "Fajr→Maghrib" },
+          ]).map(({ id, emoji, label, sub }) => {
+            const active = (settings.themeMode ?? "night") === id;
+            return (
+              <motion.button key={id}
+                onClick={() => {
+                  const next = { ...settings, themeMode: id };
+                  save(next);
+                  // Applique immédiatement sans attendre le prochain tick du hook
+                  if (id !== "auto") {
+                    document.documentElement.dataset.theme = id;
+                  } else {
+                    const times = computePrayerTimes(next.lat, next.lng, next.method, next.madhab);
+                    const now = new Date();
+                    document.documentElement.dataset.theme =
+                      now >= times.fajr && now < times.maghrib ? "day" : "night";
+                  }
+                  flash();
+                }}
+                whileTap={{ scale: 0.95 }} transition={springTap}
+                className="flex flex-col items-center gap-1.5 rounded-xl border py-3.5 text-center"
+                style={{
+                  background: active ? "var(--bg-primary)" : "rgba(255,255,255,0.02)",
+                  borderColor: active ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.06)",
+                }}>
+                <span style={{ fontSize: 22 }}>{emoji}</span>
+                <p className="text-xs font-semibold" style={{ color: active ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  {label}
+                </p>
+                <p className="text-[10px] opacity-35 leading-tight" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                   {sub}
                 </p>
               </motion.button>

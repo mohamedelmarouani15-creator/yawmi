@@ -12,6 +12,7 @@ export interface YawmiSettings {
   appMode:      "pratiquant" | "explorateur";
   arabicLevel:  "none" | "beginner" | "intermediate" | "advanced";
   sleepReciter?: string;
+  themeMode:     "night" | "day" | "auto";
   // Profil onboarding (ajouté V1.1)
   ageGroup:      "4-10" | "11-17" | "18-35" | "36-55" | "55+" | null;
   mainObjective: "apprendre" | "pratiquer" | "explorer" | null;
@@ -74,6 +75,7 @@ export const DEFAULT_SETTINGS: YawmiSettings = {
   prayerModes:  {},
   appMode:      "pratiquant",
   arabicLevel:  "beginner",
+  themeMode:    "night",
   ageGroup:     null,
   mainObjective: null,
   motherTongue:  null,

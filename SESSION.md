@@ -1,117 +1,116 @@
-# SESSION — 31 mai 2026
+# SESSION — 31 mai 2026 (mise à jour autonome)
 
-## Ce qu'on a fait aujourd'hui
+## Ce qu'on a fait dans cette session
 
-### Grande Histoire — Activation des 9 arcs
-- Migration `006_v3_all_stories.sql` : seed Ibrahim, Moussa, Maryam, Sîra,
-  Sahaba, Hijra, Ismaïl, Isrâ wal-Miraj, Souleimane (1-2 chapitres chacun)
-- Tous les 10 arcs passent de `coming_soon` à `available`
-- `isLast` dynamique basé sur `total_chapters` de la DB (était hardcodé à 10)
-- TITLES map dans `[storyId]/page.tsx` mis à jour pour tous les arcs
+### Design — 4 chantiers
+- **Tokens CSS** : 900 remplacements couleurs en dur → CSS vars sur 57 fichiers
+- **Mode jour/nuit** : `usePrayerTheme.ts` + thème `[data-theme="day"]` dans globals.css
+- **Icônes islamiques** : `IslamicIcons.tsx` (CrescentStar, MosqueIcon, TasbihIcon, Star8, MihrabArch…)
+- **useAgeMode** : intégré dans accueil, prieres, dhikr, coran, azkar
 
-### Narrateur audio (VoiceRSS)
-- Nouveau hook `src/hooks/useNarrator.ts` : ambiance sonore procédurale par arc
-  (feu/eau/vent/nuit/désert via Web Audio API)
-- Route API `src/app/api/story/narrate/route.ts` via VoiceRSS (gratuit, 350 req/jour)
-- POST avec body de texte, retour audio/mpeg direct
+### Modes par âge — complets
+- **BottomNav** : nav kids (Accueil|Prières|Jouer|Histoires|Dhikr), nav elder (Accueil|Prières|Coran|Dhikr|Famille)
+- **Accueil kids** : mascotte 🌟, CTA Oasis, raccourcis 4 cols, stats/mosquée/events masqués + bouton ⚙️ discret pour parents
+- **Accueil elder** : raccourcis 3 cols (essentiel), tout le reste masqué
+- **Prieres kids** : emoji par prière (🌙/☀️/⭐), adhan masqué, calendrier masqué, cochage 26px
+- **Prieres elder** : adhan masqué, calendrier conservé
+- **Dhikr kids** : mascotte 📿, onglets emoji (🌿🙏✨), reset masqué, fin 🎉
+- **Dhikr elder** : labels complets, compteur 52px
+- **Coran kids** : titre "📖 Le livre d'Allah", traduction par défaut, Dormir masqué, téléchargement masqué, versets 26px
+- **Coran elder** : traduction par défaut, versets 26px
+- **Azkar kids** : "Bonjour Allah ☀️/🌙", speed masqué, fin "🎉 Bravo !"
+- **Azkar elder** : speed masqué
 
-### Mode Sommeil Coran
-- Nouveau composant `src/components/SleepModeOverlay.tsx`
-- Timer : 15/30/45/60 min + fin de sourate + fin du Juzz (30 juzz définis)
-- Fondu progressif volume sur 30 dernières secondes
-- Dimming progressif de l'écran sur 4 minutes
+### StoryPrologue — diaporama animé
+- `StoryPrologue.tsx` : 4-5 slides auto-générées, VoiceRSS slide par slide, auto-avance
+- **Histoire kids** : prologue → questions → récompense (skip lecture+vocab)
+- **Oasis quiz kids** : prologue avant chaque quiz (description ville + dialogue sage)
+- Fix : init `prologueDone=null` (bug useSettings async)
+- Fix : seuil filtre slides 30→10 (slides courtes incluses)
 
-### DESIGN — Session 2 (31 mai 2026)
+### Cache narrateur VoiceRSS
+- Route `/api/story/narrate` : cache Supabase Storage (bucket `narrate-cache`)
+- Fix text/plain + JSON (StoryPrologue envoyait text/plain, la route attendait JSON)
+- 503 propre si VOICERSS_API_KEY absente
 
-#### Chantier 1 — Tokens CSS (✅ FAIT)
-- 900 remplacements de couleurs en dur → CSS vars sur 57 fichiers
-- `#D4AF37` → `var(--gold)`, `#055C3F` → `var(--primary)`, `#F8F4EC` → `var(--text)`, etc.
-- Exceptions préservées (canvas/Three.js, manifest JSON, données hex-alpha interpolées)
-- `location.color`, `pu.color`, `MEMBER_COLORS`, `arc.color` gardent hex (utilisés en `${color}33`)
+### Chapitres manquants (SQL — à exécuter sur Supabase dashboard)
+- Migration `007_v3_more_chapters.sql` :
+  - arc_ibrahim chapitres 3-5 (Hijra, Songe du sacrifice, Ka'ba)
+  - arc_ismail chapitres 2-4 (Sa'i, Ismaïl le soumis, Prophète)
+  - arc_isra_miraj chapitres 2-4 (Miraj, 5 prières, Abu Bakr As-Siddiq)
 
-#### Chantier 2 — Mode jour/nuit (✅ FAIT)
-- `[data-theme="day"]` CSS block dans globals.css : thème marbre chaud + texte sombre
-- Hook `src/hooks/usePrayerTheme.ts` : bascule automatiquement entre Fajr et Maghrib
-- Monté dans `src/app/(app)/layout.tsx` à côté de `useAgeMode`
-- Transition CSS 1.5s sur background/color
-- Gold assombri en jour (#9A7000) pour le contraste sur fond clair
-
-#### Chantier 3 — Icônes islamiques + bordures mihrab (✅ FAIT)
-- `src/components/IslamicIcons.tsx` avec 7 icônes SVG :
-  `CrescentStar`, `Star8`, `BismillahIcon`, `MosqueIcon`, `GeometricTile`,
-  `MihrabArch`, `TasbihIcon`
-- Classes CSS dans globals.css : `.mihrab-card`, `.divider-gold`,
-  `.frame-arabic`, `.glow-gold`, `.glow-primary`
-
-#### Chantier 4 — useAgeMode dans les pages (✅ FAIT)
-- CSS `age-kids` enrichi : border-radius, espacement, cibles 52px, `.hide-kids`/`.show-kids`
-- CSS `age-elder` enrichi : contraste via `--text-muted`/`--text-dim` overrides,
-  icônes scale 1.15, nav 5rem, `.hide-elder`
-- CSS `age-teen` ajouté
-
-### Déploiements
-- 2 déploiements en production sur https://yawmi-delta.vercel.app
+### Bugs corrigés
+- Médine sans jeu → bouton "Commencer le quiz" ajouté
+- Mode kids sans accès Profil → ⚙️ discret sur accueil
+- CSS `svg { scale }` cassait la carte Oasis → limité à nav/button/a
+- prologueDone toujours true → useState(null) + useEffect storage
 
 ---
 
-## Ce qui est en cours
+## À FAIRE AVANT DE REPRENDRE
 
-- **Chapitres histoire** : les chapitres 3+ retournent une erreur 404 API.
-  Prochaine étape : écrire et migrer les chapitres manquants.
+### ⚠️ Supabase — action manuelle requise
+1. **Créer le bucket `narrate-cache`** dans Supabase Storage (dashboard)
+   - Visibility : Private
+   - Pas de policy supplémentaire nécessaire (service role key bypasse RLS)
+2. **Exécuter `supabase/migrations/007_v3_more_chapters.sql`** dans SQL Editor du dashboard
+   - Cela active les chapitres 3-5 d'Ibrahim, 2-4 d'Ismaïl, 2-4 d'Isra Miraj
 
-- **IslamicIcons non intégrées dans les pages** : composant créé, pas encore branché.
-
-- **VOICERSS_API_KEY manquante en preview** : production seulement.
-
----
-
-## Bugs connus
-
-### 🔴 Clé HuggingFace exposée dans le chat
-- **ACTION REQUISE : révoquer sur https://huggingface.co/settings/tokens**
-
-### 🔴 Chapitres histoire 404
-- Cause : migration 006 n'a seedé que 1-2 chapitres par arc.
-
-### 🟠 Adhan push ne fonctionne pas app fermée
-
-### 🟠 Wake Lock iOS (mode sommeil)
-
-### 🟡 VoiceRSS 350 req/jour — fix : cache Supabase Storage
-
-### 🟡 IslamicIcons pas encore intégrées dans les pages
+### 🔴 HuggingFace token exposé
+- Révoquer sur https://huggingface.co/settings/tokens
 
 ---
 
-## Prochaine étape exacte à reprendre
+## État des arcs (après migration 007)
 
-**Priorité 1 — Intégrer les IslamicIcons dans les pages clés**
-- `/accueil` : CrescentStar (prières), TasbihIcon (dhikr)
-- `/prieres` : MosqueIcon header, MihrabArch sur la card active
-- `/dhikr` : TasbihIcon header
-- Ajouter `.mihrab-card` et `.frame-arabic` sur les cards importantes
-
-**Priorité 2 — Compléter les chapitres de La Grande Histoire**
-- arc_ibrahim : 6 chapitres à écrire (3→8)
-- arc_moussa : 8 chapitres à écrire (3→10)
-- arc_maryam : 5 chapitres à écrire (2→6)
-- arc_sira : 11 chapitres à écrire (2→12)
-- arc_sahaba, hijra, ismail, isra_miraj, souleimane : voir SESSION précédente
-
-**Priorité 3 — Cache narrateur**
-Activer le cache Supabase Storage dans `/api/story/narrate/route.ts`.
+| Arc | Chapitres faits | Chapitres total |
+|-----|----------------|-----------------|
+| arc_yusuf | 10 ✅ | 10 |
+| arc_ibrahim | 5 | 8 |
+| arc_ismail | 4 | 4 ✅ |
+| arc_isra_miraj | 4 | 5 |
+| arc_moussa | 2 | 10 |
+| arc_maryam | 1 | 6 |
+| arc_sira | 1 | 12 |
+| arc_sahaba | 1 | 10 |
+| arc_hijra | 1 | 5 |
+| arc_souleimane | 1 | 7 |
 
 ---
 
-## Variables d'environnement (état au 31/05/2026)
+## Prochaines priorités
 
-- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
-- `GROQ_API_KEY`
-- `VAPID_SUBJECT`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`
-- `VOICERSS_API_KEY` (production Vercel seulement)
-- `ELEVENLABS_API_KEY` (non utilisé)
-- `HUGGINGFACE_TOKEN` (⚠️ À RÉVOQUER ET RENOUVELER)
+**Priorité 1 — Migrations Supabase manuelles** (voir section ⚠️ ci-dessus)
+
+**Priorité 2 — Chapitres manquants restants**
+- arc_ibrahim : 3 chapitres (6, 7, 8)
+- arc_isra_miraj : 1 chapitre (5)
+- arc_moussa : 8 chapitres (3→10)
+- arc_maryam : 5 chapitres (2→6)
+- arc_sira : 11 chapitres (2→12)
+- arc_sahaba : 9 chapitres (2→10)
+- arc_hijra : 4 chapitres (2→5)
+- arc_souleimane : 6 chapitres (2→7)
+
+**Priorité 3 — Tests et polish**
+- Tester le prologue Oasis en vrai sur mobile
+- Vérifier le cache narrate-cache (header X-Cache)
+- Accessibilité WCAG AA (non formellement implémentée)
+
+---
+
+## Variables d'environnement
+- Toutes présentes en production
+- `VOICERSS_API_KEY` : production uniquement (pas preview)
+- `HUGGINGFACE_TOKEN` : ⚠️ à révoquer
 
 ## Supabase
 Projet : `ipxzrblmjebgpnejmhpn`
-Migrations : 001→006 exécutées manuellement via dashboard SQL
+Migrations exécutées : 001→006
+Migrations à exécuter : **007_v3_more_chapters.sql**
+Bucket à créer : **narrate-cache**
+
+## Prompt de reprise
+```
+On reprend Yawmi. Lis SESSION.md et continue là où on s'était arrêtés.
+```

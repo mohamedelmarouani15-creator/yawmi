@@ -260,16 +260,16 @@ export default function Parchemin({ onSend, initialMessages = [] }: Props) {
             {/* Panneau parchemin */}
             <motion.div
               key="parchemin"
-              initial={{ scaleY: 0, opacity: 0.5 }}
+              initial={{ scaleY: 0.03, opacity: 0 }}
               animate={{ scaleY: 1, opacity: 1 }}
-              exit={{ scaleY: 0, opacity: 0 }}
+              exit={{ scaleY: 0.03, opacity: 0 }}
               transition={{
-                scaleY: { duration: 0.45, ease: [0.16, 1, 0.3, 1] },
-                opacity: { duration: 0.2 },
+                scaleY: { type: "spring", stiffness: 190, damping: 22, restDelta: 0.001 },
+                opacity: { duration: 0.12 },
               }}
               style={{
                 position: "fixed",
-                bottom: 80,   // juste au-dessus de la BottomNav
+                bottom: 80,
                 left: 12,
                 right: 12,
                 maxWidth: 480,
@@ -281,25 +281,26 @@ export default function Parchemin({ onSend, initialMessages = [] }: Props) {
                 overflow: "hidden",
                 display: "flex",
                 flexDirection: "column",
-                // Texture papier ancien
                 background:
                   "radial-gradient(ellipse at 15% 10%, rgba(255,248,228,0.95) 0%, transparent 50%), " +
                   "radial-gradient(ellipse at 85% 90%, rgba(180,130,40,0.15) 0%, transparent 50%), " +
                   "linear-gradient(160deg, #F7EBCB 0%, #EDD89E 30%, #E8CC80 60%, #DDB95C 100%)",
                 boxShadow:
-                  "0 -8px 40px rgba(212,175,55,0.25), 0 4px 30px rgba(0,0,0,0.35), " +
-                  "inset 0 1px 0 rgba(255,255,255,0.4)",
-                border: "1px solid rgba(139,90,20,0.35)",
+                  "0 -8px 40px rgba(212,175,55,0.28), 0 4px 30px rgba(0,0,0,0.4), " +
+                  "inset 0 1px 0 rgba(255,255,255,0.5)",
+                border: "1px solid rgba(139,90,20,0.4)",
               }}
             >
-              {/* ─── Bord supérieur roulé ─── */}
+              {/* ─── Bord supérieur roulé — cylindre ─── */}
               <div
                 style={{
-                  height: 16,
+                  height: 22,
                   background:
-                    "linear-gradient(180deg, rgba(139,90,20,0.3) 0%, rgba(212,175,55,0.15) 100%)",
-                  borderBottom: "1px solid rgba(139,90,20,0.2)",
+                    "linear-gradient(180deg, rgba(80,48,8,0.55) 0%, rgba(139,90,20,0.35) 35%, rgba(212,175,55,0.18) 70%, rgba(240,210,140,0.6) 100%)",
+                  borderBottom: "1px solid rgba(139,90,20,0.25)",
                   flexShrink: 0,
+                  borderRadius: "20px 20px 0 0",
+                  boxShadow: "inset 0 -2px 6px rgba(80,48,8,0.12), 0 3px 10px rgba(80,48,8,0.15)",
                 }}
               />
 
@@ -355,8 +356,11 @@ export default function Parchemin({ onSend, initialMessages = [] }: Props) {
                 </motion.button>
               </div>
 
-              {/* ─── Zone messages ─── */}
-              <div
+              {/* ─── Zone messages — révèle avec délai post-déroulement ─── */}
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.28, duration: 0.25 }}
                 className="flex-1 overflow-y-auto px-4 py-3"
                 style={{ scrollbarWidth: "none" }}
               >
@@ -422,7 +426,7 @@ export default function Parchemin({ onSend, initialMessages = [] }: Props) {
                 ))}
                 {loading && <TypingIndicator />}
                 <div ref={messagesEndRef} />
-              </div>
+              </motion.div>
 
               {/* ─── Input ─── */}
               <div
@@ -468,14 +472,16 @@ export default function Parchemin({ onSend, initialMessages = [] }: Props) {
                 </motion.button>
               </div>
 
-              {/* ─── Bord inférieur roulé ─── */}
+              {/* ─── Bord inférieur roulé — cylindre ─── */}
               <div
                 style={{
-                  height: 14,
+                  height: 20,
                   background:
-                    "linear-gradient(0deg, rgba(139,90,20,0.3) 0%, rgba(212,175,55,0.1) 100%)",
+                    "linear-gradient(0deg, rgba(80,48,8,0.5) 0%, rgba(139,90,20,0.3) 40%, rgba(212,175,55,0.15) 75%, rgba(240,210,140,0.4) 100%)",
                   borderTop: "1px solid rgba(139,90,20,0.2)",
                   flexShrink: 0,
+                  borderRadius: "0 0 20px 20px",
+                  boxShadow: "inset 0 2px 6px rgba(80,48,8,0.1)",
                 }}
               />
             </motion.div>

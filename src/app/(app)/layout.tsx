@@ -7,6 +7,7 @@ import PageWrapper        from "@/components/PageWrapper";
 import OfflineBanner      from "@/components/OfflineBanner";
 import Parchemin          from "@/components/Parchemin";
 import SplashScreen       from "@/components/SplashScreen";
+import { useAgeMode }    from "@/hooks/useAgeMode";
 import { useCompanion }   from "@/hooks/useCompanion";
 import { useNotifications } from "@/hooks/useNotifications";
 import { supabase } from "@/lib/supabase";
@@ -59,6 +60,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router  = useRouter();
   const [authReady,   setAuthReady]   = useState(false);
   const [splashDone,  setSplashDone]  = useState(false);
+  useAgeMode(); // applique la classe CSS age-* sur <html>
 
   useEffect(() => {
     const done = localStorage.getItem("yawmi_onboarded");

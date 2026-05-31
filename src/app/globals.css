@@ -102,6 +102,29 @@ body {
   50%       { opacity: 1;   transform: scale(1);   }
 }
 
+/* ── Modes par âge ────────────────────────────────────────────── */
+
+/* Enfants (4-10) : gros caractères, boutons larges */
+.age-kids {
+  font-size: 17px;
+}
+.age-kids button, .age-kids a {
+  min-height: 48px;
+}
+
+/* Aînés (55+) : très grands caractères, contraste renforcé */
+.age-elder {
+  font-size: 18px;
+}
+.age-elder p, .age-elder span, .age-elder li {
+  font-size: 1.1em;
+  line-height: 1.7;
+}
+.age-elder button, .age-elder a {
+  min-height: 52px;
+  font-size: 1.05em;
+}
+
 /* ── Accessibilité ────────────────────────────────────────────── */
 :focus-visible {
   outline: 2px solid rgba(212, 175, 55, 0.7);

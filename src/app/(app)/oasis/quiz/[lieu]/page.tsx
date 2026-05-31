@@ -11,7 +11,7 @@ import { getSageForLocation } from "@/lib/game/sages";
 import { gameStorage } from "@/lib/game/game-storage";
 import { POWERUPS } from "@/lib/game/powerups";
 import { springTap }      from "@/lib/motion";
-import { useSettings }    from "@/hooks/useSettings";
+import { storage }        from "@/lib/storage";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 import StoryPrologue      from "@/components/StoryPrologue";
 import type { PowerUpType } from "@/lib/game/types";
@@ -201,13 +201,18 @@ export default function QuizPage() {
   const sage     = getSageForLocation(lieu);
   const color    = location?.color ?? "#D4AF37";
 
-  const { settings }   = useSettings();
-  const ageMode        = ageGroupToMode(settings.ageGroup);
-  const isKids         = ageMode === "kids";
-  const [prologueDone, setPrologueDone] = useState(!isKids);
+  // null = pas encore déterminé (useSettings charge en async depuis localStorage)
+  const [prologueDone, setPrologueDone] = useState<boolean | null>(null);
 
-  // Démarre le quiz seulement après le prologue (kids) ou immédiatement (autres)
-  useEffect(() => { if (prologueDone) startQuiz(); }, [prologueDone]); // eslint-disable-line
+  // Détermine si le prologue est nécessaire après hydration des settings
+  useEffect(() => {
+    const s    = storage.getSettings();
+    const mode = ageGroupToMode(s.ageGroup);
+    setPrologueDone(mode !== "kids"); // kids → false (prologue), autres → true (skip)
+  }, []);
+
+  // Démarre le quiz seulement quand prologueDone passe à true
+  useEffect(() => { if (prologueDone === true) startQuiz(); }, [prologueDone]); // eslint-disable-line
 
   // Save rewards when quiz finishes
   useEffect(() => {
@@ -266,7 +271,7 @@ export default function QuizPage() {
   };
 
   // ── Prologue animé (mode kids) ───────────────────────────────
-  if (!prologueDone && location) {
+  if (prologueDone === false && location) {
     const narrative = [
       `Tu arrives à ${location.nameFr}, ${location.country}.`,
       location.description,

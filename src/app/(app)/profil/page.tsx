@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, LogOut, Volume2, VolumeX } from "lucide-react";
+import { Check, LogOut, Volume2, VolumeX, Star, Zap, Moon, Home, Crown } from "lucide-react";
 import { useAuth }        from "@/hooks/useAuth";
 import { useSettings }    from "@/hooks/useSettings";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -37,6 +37,14 @@ function getStats() {
   return { streak, totalDhikrAll, doneTasks, totalTasks: tasks.length };
 }
 
+const AGE_OPTIONS = [
+  { value: "4-10",  icon: <Star size={12} />,  label: "4 – 10 ans" },
+  { value: "11-17", icon: <Zap size={12} />,   label: "11 – 17 ans" },
+  { value: "18-35", icon: <Moon size={12} />,  label: "18 – 35 ans" },
+  { value: "36-55", icon: <Home size={12} />,  label: "36 – 55 ans" },
+  { value: "55+",   icon: <Crown size={12} />, label: "55 ans +" },
+] as const;
+
 export default function ProfilPage() {
   const { user, signOut }   = useAuth();
   const { settings, save }  = useSettings();
@@ -46,6 +54,9 @@ export default function ProfilPage() {
   const [saved,        setSaved]        = useState(false);
   const [notifMsg,     setNotifMsg]     = useState<string | null>(null);
   const stats = getStats();
+
+  const displayName = user?.user_metadata?.display_name as string | undefined;
+  const initial = (displayName ?? user?.email ?? "?").charAt(0).toUpperCase();
 
   const filtered = CITIES.filter(c =>
     c.name.toLowerCase().includes(citySearch.toLowerCase())
@@ -76,29 +87,57 @@ export default function ProfilPage() {
       animate="animate"
       className="flex flex-col gap-6 px-5 pt-12 pb-4"
     >
-      {/* Header avec infos utilisateur */}
-      <motion.div variants={itemVariants} className="flex items-start justify-between">
-        <div>
-          <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+      {/* Header avec avatar */}
+      <motion.div variants={itemVariants} className="flex items-start gap-4">
+        {/* Avatar lettre */}
+        <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-2xl font-extrabold"
+          style={{
+            background: settings.appMode === "explorateur"
+              ? "linear-gradient(135deg, rgba(212,175,55,0.28), rgba(184,148,46,0.12))"
+              : "linear-gradient(135deg, rgba(5,92,63,0.55), rgba(10,138,94,0.22))",
+            border: settings.appMode === "explorateur"
+              ? "1px solid rgba(212,175,55,0.3)"
+              : "1px solid rgba(5,92,63,0.5)",
+            color: settings.appMode === "explorateur" ? "#D4AF37" : "#4ade80",
+            fontFamily: "var(--font-bricolage)",
+          }}>
+          {initial}
+        </div>
+
+        {/* Identité */}
+        <div className="flex-1 min-w-0 pt-0.5">
+          <p className="text-xs tracking-widest uppercase opacity-40"
+            style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
             Mon compte
           </p>
-          <h1 className="mt-1 text-2xl font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
-            {user?.user_metadata?.display_name ?? "Profil"}
+          <h1 className="mt-0.5 text-2xl font-bold truncate"
+            style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+            {displayName ?? "Profil"}
           </h1>
-          {user && (
-            <p className="mt-0.5 text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-              {user.email}
-            </p>
-          )}
+          <div className="mt-1.5 flex flex-wrap items-center gap-2">
+            {user?.email && (
+              <p className="text-xs opacity-35 truncate"
+                style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                {user.email}
+              </p>
+            )}
+            {settings.ageGroup && (
+              <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"
+                style={{ background: "rgba(212,175,55,0.12)", color: "#D4AF37", border: "1px solid rgba(212,175,55,0.2)" }}>
+                {AGE_OPTIONS.find(o => o.value === settings.ageGroup)?.icon}
+                {settings.ageGroup} ans
+              </span>
+            )}
+          </div>
         </div>
+
+        {/* Déconnexion */}
         {user && (
-          <motion.button
-            onClick={signOut}
-            whileTap={{ scale: 0.93 }}
-            transition={springTap}
+          <motion.button onClick={signOut}
+            whileTap={{ scale: 0.93 }} transition={springTap}
             className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs"
             style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
-            <LogOut size={12} /> Déconnexion
+            <LogOut size={12} /> Déco
           </motion.button>
         )}
       </motion.div>
@@ -121,6 +160,40 @@ export default function ProfilPage() {
             </p>
           </div>
         ))}
+      </motion.div>
+
+      {/* Tranche d'âge */}
+      <motion.div variants={itemVariants}>
+        <p className="mb-1 text-xs tracking-widest uppercase opacity-40"
+          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          Tranche d'âge
+        </p>
+        <p className="mb-3 text-xs opacity-30 leading-relaxed"
+          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          Personnalise le Compagnon IA et les contenus proposés
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {AGE_OPTIONS.map(opt => {
+            const active = settings.ageGroup === opt.value;
+            return (
+              <motion.button key={opt.value}
+                whileTap={{ scale: 0.94 }} transition={springTap}
+                onClick={() => { save({ ...settings, ageGroup: opt.value }); flash(); }}
+                className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold"
+                style={{
+                  background: active ? "rgba(5,92,63,0.28)" : "rgba(255,255,255,0.03)",
+                  borderColor: active ? "rgba(212,175,55,0.5)" : "rgba(255,255,255,0.08)",
+                  color: active ? "#D4AF37" : "rgba(248,244,236,0.5)",
+                  transition: "background 0.15s, border-color 0.15s, color 0.15s",
+                  fontFamily: "var(--font-dm-sans)",
+                }}>
+                {opt.icon}
+                {opt.label}
+                {active && <Check size={10} />}
+              </motion.button>
+            );
+          })}
+        </div>
       </motion.div>
 
       {/* Mode app */}

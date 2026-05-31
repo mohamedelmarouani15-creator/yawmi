@@ -27,7 +27,7 @@ function GoldParticles({ show }: { show: boolean }) {
   const particles = Array.from({ length: 28 }, (_, i) => ({
     x: 30 + Math.random() * 330,
     delay: Math.random() * 0.5,
-    color: ["#D4AF37", "#FFD700", "#F8F4EC", "#22c55e"][i % 4],
+    color: ["var(--gold)", "#FFD700", "var(--text)", "#22c55e"][i % 4],
     size: 3 + Math.random() * 5,
     rotation: Math.random() * 720 * (Math.random() > 0.5 ? 1 : -1),
   }));
@@ -76,7 +76,7 @@ function AnimatedChest({ open, color }: { open: boolean; color: string }) {
       {/* Glow when open */}
       {open && (
         <motion.ellipse cx={60} cy={52} rx={40} ry={12}
-          fill="#D4AF37" opacity={0}
+          fill="var(--gold)" opacity={0}
           animate={{ opacity: [0, 0.25, 0] }}
           transition={{ duration: 1.2, delay: 0.3 }}
         />
@@ -252,8 +252,8 @@ export default function QuizPage() {
   // ── Loading ──────────────────────────────────────────────────
   if (!session || !currentQuestion) {
     return (
-      <div className="flex items-center justify-center h-screen" style={{ background: "#061A12" }}>
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-t-transparent" style={{ borderColor: "#D4AF37" }} />
+      <div className="flex items-center justify-center h-screen" style={{ background: "var(--bg)" }}>
+        <div className="animate-spin rounded-full h-8 w-8 border-2 border-t-transparent" style={{ borderColor: "var(--gold)" }} />
       </div>
     );
   }
@@ -280,7 +280,7 @@ export default function QuizPage() {
           <svg width={160} height={160} className="-rotate-90">
             <circle cx={80} cy={80} r={68} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={8} />
             <motion.circle cx={80} cy={80} r={68} fill="none"
-              stroke={victory ? "#D4AF37" : "#055C3F"} strokeWidth={8}
+              stroke={victory ? "var(--gold)" : "var(--primary)"} strokeWidth={8}
               strokeLinecap="round"
               strokeDasharray={2 * Math.PI * 68}
               initial={{ strokeDashoffset: 2 * Math.PI * 68 }}
@@ -289,21 +289,21 @@ export default function QuizPage() {
             />
           </svg>
           <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-4xl font-bold" style={{ color: victory ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+            <span className="text-4xl font-bold" style={{ color: victory ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-bricolage)" }}>
               {finalCorrect}/{total}
             </span>
-            <span className="text-xs opacity-45" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>bonnes réponses</span>
+            <span className="text-xs opacity-45" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>bonnes réponses</span>
           </div>
         </div>
 
         {/* Message */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-6">
-          <p className="text-2xl font-bold mb-2" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+          <p className="text-2xl font-bold mb-2" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             {victory ? "Victoire !" : "Pas encore…"}
           </p>
           {sage && (
             <p className="text-sm opacity-55 leading-relaxed max-w-xs"
-              style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+              style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               &ldquo;{victory ? sage.dialogueSuccess : sage.dialogueFailure}&rdquo;
             </p>
           )}
@@ -316,19 +316,19 @@ export default function QuizPage() {
           className="flex gap-3 mb-6"
         >
           <div className="rounded-2xl border px-5 py-3.5 text-center"
-            style={{ background: "rgba(212,175,55,0.07)", borderColor: "rgba(212,175,55,0.2)" }}>
-            <p className="text-2xl font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+            style={{ background: "rgba(212,175,55,0.07)", borderColor: "var(--border-gold)" }}>
+            <p className="text-2xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
               +{session.xpEarned + (victory && sage ? sage.reward.xp : 0)}
             </p>
-            <p className="text-xs opacity-50 mt-0.5" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>XP</p>
+            <p className="text-xs opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>XP</p>
           </div>
           <div className="rounded-2xl border px-5 py-3.5 text-center"
-            style={{ background: "rgba(212,175,55,0.07)", borderColor: "rgba(212,175,55,0.2)" }}>
-            <p className="text-2xl font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+            style={{ background: "rgba(212,175,55,0.07)", borderColor: "var(--border-gold)" }}>
+            <p className="text-2xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
               +{session.coinsEarned + (victory && sage ? sage.reward.coins : 0)}
             </p>
-            <p className="text-xs opacity-50 mt-0.5" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-              <Star size={10} className="inline mr-0.5" fill="#D4AF37" style={{ color: "#D4AF37" }} />
+            <p className="text-xs opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              <Star size={10} className="inline mr-0.5" fill="var(--gold)" style={{ color: "var(--gold)" }} />
               Pièces
             </p>
           </div>
@@ -352,12 +352,12 @@ export default function QuizPage() {
                 onClick={handleOpenChest}
                 whileTap={{ scale: 0.96 }} transition={springTap}
                 className="rounded-full px-6 py-2.5 text-sm font-bold"
-                style={{ background: `linear-gradient(135deg,${color},#055C3F)`, color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}
+                style={{ background: `linear-gradient(135deg,${color},#055C3F)`, color: "var(--text)", fontFamily: "var(--font-bricolage)" }}
               >
                 Ouvrir le coffre ({chestAvail} disponible{chestAvail > 1 ? "s" : ""})
               </motion.button>
             ) : (
-              <p className="text-sm font-semibold" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+              <p className="text-sm font-semibold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
                 ✦ Trésor découvert !
               </p>
             )}
@@ -371,12 +371,12 @@ export default function QuizPage() {
               initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }}
               transition={{ delay: 1.1 + i * 0.2 }}
               className="flex items-center gap-3 rounded-2xl border px-4 py-3 mb-2 w-full max-w-xs"
-              style={{ background: "rgba(212,175,55,0.08)", borderColor: "rgba(212,175,55,0.25)" }}
+              style={{ background: "var(--bg-gold)", borderColor: "rgba(212,175,55,0.25)" }}
             >
               <span className="text-xl">🏆</span>
               <div className="text-left">
-                <p className="text-xs font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>Succès débloqué !</p>
-                <p className="text-xs opacity-60" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>{id.replace(/_/g, " ")}</p>
+                <p className="text-xs font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>Succès débloqué !</p>
+                <p className="text-xs opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{id.replace(/_/g, " ")}</p>
               </div>
             </motion.div>
           ))}
@@ -387,7 +387,7 @@ export default function QuizPage() {
           <motion.button onClick={() => router.push("/oasis")}
             whileTap={{ scale: 0.96 }} transition={springTap}
             className="rounded-full py-3.5 text-sm font-bold"
-            style={{ background: `linear-gradient(135deg,${color},#055C3F)`, color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}
+            style={{ background: `linear-gradient(135deg,${color},#055C3F)`, color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
           >
             Retour à l&apos;Oasis
           </motion.button>
@@ -423,14 +423,14 @@ export default function QuizPage() {
       <div className="flex items-center justify-between mb-4">
         <motion.button onClick={() => router.back()} whileTap={{ scale: 0.9 }} transition={springTap}
           className="flex h-9 w-9 items-center justify-center rounded-full border"
-          style={{ borderColor: "rgba(212,175,55,0.18)", color: "#F8F4EC" }}>
+          style={{ borderColor: "rgba(212,175,55,0.18)", color: "var(--text)" }}>
           <ArrowLeft size={15} />
         </motion.button>
 
         {/* Timer */}
         <CircularTimer timeLeft={session.timeLeft} total={QUESTION_TIME} color={color} />
 
-        <div className="text-xs font-semibold opacity-45" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+        <div className="text-xs font-semibold opacity-45" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           {session.currentIndex + 1}/{total}
         </div>
       </div>
@@ -473,7 +473,7 @@ export default function QuizPage() {
           {!["drag_drop","memory","fill_verse","who_am_i","calligraphy"].includes(currentQuestion.type) && (
             <div className="mb-7">
               <p className="text-[19px] font-bold leading-snug"
-                style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+                style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
                 {currentQuestion.question}
               </p>
               {/* Translittération si question en arabe */}
@@ -515,7 +515,7 @@ export default function QuizPage() {
 
               let borderColor = "rgba(255,255,255,0.07)";
               let bg = "rgba(255,255,255,0.02)";
-              let textColor = "#F8F4EC";
+              let textColor = "var(--text)";
               let icon = null;
 
               if (showFeedback && (isSelected || isTimedOut) && isCorrect) {
@@ -534,7 +534,7 @@ export default function QuizPage() {
                 borderColor = "rgba(74,222,128,0.28)"; bg = "rgba(74,222,128,0.04)"; textColor = "#4ade80";
                 icon = <CheckCircle2 size={17} style={{ color: "#4ade80" }} />;
               } else if (showFeedback && isTimedOut && !isCorrect) {
-                borderColor = "rgba(248,113,113,0.28)"; bg = "transparent"; textColor = "rgba(248,244,236,0.3)";
+                borderColor = "rgba(248,113,113,0.28)"; bg = "transparent"; textColor = "var(--text-dim)";
               } else if (isSelected) {
                 borderColor = color; bg = `${color}14`; textColor = color;
               }
@@ -584,7 +584,7 @@ export default function QuizPage() {
                 onClick={confirmAnswer}
                 whileTap={{ scale: 0.96 }}
                 className="mt-5 w-full rounded-full py-3.5 text-sm font-semibold"
-                style={{ background: `linear-gradient(135deg,${color},#055C3F)`, color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}
+                style={{ background: `linear-gradient(135deg,${color},#055C3F)`, color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
               >
                 {session.currentIndex < total - 1 ? "Question suivante →" : "Voir les résultats"}
               </motion.button>
@@ -623,7 +623,7 @@ export default function QuizPage() {
                       Capsule culturelle
                     </p>
                     <p className="text-sm font-bold leading-tight"
-                      style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+                      style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
                       {currentQuestion.culturalCapsule.title}
                     </p>
                   </div>
@@ -635,9 +635,9 @@ export default function QuizPage() {
                 </p>
                 {/* Bottom ornament */}
                 <div className="mx-4 mb-3 flex items-center gap-2">
-                  <div className="flex-1 h-px" style={{ background: "rgba(212,175,55,0.12)" }} />
+                  <div className="flex-1 h-px" style={{ background: "var(--gold-faint)" }} />
                   <span className="text-[10px]" style={{ color: "rgba(212,175,55,0.35)" }}>ـ ✦ ـ</span>
-                  <div className="flex-1 h-px" style={{ background: "rgba(212,175,55,0.12)" }} />
+                  <div className="flex-1 h-px" style={{ background: "var(--gold-faint)" }} />
                 </div>
               </motion.div>
             )}
@@ -653,7 +653,7 @@ export default function QuizPage() {
                 style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.07)" }}
               >
                 <p className="text-xs leading-relaxed opacity-55"
-                  style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                   {currentQuestion.explanation}
                 </p>
               </motion.div>

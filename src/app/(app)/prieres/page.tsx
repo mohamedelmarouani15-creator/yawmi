@@ -9,6 +9,7 @@ import { storage, todayKey } from "@/lib/storage";
 import { Qibla, Coordinates } from "adhan";
 import Link from "next/link";
 import { Settings2, Volume2, VolumeX, ChevronDown, CheckCircle2, Circle } from "lucide-react";
+import { MosqueIcon, CrescentStar } from "@/components/IslamicIcons";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
 
 const RECITERS = [
@@ -88,17 +89,20 @@ export default function PrieresPage() {
       {/* Header */}
       <motion.div variants={itemVariants} className="flex items-start justify-between">
         <div>
-          <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Horaires du jour
           </p>
-          <h1 className="mt-1 text-2xl font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
-            Prières
-          </h1>
+          <div className="flex items-center gap-2 mt-1">
+            <MosqueIcon size={22} style={{ color: "var(--gold)" }} />
+            <h1 className="text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+              Prières
+            </h1>
+          </div>
         </div>
         <motion.div whileTap={{ scale: 0.94 }} transition={springTap}>
           <Link href="/profil"
             className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs"
-            style={{ borderColor: "rgba(212,175,55,0.3)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ borderColor: "rgba(212,175,55,0.3)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
             <Settings2 size={12} /> {settings.cityName}
           </Link>
         </motion.div>
@@ -107,29 +111,30 @@ export default function PrieresPage() {
       {/* Hero prochaine prière */}
       <motion.div variants={itemVariants}>
         {nextPrayer && times ? (
-          <div className="relative overflow-hidden rounded-2xl p-5 text-center"
-            style={{ background: "linear-gradient(135deg, #055C3F 0%, #033d2a 100%)", boxShadow: "0 8px 32px rgba(5,92,63,0.3)" }}>
-            <div className="pointer-events-none absolute -right-6 -top-6 h-32 w-32 rounded-full opacity-20"
-              style={{ background: "radial-gradient(circle, #D4AF37, transparent)" }} />
-            <p className="text-xs tracking-widest uppercase opacity-60" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          <div className="relative overflow-hidden rounded-2xl p-5 text-center mihrab-card"
+            style={{ background: "var(--gradient-primary)", boxShadow: "0 8px 32px rgba(5,92,63,0.3)" }}>
+            <div className="pointer-events-none absolute right-4 top-4 opacity-15">
+              <CrescentStar size={56} style={{ color: "var(--gold)" }} />
+            </div>
+            <p className="text-xs tracking-widest uppercase opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               Prochaine prière
             </p>
-            <p className="mt-2 text-4xl font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+            <p className="mt-2 text-4xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
               {PRAYER_LABELS[nextPrayer].fr}
             </p>
-            <p className="mt-0.5 text-sm opacity-60" style={{ color: "#D4AF37", fontFamily: "var(--font-amiri)" }}>
+            <p className="mt-0.5 text-sm opacity-60" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)" }}>
               {PRAYER_LABELS[nextPrayer].ar}
             </p>
-            <p className="mt-2 text-3xl font-semibold tabular-nums" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+            <p className="mt-2 text-3xl font-semibold tabular-nums" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
               {formatTime(times[nextPrayer])}
             </p>
-            <p className="mt-1 text-sm opacity-60" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="mt-1 text-sm opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               dans {countdown}
             </p>
           </div>
         ) : (
           <div className="rounded-2xl p-5 text-center" style={{ background: "rgba(255,255,255,0.04)" }}>
-            <p className="text-sm opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="text-sm opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               Toutes les prières du jour sont passées.
             </p>
           </div>
@@ -138,9 +143,9 @@ export default function PrieresPage() {
 
       {/* Adhan + récitateur */}
       <motion.div variants={itemVariants} className="flex flex-col gap-3 rounded-2xl border px-5 py-4"
-        style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.12)" }}>
+        style={{ background: "rgba(255,255,255,0.02)", borderColor: "var(--gold-faint)" }}>
         <div className="flex items-center justify-between">
-          <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Adhan · الأذان
           </p>
           <motion.button
@@ -148,7 +153,7 @@ export default function PrieresPage() {
             whileTap={{ scale: 0.94 }}
             transition={springTap}
             className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs"
-            style={{ borderColor: "rgba(212,175,55,0.25)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ borderColor: "rgba(212,175,55,0.25)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
             {reciter.name} <ChevronDown size={11} />
           </motion.button>
         </div>
@@ -167,13 +172,13 @@ export default function PrieresPage() {
                   whileTap={{ scale: 0.97 }}
                   className="flex items-center justify-between rounded-xl border px-4 py-2.5 text-left"
                   style={{
-                    background: reciterId === r.id ? "rgba(5,92,63,0.25)" : "rgba(255,255,255,0.02)",
+                    background: reciterId === r.id ? "var(--bg-primary)" : "rgba(255,255,255,0.02)",
                     borderColor: reciterId === r.id ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.06)",
                   }}>
-                  <span className="text-sm" style={{ color: reciterId === r.id ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  <span className="text-sm" style={{ color: reciterId === r.id ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {r.name}
                   </span>
-                  {reciterId === r.id && <span style={{ color: "#D4AF37" }}>✓</span>}
+                  {reciterId === r.id && <span style={{ color: "var(--gold)" }}>✓</span>}
                 </motion.button>
               ))}
             </motion.div>
@@ -187,11 +192,11 @@ export default function PrieresPage() {
       {/* Liste des prières */}
       <motion.div variants={itemVariants}>
         <div className="mb-2 flex items-center justify-between">
-          <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Horaires du jour
           </p>
           {prayerStreak > 0 && (
-            <span className="text-xs font-semibold" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+            <span className="text-xs font-semibold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
               ✦ {prayerStreak} jour{prayerStreak > 1 ? "s" : ""}
             </span>
           )}
@@ -216,17 +221,17 @@ export default function PrieresPage() {
                   borderColor: isNext ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.06)",
                 }}>
                 <div className="h-2 w-2 rounded-full flex-shrink-0"
-                  style={{ background: isPast ? "#055C3F" : isNext ? "#D4AF37" : "rgba(255,255,255,0.15)" }} />
+                  style={{ background: isPast ? "var(--primary)" : isNext ? "var(--gold)" : "rgba(255,255,255,0.15)" }} />
                 <div className="flex-1">
-                  <p className="text-sm font-semibold" style={{ color: isNext ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  <p className="text-sm font-semibold" style={{ color: isNext ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {PRAYER_LABELS[key].fr}
                   </p>
-                  <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-amiri)" }}>
+                  <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-amiri)" }}>
                     {PRAYER_LABELS[key].ar}
                   </p>
                 </div>
                 <p className="text-sm font-semibold tabular-nums"
-                  style={{ color: isPast ? "rgba(248,244,236,0.3)" : "#F8F4EC", fontFamily: "var(--font-dm-sans)", textDecoration: isPast ? "line-through" : "none" }}>
+                  style={{ color: isPast ? "var(--text-dim)" : "var(--text)", fontFamily: "var(--font-dm-sans)", textDecoration: isPast ? "line-through" : "none" }}>
                   {formatTime(times[key])}
                 </p>
                 {key !== "sunrise" && (
@@ -234,7 +239,7 @@ export default function PrieresPage() {
                     onClick={() => togglePrayerDone(key)}
                     whileTap={{ scale: 0.85 }}
                     transition={springTap}
-                    style={{ color: donePrayers[key] ? "#D4AF37" : "rgba(255,255,255,0.2)" }}>
+                    style={{ color: donePrayers[key] ? "var(--gold)" : "rgba(255,255,255,0.2)" }}>
                     {donePrayers[key] ? <CheckCircle2 size={20} /> : <Circle size={20} />}
                   </motion.button>
                 )}
@@ -245,8 +250,8 @@ export default function PrieresPage() {
                   className="flex h-7 w-7 items-center justify-center rounded-full border"
                   style={{
                     borderColor: isAudio ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.1)",
-                    background:  isAudio ? "rgba(212,175,55,0.12)" : "transparent",
-                    color:       isAudio ? "#D4AF37" : "rgba(248,244,236,0.25)",
+                    background:  isAudio ? "var(--gold-faint)" : "transparent",
+                    color:       isAudio ? "var(--gold)" : "rgba(248,244,236,0.25)",
                   }}>
                   {isAudio ? <Volume2 size={12} /> : <VolumeX size={12} />}
                 </motion.button>
@@ -258,7 +263,7 @@ export default function PrieresPage() {
 
       {/* Calendrier mensuel */}
       <motion.div variants={itemVariants}>
-        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Ce mois-ci · pratique privée
         </p>
         <div className="rounded-2xl border p-4" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}>
@@ -277,7 +282,7 @@ export default function PrieresPage() {
                 <div className="grid grid-cols-7 mb-1">
                   {DAY_LABELS.map((d, i) => (
                     <div key={i} className="text-center text-xs pb-1 opacity-30"
-                      style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>{d}</div>
+                      style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{d}</div>
                   ))}
                 </div>
                 <div className="grid grid-cols-7 gap-1">
@@ -293,29 +298,29 @@ export default function PrieresPage() {
                       <div key={day} className="flex flex-col items-center gap-0.5">
                         <div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-medium"
                           style={{
-                            background: allDone  ? "#055C3F"
+                            background: allDone  ? "var(--primary)"
                                       : someDone ? "rgba(5,92,63,0.3)"
                                       : isToday  ? "rgba(212,175,55,0.15)"
                                       : "transparent",
                             border: isToday ? "1px solid rgba(212,175,55,0.5)" : "none",
-                            color: allDone ? "#F8F4EC" : isToday ? "#D4AF37" : isFuture ? "rgba(248,244,236,0.2)" : "rgba(248,244,236,0.5)",
+                            color: allDone ? "var(--text)" : isToday ? "var(--gold)" : isFuture ? "rgba(248,244,236,0.2)" : "var(--text-muted)",
                             fontFamily: "var(--font-dm-sans)",
                           }}>
                           {day}
                         </div>
-                        {allDone && <div className="h-1 w-1 rounded-full" style={{ background: "#D4AF37" }} />}
+                        {allDone && <div className="h-1 w-1 rounded-full" style={{ background: "var(--gold)" }} />}
                       </div>
                     );
                   })}
                 </div>
                 <div className="flex items-center gap-4 mt-3 pt-3" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                   <div className="flex items-center gap-1.5">
-                    <div className="h-3 w-3 rounded-full" style={{ background: "#055C3F" }} />
-                    <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>5 prières</p>
+                    <div className="h-3 w-3 rounded-full" style={{ background: "var(--primary)" }} />
+                    <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>5 prières</p>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <div className="h-3 w-3 rounded-full" style={{ background: "rgba(5,92,63,0.3)" }} />
-                    <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>Partiel</p>
+                    <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>Partiel</p>
                   </div>
                 </div>
               </div>
@@ -332,26 +337,26 @@ export default function PrieresPage() {
           <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full opacity-10"
             style={{ background: "radial-gradient(circle, #D4AF37, transparent)" }} />
           <div className="flex flex-col gap-1">
-            <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               Qibla · القبلة
             </p>
-            <p className="text-3xl font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+            <p className="text-3xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
               {bearing}°
             </p>
-            <p className="text-xs opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               {dist.toLocaleString("fr-FR")} km de La Mecque
             </p>
           </div>
           <div className="flex flex-col items-center gap-1">
             <svg width="64" height="64" viewBox="0 0 64 64">
-              <circle cx="32" cy="32" r="30" fill="none" stroke="rgba(212,175,55,0.2)" strokeWidth="1" />
+              <circle cx="32" cy="32" r="30" fill="none" stroke="var(--border-gold)" strokeWidth="1" />
               <g transform={`rotate(${bearing}, 32, 32)`}>
-                <polygon points="32,6 37,30 32,26 27,30" fill="#D4AF37" />
+                <polygon points="32,6 37,30 32,26 27,30" fill="var(--gold)" />
                 <polygon points="32,58 27,34 32,38 37,34" fill="rgba(212,175,55,0.25)" />
               </g>
-              <circle cx="32" cy="32" r="3" fill="#D4AF37" />
+              <circle cx="32" cy="32" r="3" fill="var(--gold)" />
             </svg>
-            <p className="text-xs font-semibold" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="text-xs font-semibold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
               Ouvrir →
             </p>
           </div>

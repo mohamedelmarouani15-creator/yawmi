@@ -30,7 +30,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
-  religion: "#D4AF37",
+  religion: "var(--gold)",
   history:  "#60a5fa",
   arabic:   "#34d399",
   darija:   "#f87171",
@@ -62,22 +62,22 @@ export default function CulturePage() {
       <motion.div variants={itemVariants} className="flex items-center gap-3">
         <button onClick={() => router.back()}
           className="flex h-9 w-9 items-center justify-center rounded-full border"
-          style={{ borderColor: "rgba(255,255,255,0.1)", color: "#F8F4EC" }}
+          style={{ borderColor: "rgba(255,255,255,0.1)", color: "var(--text)" }}
           aria-label="Retour">
           <ArrowLeft size={16} />
         </button>
         <div className="flex-1">
           <p className="text-xs tracking-widest uppercase opacity-40"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Oasis du Savoir
           </p>
           <h1 className="text-xl font-bold"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+            style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             Capsules culturelles
           </h1>
         </div>
         <span className="text-xs font-semibold px-2 py-1 rounded-full"
-          style={{ background: "rgba(212,175,55,0.12)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+          style={{ background: "var(--gold-faint)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
           {ALL_CAPSULES.length} savoirs
         </span>
       </motion.div>
@@ -98,7 +98,7 @@ export default function CulturePage() {
           onChange={e => setSearch(e.target.value)}
           placeholder="Chercher une capsule…"
           className="flex-1 bg-transparent text-sm outline-none"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}
+          style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
         />
       </motion.div>
 
@@ -110,7 +110,7 @@ export default function CulturePage() {
           style={{
             background: !activeCategory ? "rgba(212,175,55,0.15)" : "rgba(255,255,255,0.03)",
             borderColor: !activeCategory ? "rgba(212,175,55,0.5)" : "rgba(255,255,255,0.08)",
-            color: !activeCategory ? "#D4AF37" : "rgba(248,244,236,0.5)",
+            color: !activeCategory ? "var(--gold)" : "var(--text-muted)",
             fontFamily: "var(--font-dm-sans)",
           }}>
           Tout
@@ -122,7 +122,7 @@ export default function CulturePage() {
             style={{
               background: activeCategory === cat ? `${CATEGORY_COLORS[cat]}18` : "rgba(255,255,255,0.03)",
               borderColor: activeCategory === cat ? `${CATEGORY_COLORS[cat]}60` : "rgba(255,255,255,0.08)",
-              color: activeCategory === cat ? CATEGORY_COLORS[cat] : "rgba(248,244,236,0.5)",
+              color: activeCategory === cat ? CATEGORY_COLORS[cat] : "var(--text-muted)",
               fontFamily: "var(--font-dm-sans)",
             }}>
             {CATEGORY_LABELS[cat] ?? cat}
@@ -134,7 +134,7 @@ export default function CulturePage() {
       <div className="flex flex-col gap-3">
         {filtered.length === 0 && (
           <p className="text-center text-sm opacity-40 py-8"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Aucune capsule trouvée
           </p>
         )}
@@ -146,25 +146,25 @@ export default function CulturePage() {
             className="rounded-2xl border overflow-hidden"
             style={{
               background: "linear-gradient(135deg, rgba(18,12,3,0.97) 0%, rgba(12,8,2,0.97) 100%)",
-              borderColor: "rgba(212,175,55,0.2)",
+              borderColor: "var(--border-gold)",
             }}>
             {/* Header capsule */}
             <div className="flex items-center gap-3 px-4 pt-4 pb-2.5"
               style={{ borderBottom: "1px solid rgba(212,175,55,0.1)" }}>
               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-sm"
-                style={{ background: "rgba(212,175,55,0.12)" }}>
+                style={{ background: "var(--gold-faint)" }}>
                 ✦
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold leading-tight truncate"
-                  style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+                  style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
                   {cap.title}
                 </p>
               </div>
               <span className="shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold"
                 style={{
-                  background: `${CATEGORY_COLORS[cap.category] ?? "#D4AF37"}15`,
-                  color: CATEGORY_COLORS[cap.category] ?? "#D4AF37",
+                  background: `${CATEGORY_COLORS[cap.category] ?? "var(--gold)"}15`,
+                  color: CATEGORY_COLORS[cap.category] ?? "var(--gold)",
                   fontFamily: "var(--font-dm-sans)",
                 }}>
                 {CATEGORY_LABELS[cap.category] ?? cap.category}

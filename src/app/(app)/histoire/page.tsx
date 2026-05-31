@@ -13,7 +13,7 @@ const ARCS = [
     subtitle: "La plus belle des histoires — Sourate 12",
     chapters: 10,
     status: "available",
-    color: "#D4AF37",
+    color: "var(--gold)",
     emoji: "⭐",
     description: "Dix chapitres pour découvrir l'histoire de Yûsuf — la jalousie, le puits, l'Égypte, la prison et le pardon.",
   },
@@ -166,15 +166,15 @@ export default function HistoirePage() {
       {/* Header */}
       <motion.div variants={itemVariants} className="mb-8">
         <p className="text-xs tracking-widest uppercase opacity-50 mb-1"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           La Grande Histoire
         </p>
         <h1 className="text-2xl font-bold mb-1"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+          style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
           Le Tapis Voyageur
         </h1>
         <p className="text-xs leading-relaxed opacity-45"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Voyage à travers les histoires de l&apos;islam.
           Un chapitre par jour, une leçon pour la vie.
         </p>
@@ -223,7 +223,7 @@ export default function HistoirePage() {
                 <span style={{ fontSize: 28, opacity: available ? 1 : 0.6 }}>{arc.emoji}</span>
                 <div className="flex-1 pr-12">
                   <p className="font-bold text-base leading-tight mb-0.5"
-                    style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+                    style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
                     {arc.title}
                   </p>
                   <p lang="ar" className="text-base leading-tight mb-1"
@@ -231,13 +231,13 @@ export default function HistoirePage() {
                     {arc.titleAr}
                   </p>
                   <p className="text-xs opacity-55"
-                    style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {arc.subtitle}
                   </p>
                 </div>
               </div>
               <p className="text-sm leading-relaxed mb-4 opacity-60"
-                style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 {arc.description}
               </p>
               <div className="flex items-center justify-between">
@@ -264,9 +264,9 @@ export default function HistoirePage() {
 
       {/* Note de validation */}
       <motion.div variants={itemVariants} className="mt-6 rounded-xl border p-3"
-        style={{ borderColor: "rgba(212,175,55,0.12)", background: "rgba(212,175,55,0.04)" }}>
+        style={{ borderColor: "var(--gold-faint)", background: "rgba(212,175,55,0.04)" }}>
         <p className="text-xs leading-relaxed opacity-50 text-center"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           ✦ Sources : Coran & Sîra fiable. Aucun dialogue inventé dans la bouche des prophètes.
           Ce contenu est en cours de validation religieuse avant diffusion publique.
         </p>

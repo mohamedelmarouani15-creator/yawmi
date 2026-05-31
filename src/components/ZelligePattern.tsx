@@ -9,7 +9,7 @@ interface Props {
 
 export default function ZelligePattern({
   opacity = 0.04,
-  color = "#D4AF37",
+  color = "var(--gold)",
   tileSize = 80,
   className = "",
 }: Props) {

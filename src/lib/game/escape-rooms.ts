@@ -32,7 +32,7 @@ export const ESCAPE_ROOMS: EscapeRoom[] = [
     weekNumber: 1,
     floorColor: "#8B6914",
     wallColor: "#C4922A",
-    accentColor: "#D4AF37",
+    accentColor: "var(--gold)",
     reward: { xp: 300, coins: 80, chests: 2 },
     locks: [
       {

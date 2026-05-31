@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, RotateCcw } from "lucide-react";
+import { TasbihIcon, Star8 } from "@/components/IslamicIcons";
 import { storage, todayKey } from "@/lib/storage";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
 
@@ -96,10 +97,13 @@ export default function DhikrPage() {
       {/* Header */}
       <motion.div variants={itemVariants} className="flex w-full items-start justify-between">
         <div>
-          <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-            Tasbih
-          </p>
-          <h1 className="mt-1 text-2xl font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+          <div className="flex items-center gap-1.5">
+            <TasbihIcon size={13} style={{ color: "var(--gold)", opacity: 0.6 }} />
+            <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              Tasbih
+            </p>
+          </div>
+          <h1 className="mt-1 text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             Dhikr
           </h1>
         </div>
@@ -108,9 +112,9 @@ export default function DhikrPage() {
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold"
-            style={{ borderColor: "rgba(212,175,55,0.3)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}
+            style={{ borderColor: "rgba(212,175,55,0.3)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}
           >
-            ✦ {streak} jour{streak > 1 ? "s" : ""}
+            <Star8 size={10} /> {streak} jour{streak > 1 ? "s" : ""}
           </motion.div>
         )}
       </motion.div>
@@ -129,7 +133,7 @@ export default function DhikrPage() {
               className="flex-1 rounded-xl py-2 text-xs font-semibold"
               style={{
                 background: isActive ? "rgba(5,92,63,0.5)" : isDone ? "rgba(5,92,63,0.15)" : "rgba(255,255,255,0.04)",
-                color: isActive ? "#D4AF37" : isDone ? "#4ade80" : "rgba(248,244,236,0.4)",
+                color: isActive ? "var(--gold)" : isDone ? "#4ade80" : "rgba(248,244,236,0.4)",
                 border: `1px solid ${isActive ? "rgba(212,175,55,0.3)" : "transparent"}`,
                 fontFamily: "var(--font-dm-sans)",
               }}
@@ -145,7 +149,7 @@ export default function DhikrPage() {
         key={dhikr.id}
         variants={itemVariants}
         className="text-center text-3xl font-bold leading-relaxed"
-        style={{ color: "#D4AF37", fontFamily: "var(--font-amiri)", direction: "rtl" }}
+        style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)", direction: "rtl" }}
       >
         {dhikr.arabic}
       </motion.p>
@@ -176,7 +180,7 @@ export default function DhikrPage() {
           <motion.circle
             cx="100" cy="100" r="85"
             fill="none"
-            stroke={done ? "#D4AF37" : "#055C3F"}
+            stroke={done ? "var(--gold)" : "var(--primary)"}
             strokeWidth="8"
             strokeLinecap="round"
             strokeDasharray={circumference}
@@ -194,8 +198,8 @@ export default function DhikrPage() {
           style={{
             width: 140, height: 140,
             background: done
-              ? "linear-gradient(135deg, #D4AF37, #b8942e)"
-              : "linear-gradient(135deg, #055C3F, #0a8a5e)",
+              ? "var(--gradient-gold)"
+              : "var(--gradient-primary)",
             boxShadow: done
               ? "0 0 48px rgba(212,175,55,0.45), 0 0 90px rgba(212,175,55,0.18), inset 0 1px 0 rgba(255,255,255,0.2)"
               : "0 0 40px rgba(5,92,63,0.5), 0 0 80px rgba(5,92,63,0.2), inset 0 1px 0 rgba(255,255,255,0.12)",
@@ -207,11 +211,11 @@ export default function DhikrPage() {
             animate={{ scale: 1, opacity: 1 }}
             transition={{ type: "spring", stiffness: 500, damping: 25 }}
             className="text-5xl font-bold"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}
+            style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}
           >
             {taps}
           </motion.span>
-          <span className="text-xs opacity-60" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          <span className="text-xs opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             / {dhikr.target}
           </span>
         </motion.button>
@@ -239,7 +243,7 @@ export default function DhikrPage() {
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
               whileTap={{ scale: 0.95 }}
               className="rounded-full px-5 py-2.5 text-sm font-semibold"
-              style={{ background: "linear-gradient(135deg, #055C3F, #0a8a5e)", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}
+              style={{ background: "var(--gradient-primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
             >
               Suivant →
             </motion.button>
@@ -255,7 +259,7 @@ export default function DhikrPage() {
             exit={{ opacity: 0 }}
             transition={{ delay: 0.2, duration: 0.4 }}
             className="text-center text-sm"
-            style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}
+            style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}
           >
             ✦ Tasbih du jour complété — barakAllahu fik
           </motion.p>

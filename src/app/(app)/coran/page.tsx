@@ -291,14 +291,14 @@ export default function CoranPage() {
         <div className="flex items-center gap-3">
           <button onClick={() => setSelected(null)}
             className="flex h-9 w-9 items-center justify-center rounded-full border"
-            style={{ borderColor: "rgba(255,255,255,0.1)", color: "#F8F4EC" }}>
+            style={{ borderColor: "rgba(255,255,255,0.1)", color: "var(--text)" }}>
             <ArrowLeft size={16} />
           </button>
           <div className="flex-1">
-            <h1 className="text-xl font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+            <h1 className="text-xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
               {surah?.englishName}
             </h1>
-            <p className="text-xs opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               {surah?.numberOfAyahs} versets · Juzz {currentJuzz}
             </p>
           </div>
@@ -306,7 +306,7 @@ export default function CoranPage() {
             className="rounded-full border px-3 py-1 text-xs"
             style={{
               borderColor: showTrans ? "rgba(212,175,55,0.4)" : "rgba(255,255,255,0.1)",
-              color: showTrans ? "#D4AF37" : "rgba(248,244,236,0.4)",
+              color: showTrans ? "var(--gold)" : "rgba(248,244,236,0.4)",
               fontFamily: "var(--font-dm-sans)",
             }}>
             Traduction
@@ -315,8 +315,8 @@ export default function CoranPage() {
             onClick={() => { setShowPlayer(v => !v); setPlayingAyah(1); }}
             className="rounded-full border px-3 py-1 text-xs font-semibold"
             style={{
-              borderColor: showPlayer ? "rgba(212,175,55,0.4)" : "rgba(5,92,63,0.4)",
-              color:  showPlayer ? "#D4AF37" : "#F8F4EC",
+              borderColor: showPlayer ? "rgba(212,175,55,0.4)" : "var(--border-primary)",
+              color:  showPlayer ? "var(--gold)" : "var(--text)",
               background: showPlayer ? "rgba(212,175,55,0.1)" : "rgba(5,92,63,0.3)",
               fontFamily: "var(--font-dm-sans)",
             }}>
@@ -339,7 +339,7 @@ export default function CoranPage() {
 
         {loading ? (
           <div className="flex justify-center py-16">
-            <Loader2 size={24} className="animate-spin" style={{ color: "#D4AF37" }} />
+            <Loader2 size={24} className="animate-spin" style={{ color: "var(--gold)" }} />
           </div>
         ) : (
           <div className={`flex flex-col gap-4 ${showPlayer ? "pb-36" : ""}`}>
@@ -352,16 +352,16 @@ export default function CoranPage() {
                 }}>
                 <div className="flex items-center justify-between">
                   <div className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
-                    style={{ background: "rgba(5,92,63,0.5)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                    style={{ background: "rgba(5,92,63,0.5)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
                     {ayah.numberInSurah}
                   </div>
                   <div className="flex items-center gap-2">
                     {showPlayer && (
                       <button onClick={() => setPlayingAyah(ayah.numberInSurah)}
-                        className="text-xs opacity-40" style={{ color: "#D4AF37" }}>▶</button>
+                        className="text-xs opacity-40" style={{ color: "var(--gold)" }}>▶</button>
                     )}
                     <button onClick={() => toggleFav(selected!, surah?.englishName ?? "", ayah.numberInSurah, ayah.text)}
-                      style={{ color: favs.has(`${selected}-${ayah.numberInSurah}`) ? "#D4AF37" : "rgba(255,255,255,0.2)" }}>
+                      style={{ color: favs.has(`${selected}-${ayah.numberInSurah}`) ? "var(--gold)" : "rgba(255,255,255,0.2)" }}>
                       {favs.has(`${selected}-${ayah.numberInSurah}`)
                         ? <BookmarkCheck size={15} />
                         : <Bookmark size={15} />}
@@ -369,12 +369,12 @@ export default function CoranPage() {
                   </div>
                 </div>
                 <p className="mt-3 text-right text-xl leading-loose"
-                  style={{ color: "#F8F4EC", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
+                  style={{ color: "var(--text)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
                   {ayah.text}
                 </p>
                 {showTrans && translations[i] && (
                   <p className="mt-2 text-sm leading-relaxed opacity-60"
-                    style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {translations[i].text}
                   </p>
                 )}
@@ -420,23 +420,23 @@ export default function CoranPage() {
     <main className="flex flex-col gap-6 px-5 pt-12 pb-4">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Lecture
           </p>
-          <h1 className="mt-1 text-2xl font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+          <h1 className="mt-1 text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             Coran
           </h1>
         </div>
         {offline ? (
           <button onClick={deleteOffline}
             className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs"
-            style={{ borderColor: "rgba(5,92,63,0.4)", color: "#055C3F", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ borderColor: "var(--border-primary)", color: "var(--primary)", fontFamily: "var(--font-dm-sans)" }}>
             <WifiOff size={11} /> Hors-ligne <Trash2 size={11} />
           </button>
         ) : (
           <button onClick={downloadOffline} disabled={downloading}
             className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs disabled:opacity-50"
-            style={{ borderColor: "rgba(212,175,55,0.3)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ borderColor: "rgba(212,175,55,0.3)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
             {downloading
               ? <><Loader2 size={11} className="animate-spin" /> {dlProgress}%</>
               : <><Download size={11} /> Hors-ligne</>}
@@ -447,7 +447,7 @@ export default function CoranPage() {
       {downloading && (
         <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
           <div className="h-full rounded-full transition-all duration-500"
-            style={{ width: `${dlProgress}%`, background: "linear-gradient(to right, #055C3F, #D4AF37)" }} />
+            style={{ width: `${dlProgress}%`, background: "var(--gradient-bar)" }} />
         </div>
       )}
 
@@ -456,19 +456,19 @@ export default function CoranPage() {
         if (!favList.length) return null;
         return (
           <div>
-            <p className="mb-2 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="mb-2 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               Favoris · {favList.length} verset{favList.length > 1 ? "s" : ""}
             </p>
             <div className="flex flex-col gap-2">
               {favList.slice(0, 3).map(f => (
                 <button key={`${f.surah}-${f.ayah}`} onClick={() => openSurah(f.surah)}
                   className="rounded-xl border p-3 text-right active:scale-[0.98]"
-                  style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.12)" }}>
-                  <p className="text-xs opacity-40 text-left mb-1" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  style={{ background: "rgba(255,255,255,0.02)", borderColor: "var(--gold-faint)" }}>
+                  <p className="text-xs opacity-40 text-left mb-1" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {f.surahName} · verset {f.ayah}
                   </p>
                   <p className="text-base leading-loose line-clamp-2"
-                    style={{ color: "#D4AF37", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
+                    style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
                     {f.text}
                   </p>
                 </button>
@@ -482,23 +482,23 @@ export default function CoranPage() {
         <button onClick={() => openSurah(reading.surah)}
           className="flex items-center gap-3 rounded-2xl p-5 text-left"
           style={{ background: "linear-gradient(135deg, #055C3F, #033d2a)", boxShadow: "0 8px 32px rgba(5,92,63,0.3)" }}>
-          <BookOpen size={20} style={{ color: "#D4AF37" }} />
+          <BookOpen size={20} style={{ color: "var(--gold)" }} />
           <div>
-            <p className="text-sm font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+            <p className="text-sm font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
               Continuer la lecture
             </p>
-            <p className="text-xs opacity-60" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="text-xs opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               Sourate {reading.surah}
             </p>
           </div>
-          <span className="ml-auto text-sm" style={{ color: "rgba(248,244,236,0.3)" }}>→</span>
+          <span className="ml-auto text-sm" style={{ color: "var(--text-dim)" }}>→</span>
         </button>
       )}
 
       {surahs.length === 0 ? (
         <div className="flex flex-col items-center gap-3 py-12">
-          <Loader2 size={24} className="animate-spin" style={{ color: "#D4AF37" }} />
-          <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          <Loader2 size={24} className="animate-spin" style={{ color: "var(--gold)" }} />
+          <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Chargement…
           </p>
         </div>
@@ -509,18 +509,18 @@ export default function CoranPage() {
               className="flex items-center gap-4 rounded-xl border px-4 py-3 text-left active:scale-[0.98]"
               style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}>
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
-                style={{ background: "rgba(5,92,63,0.4)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                style={{ background: "var(--border-primary)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
                 {s.number}
               </div>
               <div className="flex-1">
-                <p className="text-sm font-semibold" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                <p className="text-sm font-semibold" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                   {s.englishName}
                 </p>
-                <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                   {s.numberOfAyahs} versets
                 </p>
               </div>
-              <p className="text-base" style={{ color: "#D4AF37", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
+              <p className="text-base" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
                 {s.name}
               </p>
             </button>

@@ -50,11 +50,11 @@ export default function MosqueePage() {
 
       <motion.div variants={itemVariants}>
         <p className="text-xs tracking-widest uppercase opacity-50"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Ma pratique · privée
         </p>
         <h1 className="mt-1 text-2xl font-bold"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+          style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
           Ma mosquée
         </h1>
       </motion.div>
@@ -69,15 +69,15 @@ export default function MosqueePage() {
       {/* Stat globale */}
       <motion.div variants={itemVariants}
         className="rounded-xl border px-5 py-4"
-        style={{ background: "rgba(5,92,63,0.08)", borderColor: "rgba(212,175,55,0.12)" }}>
+        style={{ background: "rgba(5,92,63,0.08)", borderColor: "var(--gold-faint)" }}>
         <p className="text-xs opacity-40 uppercase tracking-widest mb-1"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Total jours complets
         </p>
-        <p className="text-3xl font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+        <p className="text-3xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
           {allDays}
         </p>
-        <p className="text-xs opacity-40 mt-1" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="text-xs opacity-40 mt-1" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           jours avec les 5 prières cochées
         </p>
       </motion.div>
@@ -85,7 +85,7 @@ export default function MosqueePage() {
       {/* Jalons */}
       <motion.div variants={itemVariants}>
         <p className="text-xs tracking-widest uppercase opacity-40 mb-3"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Jalons d'évolution
         </p>
         <div className="flex flex-col gap-3">
@@ -103,19 +103,19 @@ export default function MosqueePage() {
                 <span className="text-2xl">{m.emoji}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold"
-                    style={{ color: isCurrent ? "#D4AF37" : reached ? "#F8F4EC" : "rgba(248,244,236,0.35)", fontFamily: "var(--font-dm-sans)" }}>
+                    style={{ color: isCurrent ? "var(--gold)" : reached ? "var(--text)" : "rgba(248,244,236,0.35)", fontFamily: "var(--font-dm-sans)" }}>
                     {m.label}
                   </p>
                   <p className="text-xs opacity-50 mt-0.5"
-                    style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {m.desc}
                   </p>
                 </div>
                 <div className="text-right shrink-0">
                   {reached ? (
-                    <span className="text-xs font-bold" style={{ color: "#D4AF37" }}>✦</span>
+                    <span className="text-xs font-bold" style={{ color: "var(--gold)" }}>✦</span>
                   ) : (
-                    <span className="text-xs opacity-30" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    <span className="text-xs opacity-30" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                       {m.streak}j
                     </span>
                   )}
@@ -130,7 +130,7 @@ export default function MosqueePage() {
       {mosqueObjects.length > 0 && (
         <motion.div variants={itemVariants}>
           <p className="text-xs tracking-widest uppercase opacity-40 mb-3"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Objets débloqués via l&apos;Oasis
           </p>
           <div className="flex flex-wrap gap-2">
@@ -145,7 +145,7 @@ export default function MosqueePage() {
                 <div key={obj} className="flex items-center gap-2 rounded-full px-3 py-1.5"
                   style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.25)" }}>
                   <span className="text-xs font-semibold"
-                    style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                    style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
                     {labels[obj] ?? obj}
                   </span>
                 </div>
@@ -159,7 +159,7 @@ export default function MosqueePage() {
       {sageCards.length > 0 && (
         <motion.div variants={itemVariants}>
           <p className="text-xs tracking-widest uppercase opacity-40 mb-3"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Bibliothèque des sages vaincus
           </p>
           <div className="grid grid-cols-2 gap-2">
@@ -168,15 +168,15 @@ export default function MosqueePage() {
               if (!sage) return null;
               return (
                 <div key={sageId} className="flex items-center gap-3 rounded-2xl border px-3 py-3"
-                  style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.2)" }}>
+                  style={{ background: "rgba(255,255,255,0.02)", borderColor: "var(--border-gold)" }}>
                   <span className="text-xl">📜</span>
                   <div className="min-w-0">
                     <p className="text-xs font-bold truncate"
-                      style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+                      style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
                       {sage.name}
                     </p>
                     <p className="text-[10px] truncate opacity-45"
-                      style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                      style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                       {sage.title}
                     </p>
                   </div>
@@ -190,15 +190,15 @@ export default function MosqueePage() {
       {/* Message inspirant */}
       <motion.div variants={itemVariants}
         className="rounded-2xl border p-5 text-center"
-        style={{ background: "rgba(212,175,55,0.04)", borderColor: "rgba(212,175,55,0.12)" }}>
+        style={{ background: "rgba(212,175,55,0.04)", borderColor: "var(--gold-faint)" }}>
         <p className="text-lg font-bold leading-relaxed"
-          style={{ color: "#D4AF37", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
+          style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
           {stage === 3
             ? "إِنَّمَا يَعْمُرُ مَسَاجِدَ اللَّهِ مَنْ آمَنَ بِاللَّهِ"
             : "مَن بَنَى مَسجِداً لله, بَنى اللهُ لَهُ بَيتاً فِي الجَنَّةِ"
           }
         </p>
-        <p className="text-xs opacity-50 mt-2" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="text-xs opacity-50 mt-2" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           {stage === 3
             ? "Les mosquées d'Allah ne sont entretenues que par ceux qui croient en Allah — At-Tawba 9:18"
             : "Celui qui bâtit une mosquée pour Allah, Allah lui bâtit une demeure au Paradis — Mouslim"

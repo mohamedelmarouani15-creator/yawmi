@@ -139,7 +139,7 @@ export default function SleepModeOverlay({
                     className="rounded-full border px-3 py-1 text-xs"
                     style={{
                       borderColor: r.id === reciter ? "rgba(212,175,55,0.4)" : "rgba(255,255,255,0.1)",
-                      color:       r.id === reciter ? "#D4AF37" : "rgba(248,244,236,0.45)",
+                      color:       r.id === reciter ? "var(--gold)" : "rgba(248,244,236,0.45)",
                       fontFamily: "var(--font-dm-sans)",
                     }}
                   >
@@ -152,7 +152,7 @@ export default function SleepModeOverlay({
 
           {/* Options timer */}
           <div className="flex flex-col items-center gap-2">
-            <p style={{ color: "rgba(248,244,236,0.3)", fontFamily: "var(--font-dm-sans)", fontSize: 11 }}>
+            <p style={{ color: "var(--text-dim)", fontFamily: "var(--font-dm-sans)", fontSize: 11 }}>
               Arrêt automatique
             </p>
             <div className="flex flex-wrap justify-center gap-2.5">
@@ -162,7 +162,7 @@ export default function SleepModeOverlay({
                   onClick={() => onSelect(opt)}
                   className="rounded-full border px-4 py-1.5 text-xs"
                   style={{
-                    borderColor: "rgba(212,175,55,0.2)",
+                    borderColor: "var(--border-gold)",
                     color:       "rgba(248,244,236,0.6)",
                     fontFamily:  "var(--font-dm-sans)",
                     background:  "rgba(255,255,255,0.03)",

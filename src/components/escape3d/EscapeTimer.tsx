@@ -36,7 +36,7 @@ export default function EscapeTimer({ startedAt, completedAt, onTimeout }: Props
   const urgent  = left < 5 * 60 * 1000;  // < 5 min
   const warning = left < 10 * 60 * 1000; // < 10 min
 
-  const color = urgent ? "#EF4444" : warning ? "#F59E0B" : "#D4AF37";
+  const color = urgent ? "#EF4444" : warning ? "#F59E0B" : "var(--gold)";
 
   return (
     <div style={{
@@ -107,7 +107,7 @@ export function GameOver({ onRestart }: { onRestart: () => void }) {
     >
       <p style={{ fontSize: 48 }}>⌛</p>
       <h2 style={{
-        color: "#F8F4EC", fontSize: 22, fontWeight: 700, textAlign: "center",
+        color: "var(--text)", fontSize: 22, fontWeight: 700, textAlign: "center",
         fontFamily: "var(--font-bricolage)", margin: 0,
       }}>
         Le riad garde ses secrets
@@ -124,7 +124,7 @@ export function GameOver({ onRestart }: { onRestart: () => void }) {
         style={{
           padding: "15px 40px", borderRadius: 99, border: "none", cursor: "pointer",
           background: "linear-gradient(135deg,#D4AF37,#8B6914)",
-          color: "#0A0F0D", fontSize: 14, fontWeight: 700,
+          color: "var(--bg)", fontSize: 14, fontWeight: 700,
           fontFamily: "var(--font-dm-sans)",
         }}
       >

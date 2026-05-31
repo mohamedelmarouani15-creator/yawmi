@@ -98,7 +98,7 @@ export default function ProfilPage() {
             border: settings.appMode === "explorateur"
               ? "1px solid rgba(212,175,55,0.3)"
               : "1px solid rgba(5,92,63,0.5)",
-            color: settings.appMode === "explorateur" ? "#D4AF37" : "#4ade80",
+            color: settings.appMode === "explorateur" ? "var(--gold)" : "#4ade80",
             fontFamily: "var(--font-bricolage)",
           }}>
           {initial}
@@ -107,23 +107,23 @@ export default function ProfilPage() {
         {/* Identité */}
         <div className="flex-1 min-w-0 pt-0.5">
           <p className="text-xs tracking-widest uppercase opacity-40"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Mon compte
           </p>
           <h1 className="mt-0.5 text-2xl font-bold truncate"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+            style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             {displayName ?? "Profil"}
           </h1>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             {user?.email && (
               <p className="text-xs opacity-35 truncate"
-                style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 {user.email}
               </p>
             )}
             {settings.ageGroup && (
               <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"
-                style={{ background: "rgba(212,175,55,0.12)", color: "#D4AF37", border: "1px solid rgba(212,175,55,0.2)" }}>
+                style={{ background: "var(--gold-faint)", color: "var(--gold)", border: "1px solid rgba(212,175,55,0.2)" }}>
                 {AGE_OPTIONS.find(o => o.value === settings.ageGroup)?.icon}
                 {settings.ageGroup} ans
               </span>
@@ -150,12 +150,12 @@ export default function ProfilPage() {
           { value: `${stats.doneTasks}/${stats.totalTasks}`, label: "Tâches\nterminées" },
         ].map(({ value, label }) => (
           <div key={label} className="flex flex-col items-center rounded-xl border py-4"
-            style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.12)" }}>
-            <p className="text-xl font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+            style={{ background: "rgba(255,255,255,0.02)", borderColor: "var(--gold-faint)" }}>
+            <p className="text-xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
               {value}
             </p>
             <p className="mt-1 whitespace-pre-wrap text-center text-xs opacity-50 leading-tight"
-              style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+              style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               {label}
             </p>
           </div>
@@ -165,11 +165,11 @@ export default function ProfilPage() {
       {/* Tranche d'âge */}
       <motion.div variants={itemVariants}>
         <p className="mb-1 text-xs tracking-widest uppercase opacity-40"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Tranche d'âge
         </p>
         <p className="mb-3 text-xs opacity-30 leading-relaxed"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Personnalise le Compagnon IA et les contenus proposés
         </p>
         <div className="flex flex-wrap gap-2">
@@ -183,7 +183,7 @@ export default function ProfilPage() {
                 style={{
                   background: active ? "rgba(5,92,63,0.28)" : "rgba(255,255,255,0.03)",
                   borderColor: active ? "rgba(212,175,55,0.5)" : "rgba(255,255,255,0.08)",
-                  color: active ? "#D4AF37" : "rgba(248,244,236,0.5)",
+                  color: active ? "var(--gold)" : "var(--text-muted)",
                   transition: "background 0.15s, border-color 0.15s, color 0.15s",
                   fontFamily: "var(--font-dm-sans)",
                 }}>
@@ -198,10 +198,10 @@ export default function ProfilPage() {
 
       {/* Mode app */}
       <motion.div variants={itemVariants}>
-        <p className="mb-1 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="mb-1 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Mon mode
         </p>
-        <p className="mb-3 text-xs opacity-30 leading-relaxed" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="mb-3 text-xs opacity-30 leading-relaxed" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Change le ton et le rythme de l'app
         </p>
         <div className="grid grid-cols-2 gap-2">
@@ -216,16 +216,16 @@ export default function ProfilPage() {
                 whileTap={{ scale: 0.95 }} transition={springTap}
                 className="flex flex-col gap-1 rounded-xl border px-4 py-3.5 text-left"
                 style={{
-                  background: active ? "rgba(5,92,63,0.25)" : "rgba(255,255,255,0.02)",
+                  background: active ? "var(--bg-primary)" : "rgba(255,255,255,0.02)",
                   borderColor: active ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.06)",
                 }}>
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold" style={{ color: active ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  <p className="text-sm font-semibold" style={{ color: active ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {label}
                   </p>
-                  {active && <Check size={14} style={{ color: "#D4AF37" }} />}
+                  {active && <Check size={14} style={{ color: "var(--gold)" }} />}
                 </div>
-                <p className="text-xs opacity-40 leading-tight" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                <p className="text-xs opacity-40 leading-tight" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                   {sub}
                 </p>
               </motion.button>
@@ -237,11 +237,11 @@ export default function ProfilPage() {
       {/* Niveau arabe */}
       <motion.div variants={itemVariants}>
         <p className="mb-1 text-xs tracking-widest uppercase opacity-40"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Mon niveau en arabe
         </p>
         <p className="mb-3 text-xs opacity-30 leading-relaxed"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Adapte les questions de calligraphie et les versets à ton niveau
         </p>
         <div className="flex flex-col gap-2">
@@ -263,14 +263,14 @@ export default function ProfilPage() {
                 }}>
                 <span style={{ fontSize: 20 }}>{emoji}</span>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold" style={{ color: active ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  <p className="text-sm font-semibold" style={{ color: active ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {label}
                   </p>
-                  <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {sub}
                   </p>
                 </div>
-                {active && <Check size={14} style={{ color: "#D4AF37" }} />}
+                {active && <Check size={14} style={{ color: "var(--gold)" }} />}
               </motion.button>
             );
           })}
@@ -279,7 +279,7 @@ export default function ProfilPage() {
 
       {/* Mode Adhan */}
       <motion.div variants={itemVariants}>
-        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Mode Adhan
         </p>
         <div className="grid grid-cols-2 gap-2">
@@ -293,22 +293,22 @@ export default function ProfilPage() {
                 transition={springTap}
                 className="flex items-center gap-3 rounded-xl border px-4 py-3.5"
                 style={{
-                  background: active ? "rgba(5,92,63,0.25)" : "rgba(255,255,255,0.02)",
+                  background: active ? "var(--bg-primary)" : "rgba(255,255,255,0.02)",
                   borderColor: active ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.06)",
                 }}>
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg"
-                  style={{ background: "rgba(5,92,63,0.4)", color: "#D4AF37" }}>
+                  style={{ background: "var(--border-primary)", color: "var(--gold)" }}>
                   {mode === "audio" ? <Volume2 size={15} /> : <VolumeX size={15} />}
                 </div>
                 <div className="text-left">
-                  <p className="text-sm font-medium capitalize" style={{ color: active ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  <p className="text-sm font-medium capitalize" style={{ color: active ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {mode === "audio" ? "Audio" : "Silencieux"}
                   </p>
-                  <p className="text-xs opacity-40 leading-tight" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  <p className="text-xs opacity-40 leading-tight" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {mode === "audio" ? "Joue l'adhan" : "Sans son"}
                   </p>
                 </div>
-                {active && <Check size={14} className="ml-auto" style={{ color: "#D4AF37" }} />}
+                {active && <Check size={14} className="ml-auto" style={{ color: "var(--gold)" }} />}
               </motion.button>
             );
           })}
@@ -317,7 +317,7 @@ export default function ProfilPage() {
 
       {/* Notifications */}
       <motion.div variants={itemVariants}>
-        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Notifications
         </p>
         <div className="flex flex-col gap-2">
@@ -344,17 +344,17 @@ export default function ProfilPage() {
                 }}>
                 <span className="text-xl">{icon}</span>
                 <div className="flex-1">
-                  <p className="text-sm font-medium" style={{ color: active ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  <p className="text-sm font-medium" style={{ color: active ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {label}
                   </p>
-                  <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {sub}
                   </p>
                 </div>
                 <div className="flex h-6 w-11 items-center rounded-full px-0.5"
-                  style={{ background: active ? "#055C3F" : "rgba(255,255,255,0.1)", transition: "background 0.2s" }}>
+                  style={{ background: active ? "var(--primary)" : "rgba(255,255,255,0.1)", transition: "background 0.2s" }}>
                   <div className="h-5 w-5 rounded-full"
-                    style={{ background: active ? "#D4AF37" : "rgba(255,255,255,0.4)", transform: active ? "translateX(20px)" : "translateX(0)", transition: "transform 0.2s" }} />
+                    style={{ background: active ? "var(--gold)" : "rgba(255,255,255,0.4)", transform: active ? "translateX(20px)" : "translateX(0)", transition: "transform 0.2s" }} />
                 </div>
               </motion.button>
             );
@@ -369,7 +369,7 @@ export default function ProfilPage() {
 
       {/* Ville */}
       <motion.div variants={itemVariants}>
-        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Ville pour les horaires de prière
         </p>
         <motion.button
@@ -377,11 +377,11 @@ export default function ProfilPage() {
           whileTap={{ scale: 0.97 }}
           transition={springTap}
           className="flex w-full items-center justify-between rounded-xl border px-4 py-3"
-          style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(212,175,55,0.2)" }}>
-          <span className="text-sm font-semibold" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          style={{ background: "rgba(255,255,255,0.03)", borderColor: "var(--border-gold)" }}>
+          <span className="text-sm font-semibold" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             {settings.cityName}
           </span>
-          <span className="text-xs opacity-40" style={{ color: "#F8F4EC" }}>Changer →</span>
+          <span className="text-xs opacity-40" style={{ color: "var(--text)" }}>Changer →</span>
         </motion.button>
         <AnimatePresence>
           {showCities && (
@@ -396,14 +396,14 @@ export default function ProfilPage() {
                 value={citySearch} onChange={e => setCitySearch(e.target.value)}
                 placeholder="Rechercher une ville…"
                 className="mb-2 w-full rounded-lg border bg-transparent px-3 py-2 text-sm outline-none"
-                style={{ borderColor: "rgba(255,255,255,0.1)", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}
+                style={{ borderColor: "rgba(255,255,255,0.1)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
                 autoFocus />
               {filtered.map(c => (
                 <motion.button key={c.name} onClick={() => selectCity(c)}
                   whileTap={{ scale: 0.97 }}
                   className="flex items-center justify-between rounded-lg px-3 py-2.5 text-left hover:bg-white/5">
-                  <span className="text-sm" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>{c.name}</span>
-                  {settings.cityName === c.name && <Check size={14} style={{ color: "#D4AF37" }} />}
+                  <span className="text-sm" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{c.name}</span>
+                  {settings.cityName === c.name && <Check size={14} style={{ color: "var(--gold)" }} />}
                 </motion.button>
               ))}
             </motion.div>
@@ -415,13 +415,13 @@ export default function ProfilPage() {
       <motion.div variants={itemVariants}>
         <Link href="/profil/trophees">
           <div className="flex items-center gap-4 rounded-2xl border px-4 py-4 mb-6"
-            style={{ background: "rgba(212,175,55,0.05)", borderColor: "rgba(212,175,55,0.2)", cursor: "pointer" }}>
+            style={{ background: "rgba(212,175,55,0.05)", borderColor: "var(--border-gold)", cursor: "pointer" }}>
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl text-2xl"
-              style={{ background: "rgba(212,175,55,0.12)" }}>
+              style={{ background: "var(--gold-faint)" }}>
               🏆
             </div>
             <div className="flex-1">
-              <p className="font-semibold text-sm" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+              <p className="font-semibold text-sm" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
                 Trophées & Achievements
               </p>
               <p className="text-xs" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
@@ -435,7 +435,7 @@ export default function ProfilPage() {
 
       {/* Méthode de calcul */}
       <motion.div variants={itemVariants}>
-        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Méthode de calcul des prières
         </p>
         <div className="flex flex-col gap-2">
@@ -448,10 +448,10 @@ export default function ProfilPage() {
                 background: settings.method === key ? "rgba(5,92,63,0.2)" : "rgba(255,255,255,0.02)",
                 borderColor: settings.method === key ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.06)",
               }}>
-              <span className="text-sm" style={{ color: settings.method === key ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+              <span className="text-sm" style={{ color: settings.method === key ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 {label}
               </span>
-              {settings.method === key && <Check size={16} style={{ color: "#D4AF37" }} />}
+              {settings.method === key && <Check size={16} style={{ color: "var(--gold)" }} />}
             </motion.button>
           ))}
         </div>
@@ -459,7 +459,7 @@ export default function ProfilPage() {
 
       {/* École juridique pour Asr */}
       <motion.div variants={itemVariants}>
-        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           École juridique (calcul de Asr)
         </p>
         <div className="flex flex-col gap-2">
@@ -472,10 +472,10 @@ export default function ProfilPage() {
                 background: (settings.madhab ?? "Shafi") === key ? "rgba(5,92,63,0.2)" : "rgba(255,255,255,0.02)",
                 borderColor: (settings.madhab ?? "Shafi") === key ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.06)",
               }}>
-              <span className="text-sm" style={{ color: (settings.madhab ?? "Shafi") === key ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+              <span className="text-sm" style={{ color: (settings.madhab ?? "Shafi") === key ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 {label}
               </span>
-              {(settings.madhab ?? "Shafi") === key && <Check size={16} style={{ color: "#D4AF37" }} />}
+              {(settings.madhab ?? "Shafi") === key && <Check size={16} style={{ color: "var(--gold)" }} />}
             </motion.button>
           ))}
         </div>
@@ -490,7 +490,7 @@ export default function ProfilPage() {
             exit={{ opacity: 0, y: 6, scale: 0.95 }}
             transition={{ type: "spring", stiffness: 400, damping: 28 }}
             className="fixed bottom-24 left-1/2 -translate-x-1/2 rounded-full px-4 py-2 text-sm font-semibold"
-            style={{ background: "#055C3F", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ background: "var(--primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             ✓ Sauvegardé
           </motion.div>
         )}

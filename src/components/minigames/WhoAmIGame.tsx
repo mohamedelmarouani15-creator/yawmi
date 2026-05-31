@@ -69,7 +69,7 @@ export default function WhoAmIGame({ question, onComplete, color }: Props) {
                   {i + 1}.
                 </span>
                 <p className="text-sm leading-relaxed"
-                  style={{ color: i === clueIndex ? "#F8F4EC" : "rgba(248,244,236,0.6)", fontFamily: "var(--font-dm-sans)" }}>
+                  style={{ color: i === clueIndex ? "var(--text)" : "rgba(248,244,236,0.6)", fontFamily: "var(--font-dm-sans)" }}>
                   {clue}
                 </p>
               </div>
@@ -106,7 +106,7 @@ export default function WhoAmIGame({ question, onComplete, color }: Props) {
 
           let bg = "rgba(255,255,255,0.02)";
           let border = "rgba(255,255,255,0.07)";
-          let textC = "#F8F4EC";
+          let textC = "var(--text)";
 
           if (submitted) {
             if (isOpt) { bg = "rgba(74,222,128,0.09)"; border = "rgba(74,222,128,0.4)"; textC = "#4ade80"; }

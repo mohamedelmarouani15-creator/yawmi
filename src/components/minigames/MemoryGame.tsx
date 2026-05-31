@@ -126,7 +126,7 @@ export default function MemoryGame({ question, onComplete, color }: Props) {
                 <span
                   className="text-center leading-tight"
                   style={{
-                    color: isMatched(card.id) ? "#4ade80" : "#F8F4EC",
+                    color: isMatched(card.id) ? "#4ade80" : "var(--text)",
                     fontSize: card.isArabic ? 14 : 10,
                     fontFamily: card.isArabic ? "var(--font-amiri)" : "var(--font-dm-sans)",
                     direction: card.isArabic ? "rtl" : "ltr",
@@ -161,7 +161,7 @@ export default function MemoryGame({ question, onComplete, color }: Props) {
             <p className="text-base font-bold" style={{ color: errors <= 2 ? "#4ade80" : "#f87171", fontFamily: "var(--font-bricolage)" }}>
               {errors <= 2 ? "Excellent !" : "Bien essayé !"}
             </p>
-            <p className="text-xs mt-0.5" style={{ color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="text-xs mt-0.5" style={{ color: "var(--text-muted)", fontFamily: "var(--font-dm-sans)" }}>
               {errors} erreur{errors !== 1 ? "s" : ""}
             </p>
           </motion.div>

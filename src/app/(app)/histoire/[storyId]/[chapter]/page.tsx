@@ -85,7 +85,7 @@ function QuestionCard({
 
   const typeColors: Record<string, string> = {
     comprehension:     "#60a5fa",
-    vocabulary:        "#D4AF37",
+    vocabulary:        "var(--gold)",
     reflection:        "#a78bfa",
     spaced_repetition: "#4ade80",
   };
@@ -111,14 +111,14 @@ function QuestionCard({
           {typeLabels[question.type]}
         </span>
         <span className="text-xs opacity-35"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           {questionIndex + 1}/{total}
         </span>
       </div>
 
       {/* Question */}
       <p className="text-base font-semibold leading-snug"
-        style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+        style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
         {question.text}
       </p>
 
@@ -126,7 +126,7 @@ function QuestionCard({
       {isReflection && (
         <div className="flex flex-col gap-3">
           <p className="text-xs italic opacity-50"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             {question.reflection_prompt}
           </p>
           {!revealed && (
@@ -139,7 +139,7 @@ function QuestionCard({
               style={{
                 background: "rgba(255,255,255,0.04)",
                 borderColor: "rgba(255,255,255,0.1)",
-                color: "#F8F4EC",
+                color: "var(--text)",
                 fontFamily: "var(--font-dm-sans)",
                 outline: "none",
               }}
@@ -164,7 +164,7 @@ function QuestionCard({
           {question.options!.map((opt, idx) => {
             let bg     = "rgba(255,255,255,0.02)";
             let border = "rgba(255,255,255,0.07)";
-            let textC  = "#F8F4EC";
+            let textC  = "var(--text)";
 
             if (revealed) {
               if (opt.correct) { bg = "rgba(74,222,128,0.09)"; border = "rgba(74,222,128,0.4)"; textC = "#4ade80"; }
@@ -228,7 +228,7 @@ function QuestionCard({
             background: (isReflection || selected !== null)
               ? `linear-gradient(135deg,${qColor},#055C3F)`
               : "rgba(255,255,255,0.06)",
-            color: (isReflection || selected !== null) ? "#F8F4EC" : "rgba(248,244,236,0.3)",
+            color: (isReflection || selected !== null) ? "var(--text)" : "var(--text-dim)",
             fontFamily: "var(--font-dm-sans)",
           }}>
           {isReflection ? (reflText ? "Valider ma réflexion" : "Passer") : "Valider"}
@@ -311,11 +311,11 @@ export default function ChapterPage() {
     setPhase("reward");
   }, [data, storyId, chapterN]);
 
-  const color = "#D4AF37";
+  const color = "var(--gold)";
 
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center"
-      style={{ background: "#061A12" }}>
+      style={{ background: "var(--bg)" }}>
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -344,11 +344,11 @@ export default function ChapterPage() {
         </motion.div>
         <div className="text-center">
           <p className="text-xl font-bold mb-2"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+            style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             {isLast ? "Histoire terminée !" : "Chapitre terminé !"}
           </p>
           <p className="text-sm opacity-55 mb-4"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             {correctCount}/{data.questions.length} bonnes réponses
           </p>
           {rewards && (
@@ -403,14 +403,14 @@ export default function ChapterPage() {
       <div className="flex items-center gap-3 mb-5">
         <motion.button onClick={() => router.back()} whileTap={{ scale: 0.9 }} transition={springTap}
           className="flex h-9 w-9 items-center justify-center rounded-full border"
-          style={{ borderColor: "rgba(212,175,55,0.18)", color: "#F8F4EC" }}>
+          style={{ borderColor: "rgba(212,175,55,0.18)", color: "var(--text)" }}>
           <ArrowLeft size={15} />
         </motion.button>
         <div>
-          <p className="text-xs opacity-35" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          <p className="text-xs opacity-35" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Chapitre {chapterN}
           </p>
-          <p className="text-sm font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+          <p className="text-sm font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             {data.title}
           </p>
         </div>
@@ -435,11 +435,11 @@ export default function ChapterPage() {
               style={{ background: "rgba(212,175,55,0.06)", borderColor: "rgba(212,175,55,0.18)" }}>
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-semibold truncate"
-                  style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                  style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
                   🎧 {ARC_AMBIENT_LABEL[storyId] ?? "Ambiance"}
                 </p>
                 <p className="text-xs opacity-40 truncate"
-                  style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                   {narrator.isLoading ? "Génération en cours…" : narrator.isPlaying ? "Narration en cours…" : narrator.isPaused ? "En pause" : "Écouter l'histoire"}
                 </p>
               </div>
@@ -452,8 +452,8 @@ export default function ChapterPage() {
                     }}
                     whileTap={{ scale: 0.9 }}
                     className="flex h-9 w-9 items-center justify-center rounded-full"
-                    style={{ background: "rgba(212,175,55,0.15)", color: "#D4AF37" }}>
-                    <Play size={16} fill="#D4AF37" />
+                    style={{ background: "rgba(212,175,55,0.15)", color: "var(--gold)" }}>
+                    <Play size={16} fill="var(--gold)" />
                   </motion.button>
                 )}
                 {narrator.isLoading && (
@@ -461,7 +461,7 @@ export default function ChapterPage() {
                     animate={{ rotate: 360 }}
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                     className="h-9 w-9 rounded-full border-2"
-                    style={{ borderColor: "#D4AF37", borderTopColor: "transparent" }}
+                    style={{ borderColor: "var(--gold)", borderTopColor: "transparent" }}
                   />
                 )}
                 {narrator.isPlaying && (
@@ -469,7 +469,7 @@ export default function ChapterPage() {
                     onClick={narrator.pause}
                     whileTap={{ scale: 0.9 }}
                     className="flex h-9 w-9 items-center justify-center rounded-full"
-                    style={{ background: "rgba(212,175,55,0.15)", color: "#D4AF37" }}>
+                    style={{ background: "rgba(212,175,55,0.15)", color: "var(--gold)" }}>
                     <Pause size={16} />
                   </motion.button>
                 )}
@@ -478,8 +478,8 @@ export default function ChapterPage() {
                     onClick={narrator.resume}
                     whileTap={{ scale: 0.9 }}
                     className="flex h-9 w-9 items-center justify-center rounded-full"
-                    style={{ background: "rgba(212,175,55,0.15)", color: "#D4AF37" }}>
-                    <Play size={16} fill="#D4AF37" />
+                    style={{ background: "rgba(212,175,55,0.15)", color: "var(--gold)" }}>
+                    <Play size={16} fill="var(--gold)" />
                   </motion.button>
                 )}
                 {(narrator.isPlaying || narrator.isPaused) && (
@@ -498,7 +498,7 @@ export default function ChapterPage() {
             <div className="flex flex-col gap-4">
               {data.narrative.split("\n\n").map((para, i) => (
                 <p key={i} className="text-base leading-[1.85] first:text-[17px]"
-                  style={{ color: i === 0 ? "#F8F4EC" : "rgba(248,244,236,0.75)", fontFamily: "var(--font-dm-sans)" }}>
+                  style={{ color: i === 0 ? "var(--text)" : "rgba(248,244,236,0.75)", fontFamily: "var(--font-dm-sans)" }}>
                   {para}
                 </p>
               ))}
@@ -522,7 +522,7 @@ export default function ChapterPage() {
           >
             <div className="text-center">
               <p className="text-xs uppercase tracking-widest mb-3 opacity-45"
-                style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 Le mot de ce chapitre
               </p>
               {/* Mot arabe principal */}
@@ -547,13 +547,13 @@ export default function ChapterPage() {
                 <p className="text-lg font-semibold" style={{ color: "rgba(248,244,236,0.55)", fontFamily: "var(--font-dm-sans)" }}>
                   {vocab.translit}
                 </p>
-                <p className="text-base text-center" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                <p className="text-base text-center" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                   {vocab.definition_fr}
                 </p>
               </motion.div>
               {vocab.example && (
                 <p className="text-sm italic opacity-45 text-center"
-                  style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                   {vocab.example}
                 </p>
               )}

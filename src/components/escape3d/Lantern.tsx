@@ -11,7 +11,7 @@ interface Props {
   solved?:  boolean;
 }
 
-export default function Lantern({ position, color = "#D4AF37", onTap, solved = false }: Props) {
+export default function Lantern({ position, color = "var(--gold)", onTap, solved = false }: Props) {
   const lightRef  = useRef<THREE.PointLight>(null!);
   const glowRef   = useRef<THREE.Mesh>(null!);
   const [hovered, setHovered] = useState(false);

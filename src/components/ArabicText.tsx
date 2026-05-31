@@ -16,7 +16,7 @@ export function ArabicText({
   arabic,
   translit,
   fontSize = 22,
-  color = "#D4AF37",
+  color = "var(--gold)",
   showAudio = true,
   className = "",
 }: Props) {

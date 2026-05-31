@@ -87,7 +87,7 @@ export default function VirtualJoystick({ onChange }: Props) {
       style={{
         width: 110, height: 110,
         borderRadius: "50%",
-        background: "rgba(212,175,55,0.12)",
+        background: "var(--gold-faint)",
         border: "2px solid rgba(212,175,55,0.35)",
         backdropFilter: "blur(4px)",
       }}

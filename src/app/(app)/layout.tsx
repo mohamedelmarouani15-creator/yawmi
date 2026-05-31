@@ -7,8 +7,9 @@ import PageWrapper        from "@/components/PageWrapper";
 import OfflineBanner      from "@/components/OfflineBanner";
 import Parchemin          from "@/components/Parchemin";
 import SplashScreen       from "@/components/SplashScreen";
-import { useAgeMode }    from "@/hooks/useAgeMode";
-import { useCompanion }   from "@/hooks/useCompanion";
+import { useAgeMode }      from "@/hooks/useAgeMode";
+import { usePrayerTheme }  from "@/hooks/usePrayerTheme";
+import { useCompanion }    from "@/hooks/useCompanion";
 import { useNotifications } from "@/hooks/useNotifications";
 import { supabase } from "@/lib/supabase";
 import { computePrayerTimes, PRAYER_ORDER, PRAYER_LABELS } from "@/lib/prayer";
@@ -60,7 +61,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router  = useRouter();
   const [authReady,   setAuthReady]   = useState(false);
   const [splashDone,  setSplashDone]  = useState(false);
-  useAgeMode(); // applique la classe CSS age-* sur <html>
+  useAgeMode();       // applique la classe CSS age-* sur <html>
+  usePrayerTheme();   // bascule data-theme=day|night selon Fajr/Maghrib
 
   useEffect(() => {
     const done = localStorage.getItem("yawmi_onboarded");
@@ -85,7 +87,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!showApp) return <SplashScreen onDone={() => setSplashDone(true)} />;
 
   return (
-    <div className="flex min-h-screen flex-col bg-[#061A12]">
+    <div className="flex min-h-screen flex-col" style={{ background: "var(--background)" }}>
       <OfflineBanner />
       <NotifScheduler />
       <PageWrapper>

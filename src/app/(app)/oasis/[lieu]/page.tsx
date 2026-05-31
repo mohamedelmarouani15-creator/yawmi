@@ -114,7 +114,7 @@ function SagePortrait({ sageId, color }: { sageId: string; color: string }) {
         <Beard />
         {/* Bâton de commandement */}
         <line x1={16} y1={95} x2={20} y2={180} stroke="#8B6914" strokeWidth={5} strokeLinecap="round" />
-        <circle cx={16} cy={93} r={5} fill="#D4AF37" opacity={0.9} />
+        <circle cx={16} cy={93} r={5} fill="var(--gold)" opacity={0.9} />
         {/* Manuscrit court */}
         {scroll(62, 115)}
       </g>
@@ -132,8 +132,8 @@ function SagePortrait({ sageId, color }: { sageId: string; color: string }) {
             fill={i === 0 ? "#F5DEB3" : i === 1 ? "#E8D0A0" : "#DCC090"} opacity={0.9} />
         ))}
         {/* Calame */}
-        <path d="M 18,100 Q 22,115 19,138" fill="none" stroke="#D4AF37" strokeWidth={1.5} strokeLinecap="round" />
-        <path d="M 18,100 Q 12,107 15,112" fill="#D4AF37" opacity={0.6} />
+        <path d="M 18,100 Q 22,115 19,138" fill="none" stroke="var(--gold)" strokeWidth={1.5} strokeLinecap="round" />
+        <path d="M 18,100 Q 12,107 15,112" fill="var(--gold)" opacity={0.6} />
       </g>
     ),
 
@@ -148,10 +148,10 @@ function SagePortrait({ sageId, color }: { sageId: string; color: string }) {
         <text x={71} y={122} textAnchor="middle" fontSize={7} fill={color} opacity={0.9} fontWeight="bold">١٢٣</text>
         <text x={71} y={132} textAnchor="middle" fontSize={7} fill={color} opacity={0.7}>x²+y</text>
         {/* Compas de mesure */}
-        <line x1={14} y1={108} x2={22} y2={136} stroke="#D4AF37" strokeWidth={2} strokeLinecap="round" />
-        <line x1={28} y1={108} x2={22} y2={136} stroke="#D4AF37" strokeWidth={2} strokeLinecap="round" />
-        <circle cx={14} cy={107} r={2} fill="#D4AF37" />
-        <circle cx={28} cy={107} r={2} fill="#D4AF37" />
+        <line x1={14} y1={108} x2={22} y2={136} stroke="var(--gold)" strokeWidth={2} strokeLinecap="round" />
+        <line x1={28} y1={108} x2={22} y2={136} stroke="var(--gold)" strokeWidth={2} strokeLinecap="round" />
+        <circle cx={14} cy={107} r={2} fill="var(--gold)" />
+        <circle cx={28} cy={107} r={2} fill="var(--gold)" />
       </g>
     ),
 
@@ -164,8 +164,8 @@ function SagePortrait({ sageId, color }: { sageId: string; color: string }) {
         {/* Canon de la médecine */}
         {book(58, 108, "#8B0000")}
         {/* Croix médicale stylisée */}
-        <rect x={13} y={112} width={10} height={3} rx={1} fill="#D4AF37" opacity={0.8} />
-        <rect x={17} y={108} width={3} height={10} rx={1} fill="#D4AF37" opacity={0.8} />
+        <rect x={13} y={112} width={10} height={3} rx={1} fill="var(--gold)" opacity={0.8} />
+        <rect x={17} y={108} width={3} height={10} rx={1} fill="var(--gold)" opacity={0.8} />
         {/* Fiole */}
         <path d="M 16,124 Q 12,128 12,136 Q 12,142 20,142 Q 28,142 28,136 Q 28,128 24,124 Z"
           fill="rgba(74,222,128,0.25)" stroke={color} strokeWidth={1} opacity={0.8} />
@@ -179,7 +179,7 @@ function SagePortrait({ sageId, color }: { sageId: string; color: string }) {
         <ellipse cx={50} cy={63} rx={28} ry={8} fill={color} opacity={0.9} />
         <path d="M 22,63 Q 14,44 50,38 Q 86,44 78,63 Z" fill={color} opacity={0.85} />
         {/* Bandeau décoratif */}
-        <path d="M 22,63 Q 50,55 78,63" fill="none" stroke="#D4AF37" strokeWidth={2} opacity={0.6} />
+        <path d="M 22,63 Q 50,55 78,63" fill="none" stroke="var(--gold)" strokeWidth={2} opacity={0.6} />
         <Face skin="#7A4E2D" />
         <Beard />
         {/* Manuscrits africains empilés */}
@@ -232,8 +232,8 @@ export default function LieuPage() {
 
   if (!location) {
     return (
-      <div className="flex items-center justify-center h-screen" style={{ background: "#061A12" }}>
-        <p style={{ color: "#F8F4EC" }}>Lieu introuvable.</p>
+      <div className="flex items-center justify-center h-screen" style={{ background: "var(--bg)" }}>
+        <p style={{ color: "var(--text)" }}>Lieu introuvable.</p>
       </div>
     );
   }
@@ -253,23 +253,23 @@ export default function LieuPage() {
         whileTap={{ scale: 0.93 }}
         transition={springTap}
         className="flex items-center gap-2 mb-6 text-sm opacity-50 hover:opacity-80"
-        style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}
+        style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
       >
         <ArrowLeft size={16} /> Retour à l'Oasis
       </motion.button>
 
       {/* City header */}
       <motion.div variants={itemVariants} className="mb-6">
-        <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           {location.country}
         </p>
-        <h1 className="mt-1 text-3xl font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+        <h1 className="mt-1 text-3xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
           {location.nameFr}
         </h1>
         <p className="mt-1 text-xl" style={{ color: location.color, fontFamily: "var(--font-amiri)" }}>
           {location.name}
         </p>
-        <p className="mt-2 text-sm opacity-60 leading-relaxed" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="mt-2 text-sm opacity-60 leading-relaxed" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           {location.description}
         </p>
       </motion.div>
@@ -281,12 +281,12 @@ export default function LieuPage() {
           className="flex flex-col items-center gap-4 rounded-2xl border p-8 text-center"
           style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}
         >
-          <Lock size={32} style={{ color: "rgba(248,244,236,0.3)" }} />
+          <Lock size={32} style={{ color: "var(--text-dim)" }} />
           <div>
-            <p className="font-semibold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+            <p className="font-semibold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
               Lieu verrouillé
             </p>
-            <p className="mt-1 text-sm opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="mt-1 text-sm opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               Il te faut {location.requiredXP} XP pour accéder à {location.nameFr}
             </p>
           </div>
@@ -295,7 +295,7 @@ export default function LieuPage() {
             whileTap={{ scale: 0.95 }}
             transition={springTap}
             className="rounded-full px-6 py-2.5 text-sm font-semibold"
-            style={{ background: "linear-gradient(135deg,#055C3F,#0a8a5e)", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}
+            style={{ background: "var(--gradient-primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
           >
             Continuer à jouer
           </motion.button>
@@ -326,19 +326,19 @@ export default function LieuPage() {
             {/* Info + dialogue */}
             <div className="flex flex-col gap-2 flex-1">
               <div>
-                <p className="text-xs opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                <p className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                   {sage.specialty}
                 </p>
                 <p className="font-bold text-base" style={{ color: location.color, fontFamily: "var(--font-bricolage)" }}>
                   {sage.name}
                 </p>
-                <p className="text-xs opacity-60" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                <p className="text-xs opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                   {sage.title}
                 </p>
               </div>
 
               <p className="text-sm leading-relaxed opacity-80 mt-1"
-                style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 &ldquo;{defeated ? sage.dialogueSuccess : sage.dialogueIntro}&rdquo;
               </p>
             </div>
@@ -348,19 +348,19 @@ export default function LieuPage() {
           <motion.div variants={itemVariants} className="flex gap-3 mb-6">
             <div className="flex-1 rounded-xl border px-4 py-3 text-center"
               style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.15)" }}>
-              <p className="text-xl font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+              <p className="text-xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
                 +{sage.reward.xp}
               </p>
-              <p className="text-xs opacity-50 mt-0.5" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+              <p className="text-xs opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 XP si victoire
               </p>
             </div>
             <div className="flex-1 rounded-xl border px-4 py-3 text-center"
               style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.15)" }}>
-              <p className="text-xl font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+              <p className="text-xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
                 {sage.victoryRequirement}/10
               </p>
-              <p className="text-xs opacity-50 mt-0.5" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+              <p className="text-xs opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 Bonnes réponses requises
               </p>
             </div>
@@ -370,7 +370,7 @@ export default function LieuPage() {
           {defeated ? (
             <motion.div variants={itemVariants} className="flex flex-col gap-3">
               <div className="flex items-center justify-center gap-2 rounded-full py-3.5 text-sm font-semibold"
-                style={{ background: "rgba(212,175,55,0.15)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)", border: "1px solid rgba(212,175,55,0.3)" }}>
+                style={{ background: "rgba(212,175,55,0.15)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)", border: "1px solid rgba(212,175,55,0.3)" }}>
                 <Trophy size={16} /> Sage vaincu — Compagnon acquis !
               </div>
               <motion.button
@@ -378,7 +378,7 @@ export default function LieuPage() {
                 whileTap={{ scale: 0.96 }}
                 transition={springTap}
                 className="flex items-center justify-center gap-2 rounded-full py-3.5 text-sm font-semibold"
-                style={{ background: "rgba(5,92,63,0.4)", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)", border: "1px solid rgba(5,92,63,0.5)" }}
+                style={{ background: "var(--border-primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)", border: "1px solid rgba(5,92,63,0.5)" }}
               >
                 <Swords size={16} /> Rejouer
               </motion.button>
@@ -392,7 +392,7 @@ export default function LieuPage() {
               className="flex items-center justify-center gap-2 rounded-full py-4 text-base font-bold"
               style={{
                 background: `linear-gradient(135deg, ${location.color}, #055C3F)`,
-                color: "#F8F4EC",
+                color: "var(--text)",
                 fontFamily: "var(--font-bricolage)",
                 boxShadow: `0 0 32px ${location.color}44`,
               }}
@@ -406,10 +406,10 @@ export default function LieuPage() {
       {/* No sage = terminal city (Médine/Mecque) */}
       {unlocked && !sage && (
         <motion.div variants={itemVariants} className="flex flex-col items-center gap-4 py-8 text-center">
-          <p className="text-5xl" style={{ fontFamily: "var(--font-amiri)", color: "#D4AF37" }}>
+          <p className="text-5xl" style={{ fontFamily: "var(--font-amiri)", color: "var(--gold)" }}>
             {lieu === "la_mecque" ? "مكة" : "المدينة"}
           </p>
-          <p className="text-sm opacity-60 leading-relaxed" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          <p className="text-sm opacity-60 leading-relaxed" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             {lieu === "medine"
               ? "C'est d'ici que commence ton voyage. Explore les autres villes pour grandir en sagesse."
               : "Tu as atteint le sommet du voyage. Que ta quête de connaissance soit bénie."}
@@ -419,7 +419,7 @@ export default function LieuPage() {
             whileTap={{ scale: 0.95 }}
             transition={springTap}
             className="rounded-full px-6 py-2.5 text-sm font-semibold"
-            style={{ background: "linear-gradient(135deg,#055C3F,#0a8a5e)", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}
+            style={{ background: "var(--gradient-primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
           >
             Retour à la carte
           </motion.button>

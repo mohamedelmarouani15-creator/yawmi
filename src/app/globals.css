@@ -56,6 +56,49 @@
   --foreground: #F8F4EC;
 }
 
+/* ── Thème jour (Fajr → Maghrib) ─────────────────────────────── */
+[data-theme="day"] {
+  /* Background */
+  --bg:              #F0EAE0;
+  --bg-card:         rgba(255, 255, 255, 0.55);
+  --bg-card-active:  rgba(5, 92, 63, 0.1);
+  --bg-primary:      rgba(5, 92, 63, 0.1);
+  --bg-gold:         rgba(180, 130, 20, 0.1);
+
+  /* Colors */
+  --gold:            #9A7000;
+  --gold-dim:        rgba(154, 112, 0, 0.4);
+  --gold-faint:      rgba(154, 112, 0, 0.1);
+  --text:            #0D1F14;
+  --text-muted:      rgba(13, 31, 20, 0.55);
+  --text-dim:        rgba(13, 31, 20, 0.35);
+
+  /* Borders */
+  --border:          rgba(5, 92, 63, 0.1);
+  --border-gold:     rgba(154, 112, 0, 0.25);
+  --border-active:   rgba(154, 112, 0, 0.55);
+  --border-primary:  rgba(5, 92, 63, 0.25);
+
+  /* Shadows */
+  --shadow-primary: 0 0 28px rgba(5, 92, 63, 0.12);
+  --shadow-gold:    0 0 28px rgba(154, 112, 0, 0.15);
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, #055C3F, #0a8a5e);
+  --gradient-gold:    linear-gradient(135deg, #9A7000, #C49A00);
+  --gradient-bar:     linear-gradient(to right, #055C3F, #9A7000);
+
+  --background: #F0EAE0;
+  --foreground: #0D1F14;
+
+  color-scheme: light;
+}
+
+/* Transition douce entre thèmes */
+html {
+  transition: background-color 1.5s ease, color 1.5s ease;
+}
+
 /* ── Base ─────────────────────────────────────────────────────── */
 body {
   background: var(--background);
@@ -102,28 +145,113 @@ body {
   50%       { opacity: 1;   transform: scale(1);   }
 }
 
+/* ── Mihrab & motifs islamiques ───────────────────────────────── */
+
+/* Arche mihrab via clip-path sur les cards importantes */
+.mihrab-card {
+  position: relative;
+  border-radius: 1.5rem 1.5rem 0.75rem 0.75rem;
+  overflow: hidden;
+}
+.mihrab-card::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 50%; transform: translateX(-50%);
+  width: 60%; height: 6px;
+  background: var(--gradient-gold);
+  border-radius: 0 0 9999px 9999px;
+  opacity: 0.7;
+}
+
+/* Séparateur doré façon parchemin */
+.divider-gold {
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--gold-dim), transparent);
+  margin: 1rem 0;
+}
+
+/* Cadre arabe : fine bordure + coins dorés */
+.frame-arabic {
+  border: 1px solid var(--border-gold);
+  border-radius: var(--r-lg);
+  position: relative;
+}
+.frame-arabic::before,
+.frame-arabic::after {
+  content: "✦";
+  position: absolute;
+  color: var(--gold-dim);
+  font-size: 0.6rem;
+  line-height: 1;
+}
+.frame-arabic::before { top: -0.4rem; left: 0.75rem; }
+.frame-arabic::after  { bottom: -0.4rem; right: 0.75rem; }
+
+/* Glow dorée subtile (médailles, achievements) */
+.glow-gold {
+  box-shadow: var(--shadow-gold);
+}
+.glow-primary {
+  box-shadow: var(--shadow-primary);
+}
+
 /* ── Modes par âge ────────────────────────────────────────────── */
 
-/* Enfants (4-10) : gros caractères, boutons larges */
+/* Enfants (4-10) : lecture facile, grande cible tactile, espacement généreux */
 .age-kids {
   font-size: 17px;
+  --r-md: 1rem;
+  --r-lg: 1.25rem;
+  --r-xl: 1.5rem;
 }
 .age-kids button, .age-kids a {
-  min-height: 48px;
+  min-height: 52px;
+  border-radius: var(--r-xl) !important;
+}
+.age-kids p, .age-kids span, .age-kids li {
+  line-height: 1.75;
+}
+/* Masquer les éléments trop complexes pour les enfants */
+.age-kids .hide-kids { display: none !important; }
+/* Mettre en avant les éléments ludiques */
+.age-kids .show-kids { display: block !important; }
+
+/* Ados (11-17) : interface moderne, légèrement plus grande */
+.age-teen {
+  font-size: 15.5px;
+}
+.age-teen button, .age-teen a {
+  min-height: 44px;
 }
 
-/* Aînés (55+) : très grands caractères, contraste renforcé */
+/* Aînés (55+) : très grands caractères, contraste max, zones tactiles larges */
 .age-elder {
   font-size: 18px;
+  --text-muted: rgba(248, 244, 236, 0.7);
+  --text-dim:   rgba(248, 244, 236, 0.5);
+}
+[data-theme="day"].age-elder,
+.age-elder[data-theme="day"] {
+  --text-muted: rgba(13, 31, 20, 0.72);
+  --text-dim:   rgba(13, 31, 20, 0.52);
 }
 .age-elder p, .age-elder span, .age-elder li {
   font-size: 1.1em;
-  line-height: 1.7;
+  line-height: 1.8;
+  letter-spacing: 0.01em;
 }
 .age-elder button, .age-elder a {
-  min-height: 52px;
+  min-height: 56px;
   font-size: 1.05em;
+  padding-left: 1.25rem !important;
+  padding-right: 1.25rem !important;
 }
+/* Icônes plus visibles pour les aînés */
+.age-elder svg { transform: scale(1.15); transform-origin: center; }
+/* Navigation bottom plus haute */
+.age-elder nav { height: 5rem !important; }
+/* Masquer les options avancées pour les aînés */
+.age-elder .hide-elder { display: none !important; }
 
 /* ── Accessibilité ────────────────────────────────────────────── */
 :focus-visible {

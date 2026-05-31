@@ -7,7 +7,7 @@ import { useLiveDuel } from "@/hooks/useLiveDuel";
 import { springTap } from "@/lib/motion";
 
 const OPTION_LABELS = ["A", "B", "C", "D"];
-const COLOR = "#D4AF37";
+const COLOR = "var(--gold)";
 
 // ── Circular countdown ────────────────────────────────────────────
 function CountdownRing({ timeLeft, total }: { timeLeft: number; total: number }) {
@@ -28,7 +28,7 @@ function CountdownRing({ timeLeft, total }: { timeLeft: number; total: number })
         />
       </svg>
       <span className="relative text-lg font-bold z-10"
-        style={{ color: danger ? "#f87171" : "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+        style={{ color: danger ? "#f87171" : "var(--text)", fontFamily: "var(--font-bricolage)" }}>
         {timeLeft}
       </span>
     </div>
@@ -42,7 +42,7 @@ export default function LiveDuelPage() {
 
   if (error) return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-4 px-6"
-      style={{ background: "#061A12" }}>
+      style={{ background: "var(--bg)" }}>
       <p className="text-lg font-bold text-center" style={{ color: "#f87171", fontFamily: "var(--font-bricolage)" }}>
         {error}
       </p>
@@ -56,7 +56,7 @@ export default function LiveDuelPage() {
 
   if (!state) return (
     <div className="flex flex-col items-center justify-center min-h-screen gap-3"
-      style={{ background: "#061A12" }}>
+      style={{ background: "var(--bg)" }}>
       <motion.div
         animate={{ rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
@@ -81,10 +81,10 @@ export default function LiveDuelPage() {
           ⚔️
         </motion.div>
         <div className="text-center">
-          <p className="text-xl font-bold mb-2" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+          <p className="text-xl font-bold mb-2" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             Duel Live
           </p>
-          <p className="text-sm" style={{ color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-dm-sans)" }}>
+          <p className="text-sm" style={{ color: "var(--text-muted)", fontFamily: "var(--font-dm-sans)" }}>
             {state.status === "ready"
               ? "Les deux joueurs sont prêts !"
               : "En attente de l'adversaire…"}
@@ -98,7 +98,7 @@ export default function LiveDuelPage() {
             Le duel commence…
           </motion.p>
         )}
-        <p className="text-xs" style={{ color: "rgba(248,244,236,0.3)", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="text-xs" style={{ color: "var(--text-dim)", fontFamily: "var(--font-dm-sans)" }}>
           Code duel : <span style={{ color: COLOR }}>{id.slice(0, 8).toUpperCase()}</span>
         </p>
       </div>
@@ -121,7 +121,7 @@ export default function LiveDuelPage() {
         </motion.div>
         <div className="text-center">
           <p className="text-2xl font-bold mb-1"
-            style={{ color: iWon ? COLOR : tied ? "#60a5fa" : "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+            style={{ color: iWon ? COLOR : tied ? "#60a5fa" : "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             {tied ? "Égalité !" : iWon ? "Victoire !" : "Défaite !"}
           </p>
           <p className="text-sm" style={{ color: "rgba(248,244,236,0.55)", fontFamily: "var(--font-dm-sans)" }}>
@@ -133,7 +133,7 @@ export default function LiveDuelPage() {
         <div className="w-full max-w-xs rounded-2xl border p-5 flex items-center justify-around"
           style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.08)" }}>
           <div className="text-center">
-            <p className="text-3xl font-bold" style={{ color: iWon ? "#4ade80" : "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+            <p className="text-3xl font-bold" style={{ color: iWon ? "#4ade80" : "var(--text)", fontFamily: "var(--font-bricolage)" }}>
               {state.myScore}
             </p>
             <p className="text-xs mt-1" style={{ color: "rgba(248,244,236,0.45)", fontFamily: "var(--font-dm-sans)" }}>Toi</p>
@@ -141,7 +141,7 @@ export default function LiveDuelPage() {
           <div style={{ color: "rgba(255,255,255,0.2)", fontSize: 24 }}>—</div>
           <div className="text-center">
             <p className="text-3xl font-bold"
-              style={{ color: !iWon && !tied ? "#4ade80" : "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+              style={{ color: !iWon && !tied ? "#4ade80" : "var(--text)", fontFamily: "var(--font-bricolage)" }}>
               {state.opponentScore}
             </p>
             <p className="text-xs mt-1" style={{ color: "rgba(248,244,236,0.45)", fontFamily: "var(--font-dm-sans)" }}>
@@ -173,7 +173,7 @@ export default function LiveDuelPage() {
       <div className="flex items-center justify-between mb-5">
         <motion.button onClick={() => router.back()} whileTap={{ scale: 0.9 }} transition={springTap}
           className="flex h-9 w-9 items-center justify-center rounded-full border"
-          style={{ borderColor: "rgba(212,175,55,0.18)", color: "#F8F4EC" }}>
+          style={{ borderColor: "rgba(212,175,55,0.18)", color: "var(--text)" }}>
           <ArrowLeft size={15} />
         </motion.button>
 
@@ -223,7 +223,7 @@ export default function LiveDuelPage() {
           initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.25 }}>
           <p className="text-[18px] font-bold leading-snug mb-6"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+            style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             {question.question}
           </p>
           <div className="flex flex-col gap-2.5">
@@ -233,7 +233,7 @@ export default function LiveDuelPage() {
               const revealed   = state.myAnswer !== null;
               let bg = "rgba(255,255,255,0.02)";
               let border = "rgba(255,255,255,0.07)";
-              let textC  = "#F8F4EC";
+              let textC  = "var(--text)";
 
               if (revealed) {
                 if (isCorrect) { bg = "rgba(74,222,128,0.09)"; border = "rgba(74,222,128,0.4)"; textC = "#4ade80"; }

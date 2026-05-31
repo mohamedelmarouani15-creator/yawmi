@@ -82,7 +82,7 @@ export default function RoomMap({ currentRoom, solved }: Props) {
           const puzzleId  = ROOM_PUZZLE[room];
           const isSolved  = solved[puzzleId];
 
-          const ringColor = isCurrent ? "#D4AF37"
+          const ringColor = isCurrent ? "var(--gold)"
             : isSolved ? "#05C36F"
             : "rgba(255,255,255,0.15)";
 
@@ -96,7 +96,7 @@ export default function RoomMap({ currentRoom, solved }: Props) {
               {isCurrent && (
                 <motion.circle
                   cx={cx} cy={cy} r={CELL / 2 + 3}
-                  fill="rgba(212,175,55,0.12)"
+                  fill="var(--gold-faint)"
                   animate={{ r: [CELL / 2 + 2, CELL / 2 + 5, CELL / 2 + 2] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />

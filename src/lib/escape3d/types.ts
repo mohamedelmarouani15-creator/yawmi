@@ -42,8 +42,8 @@ export interface PuzzleDef {
 }
 
 export const PLAYER_COLORS = [
-  "#D4AF37", // or
-  "#055C3F", // vert profond
+  "var(--gold)", // or
+  "var(--primary)", // vert profond
   "#C0392B", // rouge rubis
   "#8E44AD", // violet
   "#2471A3", // bleu

@@ -33,7 +33,7 @@ export default function BottomNav() {
             <Link
               href={href}
               className="relative flex flex-col items-center gap-0.5 px-3 py-2.5"
-              style={{ color: active ? "#D4AF37" : "rgba(248,244,236,0.35)" }}
+              style={{ color: active ? "var(--gold)" : "rgba(248,244,236,0.35)" }}
             >
               <motion.div
                 animate={{ scale: active ? 1 : 0.92, opacity: active ? 1 : 0.65 }}
@@ -51,7 +51,7 @@ export default function BottomNav() {
                 <motion.span
                   layoutId="nav-indicator"
                   className="absolute bottom-0 h-0.5 w-7 rounded-full"
-                  style={{ background: "#D4AF37" }}
+                  style={{ background: "var(--gold)" }}
                   transition={{ type: "spring", stiffness: 500, damping: 35 }}
                 />
               )}

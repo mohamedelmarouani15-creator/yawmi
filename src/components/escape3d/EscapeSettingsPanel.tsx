@@ -96,8 +96,8 @@ function ThreeWay<T extends string>({ value, options, onChange }: {
             fontFamily: "var(--font-dm-sans)", letterSpacing: "0.06em",
             cursor: "pointer", border: "1px solid",
             background:    value === o.v ? "rgba(212,175,55,0.18)" : "rgba(255,255,255,0.04)",
-            borderColor:   value === o.v ? "#D4AF37"               : "rgba(255,255,255,0.08)",
-            color:         value === o.v ? "#D4AF37"               : "rgba(248,244,236,0.45)",
+            borderColor:   value === o.v ? "var(--gold)"               : "rgba(255,255,255,0.08)",
+            color:         value === o.v ? "var(--gold)"               : "rgba(248,244,236,0.45)",
             transition: "all 0.15s",
           }}
         >
@@ -119,12 +119,12 @@ function Row({ icon, label, sub, children }: {
           width: 32, height: 32, borderRadius: 10, flexShrink: 0,
           background: "rgba(212,175,55,0.1)",
           display: "flex", alignItems: "center", justifyContent: "center",
-          color: "#D4AF37",
+          color: "var(--gold)",
         }}>
           {icon}
         </div>
         <div style={{ flex: 1 }}>
-          <p style={{ color: "#F8F4EC", fontSize: 13, fontFamily: "var(--font-dm-sans)", margin: 0 }}>
+          <p style={{ color: "var(--text)", fontSize: 13, fontFamily: "var(--font-dm-sans)", margin: 0 }}>
             {label}
           </p>
           {sub && (
@@ -204,7 +204,7 @@ export default function EscapeSettingsPanel({ settings, onChange }: Props) {
 
               {/* Header */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", margin: "16px 0 22px" }}>
-                <p style={{ color: "#D4AF37", fontSize: 13, letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "var(--font-dm-sans)", margin: 0 }}>
+                <p style={{ color: "var(--gold)", fontSize: 13, letterSpacing: "0.18em", textTransform: "uppercase", fontFamily: "var(--font-dm-sans)", margin: 0 }}>
                   Réglages
                 </p>
                 <button onClick={() => setOpen(false)} style={{ color: "rgba(248,244,236,0.45)", background: "none", border: "none", cursor: "pointer", padding: 4 }}>
@@ -222,7 +222,7 @@ export default function EscapeSettingsPanel({ settings, onChange }: Props) {
                     onChange={v => set("ambientVolume", v)} />
                 </Row>
 
-                <div style={{ height: 1, background: "rgba(212,175,55,0.08)" }} />
+                <div style={{ height: 1, background: "var(--bg-gold)" }} />
 
                 {/* Volume UI */}
                 <Row icon={volIcon(settings.uiVolume)} label="Sons d'interface"
@@ -231,7 +231,7 @@ export default function EscapeSettingsPanel({ settings, onChange }: Props) {
                     onChange={v => set("uiVolume", v)} />
                 </Row>
 
-                <div style={{ height: 1, background: "rgba(212,175,55,0.08)" }} />
+                <div style={{ height: 1, background: "var(--bg-gold)" }} />
 
                 {/* Vibrations */}
                 <Row icon={settings.vibrations ? <SmartphoneNfc size={15} /> : <Smartphone size={15} />}
@@ -244,7 +244,7 @@ export default function EscapeSettingsPanel({ settings, onChange }: Props) {
                   </div>
                 </Row>
 
-                <div style={{ height: 1, background: "rgba(212,175,55,0.08)" }} />
+                <div style={{ height: 1, background: "var(--bg-gold)" }} />
 
                 {/* Sensibilité */}
                 <Row icon={<Eye size={15} />} label="Sensibilité caméra"
@@ -253,7 +253,7 @@ export default function EscapeSettingsPanel({ settings, onChange }: Props) {
                     onChange={v => set("sensitivity", v)} />
                 </Row>
 
-                <div style={{ height: 1, background: "rgba(212,175,55,0.08)" }} />
+                <div style={{ height: 1, background: "var(--bg-gold)" }} />
 
                 {/* Transition */}
                 <Row icon={<Wind size={15} />} label="Vitesse des transitions"
@@ -269,7 +269,7 @@ export default function EscapeSettingsPanel({ settings, onChange }: Props) {
                   />
                 </Row>
 
-                <div style={{ height: 1, background: "rgba(212,175,55,0.08)" }} />
+                <div style={{ height: 1, background: "var(--bg-gold)" }} />
 
                 {/* Difficulté */}
                 <Row icon={<GraduationCap size={15} />} label="Niveau des énigmes"
@@ -289,7 +289,7 @@ export default function EscapeSettingsPanel({ settings, onChange }: Props) {
                   />
                 </Row>
 
-                <div style={{ height: 1, background: "rgba(212,175,55,0.08)" }} />
+                <div style={{ height: 1, background: "var(--bg-gold)" }} />
 
                 {/* Qualité */}
                 <Row icon={<Zap size={15} />} label="Qualité graphique"

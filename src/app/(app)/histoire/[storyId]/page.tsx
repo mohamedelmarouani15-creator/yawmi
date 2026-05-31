@@ -77,16 +77,16 @@ export default function StoryChaptersPage() {
       <div className="flex items-center gap-3 mb-6">
         <motion.button onClick={() => router.back()} whileTap={{ scale: 0.9 }} transition={springTap}
           className="flex h-9 w-9 items-center justify-center rounded-full border"
-          style={{ borderColor: "rgba(212,175,55,0.18)", color: "#F8F4EC" }}>
+          style={{ borderColor: "rgba(212,175,55,0.18)", color: "var(--text)" }}>
           <ArrowLeft size={15} />
         </motion.button>
         <div>
           <h1 className="text-lg font-bold"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+            style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             {TITLES[storyId] ?? "Histoire"}
           </h1>
           <p className="text-xs opacity-40"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             {completed.length}/{chapters.length} chapitres lus
           </p>
         </div>
@@ -105,7 +105,7 @@ export default function StoryChaptersPage() {
             />
           </div>
           <p className="text-xs mt-1 opacity-35"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             {Math.round((completed.length / chapters.length) * 100)}% terminé
           </p>
         </motion.div>
@@ -118,7 +118,7 @@ export default function StoryChaptersPage() {
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
             className="h-8 w-8 rounded-full border-2"
-            style={{ borderColor: "#D4AF37", borderTopColor: "transparent" }}
+            style={{ borderColor: "var(--gold)", borderTopColor: "transparent" }}
           />
         </div>
       ) : (
@@ -138,7 +138,7 @@ export default function StoryChaptersPage() {
                 className="flex items-center gap-4 rounded-2xl border px-4 py-4 text-left"
                 style={{
                   background: isCurrent
-                    ? "rgba(212,175,55,0.08)"
+                    ? "var(--bg-gold)"
                     : isDone
                     ? "rgba(74,222,128,0.05)"
                     : "rgba(255,255,255,0.02)",
@@ -157,18 +157,18 @@ export default function StoryChaptersPage() {
                     background: isDone
                       ? "rgba(74,222,128,0.12)"
                       : isCurrent
-                      ? "rgba(212,175,55,0.12)"
+                      ? "var(--gold-faint)"
                       : "rgba(255,255,255,0.05)",
                   }}>
                   {isDone ? (
                     <CheckCircle2 size={18} style={{ color: "#4ade80" }} />
                   ) : isLocked ? (
-                    <Lock size={16} style={{ color: "rgba(248,244,236,0.3)" }} />
+                    <Lock size={16} style={{ color: "var(--text-dim)" }} />
                   ) : isCurrent ? (
-                    <BookOpen size={17} style={{ color: "#D4AF37" }} />
+                    <BookOpen size={17} style={{ color: "var(--gold)" }} />
                   ) : (
                     <span className="text-sm font-bold"
-                      style={{ color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-bricolage)" }}>
+                      style={{ color: "var(--text-muted)", fontFamily: "var(--font-bricolage)" }}>
                       {ch.chapter_number}
                     </span>
                   )}
@@ -177,12 +177,12 @@ export default function StoryChaptersPage() {
                 {/* Titre */}
                 <div className="flex-1 min-w-0">
                   <p className="text-xs opacity-40 mb-0.5"
-                    style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     Chapitre {ch.chapter_number}
                   </p>
                   <p className="text-sm font-semibold truncate"
                     style={{
-                      color: isDone ? "#4ade80" : isCurrent ? "#D4AF37" : "#F8F4EC",
+                      color: isDone ? "#4ade80" : isCurrent ? "var(--gold)" : "var(--text)",
                       fontFamily: "var(--font-bricolage)",
                     }}>
                     {ch.title}
@@ -193,7 +193,7 @@ export default function StoryChaptersPage() {
                   <span className="shrink-0 text-xs font-semibold rounded-full px-2.5 py-1"
                     style={{
                       background: "rgba(212,175,55,0.15)",
-                      color: "#D4AF37",
+                      color: "var(--gold)",
                       border: "1px solid rgba(212,175,55,0.3)",
                       fontFamily: "var(--font-dm-sans)",
                     }}>

@@ -28,7 +28,7 @@ function OptionLabel({ arabic, fr, phonetic, difficulty }: {
       <div style={{ display: "flex", flexDirection: "column", gap: 2, textAlign: "right" }}>
         <span style={{ fontSize: 16, direction: "rtl" }}>{arabic}</span>
         {phonetic && (
-          <span style={{ fontSize: 11, color: "rgba(248,244,236,0.5)", fontStyle: "italic", direction: "ltr", textAlign: "left" }}>
+          <span style={{ fontSize: 11, color: "var(--text-muted)", fontStyle: "italic", direction: "ltr", textAlign: "left" }}>
             {phonetic}
           </span>
         )}
@@ -40,7 +40,7 @@ function OptionLabel({ arabic, fr, phonetic, difficulty }: {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
       <span style={{ fontSize: 14, fontWeight: 600 }}>{fr ?? arabic}</span>
-      <span style={{ fontSize: 12, direction: "rtl", color: "rgba(248,244,236,0.5)" }}>{arabic}</span>
+      <span style={{ fontSize: 12, direction: "rtl", color: "var(--text-muted)" }}>{arabic}</span>
     </div>
   );
 }
@@ -78,11 +78,11 @@ export default function PuzzleModal({ puzzle, difficulty, onSolve, onClose }: Pr
   function optionStyle(opt: string): React.CSSProperties {
     if (!revealed) {
       return {
-        background:  selected === opt ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.04)",
-        borderColor: selected === opt ? "#D4AF37" : "rgba(255,255,255,0.1)",
+        background:  selected === opt ? "var(--border-gold)" : "rgba(255,255,255,0.04)",
+        borderColor: selected === opt ? "var(--gold)" : "rgba(255,255,255,0.1)",
       };
     }
-    if (opt === puzzle.answer) return { background: "rgba(5,92,63,0.4)",  borderColor: "#05C36F" };
+    if (opt === puzzle.answer) return { background: "var(--border-primary)",  borderColor: "#05C36F" };
     if (opt === selected)      return { background: "rgba(180,30,30,0.3)", borderColor: "#E05555" };
     return { background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)", opacity: 0.4 };
   }
@@ -92,7 +92,7 @@ export default function PuzzleModal({ puzzle, difficulty, onSolve, onClose }: Pr
     : difficulty === "intermediaire" ? "🌙 Intermédiaire"
     : "⭐ Expert";
   const diffColor = difficulty === "debutant" ? "#4ade80"
-    : difficulty === "intermediaire" ? "#D4AF37"
+    : difficulty === "intermediaire" ? "var(--gold)"
     : "#f59e0b";
 
   return (
@@ -117,7 +117,7 @@ export default function PuzzleModal({ puzzle, difficulty, onSolve, onClose }: Pr
           <div>
             <div className="flex items-center gap-2 mb-1">
               <p className="text-xs tracking-widest uppercase"
-                style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)", opacity: 0.7 }}>
+                style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)", opacity: 0.7 }}>
                 Énigme
               </p>
               <span className="text-[10px] px-2 py-0.5 rounded-full"
@@ -126,13 +126,13 @@ export default function PuzzleModal({ puzzle, difficulty, onSolve, onClose }: Pr
               </span>
             </div>
             <h3 className="text-base font-semibold"
-              style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+              style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               {puzzle.title}
             </h3>
           </div>
           <button onClick={onClose}
             className="text-xs px-3 py-1.5 rounded-full"
-            style={{ color: "#F8F4EC", background: "rgba(255,255,255,0.07)", opacity: 0.6 }}>
+            style={{ color: "var(--text)", background: "rgba(255,255,255,0.07)", opacity: 0.6 }}>
             ✕
           </button>
         </div>
@@ -140,7 +140,7 @@ export default function PuzzleModal({ puzzle, difficulty, onSolve, onClose }: Pr
         {/* Question */}
         <div className="px-5 py-4">
           <p className="text-sm leading-relaxed"
-            style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)", opacity: 0.85 }}>
+            style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)", opacity: 0.85 }}>
             {puzzle.question}
           </p>
         </div>
@@ -153,7 +153,7 @@ export default function PuzzleModal({ puzzle, difficulty, onSolve, onClose }: Pr
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
               className="mx-5 mb-3 px-4 py-3 rounded-xl text-sm italic"
-              style={{ background: "rgba(212,175,55,0.1)", borderLeft: "3px solid #D4AF37", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+              style={{ background: "rgba(212,175,55,0.1)", borderLeft: "3px solid #D4AF37", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
               🕯 {showHint}
             </motion.div>
           )}
@@ -168,7 +168,7 @@ export default function PuzzleModal({ puzzle, difficulty, onSolve, onClose }: Pr
               onClick={() => handleAnswer(opt)}
               disabled={revealed}
               className="rounded-xl border px-4 py-3 text-left"
-              style={{ ...optionStyle(opt), color: "#F8F4EC", fontFamily: "var(--font-dm-sans)", transition: "all 0.3s" }}
+              style={{ ...optionStyle(opt), color: "var(--text)", fontFamily: "var(--font-dm-sans)", transition: "all 0.3s" }}
             >
               <OptionLabel
                 arabic={opt}
@@ -199,10 +199,10 @@ export default function PuzzleModal({ puzzle, difficulty, onSolve, onClose }: Pr
             <button
               onClick={requestHint}
               className="text-xs px-4 py-2 rounded-full"
-              style={{ color: "#D4AF37", background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.25)", fontFamily: "var(--font-dm-sans)" }}>
+              style={{ color: "var(--gold)", background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.25)", fontFamily: "var(--font-dm-sans)" }}>
               {hintsUsed < 3 ? `Indice (${3 - hintsUsed} restants)` : "Voir la réponse"}
             </button>
-            <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               +{puzzle.xpReward} XP
             </p>
           </div>

@@ -49,7 +49,7 @@ export default function FillVerseGame({ question, onComplete, color }: Props) {
             onClick={() => speak(verse.replace("___", "..."))}
             whileTap={{ scale: 0.9 }}
             className="flex h-7 w-7 items-center justify-center rounded-full"
-            style={{ background: speaking ? "rgba(212,175,55,0.25)" : "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)" }}
+            style={{ background: speaking ? "rgba(212,175,55,0.25)" : "var(--gold-faint)", border: "1px solid rgba(212,175,55,0.3)" }}
             aria-label="Écouter le verset"
           >
             <motion.span
@@ -64,7 +64,7 @@ export default function FillVerseGame({ question, onComplete, color }: Props) {
         <p
           className="text-lg leading-relaxed text-center"
           style={{
-            color: "#F8F4EC",
+            color: "var(--text)",
             fontFamily: "var(--font-amiri)",
             direction: "rtl",
           }}
@@ -101,7 +101,7 @@ export default function FillVerseGame({ question, onComplete, color }: Props) {
         {/* Translittération */}
         {verseTranslit && (
           <p className="text-xs text-center mt-2 italic"
-            style={{ color: "rgba(212,175,55,0.45)", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ color: "var(--gold-dim)", fontFamily: "var(--font-dm-sans)" }}>
             {verseTranslit}
           </p>
         )}
@@ -116,7 +116,7 @@ export default function FillVerseGame({ question, onComplete, color }: Props) {
 
           let bg = "rgba(255,255,255,0.02)";
           let border = "rgba(255,255,255,0.07)";
-          let textC = "#F8F4EC";
+          let textC = "var(--text)";
 
           if (showFeedback) {
             if (isOptCorrect) { bg = "rgba(74,222,128,0.09)"; border = "rgba(74,222,128,0.4)"; textC = "#4ade80"; }
@@ -153,7 +153,7 @@ export default function FillVerseGame({ question, onComplete, color }: Props) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-xs text-center"
-            style={{ color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-dm-sans)" }}
+            style={{ color: "var(--text-muted)", fontFamily: "var(--font-dm-sans)" }}
           >
             Bonne réponse : <span style={{ color: "#4ade80", fontFamily: "var(--font-amiri)" }}>{correctOption.text}</span>
           </motion.p>
@@ -169,7 +169,7 @@ export default function FillVerseGame({ question, onComplete, color }: Props) {
           background: selected && !submitted
             ? `linear-gradient(135deg,${color},#055C3F)`
             : "rgba(255,255,255,0.06)",
-          color: selected && !submitted ? "#F8F4EC" : "rgba(248,244,236,0.3)",
+          color: selected && !submitted ? "var(--text)" : "var(--text-dim)",
           fontFamily: "var(--font-dm-sans)",
         }}
       >

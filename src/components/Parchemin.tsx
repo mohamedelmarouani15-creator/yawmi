@@ -36,7 +36,7 @@ function CornerOrnament({
 }
 
 // ── Icône parchemin SVG ────────────────────────────────────────
-function ScrollIcon({ color = "#D4AF37" }: { color?: string }) {
+function ScrollIcon({ color = "var(--gold)" }: { color?: string }) {
   return (
     <svg width={28} height={28} viewBox="0 0 28 28" fill="none">
       <rect x={5} y={6} width={18} height={17} rx={2}
@@ -82,7 +82,7 @@ function MessageBubble({
           background: isUser
             ? "rgba(5,92,63,0.75)"
             : "rgba(255,255,255,0.12)",
-          color: isUser ? "#F8F4EC" : "#2C1A0A",
+          color: isUser ? "var(--text)" : "#2C1A0A",
           fontFamily: "var(--font-dm-sans)",
           borderTopRightRadius: isUser ? 4 : undefined,
           borderTopLeftRadius: isUser ? undefined : 4,

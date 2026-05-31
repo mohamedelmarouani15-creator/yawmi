@@ -22,7 +22,7 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
           className="fixed inset-0 z-[200] flex flex-col items-center justify-center overflow-hidden"
-          style={{ background: "#061A12" }}
+          style={{ background: "var(--bg)" }}
         >
           {/* Zellige background */}
           <div className="pointer-events-none absolute inset-0" style={{ opacity: 0.045 }}>
@@ -31,9 +31,9 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
                 <pattern id="sp-zellige" x="0" y="0" width="80" height="80" patternUnits="userSpaceOnUse">
                   <path
                     d="M40 8 L44 28 L62 20 L50 36 L72 40 L50 44 L62 60 L44 52 L40 72 L36 52 L18 60 L30 44 L8 40 L30 36 L18 20 L36 28 Z"
-                    fill="none" stroke="#D4AF37" strokeWidth="0.7" />
-                  <circle cx="40" cy="40" r="4" fill="none" stroke="#D4AF37" strokeWidth="0.5" />
-                  <path d="M40 8 L40 0 M40 72 L40 80 M8 40 L0 40 M72 40 L80 40" stroke="#D4AF37" strokeWidth="0.4" opacity="0.5" />
+                    fill="none" stroke="var(--gold)" strokeWidth="0.7" />
+                  <circle cx="40" cy="40" r="4" fill="none" stroke="var(--gold)" strokeWidth="0.5" />
+                  <path d="M40 8 L40 0 M40 72 L40 80 M8 40 L0 40 M72 40 L80 40" stroke="var(--gold)" strokeWidth="0.4" opacity="0.5" />
                 </pattern>
               </defs>
               <rect width="100%" height="100%" fill="url(#sp-zellige)" />
@@ -64,7 +64,7 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
               initial={{ opacity: 0, scale: 0.75 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ delay: 0.35, type: "spring", stiffness: 180, damping: 18 }}
-              style={{ color: "#D4AF37", fontFamily: "var(--font-amiri)", fontSize: "4.5rem", lineHeight: 1.1 }}
+              style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)", fontSize: "4.5rem", lineHeight: 1.1 }}
             >
               يومي
             </motion.p>
@@ -74,7 +74,7 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.55, duration: 0.45, ease: [0.25, 0.1, 0.25, 1] }}
-              style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)", fontSize: "3rem", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1 }}
+              style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)", fontSize: "3rem", fontWeight: 800, letterSpacing: "-0.02em", lineHeight: 1 }}
             >
               Yawmi
             </motion.h1>
@@ -84,7 +84,7 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.4 }}
               transition={{ delay: 0.8, duration: 0.5 }}
-              style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)", fontSize: "0.65rem", letterSpacing: "0.2em", textTransform: "uppercase" }}
+              style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)", fontSize: "0.65rem", letterSpacing: "0.2em", textTransform: "uppercase" }}
             >
               Application familiale musulmane
             </motion.p>
@@ -99,7 +99,7 @@ export default function SplashScreen({ onDone }: { onDone: () => void }) {
           >
             <div className="h-0.5 overflow-hidden rounded-full" style={{ background: "rgba(255,255,255,0.07)" }}>
               <div className="h-full rounded-full" style={{
-                background: "linear-gradient(to right, #055C3F, #D4AF37)",
+                background: "var(--gradient-bar)",
                 animation: "splashBar 2.2s ease-in-out forwards",
               }} />
             </div>

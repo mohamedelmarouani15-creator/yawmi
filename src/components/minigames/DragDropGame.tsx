@@ -65,7 +65,7 @@ export default function DragDropGame({ question, onComplete, color }: Props) {
               ))}
             </div>
             <span className="flex-1 text-sm font-medium"
-              style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+              style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               {item}
             </span>
             {submitted && (
@@ -107,7 +107,7 @@ export default function DragDropGame({ question, onComplete, color }: Props) {
           className="w-full rounded-full py-3.5 text-sm font-semibold mt-2"
           style={{
             background: `linear-gradient(135deg,${color},#055C3F)`,
-            color: "#F8F4EC",
+            color: "var(--text)",
             fontFamily: "var(--font-dm-sans)",
           }}
         >

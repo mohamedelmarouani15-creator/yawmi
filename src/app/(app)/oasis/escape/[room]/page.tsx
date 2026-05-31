@@ -179,17 +179,17 @@ function LockModal({ lock, onSolve, onClose, color }: {
               style={{ color: `${color}80`, fontFamily: "var(--font-dm-sans)" }}>
               Cadenas {lock.id + 1}/4
             </p>
-            <p className="text-sm font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+            <p className="text-sm font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
               {lock.label}
             </p>
           </div>
           <button onClick={onClose} className="ml-auto opacity-40 hover:opacity-70"
-            style={{ color: "#F8F4EC", fontSize: 20 }}>✕</button>
+            style={{ color: "var(--text)", fontSize: 20 }}>✕</button>
         </div>
 
         {/* Question */}
         <p className="text-base font-semibold leading-snug mb-5"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+          style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
           {lock.question}
         </p>
 
@@ -198,7 +198,7 @@ function LockModal({ lock, onSolve, onClose, color }: {
           {lock.options.map((opt, idx) => {
             let bg = "rgba(255,255,255,0.02)";
             let border = "rgba(255,255,255,0.07)";
-            let textC  = "#F8F4EC";
+            let textC  = "var(--text)";
             if (revealed) {
               if (opt.correct) { bg = "rgba(74,222,128,0.09)"; border = "rgba(74,222,128,0.4)"; textC = "#4ade80"; }
               else if (selected === idx) { bg = "rgba(248,113,113,0.09)"; border = "rgba(248,113,113,0.4)"; textC = "#f87171"; }
@@ -250,7 +250,7 @@ function LockModal({ lock, onSolve, onClose, color }: {
             background: revealed
               ? isCorrect ? "linear-gradient(135deg,#22c55e,#16a34a)" : "rgba(248,113,113,0.2)"
               : selected !== null ? `linear-gradient(135deg,${color},#055C3F)` : "rgba(255,255,255,0.06)",
-            color: revealed ? (isCorrect ? "#F8F4EC" : "#f87171") : selected !== null ? "#F8F4EC" : "rgba(248,244,236,0.3)",
+            color: revealed ? (isCorrect ? "var(--text)" : "#f87171") : selected !== null ? "var(--text)" : "var(--text-dim)",
             fontFamily: "var(--font-dm-sans)",
           }}>
           {revealed
@@ -289,8 +289,8 @@ export default function EscapeRoomPage() {
   }, [solvedLocks, room, storageKey]);
 
   if (!room) return (
-    <div className="flex items-center justify-center min-h-screen" style={{ background: "#061A12" }}>
-      <p style={{ color: "#F8F4EC" }}>Escape room introuvable.</p>
+    <div className="flex items-center justify-center min-h-screen" style={{ background: "var(--bg)" }}>
+      <p style={{ color: "var(--text)" }}>Escape room introuvable.</p>
     </div>
   );
 
@@ -304,14 +304,14 @@ export default function EscapeRoomPage() {
       <div className="flex items-center gap-3 px-5 pt-11 pb-3">
         <motion.button onClick={() => router.back()} whileTap={{ scale: 0.9 }} transition={springTap}
           className="flex h-9 w-9 items-center justify-center rounded-full border"
-          style={{ borderColor: "rgba(212,175,55,0.18)", color: "#F8F4EC" }}>
+          style={{ borderColor: "rgba(212,175,55,0.18)", color: "var(--text)" }}>
           <ArrowLeft size={15} />
         </motion.button>
         <div className="flex-1">
-          <h1 className="text-base font-bold leading-tight" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+          <h1 className="text-base font-bold leading-tight" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             {room.name}
           </h1>
-          <p className="text-xs opacity-45" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          <p className="text-xs opacity-45" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             {solvedLocks.length}/4 cadenas ouverts
           </p>
         </div>
@@ -325,7 +325,7 @@ export default function EscapeRoomPage() {
               }}>
               {solvedLocks.includes(i)
                 ? <Unlock size={12} style={{ color: "#4ade80" }} />
-                : <Lock size={12} style={{ color: "rgba(248,244,236,0.3)" }} />
+                : <Lock size={12} style={{ color: "var(--text-dim)" }} />
               }
             </div>
           ))}
@@ -367,7 +367,7 @@ export default function EscapeRoomPage() {
             >
               <span className="text-2xl shrink-0">{lock.icon}</span>
               <div className="flex-1">
-                <p className="font-semibold text-sm" style={{ color: solved ? "#4ade80" : "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+                <p className="font-semibold text-sm" style={{ color: solved ? "#4ade80" : "var(--text)", fontFamily: "var(--font-bricolage)" }}>
                   {lock.label}
                 </p>
                 <p className="text-xs" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
@@ -390,13 +390,13 @@ export default function EscapeRoomPage() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             className="mx-5 mt-5 rounded-2xl border p-5 text-center"
-            style={{ background: "rgba(212,175,55,0.08)", borderColor: "rgba(212,175,55,0.35)" }}
+            style={{ background: "var(--bg-gold)", borderColor: "rgba(212,175,55,0.35)" }}
           >
             <p className="text-2xl mb-2">🏆</p>
-            <p className="font-bold text-base mb-1" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+            <p className="font-bold text-base mb-1" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
               Escape réussi !
             </p>
-            <p className="text-xs" style={{ color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="text-xs" style={{ color: "var(--text-muted)", fontFamily: "var(--font-dm-sans)" }}>
               +{room.reward.xp} XP · +{room.reward.coins} 🪙 · {room.reward.chests} coffre{room.reward.chests > 1 ? "s" : ""}
             </p>
           </motion.div>

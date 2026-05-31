@@ -107,7 +107,7 @@ export default function LookZone({ onChange }: Props) {
           width: 40, height: 40,
           borderRadius: "50%",
           border: "1.5px solid rgba(212,175,55,0.4)",
-          background: "rgba(212,175,55,0.08)",
+          background: "var(--bg-gold)",
           pointerEvents: "none",
           zIndex: 10,
           opacity: 0,

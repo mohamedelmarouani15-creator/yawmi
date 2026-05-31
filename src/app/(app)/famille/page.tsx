@@ -197,19 +197,19 @@ export default function FamillePage() {
     <div className="flex flex-col items-center justify-center gap-6 px-8 pt-20 pb-32 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-full border-2"
         style={{ borderColor: "rgba(212,175,55,0.3)", background: "rgba(5,92,63,0.2)" }}>
-        <UserPlus size={28} style={{ color: "#D4AF37" }} />
+        <UserPlus size={28} style={{ color: "var(--gold)" }} />
       </div>
       <div>
-        <h1 className="text-2xl font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+        <h1 className="text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
           Espace Famille
         </h1>
-        <p className="mt-2 text-sm opacity-50 leading-relaxed" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="mt-2 text-sm opacity-50 leading-relaxed" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Connecte-toi pour jouer avec ta famille.
         </p>
       </div>
       <Link href="/connexion"
         className="flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold"
-        style={{ background: "linear-gradient(135deg,#055C3F,#0a8a5e)", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+        style={{ background: "var(--gradient-primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
         <LogIn size={16} /> Se connecter
       </Link>
     </div>
@@ -217,7 +217,7 @@ export default function FamillePage() {
 
   if (loading) return (
     <div className="flex items-center justify-center py-40">
-      <Loader2 size={24} className="animate-spin" style={{ color: "#D4AF37" }} />
+      <Loader2 size={24} className="animate-spin" style={{ color: "var(--gold)" }} />
     </div>
   );
 
@@ -225,8 +225,8 @@ export default function FamillePage() {
   if (!family) return (
     <div className="flex flex-col gap-5 px-5 pt-12 pb-32">
       <div>
-        <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>Espace partagé</p>
-        <h1 className="mt-1 text-2xl font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>Famille</h1>
+        <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>Espace partagé</p>
+        <h1 className="mt-1 text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>Famille</h1>
       </div>
 
       {mode === null && (
@@ -241,8 +241,8 @@ export default function FamillePage() {
               style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.15)" }}>
               <span className="text-2xl">{opt.icon}</span>
               <div>
-                <p className="font-semibold" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>{opt.title}</p>
-                <p className="mt-0.5 text-xs opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>{opt.sub}</p>
+                <p className="font-semibold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>{opt.title}</p>
+                <p className="mt-0.5 text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{opt.sub}</p>
               </div>
             </motion.button>
           ))}
@@ -255,18 +255,18 @@ export default function FamillePage() {
             autoCapitalize="words"
             onKeyDown={e => { if (e.key === "Enter") handleCreate(); }}
             className="w-full rounded-2xl bg-transparent px-4 py-3.5 text-base outline-none"
-            style={{ border: "1px solid rgba(212,175,55,0.35)", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}
+            style={{ border: "1px solid rgba(212,175,55,0.35)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
           />
           {formError && <p className="text-sm" style={{ color: "#f87171", fontFamily: "var(--font-dm-sans)" }}>{formError}</p>}
           <motion.button onClick={handleCreate} disabled={actionLoad}
             whileTap={{ scale: 0.97 }} transition={springTap}
             className="w-full rounded-full py-3.5 text-sm font-bold"
-            style={{ background: "linear-gradient(135deg,#055C3F,#0a8a5e)", color: "#F8F4EC",
+            style={{ background: "var(--gradient-primary)", color: "var(--text)",
               fontFamily: "var(--font-dm-sans)", opacity: actionLoad ? 0.5 : 1 }}>
             {actionLoad ? "Création…" : "Créer ma famille →"}
           </motion.button>
           <button onClick={() => { setMode(null); setFormError(""); }}
-            className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Annuler
           </button>
         </div>
@@ -278,18 +278,18 @@ export default function FamillePage() {
             autoCapitalize="characters"
             onKeyDown={e => { if (e.key === "Enter") handleJoin(); }}
             className="w-full rounded-2xl bg-transparent px-4 py-3.5 text-base outline-none tracking-widest"
-            style={{ border: "1px solid rgba(212,175,55,0.35)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}
+            style={{ border: "1px solid rgba(212,175,55,0.35)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}
           />
           {formError && <p className="text-sm" style={{ color: "#f87171", fontFamily: "var(--font-dm-sans)" }}>{formError}</p>}
           <motion.button onClick={handleJoin} disabled={actionLoad}
             whileTap={{ scale: 0.97 }} transition={springTap}
             className="w-full rounded-full py-3.5 text-sm font-bold"
-            style={{ background: "linear-gradient(135deg,#055C3F,#0a8a5e)", color: "#F8F4EC",
+            style={{ background: "var(--gradient-primary)", color: "var(--text)",
               fontFamily: "var(--font-dm-sans)", opacity: actionLoad ? 0.5 : 1 }}>
             {actionLoad ? "Connexion…" : "Rejoindre →"}
           </motion.button>
           <button onClick={() => setMode(null)}
-            className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Annuler
           </button>
         </div>
@@ -315,21 +315,21 @@ export default function FamillePage() {
       return (
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           className="flex flex-col items-center px-5 pt-16 pb-32 text-center"
-          style={{ minHeight: "100dvh", background: "linear-gradient(180deg,#020a05,#061A12)" }}>
+          style={{ minHeight: "100dvh", background: "var(--bg)" }}>
           <div className="text-5xl mb-4">
             {theirScore === null ? "⏳" : score > theirScore ? "🏆" : score === theirScore ? "🤝" : "😔"}
           </div>
-          <p className="text-2xl font-bold mb-2" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+          <p className="text-2xl font-bold mb-2" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             {theirScore === null ? "Score enregistré !" : score > theirScore ? "Victoire !" : score === theirScore ? "Égalité !" : "Défaite…"}
           </p>
-          <p className="text-sm opacity-60 mb-6" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-            Ton score : <strong style={{ color: "#D4AF37" }}>{score}/{total}</strong>
+          <p className="text-sm opacity-60 mb-6" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            Ton score : <strong style={{ color: "var(--gold)" }}>{score}/{total}</strong>
             {theirScore !== null && ` · ${theirName} : ${theirScore}/${total}`}
             {theirScore === null && ` · En attente de ${theirName}`}
           </p>
           <motion.button onClick={closeDuelQuiz} whileTap={{ scale: 0.96 }} transition={springTap}
             className="rounded-full px-8 py-3.5 text-sm font-bold"
-            style={{ background: "linear-gradient(135deg,#055C3F,#0a8a5e)", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ background: "var(--gradient-primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Retour à la famille
           </motion.button>
         </motion.div>
@@ -344,18 +344,18 @@ export default function FamillePage() {
     return (
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
         className="flex flex-col px-5 pt-11 pb-8"
-        style={{ minHeight: "100dvh", background: "linear-gradient(180deg,#020a05,#061A12 50%)" }}>
+        style={{ minHeight: "100dvh", background: "var(--bg)" }}>
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <button onClick={closeDuelQuiz}
-            className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             ✕ Annuler
           </button>
           <div className="text-center">
-            <p className="text-xs font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="text-xs font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
               DUEL · {activeDuel.isChallenger ? activeDuel.challengedName : activeDuel.challengerName}
             </p>
-            <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               Question {duelQIdx + 1}/{total}
             </p>
           </div>
@@ -368,18 +368,18 @@ export default function FamillePage() {
         <div className="h-1.5 rounded-full overflow-hidden mb-6"
           style={{ background: "rgba(255,255,255,0.06)" }}>
           <div className="h-full rounded-full"
-            style={{ width: `${(duelQIdx / total) * 100}%`, background: "linear-gradient(to right,#055C3F,#D4AF37)" }} />
+            style={{ width: `${(duelQIdx / total) * 100}%`, background: "var(--gradient-bar)" }} />
         </div>
 
         {/* Category */}
         <span className="inline-block self-start rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wider mb-4"
-          style={{ background: "rgba(212,175,55,0.1)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)", border: "1px solid rgba(212,175,55,0.2)" }}>
+          style={{ background: "rgba(212,175,55,0.1)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)", border: "1px solid rgba(212,175,55,0.2)" }}>
           {question.category}
         </span>
 
         {/* Question */}
         <p className="text-lg font-bold leading-snug mb-6"
-          style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+          style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
           {question.question}
         </p>
 
@@ -390,7 +390,7 @@ export default function FamillePage() {
             const correct  = opt.correct;
             let bg = "rgba(255,255,255,0.03)";
             let border = "rgba(255,255,255,0.07)";
-            let color = "#F8F4EC";
+            let color = "var(--text)";
             let icon = null;
             if (duelShowResult && correct) {
               bg = "rgba(74,222,128,0.1)"; border = "rgba(74,222,128,0.4)"; color = "#4ade80";
@@ -399,7 +399,7 @@ export default function FamillePage() {
               bg = "rgba(248,113,113,0.1)"; border = "rgba(248,113,113,0.4)"; color = "#f87171";
               icon = <XCircle size={16} style={{ color: "#f87171" }} />;
             } else if (selected) {
-              bg = "rgba(212,175,55,0.1)"; border = "#D4AF37"; color = "#D4AF37";
+              bg = "rgba(212,175,55,0.1)"; border = "var(--gold)"; color = "var(--gold)";
             }
             return (
               <motion.button key={idx}
@@ -431,19 +431,19 @@ export default function FamillePage() {
                   style={{ background: question.culturalCapsule ? "rgba(212,175,55,0.05)" : "rgba(255,255,255,0.03)",
                     borderColor: question.culturalCapsule ? "rgba(212,175,55,0.18)" : "rgba(255,255,255,0.07)" }}>
                   {question.culturalCapsule && (
-                    <p className="text-xs font-bold mb-1.5" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                    <p className="text-xs font-bold mb-1.5" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
                       ✦ {question.culturalCapsule.title}
                     </p>
                   )}
                   <p className="text-sm leading-relaxed opacity-80"
-                    style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {question.culturalCapsule?.text ?? question.explanation}
                   </p>
                 </div>
               )}
               <motion.button onClick={nextDuelQuestion} whileTap={{ scale: 0.96 }} transition={springTap}
                 className="w-full rounded-full py-3.5 text-sm font-bold"
-                style={{ background: "linear-gradient(135deg,#055C3F,#0a8a5e)", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                style={{ background: "var(--gradient-primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 {duelQIdx < total - 1 ? "Question suivante →" : "Voir mon score"}
               </motion.button>
             </motion.div>
@@ -458,28 +458,28 @@ export default function FamillePage() {
 
       {/* ── Header ── */}
       <div className="px-5 pt-12 pb-4">
-        <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           Espace partagé · temps réel
         </p>
         <div className="flex items-center justify-between mt-1">
-          <h1 className="text-2xl font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+          <h1 className="text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             {family.name}
           </h1>
           <div className="flex gap-2">
             <motion.button onClick={copyCode} whileTap={{ scale: 0.93 }} transition={springTap}
               className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs"
-              style={{ borderColor: "rgba(212,175,55,0.3)", color: copied ? "#4ade80" : "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+              style={{ borderColor: "rgba(212,175,55,0.3)", color: copied ? "#4ade80" : "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
               <Copy size={11} /> {copied ? "Copié !" : family.code}
             </motion.button>
           </div>
         </div>
         {/* Member count + my rank */}
         <div className="flex items-center gap-3 mt-1.5">
-          <span className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          <span className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             {members.length} membre{members.length > 1 ? "s" : ""}
           </span>
           {myRank > 0 && (
-            <span className="text-xs" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+            <span className="text-xs" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
               {RANK_EMOJI[myRank - 1] ?? `#${myRank}`} classement famille
             </span>
           )}
@@ -495,7 +495,7 @@ export default function FamillePage() {
             style={{
               background: tab === t.id ? "rgba(5,92,63,0.5)" : "rgba(255,255,255,0.04)",
               border: tab === t.id ? "1px solid rgba(212,175,55,0.3)" : "1px solid rgba(255,255,255,0.06)",
-              color: tab === t.id ? "#D4AF37" : "rgba(248,244,236,0.4)",
+              color: tab === t.id ? "var(--gold)" : "rgba(248,244,236,0.4)",
               fontFamily: "var(--font-dm-sans)",
             }}>
             {t.icon} {t.label}
@@ -517,12 +517,12 @@ export default function FamillePage() {
                 style={{ background: "rgba(212,175,55,0.04)", borderColor: "rgba(212,175,55,0.18)" }}>
                 <div className="flex items-center justify-between mb-3">
                   <div className="flex items-center gap-2">
-                    <Target size={16} style={{ color: "#D4AF37" }} />
-                    <span className="font-bold text-sm" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+                    <Target size={16} style={{ color: "var(--gold)" }} />
+                    <span className="font-bold text-sm" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
                       Défi du Jour
                     </span>
                   </div>
-                  <span className="text-xs opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  <span className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     Expire dans {timeUntilMidnight()}
                   </span>
                 </div>
@@ -531,7 +531,7 @@ export default function FamillePage() {
                   <>
                     {/* Question */}
                     <p className="text-sm font-semibold leading-snug mb-4"
-                      style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+                      style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
                       {dailyChallenge.question.question}
                     </p>
 
@@ -551,10 +551,10 @@ export default function FamillePage() {
                                 borderColor: pending ? (opt.correct ? "rgba(74,222,128,0.4)" : "rgba(248,113,113,0.4)") : "rgba(255,255,255,0.08)",
                               }}>
                               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                                style={{ background: "rgba(255,255,255,0.06)", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                                style={{ background: "rgba(255,255,255,0.06)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                                 {["A","B","C","D"][idx]}
                               </span>
-                              <span className="text-sm" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                              <span className="text-sm" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                                 {opt.text}
                               </span>
                               {pending && (opt.correct
@@ -621,7 +621,7 @@ export default function FamillePage() {
                           <div className="rounded-xl border px-4 py-3 mt-1"
                             style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.08)" }}>
                             <p className="text-xs font-semibold mb-1"
-                              style={{ color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-dm-sans)", letterSpacing: "0.05em" }}>
+                              style={{ color: "var(--text-muted)", fontFamily: "var(--font-dm-sans)", letterSpacing: "0.05em" }}>
                               EXPLICATION
                             </p>
                             <p className="text-sm leading-relaxed"
@@ -634,9 +634,9 @@ export default function FamillePage() {
                         {/* Capsule culturelle */}
                         {dailyChallenge.question.culturalCapsule && (
                           <div className="rounded-xl border px-4 py-3 mt-1"
-                            style={{ background: "rgba(212,175,55,0.06)", borderColor: "rgba(212,175,55,0.2)" }}>
+                            style={{ background: "rgba(212,175,55,0.06)", borderColor: "var(--border-gold)" }}>
                             <p className="text-xs font-semibold mb-1.5"
-                              style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                              style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
                               ✦ {dailyChallenge.question.culturalCapsule.title}
                             </p>
                             <p className="text-sm leading-relaxed"
@@ -651,7 +651,7 @@ export default function FamillePage() {
                     {/* Member responses */}
                     {members.length > 0 && (
                       <div className="mt-4 flex flex-col gap-2">
-                        <p className="text-xs opacity-40 mb-1" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                        <p className="text-xs opacity-40 mb-1" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                           RÉPONSES DE LA FAMILLE
                         </p>
                         {members.map(m => {
@@ -667,7 +667,7 @@ export default function FamillePage() {
                                   ? <span className="text-xs font-bold" style={{ color: "#4ade80" }}>✓ Correct</span>
                                   : <span className="text-xs font-bold" style={{ color: "#f87171" }}>✗ Raté</span>
                               ) : (
-                                <span className="text-xs opacity-30" style={{ color: "#F8F4EC" }}>En attente…</span>
+                                <span className="text-xs opacity-30" style={{ color: "var(--text)" }}>En attente…</span>
                               )}
                             </div>
                           );
@@ -677,8 +677,8 @@ export default function FamillePage() {
                   </>
                 ) : (
                   <div className="py-6 text-center">
-                    <Loader2 size={18} className="animate-spin mx-auto mb-2" style={{ color: "#D4AF37" }} />
-                    <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    <Loader2 size={18} className="animate-spin mx-auto mb-2" style={{ color: "var(--gold)" }} />
+                    <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                       Chargement du défi…
                     </p>
                   </div>
@@ -702,7 +702,7 @@ export default function FamillePage() {
                     )}
                   </div>
                   <p className="text-sm font-semibold leading-snug"
-                    style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+                    style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
                     {weeklyChallenge.question.question}
                   </p>
                   {!weeklyChallenge.myAnswer ? (
@@ -717,7 +717,7 @@ export default function FamillePage() {
                             style={{ background: "rgba(96,165,250,0.1)", color: "#60a5fa", fontFamily: "var(--font-dm-sans)" }}>
                             {String.fromCharCode(65 + idx)}
                           </span>
-                          <span className="text-sm" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                          <span className="text-sm" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                             {opt.text}
                           </span>
                         </motion.button>
@@ -752,8 +752,8 @@ export default function FamillePage() {
               {/* ── Duels ── */}
               <div className="flex flex-col gap-3">
                 <div className="flex items-center gap-2">
-                  <Swords size={15} style={{ color: "#D4AF37" }} />
-                  <span className="font-bold text-sm" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+                  <Swords size={15} style={{ color: "var(--gold)" }} />
+                  <span className="font-bold text-sm" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
                     Duels Famille · 10 questions · 24h
                   </span>
                 </div>
@@ -769,7 +769,7 @@ export default function FamillePage() {
                 {others.length > 0 ? (
                   <div className="flex flex-col gap-2">
                     <p className="text-xs opacity-35 uppercase tracking-wide"
-                      style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                      style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                       Lancer un défi
                     </p>
                     {others.map(m => {
@@ -780,21 +780,21 @@ export default function FamillePage() {
                       const sent = duelSent && duelTarget === m.id;
                       return (
                         <div key={m.id} className="flex items-center gap-3 rounded-2xl border px-4 py-3.5"
-                          style={{ background: "rgba(255,255,255,0.02)", borderColor: pending ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.07)" }}>
+                          style={{ background: "rgba(255,255,255,0.02)", borderColor: pending ? "var(--border-gold)" : "rgba(255,255,255,0.07)" }}>
                           <Avatar name={m.displayName} size={36} color="#7B5EA7" />
                           <div className="flex-1 min-w-0">
                             <p className="text-sm font-semibold truncate"
-                              style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                              style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                               {m.displayName ?? "Membre"}
                             </p>
                             <p className="text-xs opacity-40"
-                              style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                              style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                               Niv. {m.level} · {m.xp.toLocaleString()} XP
                             </p>
                           </div>
                           {pending ? (
                             <span className="text-xs opacity-50 italic"
-                              style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                              style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
                               Défi en cours
                             </span>
                           ) : (
@@ -804,9 +804,9 @@ export default function FamillePage() {
                               whileTap={{ scale: 0.93 }} transition={springTap}
                               className="flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-bold"
                               style={{
-                                background: sent ? "rgba(74,222,128,0.2)" : "linear-gradient(135deg,#055C3F,#0a8a5e)",
+                                background: sent ? "rgba(74,222,128,0.2)" : "var(--gradient-primary)",
                                 border: sent ? "1px solid rgba(74,222,128,0.3)" : "1px solid rgba(212,175,55,0.2)",
-                                color: sent ? "#4ade80" : "#F8F4EC",
+                                color: sent ? "#4ade80" : "var(--text)",
                                 fontFamily: "var(--font-dm-sans)",
                                 minWidth: 80,
                                 justifyContent: "center",
@@ -825,7 +825,7 @@ export default function FamillePage() {
                   </div>
                 ) : (
                   <p className="text-center text-xs py-4 opacity-30"
-                    style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     Invite des membres pour lancer des défis
                   </p>
                 )}
@@ -834,7 +834,7 @@ export default function FamillePage() {
                 {duels.filter(d => d.myTurn).length > 0 && (
                   <div className="flex flex-col gap-2 mt-1">
                     <p className="text-xs opacity-35 uppercase tracking-wide"
-                      style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                      style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                       À jouer maintenant
                     </p>
                     {duels.filter(d => d.myTurn).map(d => (
@@ -843,18 +843,18 @@ export default function FamillePage() {
                         <div className="flex items-start justify-between mb-3">
                           <div>
                             <p className="text-sm font-bold"
-                              style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+                              style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
                               {d.isChallenger ? "Tu dois jouer ton défi" : `${d.challengerName} te défie !`}
                             </p>
                             <p className="text-xs opacity-40 mt-0.5"
-                              style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                              style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                               {d.questionIds.length} questions · expire {duelExpiry(d.expiresAt)}
                             </p>
                           </div>
                         </div>
                         {d.status === "challenger_played" && d.isChallenged && (
                           <p className="text-xs mb-3 opacity-60"
-                            style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                            style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                             {d.challengerName} a déjà joué — bats-le !
                           </p>
                         )}
@@ -862,7 +862,7 @@ export default function FamillePage() {
                           onClick={() => startDuelQuiz(d)}
                           whileTap={{ scale: 0.97 }} transition={springTap}
                           className="flex w-full items-center justify-center gap-2 rounded-full py-2.5 text-sm font-bold"
-                          style={{ background: "linear-gradient(135deg,#D4AF37,#b8942e)", color: "#061A12", fontFamily: "var(--font-dm-sans)" }}>
+                          style={{ background: "var(--gradient-gold)", color: "var(--bg)", fontFamily: "var(--font-dm-sans)" }}>
                           <Swords size={14} /> Jouer maintenant
                         </motion.button>
                       </div>
@@ -878,13 +878,13 @@ export default function FamillePage() {
                   const draw = myScore === theirScore;
                   return (
                     <div key={d.taskId} className="rounded-2xl border px-4 py-3"
-                      style={{ background: "rgba(255,255,255,0.02)", borderColor: win ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.07)" }}>
+                      style={{ background: "rgba(255,255,255,0.02)", borderColor: win ? "var(--border-gold)" : "rgba(255,255,255,0.07)" }}>
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-semibold"
-                          style={{ color: win ? "#D4AF37" : draw ? "#94a3b8" : "#f87171", fontFamily: "var(--font-dm-sans)" }}>
+                          style={{ color: win ? "var(--gold)" : draw ? "#94a3b8" : "#f87171", fontFamily: "var(--font-dm-sans)" }}>
                           {win ? "🏆 Victoire !" : draw ? "🤝 Égalité" : "😔 Défaite"}
                         </p>
-                        <p className="text-xs opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                        <p className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                           Toi {myScore ?? "–"} · {d.isChallenger ? d.challengedName : d.challengerName} {theirScore ?? "–"}
                         </p>
                       </div>
@@ -901,7 +901,7 @@ export default function FamillePage() {
               exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}
               className="flex flex-col gap-3">
               <p className="text-xs tracking-widest uppercase opacity-35 mb-2"
-                style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 CLASSEMENT FAMILLE — XP
               </p>
               {members.map((m, i) => (
@@ -918,11 +918,11 @@ export default function FamillePage() {
                   <Avatar name={m.displayName} size={36} color={i === 0 ? "#D4AF37" : i === 1 ? "#94a3b8" : i === 2 ? "#cd7f32" : "#055C3F"} />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm truncate"
-                      style={{ color: m.isMe ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                      style={{ color: m.isMe ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                       {m.displayName ?? "Membre"}{m.isMe ? " (toi)" : ""}
                     </p>
                     <div className="flex items-center gap-2 mt-0.5">
-                      <span className="text-xs opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                      <span className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                         Niv. {m.level}
                       </span>
                       {m.gameStreak > 0 && (
@@ -930,25 +930,25 @@ export default function FamillePage() {
                           <Flame size={10} />{m.gameStreak}
                         </span>
                       )}
-                      <span className="text-xs opacity-30" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                      <span className="text-xs opacity-30" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                         {m.defeatedSages} sage{m.defeatedSages > 1 ? "s" : ""} vaincu{m.defeatedSages > 1 ? "s" : ""}
                       </span>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-bold text-sm" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+                    <p className="font-bold text-sm" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
                       {m.xp.toLocaleString()}
                     </p>
-                    <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>XP</p>
+                    <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>XP</p>
                   </div>
                 </motion.div>
               ))}
               {members.length <= 1 && (
                 <div className="py-8 text-center">
-                  <p className="text-sm opacity-30" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  <p className="text-sm opacity-30" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     Invite des membres pour voir le classement
                   </p>
-                  <p className="mt-2 text-xs opacity-20" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                  <p className="mt-2 text-xs opacity-20" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
                     Code : {family.code}
                   </p>
                 </div>
@@ -965,43 +965,43 @@ export default function FamillePage() {
               {/* Invite card */}
               <motion.button onClick={copyCode} whileTap={{ scale: 0.97 }} transition={springTap}
                 className="flex items-center gap-4 rounded-2xl border p-4"
-                style={{ background: "rgba(5,92,63,0.08)", borderColor: "rgba(212,175,55,0.2)" }}>
+                style={{ background: "rgba(5,92,63,0.08)", borderColor: "var(--border-gold)" }}>
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl text-xl"
                   style={{ background: "rgba(212,175,55,0.1)" }}>📲</div>
                 <div className="flex-1 text-left">
-                  <p className="font-semibold text-sm" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                  <p className="font-semibold text-sm" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
                     Inviter un proche
                   </p>
-                  <p className="text-xs opacity-50 mt-0.5" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-                    Code : <span style={{ color: "#D4AF37", letterSpacing: "0.1em" }}>{family.code}</span>
+                  <p className="text-xs opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                    Code : <span style={{ color: "var(--gold)", letterSpacing: "0.1em" }}>{family.code}</span>
                     {copied ? " · Copié !" : " · Appuie pour copier"}
                   </p>
                 </div>
-                <Copy size={16} style={{ color: "rgba(248,244,236,0.3)" }} />
+                <Copy size={16} style={{ color: "var(--text-dim)" }} />
               </motion.button>
 
               {/* Member list */}
               <p className="text-xs tracking-widest uppercase opacity-35 mt-1"
-                style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 {members.length} MEMBRE{members.length > 1 ? "S" : ""}
               </p>
               {members.map((m, i) => (
                 <div key={m.id} className="flex items-center gap-3 rounded-2xl border px-4 py-4"
                   style={{
                     background: m.isMe ? "rgba(5,92,63,0.1)" : "rgba(255,255,255,0.02)",
-                    borderColor: m.isMe ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.07)",
+                    borderColor: m.isMe ? "var(--border-gold)" : "rgba(255,255,255,0.07)",
                   }}>
                   <Avatar name={m.displayName} size={44} color={["#D4AF37","#94a3b8","#cd7f32","#7B5EA7"][i % 4]} />
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-sm" style={{ color: m.isMe ? "#D4AF37" : "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    <p className="font-semibold text-sm" style={{ color: m.isMe ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                       {m.displayName ?? "Membre"}{m.isMe ? " · toi" : ""}
                     </p>
                     <div className="flex items-center gap-2 mt-1">
                       <span className="rounded-full px-2 py-0.5 text-xs font-bold"
-                        style={{ background: "rgba(212,175,55,0.12)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                        style={{ background: "var(--gold-faint)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
                         Niv. {m.level}
                       </span>
-                      <span className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                      <span className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                         {m.xp.toLocaleString()} XP
                       </span>
                       {m.gameStreak > 0 && (
@@ -1011,11 +1011,11 @@ export default function FamillePage() {
                       )}
                     </div>
                     <div className="flex items-center gap-3 mt-1">
-                      <span className="text-xs opacity-35" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                      <span className="text-xs opacity-35" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                         🏆 {m.defeatedSages} sage{m.defeatedSages > 1 ? "s" : ""}
                       </span>
-                      <span className="text-xs opacity-35" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
-                        <Star size={9} className="inline mr-0.5" fill="currentColor" style={{ color: "#D4AF37" }} />
+                      <span className="text-xs opacity-35" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                        <Star size={9} className="inline mr-0.5" fill="currentColor" style={{ color: "var(--gold)" }} />
                         {m.coins} pièces
                       </span>
                     </div>
@@ -1042,7 +1042,7 @@ export default function FamillePage() {
                       Quitter
                     </button>
                     <button onClick={() => setLeaveConfirm(false)}
-                      className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                      className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                       Annuler
                     </button>
                   </div>
@@ -1061,7 +1061,7 @@ export default function FamillePage() {
               <motion.button onClick={() => setTaskOpen(v => !v)}
                 whileTap={{ scale: 0.96 }} transition={springTap}
                 className="flex items-center justify-center gap-2 rounded-full py-3 text-sm font-semibold"
-                style={{ background: "rgba(5,92,63,0.35)", border: "1px solid rgba(212,175,55,0.2)", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                style={{ background: "rgba(5,92,63,0.35)", border: "1px solid rgba(212,175,55,0.2)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 <Plus size={15} /> Nouvelle tâche
               </motion.button>
 
@@ -1076,15 +1076,15 @@ export default function FamillePage() {
                         onKeyDown={e => e.key === "Enter" && submitTask()}
                         placeholder="Nouvelle tâche…" autoFocus
                         className="rounded-xl border bg-transparent px-4 py-2.5 text-sm outline-none"
-                        style={{ borderColor: "rgba(255,255,255,0.1)", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }} />
+                        style={{ borderColor: "rgba(255,255,255,0.1)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }} />
                       <div className="flex gap-2 flex-wrap">
                         {TASK_MEMBERS.map(m => (
                           <motion.button key={m} onClick={() => setTaskMember(m)}
                             whileTap={{ scale: 0.92 }} transition={springTap}
                             className="rounded-full px-3 py-1 text-xs font-semibold"
                             style={{
-                              background: taskMember === m ? MEMBER_COLORS[m] ?? "#055C3F" : "rgba(255,255,255,0.04)",
-                              color: taskMember === m ? "#F8F4EC" : "rgba(248,244,236,0.4)",
+                              background: taskMember === m ? MEMBER_COLORS[m] ?? "var(--primary)" : "rgba(255,255,255,0.04)",
+                              color: taskMember === m ? "var(--text)" : "rgba(248,244,236,0.4)",
                               fontFamily: "var(--font-dm-sans)",
                             }}>
                             {m}
@@ -1093,7 +1093,7 @@ export default function FamillePage() {
                       </div>
                       <motion.button onClick={submitTask} whileTap={{ scale: 0.96 }} transition={springTap}
                         className="rounded-xl py-2.5 text-sm font-semibold"
-                        style={{ background: "linear-gradient(135deg,#055C3F,#0a8a5e)", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                        style={{ background: "var(--gradient-primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                         Ajouter
                       </motion.button>
                     </div>
@@ -1105,7 +1105,7 @@ export default function FamillePage() {
               {pending.length > 0 && (
                 <div>
                   <p className="text-xs tracking-widest uppercase opacity-35 mb-2"
-                    style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     EN COURS · {pending.length}
                   </p>
                   <div className="flex flex-col gap-2">
@@ -1120,9 +1120,9 @@ export default function FamillePage() {
                             whileTap={{ scale: 0.85 }} transition={springTap}
                             className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2"
                             style={{ borderColor: "rgba(255,255,255,0.2)" }} />
-                          <p className="flex-1 text-sm" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>{task.text}</p>
+                          <p className="flex-1 text-sm" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{task.text}</p>
                           <span className="rounded-full px-2 py-0.5 text-xs font-semibold"
-                            style={{ background: MEMBER_COLORS[task.member] ?? "#055C3F", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)", opacity: 0.85 }}>
+                            style={{ background: MEMBER_COLORS[task.member] ?? "var(--primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)", opacity: 0.85 }}>
                             {task.member}
                           </span>
                           <motion.button onClick={() => removeTask(task.id)} whileTap={{ scale: 0.85 }}
@@ -1140,7 +1140,7 @@ export default function FamillePage() {
               {completed.length > 0 && (
                 <div>
                   <p className="text-xs tracking-widest uppercase opacity-35 mb-2"
-                    style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                    style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     TERMINÉES · {completed.length}
                   </p>
                   <div className="flex flex-col gap-2">
@@ -1149,9 +1149,9 @@ export default function FamillePage() {
                         style={{ background: "rgba(255,255,255,0.01)", borderColor: "rgba(255,255,255,0.04)" }}>
                         <button onClick={() => toggleTask(task.id, task.done)}
                           className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs"
-                          style={{ background: "#055C3F", color: "#F8F4EC" }}>✓</button>
+                          style={{ background: "var(--primary)", color: "var(--text)" }}>✓</button>
                         <p className="flex-1 text-sm line-through opacity-30"
-                          style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>{task.text}</p>
+                          style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{task.text}</p>
                         <button onClick={() => removeTask(task.id)} style={{ color: "rgba(248,244,236,0.15)" }}>
                           <Trash2 size={13} />
                         </button>
@@ -1163,7 +1163,7 @@ export default function FamillePage() {
 
               {tasks.length === 0 && !taskOpen && (
                 <p className="py-10 text-center text-sm opacity-25"
-                  style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                   Aucune tâche — appuie sur Nouvelle tâche
                 </p>
               )}

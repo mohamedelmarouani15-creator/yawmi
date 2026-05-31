@@ -330,11 +330,11 @@ const FEATURE_STARS = Array.from({ length: 18 }, (_, i) => ({
 // puis translateé aux coords de la ville.
 function AvatarMarocain({ cx, cy }: { cx: number; cy: number }) {
   const skin   = "#C8956A";
-  const robe   = "#F8F4EC";
+  const robe   = "var(--text)";
   const robeS  = "#E8E0D0";
   const fez    = "#C0392B";
   const fezD   = "#96281B";
-  const belt   = "#D4AF37";
+  const belt   = "var(--gold)";
   const shadow = "rgba(0,0,0,0.22)";
 
   return (
@@ -453,7 +453,7 @@ function CityCard({
   const badgeY = y + 52;
   const badgeW = 110, badgeH = 18, badgeR = 9;
   const badgeBg = defeated
-    ? "rgba(212,175,55,0.2)"
+    ? "var(--border-gold)"
     : unlocked && sage
     ? `${location.color}28`
     : "rgba(255,255,255,0.05)";
@@ -465,7 +465,7 @@ function CityCard({
     ? `🔒  ${location.requiredXP} XP`
     : "✦  POINT DE DÉPART";
   const badgeColor = defeated
-    ? "#D4AF37"
+    ? "var(--gold)"
     : unlocked && sage
     ? location.color
     : unlocked
@@ -534,7 +534,7 @@ function Toast({ msg, show }: { msg: string; show: boolean }) {
           style={{
             background: "rgba(8,28,16,0.96)",
             border: "1px solid rgba(212,175,55,0.3)",
-            color: "#F8F4EC",
+            color: "var(--text)",
             fontFamily: "var(--font-dm-sans)",
             backdropFilter: "blur(12px)",
             WebkitBackdropFilter: "blur(12px)",
@@ -599,7 +599,7 @@ export default function OasisPage() {
   return (
     <div
       ref={containerRef}
-      style={{ height: "100dvh", overflowY: "scroll", background: "#061A12", position: "relative" }}
+      style={{ height: "100dvh", overflowY: "scroll", background: "var(--bg)", position: "relative" }}
     >
       {/* ── Premium HUD ── */}
       <div
@@ -624,7 +624,7 @@ export default function OasisPage() {
                 transition={{ duration: 0.8, ease: "easeOut" }}
               />
             </svg>
-            <span className="text-base font-black relative z-10" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+            <span className="text-base font-black relative z-10" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
               {level}
             </span>
           </div>
@@ -635,7 +635,7 @@ export default function OasisPage() {
               <span className="text-xs font-bold" style={{ color: "rgba(248,244,236,0.45)", fontFamily: "var(--font-dm-sans)" }}>
                 NIVEAU {level}
               </span>
-              <span className="text-xs font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+              <span className="text-xs font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
                 {xp.toLocaleString()} XP
               </span>
             </div>
@@ -647,7 +647,7 @@ export default function OasisPage() {
                 style={{ background: "linear-gradient(to right,#055C3F 0%,#0d9a60 50%,#D4AF37 100%)" }}
               />
             </div>
-            <p className="text-[9px] mt-0.5" style={{ color: "rgba(248,244,236,0.3)", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="text-[9px] mt-0.5" style={{ color: "var(--text-dim)", fontFamily: "var(--font-dm-sans)" }}>
               {xpInLvl} / 200 → Niv. {level + 1}
             </p>
           </div>
@@ -664,7 +664,7 @@ export default function OasisPage() {
             <div className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.2)" }}>
               <span className="text-xs">🪙</span>
-              <span className="text-xs font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>{coins}</span>
+              <span className="text-xs font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>{coins}</span>
             </div>
             <Link href="/oasis/shop">
               <div className="flex items-center gap-1 rounded-full px-2.5 py-1"
@@ -688,7 +688,7 @@ export default function OasisPage() {
                 animate={{
                   width: cur ? 18 : done ? 7 : 5,
                   height: cur ? 7 : done ? 7 : 5,
-                  background: cur ? "#D4AF37" : done ? "#055C3F" : "rgba(255,255,255,0.1)",
+                  background: cur ? "var(--gold)" : done ? "var(--primary)" : "rgba(255,255,255,0.1)",
                 }}
                 transition={{ duration: 0.35 }}
                 style={{ borderRadius: cur ? 4 : "50%" }}
@@ -703,8 +703,8 @@ export default function OasisPage() {
 
       {/* ── Page title ── */}
       <div className="text-center py-4">
-        <p className="text-[26px] leading-none" style={{ color: "#D4AF37", fontFamily: "var(--font-amiri)" }}>الواحة</p>
-        <p className="text-[9px] tracking-[0.25em] uppercase mt-0.5" style={{ color: "rgba(248,244,236,0.3)", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="text-[26px] leading-none" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)" }}>الواحة</p>
+        <p className="text-[9px] tracking-[0.25em] uppercase mt-0.5" style={{ color: "var(--text-dim)", fontFamily: "var(--font-dm-sans)" }}>
           L&apos;Oasis du Savoir
         </p>
       </div>
@@ -735,7 +735,7 @@ export default function OasisPage() {
                 ✦ Escape Game 3D
               </span>
             </div>
-            <p className="text-sm font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+            <p className="text-sm font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
               Le Riad des Secrets
             </p>
             <p className="text-[11px] mt-0.5" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
@@ -757,22 +757,22 @@ export default function OasisPage() {
             border: "1px solid rgba(212,175,55,0.25)",
           }}>
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl"
-            style={{ background: "rgba(212,175,55,0.12)" }}>
+            style={{ background: "var(--gold-faint)" }}>
             ✦
           </div>
           <div className="flex-1 min-w-0">
             <span className="text-[9px] font-semibold tracking-widest uppercase"
-              style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+              style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
               Bibliothèque
             </span>
-            <p className="text-sm font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+            <p className="text-sm font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
               Capsules culturelles
             </p>
             <p className="text-[11px] mt-0.5" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
               Savoirs islamiques · Science · Histoire
             </p>
           </div>
-          <span style={{ color: "#D4AF37", fontSize: 18, flexShrink: 0 }}>→</span>
+          <span style={{ color: "var(--gold)", fontSize: 18, flexShrink: 0 }}>→</span>
         </motion.button>
       </div>
 
@@ -784,8 +784,8 @@ export default function OasisPage() {
       >
         <defs>
           <linearGradient id="xpGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="#055C3F" />
-            <stop offset="100%" stopColor="#D4AF37" />
+            <stop offset="0%" stopColor="var(--primary)" />
+            <stop offset="100%" stopColor="var(--gold)" />
           </linearGradient>
           {/* Glow filter for active buildings */}
           <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
@@ -804,13 +804,13 @@ export default function OasisPage() {
           </filter>
           {/* Radial gradient for La Mecque special glow */}
           <radialGradient id="mecqueGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#D4AF37" stopOpacity="0.18" />
-            <stop offset="100%" stopColor="#D4AF37" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--gold)" stopOpacity="0.18" />
+            <stop offset="100%" stopColor="var(--gold)" stopOpacity="0" />
           </radialGradient>
           {/* Subtle region gradient */}
           <radialGradient id="regionGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#055C3F" stopOpacity="0.08" />
-            <stop offset="100%" stopColor="#055C3F" stopOpacity="0" />
+            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.08" />
+            <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
           </radialGradient>
         </defs>
 

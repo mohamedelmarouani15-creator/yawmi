@@ -33,7 +33,7 @@ export default function EscapeIntro({ onStart }: Props) {
             width: i % 3 === 0 ? 3 : 2,
             height: i % 3 === 0 ? 3 : 2,
             borderRadius: "50%",
-            background: "#D4AF37",
+            background: "var(--gold)",
             opacity: 0.3,
           }}
         />
@@ -42,7 +42,7 @@ export default function EscapeIntro({ onStart }: Props) {
       {/* Arabesque top */}
       <div style={{ textAlign: "center", marginBottom: 32 }}>
         <p style={{
-          color: "#D4AF37", fontSize: 28,
+          color: "var(--gold)", fontSize: 28,
           fontFamily: "var(--font-amiri)", opacity: 0.85,
           letterSpacing: "0.04em",
         }}>
@@ -57,7 +57,7 @@ export default function EscapeIntro({ onStart }: Props) {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.15 }}
         style={{
-          color: "#F8F4EC", fontSize: 24, fontWeight: 700, textAlign: "center",
+          color: "var(--text)", fontSize: 24, fontWeight: 700, textAlign: "center",
           fontFamily: "var(--font-bricolage)", marginBottom: 6, lineHeight: 1.25,
         }}
       >
@@ -89,9 +89,9 @@ export default function EscapeIntro({ onStart }: Props) {
         }}>
           Un vieux sage t'a confié la clé de son riad avant de disparaître.
           Cinq cadenas verrouillent le secret de sa bibliothèque.{" "}
-          <span style={{ color: "#D4AF37" }}>Explore chaque pièce</span>,
+          <span style={{ color: "var(--gold)" }}>Explore chaque pièce</span>,
           résous les énigmes arabes et{" "}
-          <span style={{ color: "#D4AF37" }}>libère le savoir caché</span>.
+          <span style={{ color: "var(--gold)" }}>libère le savoir caché</span>.
         </p>
       </motion.div>
 
@@ -106,8 +106,8 @@ export default function EscapeIntro({ onStart }: Props) {
           flex: 1, padding: "14px 10px", borderRadius: 14, textAlign: "center",
           background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
         }}>
-          <Clock size={18} style={{ color: "#D4AF37", margin: "0 auto 6px", display: "block" }} />
-          <p style={{ color: "#F8F4EC", fontSize: 15, fontWeight: 700, fontFamily: "var(--font-dm-sans)", margin: "0 0 2px" }}>
+          <Clock size={18} style={{ color: "var(--gold)", margin: "0 auto 6px", display: "block" }} />
+          <p style={{ color: "var(--text)", fontSize: 15, fontWeight: 700, fontFamily: "var(--font-dm-sans)", margin: "0 0 2px" }}>
             45 min
           </p>
           <p style={{ color: "rgba(248,244,236,0.38)", fontSize: 10, fontFamily: "var(--font-dm-sans)", margin: 0 }}>
@@ -118,7 +118,7 @@ export default function EscapeIntro({ onStart }: Props) {
           flex: 1, padding: "14px 10px", borderRadius: 14, textAlign: "center",
           background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
         }}>
-          <p style={{ color: "#F8F4EC", fontSize: 15, fontWeight: 700, fontFamily: "var(--font-dm-sans)", margin: "0 0 2px" }}>
+          <p style={{ color: "var(--text)", fontSize: 15, fontWeight: 700, fontFamily: "var(--font-dm-sans)", margin: "0 0 2px" }}>
             5 énigmes
           </p>
           <p style={{ color: "rgba(248,244,236,0.38)", fontSize: 10, fontFamily: "var(--font-dm-sans)", margin: 0 }}>
@@ -129,8 +129,8 @@ export default function EscapeIntro({ onStart }: Props) {
           flex: 1, padding: "14px 10px", borderRadius: 14, textAlign: "center",
           background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
         }}>
-          <Star size={18} style={{ color: "#D4AF37", margin: "0 auto 6px", display: "block" }} />
-          <p style={{ color: "#D4AF37", fontSize: 13, fontWeight: 700, fontFamily: "var(--font-dm-sans)", margin: "0 0 2px" }}>
+          <Star size={18} style={{ color: "var(--gold)", margin: "0 auto 6px", display: "block" }} />
+          <p style={{ color: "var(--gold)", fontSize: 13, fontWeight: 700, fontFamily: "var(--font-dm-sans)", margin: "0 0 2px" }}>
             +{REWARD.xp} XP
           </p>
           <p style={{ color: "rgba(248,244,236,0.38)", fontSize: 10, fontFamily: "var(--font-dm-sans)", margin: 0 }}>
@@ -174,7 +174,7 @@ export default function EscapeIntro({ onStart }: Props) {
           width: "100%", maxWidth: 340, padding: "17px 0",
           borderRadius: 99, cursor: "pointer", border: "none",
           background: "linear-gradient(135deg,#D4AF37,#8B6914)",
-          color: "#0A0F0D", fontSize: 15, fontWeight: 700,
+          color: "var(--bg)", fontSize: 15, fontWeight: 700,
           fontFamily: "var(--font-dm-sans)", letterSpacing: "0.04em",
           display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
           boxShadow: "0 0 32px rgba(212,175,55,0.35)",

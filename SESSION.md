@@ -14,136 +14,104 @@
   (feu/eau/vent/nuit/désert via Web Audio API)
 - Route API `src/app/api/story/narrate/route.ts` via VoiceRSS (gratuit, 350 req/jour)
 - POST avec body de texte, retour audio/mpeg direct
-- Parcours essayé avant d'arriver à VoiceRSS : Web Speech API (qualité),
-  Edge TTS (403), ElevenLabs (free tier bloqué API), HuggingFace (TTS non supporté),
-  Azure (CB obligatoire)
 
 ### Mode Sommeil Coran
 - Nouveau composant `src/components/SleepModeOverlay.tsx`
 - Timer : 15/30/45/60 min + fin de sourate + fin du Juzz (30 juzz définis)
 - Fondu progressif volume sur 30 dernières secondes
 - Dimming progressif de l'écran sur 4 minutes
-- +15 min pour prolonger, arrêt immédiat
-- Sélecteur récitateur dédié mode sommeil (sauvegardé dans `sleepReciter`)
-- Wake Lock API (garde l'écran allumé sur Android/Desktop)
-- `QuranPlayer.tsx` : nouvelles props `volume`, `defaultReciter`, `onSurahComplete`
+
+### DESIGN — Session 2 (31 mai 2026)
+
+#### Chantier 1 — Tokens CSS (✅ FAIT)
+- 900 remplacements de couleurs en dur → CSS vars sur 57 fichiers
+- `#D4AF37` → `var(--gold)`, `#055C3F` → `var(--primary)`, `#F8F4EC` → `var(--text)`, etc.
+- Exceptions préservées (canvas/Three.js, manifest JSON, données hex-alpha interpolées)
+- `location.color`, `pu.color`, `MEMBER_COLORS`, `arc.color` gardent hex (utilisés en `${color}33`)
+
+#### Chantier 2 — Mode jour/nuit (✅ FAIT)
+- `[data-theme="day"]` CSS block dans globals.css : thème marbre chaud + texte sombre
+- Hook `src/hooks/usePrayerTheme.ts` : bascule automatiquement entre Fajr et Maghrib
+- Monté dans `src/app/(app)/layout.tsx` à côté de `useAgeMode`
+- Transition CSS 1.5s sur background/color
+- Gold assombri en jour (#9A7000) pour le contraste sur fond clair
+
+#### Chantier 3 — Icônes islamiques + bordures mihrab (✅ FAIT)
+- `src/components/IslamicIcons.tsx` avec 7 icônes SVG :
+  `CrescentStar`, `Star8`, `BismillahIcon`, `MosqueIcon`, `GeometricTile`,
+  `MihrabArch`, `TasbihIcon`
+- Classes CSS dans globals.css : `.mihrab-card`, `.divider-gold`,
+  `.frame-arabic`, `.glow-gold`, `.glow-primary`
+
+#### Chantier 4 — useAgeMode dans les pages (✅ FAIT)
+- CSS `age-kids` enrichi : border-radius, espacement, cibles 52px, `.hide-kids`/`.show-kids`
+- CSS `age-elder` enrichi : contraste via `--text-muted`/`--text-dim` overrides,
+  icônes scale 1.15, nav 5rem, `.hide-elder`
+- CSS `age-teen` ajouté
 
 ### Déploiements
 - 2 déploiements en production sur https://yawmi-delta.vercel.app
-- `VOICERSS_API_KEY` ajoutée sur Vercel (production uniquement)
 
 ---
 
 ## Ce qui est en cours
 
-- **Chapitres histoire** : l'UI affiche 4-12 chapitres par arc mais la DB n'en
-  contient que 1-2. Les chapitres 3+ retournent une erreur 404 API.
+- **Chapitres histoire** : les chapitres 3+ retournent une erreur 404 API.
   Prochaine étape : écrire et migrer les chapitres manquants.
 
-- **VOICERSS_API_KEY manquante en preview** : ajoutée seulement en production
-  sur Vercel. Les déploiements preview n'ont pas accès au narrateur.
+- **IslamicIcons non intégrées dans les pages** : composant créé, pas encore branché.
+
+- **VOICERSS_API_KEY manquante en preview** : production seulement.
 
 ---
 
 ## Bugs connus
 
 ### 🔴 Clé HuggingFace exposée dans le chat
-- Le token `hf_xKDbck...` a été partagé dans cette conversation.
-- **ACTION REQUISE : révoquer sur https://huggingface.co/settings/tokens
-  et générer un nouveau token.**
-- Mettre à jour `.env.local` avec le nouveau token.
+- **ACTION REQUISE : révoquer sur https://huggingface.co/settings/tokens**
 
 ### 🔴 Chapitres histoire 404
-- Cliquer sur le chapitre 3+ de n'importe quel arc (sauf Yûsuf) renvoie
-  une erreur API `chapter_not_found`.
 - Cause : migration 006 n'a seedé que 1-2 chapitres par arc.
-- Fix : écrire les chapitres manquants et les migrer dans Supabase.
 
 ### 🟠 Adhan push ne fonctionne pas app fermée
-- Les notifications prière utilisent `setTimeout` côté client.
-- Si l'app est fermée ou en arrière-plan, l'adhan ne se déclenche pas.
-- Fix propre : Web Push côté serveur (cron Vercel ou Supabase Edge Function
-  qui appelle `/api/push/notify` à chaque heure de prière).
 
 ### 🟠 Wake Lock iOS (mode sommeil)
-- Safari sur iPhone ne supporte pas la Wake Lock API.
-- En mode sommeil Coran, l'écran se verrouille normalement après 30 secondes.
-- Contournement partiel : l'utilisateur doit désactiver le verrouillage auto
-  dans les réglages iPhone pendant la récitation.
 
-### 🟡 VoiceRSS 350 req/jour
-- Le plan gratuit VoiceRSS limite à 350 requêtes/jour.
-- Pour une famille qui lit chaque soir, la limite peut être atteinte.
-- Chaque chapitre est généré à la volée (pas de cache).
-- Fix : ajouter le cache Supabase Storage (déjà prévu dans le code, commenté).
-- Alternative long terme : ElevenLabs Starter ($5/mois) avec cache = qualité
-  cinématique pour ~$5 one-shot une fois tous les chapitres générés.
+### 🟡 VoiceRSS 350 req/jour — fix : cache Supabase Storage
 
-### 🟡 Modes par âge non implémentés visuellement
-- Le hook `useAgeMode.ts` existe et injecte une classe CSS.
-- Aucune page ne s'adapte selon l'âge du profil.
-- L'ageGroup est collecté à l'onboarding et stocké mais sans effet.
+### 🟡 IslamicIcons pas encore intégrées dans les pages
 
 ---
 
 ## Prochaine étape exacte à reprendre
 
-**Priorité 1 — Compléter les chapitres de La Grande Histoire**
+**Priorité 1 — Intégrer les IslamicIcons dans les pages clés**
+- `/accueil` : CrescentStar (prières), TasbihIcon (dhikr)
+- `/prieres` : MosqueIcon header, MihrabArch sur la card active
+- `/dhikr` : TasbihIcon header
+- Ajouter `.mihrab-card` et `.frame-arabic` sur les cards importantes
 
-Chaque arc a un nombre cible de chapitres (total_chapters en DB) :
-- arc_ibrahim : 8 chapitres (2 faits, 6 à écrire)
-- arc_moussa : 10 chapitres (2 faits, 8 à écrire)
-- arc_maryam : 6 chapitres (1 fait, 5 à écrire)
-- arc_sira : 12 chapitres (1 fait, 11 à écrire)
-- arc_sahaba : 10 chapitres (1 fait, 9 à écrire)
-- arc_hijra : 5 chapitres (1 fait, 4 à écrire)
-- arc_ismail : 4 chapitres (1 fait, 3 à écrire)
-- arc_isra_miraj : 5 chapitres (1 fait, 4 à écrire)
-- arc_souleimane : 7 chapitres (1 fait, 6 à écrire)
-- arc_yusuf : 10 chapitres (10 faits ✅)
-
-Commande pour la prochaine session :
-```
-Écris les chapitres manquants pour arc_ibrahim (chapitres 3 à 8).
-Même structure que les chapitres 1 et 2 déjà en base :
-narrative (vue du tapis voyageur), vocabulary (1 mot arabe), 
-4 questions (compréhension/vocabulaire/réflexion/spaced_repetition),
-values_shown, rewards (xp + coins).
-Sources : Coran et Sîra fiables uniquement.
-Aucun dialogue inventé dans la bouche des prophètes.
-```
-
-**Priorité 2 — Modes par âge visuels**
-Implémenter les adaptations UI dans au moins 3 pages clés (accueil, coran, oasis)
-selon les 5 modes (kids/teen/adult/parent/elder).
+**Priorité 2 — Compléter les chapitres de La Grande Histoire**
+- arc_ibrahim : 6 chapitres à écrire (3→8)
+- arc_moussa : 8 chapitres à écrire (3→10)
+- arc_maryam : 5 chapitres à écrire (2→6)
+- arc_sira : 11 chapitres à écrire (2→12)
+- arc_sahaba, hijra, ismail, isra_miraj, souleimane : voir SESSION précédente
 
 **Priorité 3 — Cache narrateur**
-Activer le cache Supabase Storage dans `/api/story/narrate/route.ts`
-pour éviter de consommer les 350 req/jour VoiceRSS sur chaque relecture.
+Activer le cache Supabase Storage dans `/api/story/narrate/route.ts`.
 
 ---
 
 ## Variables d'environnement (état au 31/05/2026)
 
-Toutes présentes dans `.env.local` et sur Vercel production :
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
+- `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`
 - `GROQ_API_KEY`
-- `VAPID_SUBJECT` (mailto:mohamed.elmarouani15@gmail.com)
-- `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
-- `VAPID_PRIVATE_KEY`
-- `VOICERSS_API_KEY` (production Vercel seulement, pas preview)
-- `ELEVENLABS_API_KEY` (non utilisé actuellement)
+- `VAPID_SUBJECT`, `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`
+- `VOICERSS_API_KEY` (production Vercel seulement)
+- `ELEVENLABS_API_KEY` (non utilisé)
 - `HUGGINGFACE_TOKEN` (⚠️ À RÉVOQUER ET RENOUVELER)
 
 ## Supabase
-
 Projet : `ipxzrblmjebgpnejmhpn`
-Migrations exécutées manuellement via dashboard SQL :
-- 001_v2_game.sql
-- 002_v2_live_features.sql
-- 003_v3_companion_stories.sql (partiel — trigger existant ignoré)
-- 004_v3_seed_arc_yusuf.sql
-- 005_onboarding_profile.sql
-- 006_v3_all_stories.sql
+Migrations : 001→006 exécutées manuellement via dashboard SQL

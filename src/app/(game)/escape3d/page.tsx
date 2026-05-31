@@ -25,7 +25,7 @@ export default function Escape3DPage() {
         style={{
           background: "rgba(0,0,0,0.5)",
           border: "1px solid rgba(212,175,55,0.3)",
-          color: "#D4AF37",
+          color: "var(--gold)",
           backdropFilter: "blur(8px)",
         }}>
         <ArrowLeft size={16} />
@@ -41,7 +41,7 @@ export default function Escape3DPage() {
           }}>
             <div className="w-10 h-10 rounded-full border-2 border-yellow-500 border-t-transparent animate-spin" />
             <p className="text-xs tracking-widest uppercase opacity-50"
-              style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+              style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
               Le riad s'éveille…
             </p>
           </div>

@@ -75,26 +75,26 @@ function DoorPortal({ pos, rotY, label, onClick }: {
       {/* Zone cliquable */}
       <mesh onClick={onClick}>
         <planeGeometry args={[1.65, 2.65]} />
-        <meshBasicMaterial ref={matRef} color="#D4AF37" transparent opacity={0.08}
+        <meshBasicMaterial ref={matRef} color="var(--gold)" transparent opacity={0.08}
           side={THREE.DoubleSide} depthWrite={false} />
       </mesh>
       {/* Linteau */}
       <mesh position={[0, 1.33, 0.01]}>
         <boxGeometry args={[1.72, 0.045, 0.018]} />
-        <meshBasicMaterial color="#D4AF37" transparent opacity={0.6} />
+        <meshBasicMaterial color="var(--gold)" transparent opacity={0.6} />
       </mesh>
       {/* Pieds */}
       {([-0.835, 0.835] as const).map(x => (
         <mesh key={x} position={[x, 0, 0.01]}>
           <boxGeometry args={[0.028, 2.66, 0.018]} />
-          <meshBasicMaterial color="#D4AF37" transparent opacity={0.45} />
+          <meshBasicMaterial color="var(--gold)" transparent opacity={0.45} />
         </mesh>
       ))}
       {/* Petite flèche indicateur */}
       {label && (
         <mesh position={[0, -1.45, 0.02]}>
           <planeGeometry args={[0.6, 0.18]} />
-          <meshBasicMaterial color="#D4AF37" transparent opacity={0.0} />
+          <meshBasicMaterial color="var(--gold)" transparent opacity={0.0} />
         </mesh>
       )}
     </group>
@@ -360,7 +360,7 @@ export default function RiadScene() {
         display:"flex", alignItems:"center", justifyContent:"center",
       }}>
         {fadeOpacity > 0.5 && fadeLabel && (
-          <p style={{ color:"#D4AF37", fontSize:11, letterSpacing:"0.25em", textTransform:"uppercase", fontFamily:"var(--font-dm-sans)", opacity:0.8 }}>
+          <p style={{ color:"var(--gold)", fontSize:11, letterSpacing:"0.25em", textTransform:"uppercase", fontFamily:"var(--font-dm-sans)", opacity:0.8 }}>
             {fadeLabel}
           </p>
         )}
@@ -442,7 +442,7 @@ export default function RiadScene() {
       <p style={{
         position:"absolute", top:18, left:"50%", transform:"translateX(-50%)",
         zIndex:10, pointerEvents:"none",
-        color:"#D4AF37", opacity:0.6, fontSize:10,
+        color:"var(--gold)", opacity:0.6, fontSize:10,
         letterSpacing:"0.2em", textTransform:"uppercase",
         fontFamily:"var(--font-dm-sans)", whiteSpace:"nowrap",
       }}>
@@ -480,10 +480,10 @@ export default function RiadScene() {
         >
           <span style={{ fontSize: 18, flexShrink: 0 }}>👆</span>
           <p style={{
-            color: "#F8F4EC", fontSize: 12, fontFamily: "var(--font-dm-sans)",
+            color: "var(--text)", fontSize: 12, fontFamily: "var(--font-dm-sans)",
             margin: 0, lineHeight: 1.4,
           }}>
-            <span style={{ color: "#D4AF37", fontWeight: 600 }}>Cherche l&apos;objet : </span>
+            <span style={{ color: "var(--gold)", fontWeight: 600 }}>Cherche l&apos;objet : </span>
             {roomHint}
           </p>
         </motion.div>
@@ -523,7 +523,7 @@ export default function RiadScene() {
             zIndex:10,
             background:"rgba(4,6,8,0.75)", border:"1px solid rgba(212,175,55,0.28)",
             borderRadius:24, padding:"9px 20px",
-            color:"#D4AF37", fontSize:10, letterSpacing:"0.14em",
+            color:"var(--gold)", fontSize:10, letterSpacing:"0.14em",
             textTransform:"uppercase", fontFamily:"var(--font-dm-sans)",
             cursor:"pointer", backdropFilter:"blur(10px)",
           }}>
@@ -541,10 +541,10 @@ export default function RiadScene() {
           borderRadius:20, padding:"18px 24px", textAlign:"center",
           backdropFilter:"blur(12px)",
         }}>
-          <p style={{ color:"#D4AF37", fontSize:16, fontFamily:"var(--font-dm-sans)", fontWeight:600 }}>
+          <p style={{ color:"var(--gold)", fontSize:16, fontFamily:"var(--font-dm-sans)", fontWeight:600 }}>
             🌙 Le riad a livré tous ses secrets !
           </p>
-          <p style={{ color:"#F8F4EC", fontSize:12, opacity:0.7, marginTop:5, fontFamily:"var(--font-dm-sans)" }}>
+          <p style={{ color:"var(--text)", fontSize:12, opacity:0.7, marginTop:5, fontFamily:"var(--font-dm-sans)" }}>
             +{350} XP · +{120} 🪙 · 1 📦 ajoutés à ton profil
           </p>
         </div>

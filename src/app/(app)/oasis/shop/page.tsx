@@ -53,8 +53,8 @@ function ChestModal({ onClose, reward }: {
             <rect x={15} y={68} width={110} height={6} fill="rgba(212,175,55,0.4)" />
             <rect x={64} y={55} width={12} height={48} fill="rgba(212,175,55,0.4)" />
             {/* Lock */}
-            <rect x={62} y={72} width={16} height={13} rx={3} fill="#D4AF37" />
-            <path d="M 66 72 Q 66 65 70 65 Q 74 65 74 72" fill="none" stroke="#D4AF37" strokeWidth={3} strokeLinecap="round" />
+            <rect x={62} y={72} width={16} height={13} rx={3} fill="var(--gold)" />
+            <path d="M 66 72 Q 66 65 70 65 Q 74 65 74 72" fill="none" stroke="var(--gold)" strokeWidth={3} strokeLinecap="round" />
             {/* Lid */}
             <motion.g
               animate={{ rotateX: opened ? -80 : 0, y: opened ? -22 : 0 }}
@@ -93,14 +93,14 @@ function ChestModal({ onClose, reward }: {
               initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
               className="flex flex-col items-center gap-3 w-full"
             >
-              <p className="text-lg font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+              <p className="text-lg font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
                 Vous avez obtenu !
               </p>
               <div className="flex flex-col gap-2 w-full">
                 <div className="flex items-center gap-3 rounded-2xl border p-3"
-                  style={{ background: "rgba(212,175,55,0.08)", borderColor: "rgba(212,175,55,0.3)" }}>
+                  style={{ background: "var(--bg-gold)", borderColor: "rgba(212,175,55,0.3)" }}>
                   <span className="text-xl">🪙</span>
-                  <span className="font-semibold text-sm" style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                  <span className="font-semibold text-sm" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
                     +{reward.coins} pièces d&apos;or
                   </span>
                 </div>
@@ -142,7 +142,7 @@ function GoldParticles({ show }: { show: boolean }) {
   if (!show) return null;
   const p = Array.from({ length: 24 }, (_, i) => ({
     x: 20 + Math.random() * 350, delay: Math.random() * 0.4,
-    color: ["#D4AF37","#FFD700","#F8F4EC"][i % 3],
+    color: ["var(--gold)","#FFD700","var(--text)"][i % 3],
     size: 3 + Math.random() * 5,
     rot: Math.random() * 720 * (Math.random() > 0.5 ? 1 : -1),
   }));
@@ -206,11 +206,11 @@ export default function ShopPage() {
       <div className="flex items-center gap-3 mb-6">
         <motion.button onClick={() => router.back()} whileTap={{ scale: 0.9 }} transition={springTap}
           className="flex h-9 w-9 items-center justify-center rounded-full border"
-          style={{ borderColor: "rgba(212,175,55,0.18)", color: "#F8F4EC" }}>
+          style={{ borderColor: "rgba(212,175,55,0.18)", color: "var(--text)" }}>
           <ArrowLeft size={15} />
         </motion.button>
         <div className="flex-1">
-          <h1 className="text-lg font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+          <h1 className="text-lg font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             Boutique
           </h1>
         </div>
@@ -218,7 +218,7 @@ export default function ShopPage() {
         <div className="flex items-center gap-1.5 rounded-full px-3 py-1.5"
           style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.25)" }}>
           <span style={{ fontSize: 14 }}>🪙</span>
-          <span className="text-sm font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+          <span className="text-sm font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
             {coins}
           </span>
         </div>
@@ -242,10 +242,10 @@ export default function ShopPage() {
             📦
           </motion.div>
           <div className="flex-1">
-            <p className="font-bold text-sm mb-0.5" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+            <p className="font-bold text-sm mb-0.5" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
               {chests} Coffre{chests > 1 ? "s" : ""} disponible{chests > 1 ? "s" : ""}
             </p>
-            <p className="text-xs" style={{ color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="text-xs" style={{ color: "var(--text-muted)", fontFamily: "var(--font-dm-sans)" }}>
               Pièces, power-ups, objets mosquée…
             </p>
           </div>
@@ -281,10 +281,10 @@ export default function ShopPage() {
                 {ICON_MAP[pu.icon] ?? <span>⚡</span>}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-sm" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+                <p className="font-semibold text-sm" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
                   {pu.name}
                 </p>
-                <p className="text-xs opacity-50 truncate" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                <p className="text-xs opacity-50 truncate" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                   {pu.description}
                 </p>
                 <p className="text-xs mt-0.5" style={{ color: "rgba(248,244,236,0.35)", fontFamily: "var(--font-dm-sans)" }}>
@@ -314,7 +314,7 @@ export default function ShopPage() {
       {/* Info coffres */}
       <div className="rounded-2xl border p-4"
         style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}>
-        <p className="text-xs font-semibold mb-1" style={{ color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-dm-sans)" }}>
+        <p className="text-xs font-semibold mb-1" style={{ color: "var(--text-muted)", fontFamily: "var(--font-dm-sans)" }}>
           Comment obtenir des coffres ?
         </p>
         <ul className="text-xs flex flex-col gap-1" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
@@ -331,7 +331,7 @@ export default function ShopPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
             className="fixed bottom-24 left-1/2 -translate-x-1/2 rounded-2xl px-5 py-3 text-sm font-semibold z-40"
-            style={{ background: "rgba(15,35,22,0.97)", border: "1px solid rgba(212,175,55,0.3)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ background: "rgba(15,35,22,0.97)", border: "1px solid rgba(212,175,55,0.3)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
             {toast}
           </motion.div>
         )}

@@ -55,29 +55,29 @@ function Kaaba({ opacity, scale }: { opacity: number; scale: number }) {
         fill="rgba(0,0,0,0.5)" />
 
       {/* Top face */}
-      <polygon points={topPts} fill="#1a0e04" stroke="#D4AF37" strokeWidth={0.6*s} strokeOpacity="0.6" />
+      <polygon points={topPts} fill="#1a0e04" stroke="var(--gold)" strokeWidth={0.6*s} strokeOpacity="0.6" />
 
       {/* Right face */}
-      <polygon points={frontR} fill="#110902" stroke="#D4AF37" strokeWidth={0.4*s} strokeOpacity="0.3" />
+      <polygon points={frontR} fill="#110902" stroke="var(--gold)" strokeWidth={0.4*s} strokeOpacity="0.3" />
 
       {/* Left face */}
-      <polygon points={frontL} fill="#1c1006" stroke="#D4AF37" strokeWidth={0.4*s} strokeOpacity="0.4" />
+      <polygon points={frontL} fill="#1c1006" stroke="var(--gold)" strokeWidth={0.4*s} strokeOpacity="0.4" />
 
       {/* Kiswa band */}
-      <polygon points={kBand} fill="#D4AF37" opacity="0.75" />
+      <polygon points={kBand} fill="var(--gold)" opacity="0.75" />
 
       {/* Arabic calligraphy on kiswa (simplified) */}
       <text x={-W/4} y={kY + D + H*0.065} textAnchor="middle"
-        fontSize={5*s} fill="#061A12" fontFamily="serif" opacity="0.9">لا إله</text>
+        fontSize={5*s} fill="var(--bg)" fontFamily="serif" opacity="0.9">لا إله</text>
 
       {/* Door */}
       <rect x={dX - dW/2} y={dY} width={dW} height={dH}
-        fill="#D4AF37" opacity="0.9" rx={dW*0.3} />
+        fill="var(--gold)" opacity="0.9" rx={dW*0.3} />
       <rect x={dX - dW/2 + 1.5*s} y={dY + 1.5*s} width={dW - 3*s} height={dH - 1.5*s}
         fill="#8B6914" opacity="0.9" rx={dW*0.2} />
 
       {/* Handle */}
-      <circle cx={dX + dW/8} cy={dY + dH*0.55} r={1.2*s} fill="#D4AF37" />
+      <circle cx={dX + dW/8} cy={dY + dH*0.55} r={1.2*s} fill="var(--gold)" />
     </g>
   );
 }
@@ -165,23 +165,23 @@ export default function QiblaPage() {
       <div className="relative z-10 flex w-full items-center justify-between px-5 pt-12">
         <Link href="/prieres"
           className="flex h-10 w-10 items-center justify-center rounded-full border"
-          style={{ borderColor: "rgba(212,175,55,0.2)", color: "#F8F4EC" }}>
+          style={{ borderColor: "var(--border-gold)", color: "var(--text)" }}>
           <ArrowLeft size={18} />
         </Link>
         <div className="flex flex-col items-center">
-          <p className="text-lg font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-amiri)" }}>
+          <p className="text-lg font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)" }}>
             القبلة
           </p>
-          <p className="text-xs opacity-40 -mt-1" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          <p className="text-xs opacity-40 -mt-1" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             {settings.cityName} · {dist.toLocaleString("fr-FR")} km
           </p>
         </div>
         <div className="flex flex-col items-end">
-          <p className="text-xl font-bold tabular-nums" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+          <p className="text-xl font-bold tabular-nums" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
             {bearing}°
           </p>
           {heading !== null && (
-            <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               cap {Math.round(heading)}°
             </p>
           )}
@@ -209,14 +209,14 @@ export default function QiblaPage() {
 
             {/* Radial gradients */}
             <radialGradient id="innerGlow" cx="50%" cy="55%" r="50%">
-              <stop offset="0%"   stopColor="#D4AF37" stopOpacity={glow * 0.55} />
-              <stop offset="35%"  stopColor="#D4AF37" stopOpacity={glow * 0.18} />
-              <stop offset="70%"  stopColor="#055C3F" stopOpacity={glow * 0.08} />
+              <stop offset="0%"   stopColor="var(--gold)" stopOpacity={glow * 0.55} />
+              <stop offset="35%"  stopColor="var(--gold)" stopOpacity={glow * 0.18} />
+              <stop offset="70%"  stopColor="var(--primary)" stopOpacity={glow * 0.08} />
               <stop offset="100%" stopColor="#000000" stopOpacity="0" />
             </radialGradient>
             <radialGradient id="skyGrad" cx="50%" cy="40%" r="60%">
               <stop offset="0%"   stopColor="#0a1f10" />
-              <stop offset="100%" stopColor="#020a05" />
+              <stop offset="100%" stopColor="var(--bg)" />
             </radialGradient>
           </defs>
 
@@ -248,7 +248,7 @@ export default function QiblaPage() {
                 <line key={i}
                   x1={CX} y1={H * 0.58}
                   x2={CX + Math.cos(rad)*len} y2={H*0.58 + Math.sin(rad)*len}
-                  stroke="#D4AF37"
+                  stroke="var(--gold)"
                   strokeWidth={i % 3 === 0 ? 0.8 : 0.4}
                   strokeOpacity={rayAlpha * (i % 2 === 0 ? 0.4 : 0.2)}
                   style={{ transition: "stroke-opacity 0.4s ease" }}
@@ -266,7 +266,7 @@ export default function QiblaPage() {
                 <path key={i}
                   d={archPath(CX, baseShift, cw, ch)}
                   fill="none"
-                  stroke="#D4AF37"
+                  stroke="var(--gold)"
                   strokeWidth={1.2 - i * 0.15}
                   strokeOpacity={visible ? (0.5 - i * 0.06) * glow : 0}
                   style={{ transition: "stroke-opacity 0.5s ease" }}
@@ -276,7 +276,7 @@ export default function QiblaPage() {
 
             {/* Ground plane */}
             <ellipse cx={CX} cy={H * 0.88} rx="100" ry="14"
-              fill="none" stroke="#D4AF37" strokeWidth="0.4"
+              fill="none" stroke="var(--gold)" strokeWidth="0.4"
               strokeOpacity={glow * 0.25}
               style={{ transition: "stroke-opacity 0.4s ease" }} />
 
@@ -299,7 +299,7 @@ export default function QiblaPage() {
               <text x={CX} y={H * 0.18}
                 textAnchor="middle" dominantBaseline="middle"
                 fontSize="38" fontWeight="700"
-                fill="#D4AF37"
+                fill="var(--gold)"
                 fontFamily="serif"
                 filter="url(#softGlow)"
               >
@@ -313,7 +313,7 @@ export default function QiblaPage() {
           {/* Outer decorative border */}
           <path d={archPath(CX, BASE, ARCH_W + 12, ARCH_H + 8)}
             fill="none"
-            stroke="#D4AF37"
+            stroke="var(--gold)"
             strokeWidth="1"
             strokeOpacity={0.12 + glow * 0.15}
             style={{ transition: "stroke-opacity 0.4s ease" }} />
@@ -321,7 +321,7 @@ export default function QiblaPage() {
           {/* Main arch border */}
           <path d={archPath(CX, BASE, ARCH_W, ARCH_H)}
             fill="none"
-            stroke="#D4AF37"
+            stroke="var(--gold)"
             strokeWidth="2.5"
             strokeOpacity={0.25 + glow * 0.65}
             filter="url(#glowF)"
@@ -330,7 +330,7 @@ export default function QiblaPage() {
           {/* Inner arch border */}
           <path d={archPath(CX, BASE, ARCH_W - 14, ARCH_H - 10)}
             fill="none"
-            stroke="#D4AF37"
+            stroke="var(--gold)"
             strokeWidth="0.7"
             strokeOpacity={0.1 + glow * 0.3}
             style={{ transition: "stroke-opacity 0.4s ease" }} />
@@ -339,11 +339,11 @@ export default function QiblaPage() {
           {[[CX - ARCH_W/2, BASE - ARCH_H * 0.62], [CX + ARCH_W/2, BASE - ARCH_H * 0.62]].map(([x, y], i) => (
             <g key={i}>
               <circle cx={x} cy={y} r="5"
-                fill="none" stroke="#D4AF37" strokeWidth="1"
+                fill="none" stroke="var(--gold)" strokeWidth="1"
                 strokeOpacity={0.2 + glow * 0.5}
                 style={{ transition: "stroke-opacity 0.4s ease" }} />
               <circle cx={x} cy={y} r="2"
-                fill="#D4AF37"
+                fill="var(--gold)"
                 fillOpacity={0.1 + glow * 0.6}
                 style={{ transition: "fill-opacity 0.4s ease" }} />
             </g>
@@ -353,7 +353,7 @@ export default function QiblaPage() {
           <path
             d={`M ${CX - 80},${H - 10} A 80,10 0 0,1 ${CX + 80},${H - 10}`}
             fill="none"
-            stroke="#D4AF37"
+            stroke="var(--gold)"
             strokeWidth="2"
             strokeLinecap="round"
             strokeOpacity={isOn ? 0.9 : glow * 0.4}
@@ -372,11 +372,11 @@ export default function QiblaPage() {
             <div className="flex gap-1.5">
               {Array.from({ length: 8 }, (_, i) => (
                 <div key={i} className="h-1 w-6 rounded-full transition-all duration-300"
-                  style={{ background: i / 8 < score ? "#D4AF37" : "rgba(212,175,55,0.15)" }} />
+                  style={{ background: i / 8 < score ? "var(--gold)" : "rgba(212,175,55,0.15)" }} />
               ))}
             </div>
             <p className="text-xs" style={{
-              color: isOn ? "#D4AF37" : "rgba(248,244,236,0.4)",
+              color: isOn ? "var(--gold)" : "rgba(248,244,236,0.4)",
               fontFamily: "var(--font-dm-sans)",
               transition: "color 0.3s",
             }}>
@@ -387,8 +387,8 @@ export default function QiblaPage() {
           <button onClick={activate}
             className="flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold transition-all active:scale-95"
             style={{
-              background: "linear-gradient(135deg, #055C3F, #0a8a5e)",
-              color: "#F8F4EC",
+              background: "var(--gradient-primary)",
+              color: "var(--text)",
               fontFamily: "var(--font-dm-sans)",
               boxShadow: "0 0 30px rgba(5,92,63,0.4)",
             }}>

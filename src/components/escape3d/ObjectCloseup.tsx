@@ -70,7 +70,7 @@ export default function ObjectCloseup({ puzzle, onSolve, onClose }: Props) {
             transition={{ duration: 3, repeat: Infinity }}
             style={{
               width: 100, height: 100, borderRadius: "50%",
-              background: "rgba(212,175,55,0.08)",
+              background: "var(--bg-gold)",
               border: "1px solid rgba(212,175,55,0.2)",
               display: "flex", alignItems: "center", justifyContent: "center",
               margin: "0 auto 16px",
@@ -86,7 +86,7 @@ export default function ObjectCloseup({ puzzle, onSolve, onClose }: Props) {
             {TYPE_ICON[puzzle.type]} {visual.label}
           </p>
           <h2 style={{
-            color: "#F8F4EC", fontSize: 19, fontWeight: 700,
+            color: "var(--text)", fontSize: 19, fontWeight: 700,
             fontFamily: "var(--font-bricolage)", margin: 0, padding: "0 24px",
           }}>
             {puzzle.title}
@@ -126,7 +126,7 @@ export default function ObjectCloseup({ puzzle, onSolve, onClose }: Props) {
                 padding: "14px 0", borderRadius: 99, flex: 0.42,
                 background: "rgba(255,255,255,0.04)",
                 border: "1px solid rgba(255,255,255,0.1)",
-                color: "rgba(248,244,236,0.5)", fontSize: 13,
+                color: "var(--text-muted)", fontSize: 13,
                 fontFamily: "var(--font-dm-sans)", cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
               }}
@@ -141,7 +141,7 @@ export default function ObjectCloseup({ puzzle, onSolve, onClose }: Props) {
               style={{
                 padding: "14px 0", borderRadius: 99, flex: 1,
                 background: "linear-gradient(135deg,#D4AF37,#8B6914)",
-                border: "none", color: "#0A0F0D",
+                border: "none", color: "var(--bg)",
                 fontSize: 14, fontWeight: 700,
                 fontFamily: "var(--font-dm-sans)", cursor: "pointer",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 8,

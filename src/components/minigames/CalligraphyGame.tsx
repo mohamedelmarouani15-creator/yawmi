@@ -313,7 +313,7 @@ export default function CalligraphyGame({ question, onComplete, color }: Props) 
               background: hasDrawing
                 ? `linear-gradient(135deg,${color},#055C3F)`
                 : "rgba(255,255,255,0.06)",
-              color: hasDrawing ? "#F8F4EC" : "rgba(248,244,236,0.3)",
+              color: hasDrawing ? "var(--text)" : "var(--text-dim)",
               fontFamily: "var(--font-dm-sans)",
             }}
           >

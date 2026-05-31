@@ -9,7 +9,7 @@ function AidConfetti({ show }: { show: boolean }) {
   if (!show) return null;
   const particles = Array.from({ length: 30 }, (_, i) => ({
     x: Math.random() * 400, delay: Math.random() * 1.5,
-    color: ["#D4AF37","#FFD700","#22c55e","#f87171","#60a5fa"][i % 5],
+    color: ["var(--gold)","#FFD700","#22c55e","#f87171","#60a5fa"][i % 5],
     size: 4 + Math.random() * 6,
     rot: Math.random() * 720 * (Math.random() > 0.5 ? 1 : -1),
   }));
@@ -140,7 +140,7 @@ export function EventBanner() {
               ×{event.rewardMultiplier} XP
             </span>
           )}
-          <button onClick={dismiss} style={{ color: "rgba(248,244,236,0.3)", fontSize: 16, flexShrink: 0 }}>
+          <button onClick={dismiss} style={{ color: "var(--text-dim)", fontSize: 16, flexShrink: 0 }}>
             ✕
           </button>
         </motion.div>

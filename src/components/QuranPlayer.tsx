@@ -45,17 +45,17 @@ export default function QuranPlayer({
         style={{
           background:    "rgba(6,26,18,0.97)",
           backdropFilter:"blur(16px)",
-          borderColor:   "rgba(212,175,55,0.2)",
+          borderColor:   "var(--border-gold)",
           boxShadow:     "0 -4px 32px rgba(0,0,0,0.4)",
         }}>
 
         <div className="mb-3 flex items-center justify-between">
-          <p className="text-xs opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          <p className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Verset {currentAyah}/{totalAyahs}
           </p>
           <button onClick={() => setShowRec(v => !v)}
             className="flex items-center gap-1.5 text-xs"
-            style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
             <Volume2 size={11} />
             {RECITERS.find(r => r.id === reciter)?.name}
           </button>
@@ -68,8 +68,8 @@ export default function QuranPlayer({
                 onClick={() => { setReciter(r.id); setShowRec(false); }}
                 className="rounded-full px-2.5 py-1 text-xs"
                 style={{
-                  background: reciter === r.id ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.06)",
-                  color:      reciter === r.id ? "#D4AF37" : "rgba(248,244,236,0.5)",
+                  background: reciter === r.id ? "var(--border-gold)" : "rgba(255,255,255,0.06)",
+                  color:      reciter === r.id ? "var(--gold)" : "var(--text-muted)",
                   border:     `1px solid ${reciter === r.id ? "rgba(212,175,55,0.3)" : "transparent"}`,
                   fontFamily: "var(--font-dm-sans)",
                 }}>
@@ -106,14 +106,14 @@ export default function QuranPlayer({
             onClick={() => currentAyah > 1 && onAyahChange(currentAyah - 1)}
             disabled={currentAyah <= 1}
             className="rounded-full border px-4 py-1.5 text-xs disabled:opacity-30"
-            style={{ borderColor: "rgba(255,255,255,0.1)", color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ borderColor: "rgba(255,255,255,0.1)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             ← Précédent
           </button>
           <button
             onClick={() => currentAyah < totalAyahs && onAyahChange(currentAyah + 1)}
             disabled={currentAyah >= totalAyahs}
             className="rounded-full border px-4 py-1.5 text-xs disabled:opacity-30"
-            style={{ borderColor: "rgba(212,175,55,0.2)", color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+            style={{ borderColor: "var(--border-gold)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
             Suivant →
           </button>
         </div>

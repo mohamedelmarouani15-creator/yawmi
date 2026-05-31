@@ -44,11 +44,11 @@ export default function TropheesPage() {
       <div className="flex items-center gap-3 mb-6">
         <motion.button onClick={() => router.back()} whileTap={{ scale: 0.9 }} transition={springTap}
           className="flex h-9 w-9 items-center justify-center rounded-full border"
-          style={{ borderColor: "rgba(212,175,55,0.18)", color: "#F8F4EC" }}>
+          style={{ borderColor: "rgba(212,175,55,0.18)", color: "var(--text)" }}>
           <ArrowLeft size={15} />
         </motion.button>
         <div className="flex-1">
-          <h1 className="text-lg font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+          <h1 className="text-lg font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             Trophées
           </h1>
           <p className="text-xs" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
@@ -81,8 +81,8 @@ export default function TropheesPage() {
             whileTap={{ scale: 0.95 }}
             className="shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold"
             style={{
-              background: filter === cat ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.04)",
-              color: filter === cat ? "#D4AF37" : "rgba(248,244,236,0.4)",
+              background: filter === cat ? "var(--border-gold)" : "rgba(255,255,255,0.04)",
+              color: filter === cat ? "var(--gold)" : "rgba(248,244,236,0.4)",
               border: `1px solid ${filter === cat ? "rgba(212,175,55,0.4)" : "rgba(255,255,255,0.08)"}`,
               fontFamily: "var(--font-dm-sans)",
             }}
@@ -113,7 +113,7 @@ export default function TropheesPage() {
                 {/* Icon */}
                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-2xl"
                   style={{
-                    background: unlocked ? "rgba(212,175,55,0.12)" : "rgba(255,255,255,0.04)",
+                    background: unlocked ? "var(--gold-faint)" : "rgba(255,255,255,0.04)",
                     filter: unlocked ? "none" : "grayscale(1)",
                     opacity: unlocked ? 1 : 0.35,
                   }}>
@@ -123,7 +123,7 @@ export default function TropheesPage() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm truncate"
-                    style={{ color: unlocked ? "#D4AF37" : "rgba(248,244,236,0.4)", fontFamily: "var(--font-bricolage)" }}>
+                    style={{ color: unlocked ? "var(--gold)" : "rgba(248,244,236,0.4)", fontFamily: "var(--font-bricolage)" }}>
                     {ach.title}
                   </p>
                   <p className="text-xs truncate"
@@ -138,8 +138,8 @@ export default function TropheesPage() {
                     initial={{ scale: 0 }} animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 400, damping: 20 }}
                     className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full"
-                    style={{ background: "rgba(212,175,55,0.2)" }}>
-                    <span style={{ color: "#D4AF37", fontSize: 14 }}>✓</span>
+                    style={{ background: "var(--border-gold)" }}>
+                    <span style={{ color: "var(--gold)", fontSize: 14 }}>✓</span>
                   </motion.div>
                 ) : (
                   <div className="h-7 w-7 shrink-0 rounded-full border-2 border-dashed"
@@ -170,7 +170,7 @@ export default function TropheesPage() {
             style={{ background: "rgba(15,35,22,0.97)", border: "1px solid rgba(212,175,55,0.4)", boxShadow: "0 0 24px rgba(212,175,55,0.2)" }}>
             <span style={{ fontSize: 20 }}>🏆</span>
             <div>
-              <p className="text-xs font-bold" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>
+              <p className="text-xs font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
                 Trophée débloqué !
               </p>
               <p className="text-xs" style={{ color: "rgba(248,244,236,0.6)", fontFamily: "var(--font-dm-sans)" }}>

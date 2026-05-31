@@ -57,17 +57,17 @@ export default function AzkarPage() {
       {/* Header */}
       <motion.div variants={itemVariants} className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             {session === "matin" ? "Après Fajr" : "Après Asr"}
           </p>
-          <h1 className="mt-1 text-2xl font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+          <h1 className="mt-1 text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             Azkar
           </h1>
         </div>
         <div className="flex flex-col items-end gap-2">
           {/* Toggle matin/soir */}
           <div className="flex items-center gap-1.5 rounded-full border px-1.5 py-1"
-            style={{ borderColor: "rgba(212,175,55,0.2)" }}>
+            style={{ borderColor: "var(--border-gold)" }}>
             {(["matin", "soir"] as Session[]).map(s => (
               <motion.button
                 key={s}
@@ -77,7 +77,7 @@ export default function AzkarPage() {
                 className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold"
                 style={{
                   background: session === s ? "rgba(5,92,63,0.5)" : "transparent",
-                  color: session === s ? "#D4AF37" : "rgba(248,244,236,0.4)",
+                  color: session === s ? "var(--gold)" : "rgba(248,244,236,0.4)",
                   border: session === s ? "1px solid rgba(212,175,55,0.3)" : "1px solid transparent",
                   fontFamily: "var(--font-dm-sans)",
                 }}
@@ -99,7 +99,7 @@ export default function AzkarPage() {
                   className="rounded-full px-2 py-0.5 text-xs"
                   style={{
                     background: rate === r ? "rgba(212,175,55,0.15)" : "transparent",
-                    color: rate === r ? "#D4AF37" : "rgba(248,244,236,0.3)",
+                    color: rate === r ? "var(--gold)" : "var(--text-dim)",
                     border: rate === r ? "1px solid rgba(212,175,55,0.3)" : "1px solid transparent",
                     fontFamily: "var(--font-dm-sans)",
                   }}>
@@ -114,7 +114,7 @@ export default function AzkarPage() {
       {/* Progression */}
       <motion.div variants={itemVariants}>
         <div className="mb-1 flex items-center justify-between">
-          <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+          <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             {totalDone}/{azkar.length} dhikrs complétés
           </p>
           <AnimatePresence>
@@ -124,7 +124,7 @@ export default function AzkarPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0 }}
                 className="text-xs font-semibold"
-                style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}
+                style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}
               >
                 ✦ Session complète
               </motion.p>
@@ -136,7 +136,7 @@ export default function AzkarPage() {
             className="h-full rounded-full"
             animate={{ width: `${(totalDone / azkar.length) * 100}%` }}
             transition={{ ease: [0.25, 0.1, 0.25, 1], duration: 0.5 }}
-            style={{ background: "linear-gradient(to right,#055C3F,#D4AF37)" }}
+            style={{ background: "var(--gradient-bar)" }}
           />
         </div>
       </motion.div>
@@ -168,11 +168,11 @@ export default function AzkarPage() {
                   borderColor: done ? "rgba(212,175,55,0.25)" : "rgba(255,255,255,0.06)",
                 }}
               >
-                <p className="text-xs opacity-40" style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                   {zikr.source}
                 </p>
                 <p lang="ar" className="text-right text-lg leading-loose font-medium"
-                  style={{ color: done ? "rgba(248,244,236,0.4)" : "#F8F4EC", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
+                  style={{ color: done ? "rgba(248,244,236,0.4)" : "var(--text)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
                   {zikr.ar}
                 </p>
                 {zikr.darija && (
@@ -182,11 +182,11 @@ export default function AzkarPage() {
                   </p>
                 )}
                 <p className="text-xs leading-relaxed opacity-40 italic"
-                  style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                  style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
                   {zikr.transliteration}
                 </p>
                 <p className="text-xs leading-relaxed opacity-50"
-                  style={{ color: "#F8F4EC", fontFamily: "var(--font-dm-sans)" }}>
+                  style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                   {zikr.fr}
                 </p>
                 <div className="flex items-center justify-between gap-3">
@@ -195,7 +195,7 @@ export default function AzkarPage() {
                       className="h-full rounded-full"
                       animate={{ width: `${pct}%` }}
                       transition={{ ease: [0.25, 0.1, 0.25, 1], duration: 0.2 }}
-                      style={{ background: done ? "#D4AF37" : "#055C3F" }}
+                      style={{ background: done ? "var(--gold)" : "var(--primary)" }}
                     />
                   </div>
                   <div className="flex items-center gap-2">
@@ -208,7 +208,7 @@ export default function AzkarPage() {
                         style={{
                           borderColor: playingId === zikr.id ? "rgba(212,175,55,0.5)" : "rgba(255,255,255,0.1)",
                           background: playingId === zikr.id ? "rgba(212,175,55,0.1)" : "rgba(255,255,255,0.03)",
-                          color: playingId === zikr.id ? "#D4AF37" : "rgba(248,244,236,0.35)",
+                          color: playingId === zikr.id ? "var(--gold)" : "rgba(248,244,236,0.35)",
                         }}>
                         {playingId === zikr.id ? (
                           <>
@@ -230,7 +230,7 @@ export default function AzkarPage() {
                         onClick={() => reset(zikr.id)}
                         whileTap={{ scale: 0.85 }}
                         className="opacity-30"
-                        style={{ color: "#F8F4EC" }}
+                        style={{ color: "var(--text)" }}
                       >
                         <RotateCcw size={12} />
                       </motion.button>
@@ -242,8 +242,8 @@ export default function AzkarPage() {
                       transition={springTap}
                       className="flex items-center gap-1.5 rounded-full px-4 py-1.5 text-sm font-semibold disabled:opacity-50"
                       style={{
-                        background: done ? "rgba(212,175,55,0.15)" : "linear-gradient(135deg,#055C3F,#0a8a5e)",
-                        color: done ? "#D4AF37" : "#F8F4EC",
+                        background: done ? "rgba(212,175,55,0.15)" : "var(--gradient-primary)",
+                        color: done ? "var(--gold)" : "var(--text)",
                         fontFamily: "var(--font-dm-sans)",
                         minWidth: 80,
                         justifyContent: "center",

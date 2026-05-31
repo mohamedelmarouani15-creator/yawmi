@@ -5,8 +5,10 @@ import { motion, AnimatePresence } from "framer-motion";
 
 interface Props {
   visible:          boolean;
+  paused?:          boolean;
   onTensionChange:  (active: boolean, level: number) => void;
   onTimeUp:         () => void;
+  onTick?:          (seconds: number) => void;
 }
 
 const TOTAL     = 30 * 60;   // 30 minutes en secondes
@@ -56,7 +58,7 @@ function Sablier({ progress, tension }: { progress: number; tension: boolean }) 
 }
 
 // ── Composant timer ───────────────────────────────────────────────
-export default function GameTimer({ visible, onTensionChange, onTimeUp }: Props) {
+export default function GameTimer({ visible, paused = false, onTensionChange, onTimeUp, onTick }: Props) {
   const [seconds,  setSeconds]  = useState(TOTAL);
   const [tension,  setTension]  = useState(false);
   const tickRef   = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -78,15 +80,17 @@ export default function GameTimer({ visible, onTensionChange, onTimeUp }: Props)
         const level = 1 - next / TENSION_T;
         onTensionChange(true, level);
       }
+      onTick?.(next);
       return next;
     });
-  }, [tension, onTensionChange, onTimeUp]);
+  }, [tension, onTensionChange, onTimeUp, onTick]);
 
   useEffect(() => {
     if (!visible) return;
+    if (paused) { if (tickRef.current) clearInterval(tickRef.current); return; }
     tickRef.current = setInterval(handleTick, 1000);
     return () => { if (tickRef.current) clearInterval(tickRef.current); };
-  }, [visible, handleTick]);
+  }, [visible, handleTick, paused]);
 
   const progress = 1 - seconds / TOTAL;
   const urgent   = seconds <= 60;

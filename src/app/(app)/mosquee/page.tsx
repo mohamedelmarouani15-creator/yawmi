@@ -126,6 +126,28 @@ export default function MosqueePage() {
         </div>
       </motion.div>
 
+      {/* Section spéciale Tombouctou */}
+      {mosqueObjects.some(o => o.startsWith("tombouctou_")) && (
+        <motion.div variants={itemVariants}
+          className="rounded-2xl border p-5"
+          style={{ background: "linear-gradient(135deg,rgba(212,175,55,0.08) 0%,rgba(6,26,18,0.95) 100%)", borderColor: "rgba(212,175,55,0.4)" }}>
+          <div className="flex items-center gap-2 mb-3">
+            <span style={{ fontSize: 18 }}>📜</span>
+            <p className="text-xs tracking-widest uppercase font-semibold"
+              style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+              Bibliothèque de Tombouctou
+            </p>
+          </div>
+          <p className="text-sm leading-relaxed opacity-70"
+            style={{ color: "var(--text)", fontFamily: "Georgia, serif", fontStyle: "italic" }}>
+            Tu as sauvé les manuscrits millénaires. Ils ornent maintenant ta mosquée pour l&apos;éternité.
+          </p>
+          <p className="text-xs mt-3 opacity-40" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+            5 trésors islamiques débloqués
+          </p>
+        </motion.div>
+      )}
+
       {/* Objets débloqués par le jeu */}
       {mosqueObjects.length > 0 && (
         <motion.div variants={itemVariants}>
@@ -140,6 +162,12 @@ export default function MosqueePage() {
                 mihrab_1: "🕌 Mihrab", minaret_base: "🗼 Minaret", fountain_1: "⛲ Fontaine",
                 arch_1: "🌙 Arche", tiles_1: "🔷 Zellige", calligraphy_1: "✍️ Calligraphie",
                 dome_1: "🔵 Dôme",
+                // Tombouctou — escape game
+                tombouctou_astrolabe: "⚙️ Astrolabe d'Al-Biruni",
+                tombouctou_books:     "📚 Manuscrits de Tombouctou",
+                tombouctou_map:       "🗺️ Carte islamique médiévale",
+                tombouctou_lectern:   "📖 Pupitre du Coran",
+                tombouctou_lantern:   "🕯️ Lanterne de Tombouctou",
               };
               return (
                 <div key={obj} className="flex items-center gap-2 rounded-full px-3 py-1.5"

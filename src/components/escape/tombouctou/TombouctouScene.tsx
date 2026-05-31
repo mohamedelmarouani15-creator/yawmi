@@ -13,6 +13,8 @@ import GameTimer          from "./GameTimer";
 import ManuscriptObject   from "./ManuscriptObject";
 import Enigme             from "./Enigme";
 import KnowledgeReveal    from "./KnowledgeReveal";
+import CompanionVoice     from "./CompanionVoice";
+import VictorySequence    from "./VictorySequence";
 import VirtualJoystick    from "@/components/escape3d/VirtualJoystick";
 import LookZone           from "@/components/escape3d/LookZone";
 import { useTombouctouAudio } from "@/hooks/useTombouctouAudio";
@@ -180,6 +182,56 @@ function TensionLight({
   );
 }
 
+// ── VictoryCamera : élève la caméra pendant la victoire ─────────
+function VictoryCamera({ activeRef }: { activeRef: React.RefObject<boolean> }) {
+  const { camera } = useThree();
+  const startRef   = useRef<number | null>(null);
+  const startY     = useRef(1.7);
+
+  useFrame(({ clock }, delta) => {
+    if (!activeRef.current) return;
+    if (startRef.current === null) {
+      startRef.current = clock.getElapsedTime();
+      startY.current   = camera.position.y;
+    }
+    const elapsed = clock.getElapsedTime() - startRef.current;
+    const t       = Math.min(elapsed / 5, 1);
+    const ease    = 1 - Math.pow(1 - t, 2);
+    camera.position.y = THREE.MathUtils.lerp(startY.current, 7.5, ease);
+    camera.rotation.x = THREE.MathUtils.lerp(camera.rotation.x, -0.45, delta * 0.6);
+  });
+  return null;
+}
+
+// ── VictoryLights : lumières dorées pendant la victoire ──────────
+function VictoryLights({ activeRef }: { activeRef: React.RefObject<boolean> }) {
+  const lightRef = useRef<THREE.PointLight>(null);
+  const ambRef   = useRef<THREE.AmbientLight>(null);
+
+  useFrame((_, delta) => {
+    if (!activeRef.current) return;
+    if (lightRef.current) {
+      lightRef.current.intensity = THREE.MathUtils.lerp(
+        lightRef.current.intensity, 3.5, delta * 0.7
+      );
+    }
+    if (ambRef.current) {
+      ambRef.current.intensity = THREE.MathUtils.lerp(
+        ambRef.current.intensity, 1.8, delta * 0.5
+      );
+      ambRef.current.color.lerp(new THREE.Color("#D4AF37"), delta * 0.4);
+    }
+  });
+
+  return (
+    <>
+      <pointLight ref={lightRef} position={[0, 7, 0]}
+        color="#D4AF37" intensity={0} distance={25} decay={1.2} castShadow={false} />
+      <ambientLight ref={ambRef} color="#0A0A05" intensity={0.18} />
+    </>
+  );
+}
+
 // ── ProximityChecker ─────────────────────────────────────────────
 function ProximityChecker({
   introComplete,
@@ -279,7 +331,12 @@ export default function TombouctouScene() {
   const [nearbyMs,         setNearbyMs]         = useState<number | null>(null);
   const [activeEnigme,     setActiveEnigme]     = useState<number | null>(null);
   const [revealingMs,      setRevealingMs]      = useState<number | null>(null);
-  const solvedRef = useRef<boolean[]>(Array(5).fill(false));
+  const [victoryActive,    setVictoryActive]    = useState(false);
+  const [hintsUsed,        setHintsUsed]        = useState(0);
+  const [gameSeconds,      setGameSeconds]      = useState(30 * 60);
+  const [timerPaused,      setTimerPaused]      = useState(false);
+  const solvedRef        = useRef<boolean[]>(Array(5).fill(false));
+  const victoryActiveRef = useRef(false);
 
   // ── Refs partagés Canvas ↔ HTML ───────────────────────────────
   const introPhaseRef      = useRef(0);
@@ -367,6 +424,15 @@ export default function TombouctouScene() {
     setRevealingMs(null);
   }, []);
 
+  // ── Victoire : tous les manuscrits résolus ─────────────────────
+  useEffect(() => {
+    if (solvedMs.every(Boolean) && !victoryActiveRef.current) {
+      victoryActiveRef.current = true;
+      setVictoryActive(true);
+      setTimerPaused(true);
+    }
+  }, [solvedMs]);
+
   const handleExamine = useCallback(() => {
     if (nearbyMs !== null && !solvedRef.current[nearbyMs]) {
       setActiveEnigme(nearbyMs);
@@ -419,6 +485,8 @@ export default function TombouctouScene() {
         <FogController introPhaseRef={introPhaseRef} introComplete={introComplete} />
         <TensionSmoothor targetRef={tensionTargetRef} levelRef={tensionLevelRef} />
         <TensionLight tensionLevelRef={tensionLevelRef} />
+        <VictoryCamera activeRef={victoryActiveRef} />
+        <VictoryLights activeRef={victoryActiveRef} />
 
         {/* Scène */}
         <LibraryEnvironment />
@@ -495,10 +563,29 @@ export default function TombouctouScene() {
 
       {/* ── Chrono sablier ── */}
       <GameTimer
-        visible={timerVisible}
+        visible={timerVisible && !victoryActive}
+        paused={timerPaused}
         onTensionChange={handleTensionChange}
         onTimeUp={handleTimeUp}
+        onTick={setGameSeconds}
       />
+
+      {/* ── Compagnon sage ── */}
+      <CompanionVoice
+        nearbyMs={nearbyMs}
+        solvedMs={solvedMs}
+        introComplete={introComplete}
+        victoryActive={victoryActive}
+      />
+
+      {/* ── Séquence de victoire ── */}
+      {victoryActive && (
+        <VictorySequence
+          timeRemaining={gameSeconds}
+          hintsUsed={hintsUsed}
+          onReplay={() => { window.location.reload(); }}
+        />
+      )}
 
       {/* ── HUD desktop ── */}
       {!isMobile && introComplete && !locked && (

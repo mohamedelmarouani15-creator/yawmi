@@ -249,6 +249,20 @@ export const gameStorage = {
     this.save(merged);
   },
 
+  // Débloque les 5 objets Tombouctou dans la mosquée
+  unlockTombouctouRewards(): void {
+    const state = this.get();
+    const TOMBOUCTOU_OBJECTS = [
+      "tombouctou_astrolabe",
+      "tombouctou_books",
+      "tombouctou_map",
+      "tombouctou_lectern",
+      "tombouctou_lantern",
+    ];
+    const merged = [...new Set([...state.mosqueObjects, ...TOMBOUCTOU_OBJECTS])];
+    this.save({ ...state, mosqueObjects: merged });
+  },
+
   async pushToSupabase(userId: string): Promise<void> {
     const state = this.get();
     await supabase.from("player_progress").upsert({

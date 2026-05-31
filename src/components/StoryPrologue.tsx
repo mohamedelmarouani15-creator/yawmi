@@ -33,14 +33,14 @@ const ARC_EMOJI: Record<string, string> = {
 
 // Découpe la narration en 4-5 slides représentatives
 function splitIntoSlides(narrative: string, max = 5): string[] {
-  const paras = narrative.split(/\n\n+/).map(p => p.trim()).filter(p => p.length > 30);
-  if (paras.length >= 3) return paras.slice(0, max);
+  const paras = narrative.split(/\n\n+/).map(p => p.trim()).filter(p => p.length > 10);
+  if (paras.length >= 2) return paras.slice(0, max);
 
   const sentences = narrative
     .replace(/\n+/g, " ")
     .split(/(?<=[.!?]) +/)
     .map(s => s.trim())
-    .filter(s => s.length > 30);
+    .filter(s => s.length > 10);
 
   if (sentences.length <= max) return sentences;
   const step = Math.floor(sentences.length / max);

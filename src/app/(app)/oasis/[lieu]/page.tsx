@@ -411,17 +411,36 @@ export default function LieuPage() {
           </p>
           <p className="text-sm opacity-60 leading-relaxed" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             {lieu === "medine"
-              ? "C'est d'ici que commence ton voyage. Explore les autres villes pour grandir en sagesse."
+              ? "C'est d'ici que commence ton voyage. Réponds aux questions pour gagner tes premiers XP et déverrouiller les villes suivantes."
               : "Tu as atteint le sommet du voyage. Que ta quête de connaissance soit bénie."}
           </p>
+
+          {/* Médine : bouton quiz pour démarrer et gagner des XP */}
+          {lieu === "medine" && (
+            <motion.button
+              onClick={() => router.push(`/oasis/quiz/medine`)}
+              whileTap={{ scale: 0.96 }}
+              transition={springTap}
+              className="flex items-center justify-center gap-2 rounded-full px-8 py-4 text-base font-bold w-full"
+              style={{
+                background: "var(--gradient-primary)",
+                color: "var(--text)",
+                fontFamily: "var(--font-bricolage)",
+                boxShadow: "var(--shadow-primary)",
+              }}
+            >
+              <Swords size={18} /> Commencer le quiz
+            </motion.button>
+          )}
+
           <motion.button
             onClick={() => router.back()}
             whileTap={{ scale: 0.95 }}
             transition={springTap}
-            className="rounded-full px-6 py-2.5 text-sm font-semibold"
-            style={{ background: "var(--gradient-primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
+            className="rounded-full px-6 py-2.5 text-sm"
+            style={{ color: "var(--text-muted)", fontFamily: "var(--font-dm-sans)" }}
           >
-            Retour à la carte
+            ← Retour à la carte
           </motion.button>
         </motion.div>
       )}

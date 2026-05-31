@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { EffectComposer, Bloom, SMAA } from "@react-three/postprocessing";
 import * as THREE from "three";
@@ -9,9 +10,13 @@ import CandleSystem       from "./CandleSystem";
 import AstrolabeDecor     from "./AstrolabeDecor";
 import CinematicIntro     from "./CinematicIntro";
 import GameTimer          from "./GameTimer";
+import ManuscriptObject   from "./ManuscriptObject";
+import Enigme             from "./Enigme";
+import KnowledgeReveal    from "./KnowledgeReveal";
 import VirtualJoystick    from "@/components/escape3d/VirtualJoystick";
 import LookZone           from "@/components/escape3d/LookZone";
 import { useTombouctouAudio } from "@/hooks/useTombouctouAudio";
+import { MANUSCRIPTS }    from "@/lib/escape/tombouctou";
 
 // ── Constantes navigation ────────────────────────────────────────
 const SPEED       = 3.8
@@ -175,6 +180,41 @@ function TensionLight({
   );
 }
 
+// ── ProximityChecker ─────────────────────────────────────────────
+function ProximityChecker({
+  introComplete,
+  solvedRef,
+  onNearby,
+}: {
+  introComplete: boolean;
+  solvedRef:     React.RefObject<boolean[]>;
+  onNearby:      (id: number | null) => void;
+}) {
+  const { camera } = useThree();
+  const lastRef    = useRef<number | null>(null);
+
+  useFrame(() => {
+    if (!introComplete) return;
+    let nearest: number | null = null;
+    let minDist = 2.8;
+
+    MANUSCRIPTS.forEach(m => {
+      if (solvedRef.current?.[m.id]) return;
+      const dx   = camera.position.x - m.position[0];
+      const dz   = camera.position.z - m.position[2];
+      const dist = Math.sqrt(dx * dx + dz * dz);
+      if (dist < minDist) { minDist = dist; nearest = m.id; }
+    });
+
+    if (nearest !== lastRef.current) {
+      lastRef.current = nearest;
+      onNearby(nearest);
+    }
+  });
+
+  return null;
+}
+
 // ── CameraController (gameplay) ──────────────────────────────────
 interface CtrlProps {
   joystickRef: React.RefObject<{ x: number; y: number }>;
@@ -228,12 +268,18 @@ function CameraController({ joystickRef, keysRef, yawRef, pitchRef }: CtrlProps)
 // ════════════════════════════════════════════════════════════════
 export default function TombouctouScene() {
   // ── État ──────────────────────────────────────────────────────
-  const [introComplete, setIntroComplete] = useState(false);
-  const [timerVisible,  setTimerVisible]  = useState(false);
-  const [isTension,     setIsTension]     = useState(false);
-  const [locked,        setLocked]        = useState(false);
-  const [isMobile,      setIsMobile]      = useState(false);
-  const [firstTime,     setFirstTime]     = useState(true);
+  const [introComplete,    setIntroComplete]    = useState(false);
+  const [timerVisible,     setTimerVisible]     = useState(false);
+  const [isTension,        setIsTension]        = useState(false);
+  const [locked,           setLocked]           = useState(false);
+  const [isMobile,         setIsMobile]         = useState(false);
+  const [firstTime,        setFirstTime]        = useState(true);
+  // Manuscrits
+  const [solvedMs,         setSolvedMs]         = useState<boolean[]>(Array(5).fill(false));
+  const [nearbyMs,         setNearbyMs]         = useState<number | null>(null);
+  const [activeEnigme,     setActiveEnigme]     = useState<number | null>(null);
+  const [revealingMs,      setRevealingMs]      = useState<number | null>(null);
+  const solvedRef = useRef<boolean[]>(Array(5).fill(false));
 
   // ── Refs partagés Canvas ↔ HTML ───────────────────────────────
   const introPhaseRef      = useRef(0);
@@ -305,9 +351,40 @@ export default function TombouctouScene() {
   }, [setAudioTension]);
 
   const handleTimeUp = useCallback(() => {
-    // Phase 3 : game over — géré en Phase 4
-    console.log("Temps écoulé — game over (Phase 4)");
+    // Phase 4 — game over géré là
   }, []);
+
+  // ── Manuscrits ─────────────────────────────────────────────────
+  const handleSolve = useCallback((id: number) => {
+    setActiveEnigme(null);
+    setSolvedMs(prev => { const n=[...prev]; n[id]=true; return n; });
+    solvedRef.current[id] = true;
+    setRevealingMs(id);
+    // Jouer le son enigme-resolue (synthétisé via audio hook)
+  }, []);
+
+  const handleCloseReveal = useCallback(() => {
+    setRevealingMs(null);
+  }, []);
+
+  const handleExamine = useCallback(() => {
+    if (nearbyMs !== null && !solvedRef.current[nearbyMs]) {
+      setActiveEnigme(nearbyMs);
+    }
+  }, [nearbyMs]);
+
+  // Fermeture Enigme avec Échap
+  useEffect(() => {
+    if (!activeEnigme && !revealingMs) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setActiveEnigme(null);
+        setRevealingMs(null);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [activeEnigme, revealingMs]);
 
   const handleClick = useCallback(() => {
     startAudio();
@@ -348,6 +425,24 @@ export default function TombouctouScene() {
         <CandleSystem tensionLevelRef={tensionLevelRef} />
         <AstrolabeDecor />
 
+        {/* Manuscrits 3D */}
+        {MANUSCRIPTS.map(m => (
+          <ManuscriptObject
+            key={m.id}
+            id={m.id}
+            position={m.position}
+            isNearby={nearbyMs === m.id}
+            isSolved={solvedMs[m.id]}
+          />
+        ))}
+
+        {/* Détecteur de proximité */}
+        <ProximityChecker
+          introComplete={introComplete}
+          solvedRef={solvedRef}
+          onNearby={setNearbyMs}
+        />
+
         {/* Caméra : intro OU jeu */}
         {!introComplete
           ? <IntroCameraController introPhaseRef={introPhaseRef} />
@@ -370,6 +465,24 @@ export default function TombouctouScene() {
           />
         </EffectComposer>
       </Canvas>
+
+      {/* ── Enigme overlay ── */}
+      {activeEnigme !== null && (
+        <Enigme
+          manuscriptId={activeEnigme}
+          onSolve={handleSolve}
+          onClose={() => setActiveEnigme(null)}
+          onError={() => {/* feedback audio géré dans les composants */}}
+        />
+      )}
+
+      {/* ── Révélation savoir ── */}
+      {revealingMs !== null && activeEnigme === null && (
+        <KnowledgeReveal
+          manuscriptId={revealingMs}
+          onClose={handleCloseReveal}
+        />
+      )}
 
       {/* ── Intro cinématique (HTML overlay) ── */}
       {!introComplete && (
@@ -421,6 +534,32 @@ export default function TombouctouScene() {
           background: "radial-gradient(ellipse at center, transparent 60%, rgba(80,0,0,0.25) 100%)",
           animation: "tension-vignette 2s ease-in-out infinite",
         }} />
+      )}
+
+      {/* ── Bouton EXAMINER desktop ── */}
+      {introComplete && nearbyMs !== null && !solvedMs[nearbyMs] && !activeEnigme && !revealingMs && (
+        <motion.button
+          key={`exam-${nearbyMs}`}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          onClick={handleExamine}
+          style={{
+            position: "absolute",
+            bottom: isMobile ? 110 : 70,
+            left: "50%", transform: "translateX(-50%)",
+            background: "rgba(212,175,55,0.15)",
+            border: "1.5px solid rgba(212,175,55,0.55)",
+            borderRadius: 14, padding: "12px 28px",
+            color: "#D4AF37", fontWeight: 700, fontSize: 13,
+            letterSpacing: "0.1em", cursor: "pointer",
+            fontFamily: "var(--font-dm-sans, system-ui)",
+            boxShadow: "0 0 20px rgba(212,175,55,0.12)",
+            zIndex: 15,
+          }}
+        >
+          📜 EXAMINER · {MANUSCRIPTS[nearbyMs]?.title}
+        </motion.button>
       )}
 
       {/* ── Contrôles mobiles ── */}

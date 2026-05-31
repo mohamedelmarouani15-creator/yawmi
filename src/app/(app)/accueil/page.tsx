@@ -135,9 +135,19 @@ export default function AccueilPage() {
       animate="animate"
       className="flex flex-col gap-6 px-5 pt-12 pb-4"
     >
-      {/* Mascotte enfants */}
+      {/* Mascotte enfants — avec bouton Profil discret pour les parents */}
       {ageMode === "kids" && (
-        <motion.div variants={itemVariants} className="flex flex-col items-center gap-3 py-2">
+        <motion.div variants={itemVariants} className="relative flex flex-col items-center gap-3 py-2">
+          {/* Bouton Profil parent — discret en haut à droite */}
+          <Link
+            href="/profil"
+            className="absolute right-0 top-0 flex h-8 w-8 items-center justify-center rounded-full border opacity-30"
+            style={{ borderColor: "rgba(212,175,55,0.3)", color: "var(--text)" }}
+            aria-label="Paramètres"
+          >
+            <Settings size={14} />
+          </Link>
+
           <motion.span
             animate={{ rotate: [0, -8, 8, -4, 4, 0] }}
             transition={{ duration: 1.8, delay: 0.5, ease: "easeInOut" }}

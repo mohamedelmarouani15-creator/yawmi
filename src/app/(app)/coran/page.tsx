@@ -8,6 +8,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, BookOpen, Bookmark, BookmarkCheck, Download, Loader2, Moon, Trash2, WifiOff } from "lucide-react";
 import QuranPlayer from "@/components/QuranPlayer";
 import SleepModeOverlay, { type SleepOption } from "@/components/SleepModeOverlay";
+import { ageGroupToMode } from "@/hooks/useAgeMode";
 
 interface Surah { number: number; name: string; englishName: string; numberOfAyahs: number; }
 interface Ayah  { numberInSurah: number; text: string; }
@@ -64,7 +65,11 @@ export default function CoranPage() {
   const [ayahs,        setAyahs]        = useState<Ayah[]>([]);
   const [translations, setTranslations] = useState<Ayah[]>([]);
   const [loading,      setLoading]      = useState(false);
-  const [showTrans,    setShowTrans]    = useState(false);
+  const ageMode  = ageGroupToMode(storage.getSettings().ageGroup);
+  const isKids   = ageMode === "kids";
+  const isElder  = ageMode === "elder";
+  // Kids et aînés voient la traduction par défaut (aide à la compréhension)
+  const [showTrans, setShowTrans] = useState(isKids || isElder);
   const [offline,      setOffline]      = useState(false);
   const [downloading,  setDownloading]  = useState(false);
   const [dlProgress,   setDlProgress]  = useState(0);
@@ -323,18 +328,20 @@ export default function CoranPage() {
             {showPlayer ? "⏹" : "▶"} Audio
           </button>
 
-          {/* Bouton Mode Sommeil */}
-          <button
-            onClick={() => { setNightMode(true); setShowPlayer(true); setSleepOption(null); }}
-            className="flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold"
-            style={{
-              borderColor: "rgba(212,175,55,0.25)",
-              color:       "rgba(212,175,55,0.7)",
-              background:  "rgba(0,0,0,0.3)",
-              fontFamily:  "var(--font-dm-sans)",
-            }}>
-            <Moon size={11} /> Dormir
-          </button>
+          {/* Bouton Mode Sommeil — masqué pour les enfants */}
+          {!isKids && (
+            <button
+              onClick={() => { setNightMode(true); setShowPlayer(true); setSleepOption(null); }}
+              className="flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold"
+              style={{
+                borderColor: "rgba(212,175,55,0.25)",
+                color:       "rgba(212,175,55,0.7)",
+                background:  "rgba(0,0,0,0.3)",
+                fontFamily:  "var(--font-dm-sans)",
+              }}>
+              <Moon size={11} /> Dormir
+            </button>
+          )}
         </div>
 
         {loading ? (
@@ -368,13 +375,13 @@ export default function CoranPage() {
                     </button>
                   </div>
                 </div>
-                <p className="mt-3 text-right text-xl leading-loose"
-                  style={{ color: "var(--text)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
+                <p className="mt-3 text-right leading-loose"
+                  style={{ fontSize: isKids || isElder ? 26 : 21, color: "var(--text)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
                   {ayah.text}
                 </p>
                 {showTrans && translations[i] && (
-                  <p className="mt-2 text-sm leading-relaxed opacity-60"
-                    style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  <p className="mt-2 leading-relaxed opacity-60"
+                    style={{ fontSize: isElder ? 15 : 14, color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {translations[i].text}
                   </p>
                 )}
@@ -421,19 +428,19 @@ export default function CoranPage() {
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            Lecture
+            {isKids ? "📖 Le livre d'Allah" : "Lecture"}
           </p>
           <h1 className="mt-1 text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
             Coran
           </h1>
         </div>
-        {offline ? (
+        {!isKids && offline ? (
           <button onClick={deleteOffline}
             className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs"
             style={{ borderColor: "var(--border-primary)", color: "var(--primary)", fontFamily: "var(--font-dm-sans)" }}>
             <WifiOff size={11} /> Hors-ligne <Trash2 size={11} />
           </button>
-        ) : (
+        ) : !isKids && (
           <button onClick={downloadOffline} disabled={downloading}
             className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs disabled:opacity-50"
             style={{ borderColor: "rgba(212,175,55,0.3)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>

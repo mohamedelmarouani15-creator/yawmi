@@ -8,6 +8,7 @@ import { AZKAR_MATIN, AZKAR_SOIR, type Zikr } from "@/lib/azkar";
 import { storage, todayKey } from "@/lib/storage";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
 import { useZikrAudio, type AudioRate } from "@/hooks/useZikrAudio";
+import { ageGroupToMode } from "@/hooks/useAgeMode";
 
 type Session = "matin" | "soir";
 
@@ -19,7 +20,10 @@ export default function AzkarPage() {
   const [counts,  setCounts]  = useState<Record<string, number>>({});
   const { playingId, rate, setRate, toggle, stop, supported } = useZikrAudio();
 
-  const azkar = session === "matin" ? AZKAR_MATIN : AZKAR_SOIR;
+  const ageMode = ageGroupToMode(storage.getSettings().ageGroup);
+  const isKids  = ageMode === "kids";
+  const isElder = ageMode === "elder";
+  const azkar   = session === "matin" ? AZKAR_MATIN : AZKAR_SOIR;
 
   useEffect(() => {
     const saved = localStorage.getItem(SESSION_KEY(session));
@@ -58,10 +62,12 @@ export default function AzkarPage() {
       <motion.div variants={itemVariants} className="flex items-start justify-between gap-2">
         <div>
           <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            {session === "matin" ? "Après Fajr" : "Après Asr"}
+            {isKids
+              ? (session === "matin" ? "🌅 Azkar du matin" : "🌙 Azkar du soir")
+              : (session === "matin" ? "Après Fajr" : "Après Asr")}
           </p>
           <h1 className="mt-1 text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-            Azkar
+            {isKids ? (session === "matin" ? "Bonjour Allah ☀️" : "Bonsoir Allah 🌙") : "Azkar"}
           </h1>
         </div>
         <div className="flex flex-col items-end gap-2">
@@ -89,8 +95,8 @@ export default function AzkarPage() {
               </motion.button>
             ))}
           </div>
-          {/* Vitesse de lecture */}
-          {supported && (
+          {/* Vitesse de lecture — masquée pour kids et elder */}
+          {supported && !isKids && !isElder && (
             <div className="flex items-center gap-1">
               <Volume2 size={10} style={{ color: "rgba(212,175,55,0.4)" }} />
               {([0.55, 0.75, 1.0] as AudioRate[]).map(r => (
@@ -126,7 +132,7 @@ export default function AzkarPage() {
                 className="text-xs font-semibold"
                 style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}
               >
-                ✦ Session complète
+                {isKids ? "🎉 Bravo ! Tout complété !" : "✦ Session complète"}
               </motion.p>
             )}
           </AnimatePresence>

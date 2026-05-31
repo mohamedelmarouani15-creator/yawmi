@@ -5,7 +5,7 @@ import { storage } from "@/lib/storage";
 
 export type AgeMode = "kids" | "teen" | "adult" | "parent" | "elder" | null;
 
-function ageGroupToMode(group: string | null | undefined): AgeMode {
+export function ageGroupToMode(group: string | null | undefined): AgeMode {
   switch (group) {
     case "4-10":  return "kids";
     case "11-17": return "teen";

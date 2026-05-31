@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Moon, BookOpen, Users, Settings, Sun, CheckCircle2 } from "lucide-react";
+import { Moon, BookOpen, Users, Settings, Sun, CheckCircle2, Compass } from "lucide-react";
 import type React from "react";
 import { CrescentStar, TasbihIcon, Star8 } from "@/components/IslamicIcons";
+import { ageGroupToMode } from "@/hooks/useAgeMode";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useSettings }    from "@/hooks/useSettings";
 import { useAuth }        from "@/hooks/useAuth";
@@ -71,12 +72,27 @@ function getAzkarStatus(times: ComputedPrayerTimes | null) {
   return { showMatin, showSoir, matinDone, soirDone };
 }
 
-const SHORTCUTS: { href: string; icon: React.ComponentType<{ size?: number }>; label: string }[] = [
+type ShortcutDef = { href: string; icon: React.ComponentType<{ size?: number }>; label: string };
+
+const SHORTCUTS: ShortcutDef[] = [
   { href: "/prieres", icon: CrescentStar, label: "Prières"  },
   { href: "/coran",   icon: BookOpen,     label: "Coran"    },
   { href: "/dhikr",   icon: TasbihIcon,   label: "Dhikr"    },
   { href: "/azkar",   icon: Star8,        label: "Azkar"    },
   { href: "/famille", icon: Users,        label: "Famille"  },
+];
+
+const SHORTCUTS_KIDS: ShortcutDef[] = [
+  { href: "/oasis",   icon: Compass,      label: "Jouer !"  },
+  { href: "/coran",   icon: BookOpen,     label: "Coran"    },
+  { href: "/dhikr",   icon: TasbihIcon,   label: "Dhikr"    },
+  { href: "/azkar",   icon: Star8,        label: "Azkar"    },
+];
+
+const SHORTCUTS_ELDER: ShortcutDef[] = [
+  { href: "/prieres", icon: CrescentStar, label: "Prières"  },
+  { href: "/coran",   icon: BookOpen,     label: "Coran"    },
+  { href: "/dhikr",   icon: TasbihIcon,   label: "Dhikr"    },
 ];
 
 export default function AccueilPage() {
@@ -88,6 +104,7 @@ export default function AccueilPage() {
   const [stats,       setStats]      = useState({ totalDhikr: 0, tasksDone: 0, tasksTotal: 0 });
   const [azkarStatus, setAzkarStatus] = useState({ showMatin: false, showSoir: false, matinDone: false, soirDone: false });
   const [mosqueData,  setMosqueData]  = useState<{ stage: MosqueStage; streak: number }>({ stage: 1, streak: 0 });
+  const ageMode    = ageGroupToMode(settings.ageGroup);
   const dhikr      = getDailyDhikr();
   const firstName  = user?.user_metadata?.display_name?.split(" ")[0] ?? null;
   const hijri      = getHijriDate();
@@ -118,12 +135,31 @@ export default function AccueilPage() {
       animate="animate"
       className="flex flex-col gap-6 px-5 pt-12 pb-4"
     >
+      {/* Mascotte enfants */}
+      {ageMode === "kids" && (
+        <motion.div variants={itemVariants} className="flex flex-col items-center gap-3 py-2">
+          <motion.span
+            animate={{ rotate: [0, -8, 8, -4, 4, 0] }}
+            transition={{ duration: 1.8, delay: 0.5, ease: "easeInOut" }}
+            style={{ fontSize: 52, display: "inline-block" }}
+          >
+            🌟
+          </motion.span>
+          <p className="text-xl font-bold text-center" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
+            Salam {firstName ?? "petit(e)"} !
+          </p>
+          <p className="text-sm opacity-60 text-center" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            Qu&apos;est-ce qu&apos;on apprend aujourd&apos;hui ?
+          </p>
+        </motion.div>
+      )}
+
       {/* Bannière événement islamique spécial */}
-      <EventBanner />
+      {ageMode !== "kids" && <EventBanner />}
 
       {/* Message contextuel du Compagnon — 1 par jour max */}
       <AnimatePresence>
-        {ctxMsg && (
+        {ctxMsg && ageMode !== "kids" && (
           <m2.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -151,26 +187,28 @@ export default function AccueilPage() {
         )}
       </AnimatePresence>
 
-      {/* Header */}
-      <motion.div variants={itemVariants} className="flex items-start justify-between">
-        <div>
-          <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            Assalamu alaykum
-          </p>
-          <h1 className="mt-1 text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-            {firstName ? `${firstName}` : "Bienvenue"}
-          </h1>
-        </div>
-        <motion.div whileTap={tapScale} transition={springTap}>
-          <Link
-            href="/profil"
-            className="flex h-10 w-10 items-center justify-center rounded-full border"
-            style={{ borderColor: "rgba(212,175,55,0.3)", color: "var(--gold)" }}
-          >
-            <Settings size={18} />
-          </Link>
+      {/* Header — masqué en mode kids (mascotte le remplace) */}
+      {ageMode !== "kids" && (
+        <motion.div variants={itemVariants} className="flex items-start justify-between">
+          <div>
+            <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              Assalamu alaykum
+            </p>
+            <h1 className="mt-1 text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+              {firstName ?? "Bienvenue"}
+            </h1>
+          </div>
+          <motion.div whileTap={tapScale} transition={springTap}>
+            <Link
+              href="/profil"
+              className="flex h-10 w-10 items-center justify-center rounded-full border"
+              style={{ borderColor: "rgba(212,175,55,0.3)", color: "var(--gold)" }}
+            >
+              <Settings size={18} />
+            </Link>
+          </motion.div>
         </motion.div>
-      </motion.div>
+      )}
 
       {/* Date Hijri */}
       <motion.div
@@ -242,6 +280,29 @@ export default function AccueilPage() {
         </motion.div>
       )}
 
+      {/* CTA Jeu — enfants uniquement */}
+      {ageMode === "kids" && (
+        <motion.div variants={itemVariants}>
+          <Link href="/oasis">
+            <motion.div
+              whileTap={{ scale: 0.97 }} transition={springTap}
+              className="flex items-center justify-between rounded-2xl p-5"
+              style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-primary)" }}
+            >
+              <div>
+                <p className="text-base font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
+                  L&apos;Oasis t&apos;attend !
+                </p>
+                <p className="text-xs opacity-70 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Apprends l&apos;islam en jouant
+                </p>
+              </div>
+              <span style={{ fontSize: 38 }}>🌴</span>
+            </motion.div>
+          </Link>
+        </motion.div>
+      )}
+
       {/* Cartes Azkar (heure-based) */}
       {(azkarStatus.showMatin || azkarStatus.showSoir) && (
         <motion.div variants={itemVariants} className="flex flex-col gap-2">
@@ -302,35 +363,39 @@ export default function AccueilPage() {
         </motion.div>
       )}
 
-      {/* Stats du jour */}
-      <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
-        {[
-          { value: stats.totalDhikr,  label: "Dhikrs aujourd'hui" },
-          { value: `${stats.tasksDone}/${stats.tasksTotal}`, label: "Tâches famille" },
-        ].map(({ value, label }) => (
-          <div key={label} className="rounded-xl border p-4" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}>
-            <p className="text-2xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>{value}</p>
-            <p className="mt-1 text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{label}</p>
-          </div>
-        ))}
-      </motion.div>
-
-      {/* Mosquée isométrique */}
-      <motion.div variants={itemVariants}>
-        <Link href="/mosquee">
-          <motion.div whileTap={{ scale: 0.985 }} transition={springTap}
-            className="rounded-2xl border p-4"
-            style={{ background: "rgba(255,255,255,0.02)", borderColor: "var(--gold-faint)" }}>
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                Ma mosquée
-              </p>
-              <span className="text-xs opacity-40" style={{ color: "var(--text)" }}>Voir →</span>
+      {/* Stats du jour — masqué pour aînés et enfants */}
+      {ageMode !== "elder" && ageMode !== "kids" && (
+        <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
+          {[
+            { value: stats.totalDhikr,  label: "Dhikrs aujourd'hui" },
+            { value: `${stats.tasksDone}/${stats.tasksTotal}`, label: "Tâches famille" },
+          ].map(({ value, label }) => (
+            <div key={label} className="rounded-xl border p-4" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}>
+              <p className="text-2xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>{value}</p>
+              <p className="mt-1 text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{label}</p>
             </div>
-            <MosqueIsometrique stage={mosqueData.stage} streak={mosqueData.streak} />
-          </motion.div>
-        </Link>
-      </motion.div>
+          ))}
+        </motion.div>
+      )}
+
+      {/* Mosquée isométrique — masquée pour aînés et enfants */}
+      {ageMode !== "elder" && ageMode !== "kids" && (
+        <motion.div variants={itemVariants}>
+          <Link href="/mosquee">
+            <motion.div whileTap={{ scale: 0.985 }} transition={springTap}
+              className="rounded-2xl border p-4"
+              style={{ background: "rgba(255,255,255,0.02)", borderColor: "var(--gold-faint)" }}>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Ma mosquée
+                </p>
+                <span className="text-xs opacity-40" style={{ color: "var(--text)" }}>Voir →</span>
+              </div>
+              <MosqueIsometrique stage={mosqueData.stage} streak={mosqueData.streak} />
+            </motion.div>
+          </Link>
+        </motion.div>
+      )}
 
       {/* Dhikr du jour */}
       <motion.div
@@ -352,8 +417,8 @@ export default function AccueilPage() {
         </p>
       </motion.div>
 
-      {/* Événements islamiques */}
-      {upcomingEvents.length > 0 && (
+      {/* Événements islamiques — masqués pour aînés et enfants */}
+      {ageMode !== "elder" && ageMode !== "kids" && upcomingEvents.length > 0 && (
         <motion.div variants={itemVariants}>
           <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Prochains événements
@@ -380,28 +445,40 @@ export default function AccueilPage() {
         </motion.div>
       )}
 
-      {/* Raccourcis */}
-      <motion.div variants={itemVariants}>
-        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          Accès rapide
-        </p>
-        <div className="grid grid-cols-5 gap-2">
-          {SHORTCUTS.map(({ href, icon: Icon, label }) => (
-            <motion.div key={href} whileTap={{ scale: 0.91 }} transition={springTap}>
-              <Link
-                href={href}
-                className="flex flex-col items-center gap-2 rounded-2xl border py-4"
-                style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}
-              >
-                <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: "var(--border-primary)", color: "var(--gold)" }}>
-                  <Icon size={18} />
-                </div>
-                <p className="text-xs opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{label}</p>
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-      </motion.div>
+      {/* Raccourcis — set adapté par âge */}
+      {(() => {
+        const shortcuts =
+          ageMode === "kids"  ? SHORTCUTS_KIDS  :
+          ageMode === "elder" ? SHORTCUTS_ELDER :
+          SHORTCUTS;
+        const cols =
+          ageMode === "elder" ? "grid-cols-3" :
+          ageMode === "kids"  ? "grid-cols-4" :
+          "grid-cols-5";
+        return (
+          <motion.div variants={itemVariants}>
+            <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              Accès rapide
+            </p>
+            <div className={`grid ${cols} gap-2`}>
+              {shortcuts.map(({ href, icon: Icon, label }) => (
+                <motion.div key={href} whileTap={{ scale: 0.91 }} transition={springTap}>
+                  <Link
+                    href={href}
+                    className="flex flex-col items-center gap-2 rounded-2xl border py-4"
+                    style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: "var(--border-primary)", color: "var(--gold)" }}>
+                      <Icon size={18} />
+                    </div>
+                    <p className="text-xs opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{label}</p>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        );
+      })()}
     </motion.main>
   );
 }

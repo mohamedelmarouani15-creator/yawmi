@@ -197,60 +197,85 @@ body {
 
 /* ── Modes par âge ────────────────────────────────────────────── */
 
-/* Enfants (4-10) : lecture facile, grande cible tactile, espacement généreux */
+/* ══ Enfants (4-10) ══════════════════════════════════════════════ */
 .age-kids {
   font-size: 17px;
-  --r-md: 1rem;
-  --r-lg: 1.25rem;
-  --r-xl: 1.5rem;
+  --r-md:  1rem;
+  --r-lg:  1.25rem;
+  --r-xl:  1.5rem;
+  --r-2xl: 1.75rem;
 }
+/* Cibles tactiles généreuses */
 .age-kids button, .age-kids a {
   min-height: 52px;
-  border-radius: var(--r-xl) !important;
 }
+/* Texte aéré */
 .age-kids p, .age-kids span, .age-kids li {
-  line-height: 1.75;
+  line-height: 1.8;
 }
-/* Masquer les éléments trop complexes pour les enfants */
-.age-kids .hide-kids { display: none !important; }
-/* Mettre en avant les éléments ludiques */
-.age-kids .show-kids { display: block !important; }
+/* Bordures plus épaisses et rondes sur les cards */
+.age-kids .rounded-2xl {
+  border-width: 1.5px !important;
+  border-radius: 1.25rem !important;
+}
+.age-kids .rounded-xl {
+  border-radius: 1rem !important;
+}
+/* Icônes légèrement plus grandes */
+.age-kids svg {
+  transform: scale(1.1);
+  transform-origin: center;
+}
+/* Navigation : labels plus lisibles */
+.age-kids nav span { font-size: 10px !important; }
+/* Classes utilitaires */
+.age-kids .hide-kids   { display: none !important; }
+.age-kids .show-kids   { display: flex !important; }
 
-/* Ados (11-17) : interface moderne, légèrement plus grande */
-.age-teen {
-  font-size: 15.5px;
-}
-.age-teen button, .age-teen a {
-  min-height: 44px;
-}
+/* ══ Ados (11-17) ════════════════════════════════════════════════ */
+.age-teen { font-size: 15.5px; }
+.age-teen button, .age-teen a { min-height: 44px; }
 
-/* Aînés (55+) : très grands caractères, contraste max, zones tactiles larges */
+/* ══ Aînés (55+) ═════════════════════════════════════════════════ */
 .age-elder {
-  font-size: 18px;
-  --text-muted: rgba(248, 244, 236, 0.7);
-  --text-dim:   rgba(248, 244, 236, 0.5);
+  font-size: 19px;
+  --text-muted: rgba(248, 244, 236, 0.72);
+  --text-dim:   rgba(248, 244, 236, 0.52);
 }
-[data-theme="day"].age-elder,
+[data-theme="day"] .age-elder,
 .age-elder[data-theme="day"] {
-  --text-muted: rgba(13, 31, 20, 0.72);
-  --text-dim:   rgba(13, 31, 20, 0.52);
+  --text-muted: rgba(13, 31, 20, 0.75);
+  --text-dim:   rgba(13, 31, 20, 0.55);
 }
+/* Texte très lisible */
 .age-elder p, .age-elder span, .age-elder li {
   font-size: 1.1em;
-  line-height: 1.8;
+  line-height: 1.85;
   letter-spacing: 0.01em;
 }
+/* Cibles tactiles larges */
 .age-elder button, .age-elder a {
-  min-height: 56px;
+  min-height: 58px;
   font-size: 1.05em;
-  padding-left: 1.25rem !important;
-  padding-right: 1.25rem !important;
 }
-/* Icônes plus visibles pour les aînés */
-.age-elder svg { transform: scale(1.15); transform-origin: center; }
-/* Navigation bottom plus haute */
-.age-elder nav { height: 5rem !important; }
-/* Masquer les options avancées pour les aînés */
+/* Icônes agrandies */
+.age-elder svg {
+  transform: scale(1.18);
+  transform-origin: center;
+}
+/* Nav plus haute et labels plus grands */
+.age-elder nav {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+.age-elder nav span {
+  font-size: 10.5px !important;
+  opacity: 0.9 !important;
+}
+/* Espacement des cards augmenté */
+.age-elder .gap-6 { gap: 1.75rem !important; }
+.age-elder .gap-3 { gap: 1rem !important; }
+/* Classes utilitaires */
 .age-elder .hide-elder { display: none !important; }
 
 /* ── Accessibilité ────────────────────────────────────────────── */

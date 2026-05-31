@@ -3,30 +3,61 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, Moon, Compass, BookOpen, Users } from "lucide-react";
+import { Home, Compass, BookOpen, Users, RotateCcw } from "lucide-react";
+import { useSettings } from "@/hooks/useSettings";
+import { ageGroupToMode } from "@/hooks/useAgeMode";
+import { CrescentStar } from "@/components/IslamicIcons";
+import type React from "react";
 
-const NAV_ITEMS = [
+type NavItem = { href: string; label: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number }> };
+
+const NAV_DEFAULT: NavItem[] = [
   { href: "/accueil",  label: "Accueil",  Icon: Home       },
-  { href: "/prieres",  label: "Prières",  Icon: Moon       },
+  { href: "/prieres",  label: "Prières",  Icon: CrescentStar },
   { href: "/oasis",    label: "Oasis",    Icon: Compass    },
   { href: "/histoire", label: "Histoire", Icon: BookOpen   },
   { href: "/famille",  label: "Famille",  Icon: Users      },
 ];
 
+// Enfants : jeu en avant, pratique sacrée essentielle
+const NAV_KIDS: NavItem[] = [
+  { href: "/accueil",  label: "Accueil",  Icon: Home       },
+  { href: "/prieres",  label: "Prières",  Icon: CrescentStar },
+  { href: "/oasis",    label: "Jouer",    Icon: Compass    },
+  { href: "/coran",    label: "Coran",    Icon: BookOpen   },
+  { href: "/dhikr",    label: "Dhikr",    Icon: RotateCcw  },
+];
+
+// Aînés : navigation réduite, pages essentielles uniquement
+const NAV_ELDER: NavItem[] = [
+  { href: "/accueil",  label: "Accueil",  Icon: Home       },
+  { href: "/prieres",  label: "Prières",  Icon: CrescentStar },
+  { href: "/coran",    label: "Coran",    Icon: BookOpen   },
+  { href: "/dhikr",    label: "Dhikr",    Icon: RotateCcw  },
+  { href: "/famille",  label: "Famille",  Icon: Users      },
+];
+
 export default function BottomNav() {
-  const pathname = usePathname();
+  const pathname           = usePathname();
+  const { settings }       = useSettings();
+  const ageMode            = ageGroupToMode(settings.ageGroup);
+
+  const items =
+    ageMode === "kids"  ? NAV_KIDS  :
+    ageMode === "elder" ? NAV_ELDER :
+    NAV_DEFAULT;
 
   return (
     <nav
       className="fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t pb-safe"
       style={{
-        background: "rgba(6,26,18,0.96)",
-        borderColor: "rgba(212,175,55,0.15)",
-        backdropFilter: "blur(16px)",
-        WebkitBackdropFilter: "blur(16px)",
+        background:          "rgba(6,26,18,0.96)",
+        borderColor:         "var(--border-gold)",
+        backdropFilter:      "blur(16px)",
+        WebkitBackdropFilter:"blur(16px)",
       }}
     >
-      {NAV_ITEMS.map(({ href, label, Icon }) => {
+      {items.map(({ href, label, Icon }) => {
         const active = pathname === href || (href !== "/accueil" && pathname.startsWith(href));
         return (
           <motion.div key={href} whileTap={{ scale: 0.86 }} transition={{ type: "spring", stiffness: 500, damping: 25 }}>

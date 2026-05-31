@@ -8,6 +8,7 @@ import { useGameState } from "@/hooks/useGameState";
 import { LOCATIONS } from "@/lib/game/locations";
 import { SAGES } from "@/lib/game/sages";
 import { xpProgress, xpInCurrentLevel } from "@/lib/game/game-storage";
+import { EventBanner } from "@/components/EventBanner";
 
 // ── Isometric constants ────────────────────────────────────────
 const W  = 22;
@@ -328,7 +329,6 @@ const FEATURE_STARS = Array.from({ length: 18 }, (_, i) => ({
 // SVG dessiné dans son propre système de coordonnées (0,0 = centre pied)
 // puis translateé aux coords de la ville.
 function AvatarMarocain({ cx, cy }: { cx: number; cy: number }) {
-  // Skin, robe, accent colors
   const skin   = "#C8956A";
   const robe   = "#F8F4EC";
   const robeS  = "#E8E0D0";
@@ -338,11 +338,17 @@ function AvatarMarocain({ cx, cy }: { cx: number; cy: number }) {
   const shadow = "rgba(0,0,0,0.22)";
 
   return (
+    // Outer: spring animation vers la nouvelle ville
     <motion.g
-      transform={`translate(${cx},${cy})`}
-      animate={{ y: [0, -5, 0] }}
-      transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+      initial={{ x: cx, y: cy }}
+      animate={{ x: cx, y: cy }}
+      transition={{ type: "spring", stiffness: 48, damping: 13 }}
     >
+      {/* Inner: bob continu */}
+      <motion.g
+        animate={{ y: [0, -6, 0] }}
+        transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+      >
       {/* Ground shadow */}
       <ellipse cx={0} cy={2} rx={14} ry={4} fill={shadow} />
 
@@ -402,6 +408,7 @@ function AvatarMarocain({ cx, cy }: { cx: number; cy: number }) {
         animate={{ opacity: [0.3, 0.6, 0.3], r: [12, 14, 12] }}
         transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
       />
+      </motion.g>
     </motion.g>
   );
 }
@@ -702,6 +709,9 @@ export default function OasisPage() {
         </p>
       </div>
 
+      {/* ── Événement islamique actif ── */}
+      <EventBanner />
+
       {/* ── Escape Game card ── */}
       <div className="px-4 mb-2">
         <motion.button
@@ -733,6 +743,36 @@ export default function OasisPage() {
             </p>
           </div>
           <span style={{ color: "#05C36F", fontSize: 18, flexShrink: 0 }}>→</span>
+        </motion.button>
+      </div>
+
+      {/* ── Capsules culturelles ── */}
+      <div className="px-4 mb-2">
+        <motion.button
+          whileTap={{ scale: 0.97 }}
+          onClick={() => router.push("/oasis/culture")}
+          className="w-full rounded-2xl p-4 text-left flex items-center gap-4"
+          style={{
+            background: "linear-gradient(135deg,rgba(30,20,5,0.9) 0%,rgba(12,8,2,0.95) 100%)",
+            border: "1px solid rgba(212,175,55,0.25)",
+          }}>
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-xl"
+            style={{ background: "rgba(212,175,55,0.12)" }}>
+            ✦
+          </div>
+          <div className="flex-1 min-w-0">
+            <span className="text-[9px] font-semibold tracking-widest uppercase"
+              style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+              Bibliothèque
+            </span>
+            <p className="text-sm font-bold" style={{ color: "#F8F4EC", fontFamily: "var(--font-bricolage)" }}>
+              Capsules culturelles
+            </p>
+            <p className="text-[11px] mt-0.5" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
+              Savoirs islamiques · Science · Histoire
+            </p>
+          </div>
+          <span style={{ color: "#D4AF37", fontSize: 18, flexShrink: 0 }}>→</span>
         </motion.button>
       </div>
 

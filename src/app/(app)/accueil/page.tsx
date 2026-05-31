@@ -19,6 +19,7 @@ const MosqueIsometrique = dynamic(() => import("@/components/MosqueIsometrique")
 import { EventBanner } from "@/components/EventBanner";
 import { AnimatePresence, motion as m2 } from "framer-motion";
 import { useContextualMessage } from "@/hooks/useContextualMessage";
+import { useMosqueeGameLink } from "@/hooks/useMosqueeGameLink";
 
 const DAILY_DHIKRS = [
   { ar: "سُبْحَانَ اللّهِ وَبِحَمْدِهِ", fr: "Subhan Allahi wa bihamdihi" },
@@ -81,6 +82,7 @@ export default function AccueilPage() {
   const { settings } = useSettings();
   const { user }     = useAuth();
   const { message: ctxMsg, dismiss: dismissCtx } = useContextualMessage();
+  useMosqueeGameLink(); // Connexion mosquée ↔ jeu : octroie les récompenses de streak
   const [stats,       setStats]      = useState({ totalDhikr: 0, tasksDone: 0, tasksTotal: 0 });
   const [azkarStatus, setAzkarStatus] = useState({ showMatin: false, showSoir: false, matinDone: false, soirDone: false });
   const [mosqueData,  setMosqueData]  = useState<{ stage: MosqueStage; streak: number }>({ stage: 1, streak: 0 });

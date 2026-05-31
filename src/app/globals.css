@@ -125,6 +125,15 @@ body {
 *::-webkit-scrollbar { display: none; }
 
 /* ── Animations ───────────────────────────────────────────────── */
+@keyframes kenBurns {
+  0%   { transform: scale(1.0)  translate(0%,    0%); }
+  100% { transform: scale(1.14) translate(-2.5%, -1.5%); }
+}
+@keyframes kenBurnsAlt {
+  0%   { transform: scale(1.0)  translate(0%,   0%); }
+  100% { transform: scale(1.12) translate(2%,  -2%); }
+}
+
 @keyframes splashBar {
   from { width: 0% }
   to   { width: 100% }

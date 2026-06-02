@@ -28,12 +28,16 @@ function BibliothequeFullscreen() {
       <Link
         href="/oasis/escape"
         style={{
-          position: "absolute", top: 16, left: 16, zIndex: 50,
+          position: "absolute",
+          top: "calc(16px + env(safe-area-inset-top))",
+          left: "calc(16px + env(safe-area-inset-left))",
+          zIndex: 50,
           display: "flex", alignItems: "center", gap: 8,
+          minHeight: 44,
           background: "rgba(0,0,0,0.55)", border: "1px solid rgba(212,175,55,0.3)",
-          borderRadius: 24, padding: "8px 14px", color: "var(--gold)",
+          borderRadius: 24, padding: "10px 16px", color: "var(--gold)",
           backdropFilter: "blur(8px)", textDecoration: "none",
-          fontFamily: "var(--font-dm-sans)", fontSize: 11,
+          fontFamily: "var(--font-dm-sans)", fontSize: 12,
           letterSpacing: "0.15em", textTransform: "uppercase",
         }}
       >

@@ -46,9 +46,10 @@ function TapisMovement({ inputRef, posRef, yawRef, velRef, nearIdRef }: {
 
     yawRef.current += inp.x * TURN_SPEED * dt;
 
+    // forward = (sin yaw, 0, cos yaw) — relatif à la direction du tapis
     const fwd = inp.y;
-    const vx  = Math.sin(yawRef.current) * fwd * SPEED * speedMult;
-    const vz  = -Math.cos(yawRef.current) * fwd * SPEED * speedMult;
+    const vx  =  Math.sin(yawRef.current) * fwd * SPEED * speedMult;
+    const vz  =  Math.cos(yawRef.current) * fwd * SPEED * speedMult;
 
     posRef.current.x = Math.max(BOUNDS.xMin, Math.min(BOUNDS.xMax, posRef.current.x + vx * dt));
     posRef.current.z = Math.max(BOUNDS.zMin, Math.min(BOUNDS.zMax, posRef.current.z + vz * dt));
@@ -92,16 +93,30 @@ function CameraFollower({ posRef, yawRef }: {
   useFrame(({ camera }) => {
     const yaw = yawRef.current;
     const pos = posRef.current;
+    // caméra derrière le tapis = carpet - forward * 2.5 + up * 1.5
     targetPos.current.set(
       pos.x - Math.sin(yaw) * 2.5,
       pos.y + 1.5,
-      pos.z + Math.cos(yaw) * 2.5,
+      pos.z - Math.cos(yaw) * 2.5,
     );
     camera.position.lerp(targetPos.current, 0.08);
     lookTarget.current.set(pos.x, pos.y + 0.3, pos.z);
     camera.lookAt(lookTarget.current);
   });
   return null;
+}
+
+// ── Spotlight qui suit le tapis ─────────────────────────────────────
+function CarpetSpotLight({ posRef }: { posRef: React.RefObject<THREE.Vector3> }) {
+  const lightRef = useRef<THREE.SpotLight>(null!);
+  useFrame(() => {
+    if (!lightRef.current || !posRef.current) return;
+    const p = posRef.current;
+    lightRef.current.position.set(p.x, p.y + 3.5, p.z);
+    lightRef.current.target.position.set(p.x, p.y, p.z);
+    lightRef.current.target.updateMatrixWorld();
+  });
+  return <spotLight ref={lightRef} color="#D4AF37" intensity={0.6} angle={0.45} penumbra={0.7} decay={2} distance={6} />;
 }
 
 // ── Sol de la bibliothèque ──────────────────────────────────────────
@@ -165,10 +180,12 @@ function Scene({ inputRef, posRef, yawRef, velRef, nearIdRef, setNearId, nearId,
       <fog attach="fog" args={["#080502", 8, 22]} />
       <Stars radius={60} depth={50} count={2000} factor={1.5} fade speed={0.3} />
       <Environment preset="night" />
-      <ambientLight intensity={0.28} color="#c8a870" />
+      <ambientLight intensity={0.4} color="#c8a870" />
+      <hemisphereLight args={[0x1A2744, 0x0A0A05, 0.5]} />
       <pointLight position={[0, 5, 0]}  intensity={3.5} color="#D4AF37" distance={12} decay={2} castShadow />
-      <pointLight position={[-6, 3, 0]} intensity={1.4} color="#ff9944" distance={14} decay={2} />
-      <pointLight position={[ 6, 3, 0]} intensity={1.4} color="#ff9944" distance={14} decay={2} />
+      <pointLight position={[-6, 3, 0]} intensity={1.5} color="#ff9944" distance={6}  decay={2} />
+      <pointLight position={[ 6, 3, 0]} intensity={1.5} color="#ff9944" distance={6}  decay={2} />
+      <CarpetSpotLight posRef={posRef} />
       <LibraryFloor />
       <TapisVolant posRef={posRef} yawRef={yawRef} velRef={velRef} victoryRef={victoryRef} />
       <LibraryObjects nearId={nearId} solvedLocks={solvedLocks} tapisPos={posRef} />
@@ -376,13 +393,18 @@ export default function TapisScene() {
         )}
       </AnimatePresence>
 
-      {/* Joystick */}
-      <div style={{ position: "absolute", bottom: 36, left: 28, zIndex: 20, touchAction: "none" }}>
+      {/* Joystick — safe area inset */}
+      <div style={{
+        position: "absolute",
+        bottom: "calc(36px + env(safe-area-inset-bottom))",
+        left: "calc(28px + env(safe-area-inset-left))",
+        zIndex: 20, touchAction: "none",
+      }}>
         <VirtualJoystick onChange={onJoystick} />
       </div>
 
-      {/* Légende clavier */}
-      <p style={{
+      {/* Légende clavier — masquée sur mobile */}
+      <p className="hidden md:block" style={{
         position: "absolute", bottom: 20, right: 20, zIndex: 10, pointerEvents: "none",
         color: "rgba(212,175,55,0.28)", fontSize: 9, fontFamily: "var(--font-dm-sans)",
         letterSpacing: "0.15em", textTransform: "uppercase", whiteSpace: "nowrap",
@@ -390,50 +412,60 @@ export default function TapisScene() {
         WASD · flèches
       </p>
 
-      {/* Bouton EXAMINER */}
+      {/* Bouton EXAMINER — grand, centré, mobile-friendly */}
       <AnimatePresence>
         {nearObj && !nearSolved && !activeLock && !allSolved && (
+          /* Wrapper fixe pour le centrage — motion.div gère uniquement l'animation */
+          <div style={{
+            position: "absolute",
+            bottom: "calc(100px + env(safe-area-inset-bottom))",
+            left: "50%", transform: "translateX(-50%)",
+            zIndex: 20, width: "80%", maxWidth: 320,
+          }}>
           <motion.div
             key="examiner"
-            initial={{ y: 64, opacity: 0 }}
+            initial={{ y: 80, opacity: 0 }}
             animate={{ y: 0,  opacity: 1 }}
-            exit={{   y: 64, opacity: 0 }}
+            exit={{   y: 80, opacity: 0 }}
             transition={{ type: "spring", stiffness: 380, damping: 32 }}
-            style={{
-              position: "absolute", bottom: 36, left: "50%", transform: "translateX(-50%)",
-              zIndex: 20, display: "flex", alignItems: "center", gap: 12,
-              background: "rgba(4,6,8,0.92)", border: "1px solid rgba(212,175,55,0.38)",
-              borderRadius: 28, padding: "10px 10px 10px 18px",
-              backdropFilter: "blur(14px)",
-              boxShadow: "0 0 28px rgba(212,175,55,0.15)",
-            }}
           >
-            <span style={{ fontSize: 22 }}>{nearObj.icon}</span>
+            <motion.button
+              onClick={openExamine}
+              whileTap={{ scale: 0.96 }}
+              style={{
+                width: "100%", height: 60,
+                background: "#D4AF37",
+                color: "#061A12", fontSize: 18, fontWeight: 800,
+                border: "none", borderRadius: 30, cursor: "pointer",
+                fontFamily: "var(--font-bricolage)", letterSpacing: "2px",
+                textTransform: "uppercase",
+                boxShadow: "0 0 24px rgba(212,175,55,0.55)",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+              }}
+            >
+              <span style={{ fontSize: 22 }}>{nearObj.icon}</span>
+              Examiner
+            </motion.button>
             <p style={{
-              color: "var(--gold)", fontSize: 11, letterSpacing: "0.1em",
-              textTransform: "uppercase", fontFamily: "var(--font-dm-sans)",
-              whiteSpace: "nowrap",
+              textAlign: "center", marginTop: 8,
+              color: "rgba(212,175,55,0.55)", fontSize: 11,
+              fontFamily: "var(--font-dm-sans)", letterSpacing: "0.15em",
+              textTransform: "uppercase",
             }}>
               {nearObj.label}
             </p>
-            <motion.button
-              onClick={openExamine}
-              whileTap={{ scale: 0.95 }}
-              style={{
-                background: "linear-gradient(135deg,#D4AF37,#8B6914)",
-                border: "none", borderRadius: 18, padding: "9px 18px",
-                color: "#0A0F0D", fontSize: 11, fontWeight: 700,
-                cursor: "pointer", letterSpacing: "0.12em", textTransform: "uppercase",
-                fontFamily: "var(--font-dm-sans)",
-              }}
-            >
-              Examiner
-            </motion.button>
           </motion.div>
+          </div>
         )}
 
         {/* Objet déjà résolu */}
         {nearObj && nearSolved && !activeLock && (
+          <div style={{
+            position: "absolute",
+            bottom: "calc(100px + env(safe-area-inset-bottom))",
+            left: "50%", transform: "translateX(-50%)",
+            zIndex: 20,
+          }}>
           <motion.div
             key="solved"
             initial={{ y: 64, opacity: 0 }}
@@ -441,11 +473,10 @@ export default function TapisScene() {
             exit={{   y: 64, opacity: 0 }}
             transition={{ type: "spring", stiffness: 380, damping: 32 }}
             style={{
-              position: "absolute", bottom: 36, left: "50%", transform: "translateX(-50%)",
-              zIndex: 20, display: "flex", alignItems: "center", gap: 10,
+              display: "flex", alignItems: "center", gap: 10,
               background: "rgba(4,6,8,0.88)", border: "1px solid rgba(74,222,128,0.35)",
-              borderRadius: 28, padding: "10px 20px",
-              backdropFilter: "blur(12px)",
+              borderRadius: 28, padding: "12px 24px", minHeight: 44,
+              backdropFilter: "blur(12px)", whiteSpace: "nowrap",
             }}
           >
             <span style={{ fontSize: 18 }}>{nearObj.icon}</span>
@@ -456,6 +487,7 @@ export default function TapisScene() {
               ✓ Cadenas ouvert
             </p>
           </motion.div>
+          </div>
         )}
 
         {/* Victoire */}

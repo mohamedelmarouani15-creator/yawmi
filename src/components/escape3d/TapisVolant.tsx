@@ -166,8 +166,8 @@ export default function TapisVolant({
       base.z,
     );
 
-    // Orientation yaw
-    if (yawRef) groupRef.current.rotation.y = yawRef.current;
+    // Orientation yaw (+PI pour que la face décorée regarde vers l'avant)
+    if (yawRef) groupRef.current.rotation.y = yawRef.current + Math.PI;
 
     // ── Inclinaison — override pendant la danse ───────────────────
     const vel   = velRef?.current ?? velocity;

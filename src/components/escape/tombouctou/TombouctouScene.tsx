@@ -240,10 +240,12 @@ function VictoryLights({ activeRef }: { activeRef: React.RefObject<boolean> }) {
 function ProximityChecker({
   introComplete,
   solvedRef,
+  isMobile,
   onNearby,
 }: {
   introComplete: boolean;
   solvedRef:     React.RefObject<boolean[]>;
+  isMobile:      boolean;
   onNearby:      (id: number | null) => void;
 }) {
   const { camera } = useThree();
@@ -252,7 +254,7 @@ function ProximityChecker({
   useFrame(() => {
     if (!introComplete) return;
     let nearest: number | null = null;
-    let minDist = 2.8;
+    let minDist = isMobile ? 3.5 : 2.8;  // zone plus large sur mobile
 
     MANUSCRIPTS.forEach(m => {
       if (solvedRef.current?.[m.id]) return;
@@ -302,8 +304,17 @@ function CameraController({ joystickRef, keysRef, yawRef, pitchRef, sendPosition
     if (keys["d"] || keys["ArrowRight"])              { fx += Math.cos(yaw); fz -= Math.sin(yaw); }
 
     if (joy.x !== 0 || joy.y !== 0) {
-      fx += -joy.y * (-Math.sin(yaw)) + joy.x * Math.cos(yaw);
-      fz += -joy.y * (-Math.cos(yaw)) - joy.x * Math.sin(yaw);
+      // Direction relative à la caméra (VirtualJoystick retourne déjà Y positif = avant)
+      const fwd = new THREE.Vector3();
+      camera.getWorldDirection(fwd);
+      fwd.y = 0;
+      fwd.normalize();
+      const rgt = new THREE.Vector3();
+      rgt.crossVectors(fwd, new THREE.Vector3(0, 1, 0));
+      // joy.y > 0 = poussé en haut = avancer
+      // joy.x > 0 = poussé à droite = strafe droit
+      fx += fwd.x * joy.y + rgt.x * joy.x;
+      fz += fwd.z * joy.y + rgt.z * joy.x;
     }
 
     const len = Math.sqrt(fx * fx + fz * fz);
@@ -542,6 +553,7 @@ export default function TombouctouScene() {
         <ProximityChecker
           introComplete={introComplete}
           solvedRef={solvedRef}
+          isMobile={isMobile}
           onNearby={setNearbyMs}
         />
 
@@ -708,30 +720,58 @@ export default function TombouctouScene() {
         }} />
       )}
 
-      {/* ── Bouton EXAMINER desktop ── */}
+      {/* ── Bouton EXAMINER ── */}
       {introComplete && nearbyMs !== null && !solvedMs[nearbyMs] && !activeEnigme && !revealingMs && (
-        <motion.button
-          key={`exam-${nearbyMs}`}
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
-          onClick={handleExamine}
-          style={{
-            position: "absolute",
-            bottom: isMobile ? 110 : 70,
-            left: "50%", transform: "translateX(-50%)",
-            background: "rgba(212,175,55,0.15)",
-            border: "1.5px solid rgba(212,175,55,0.55)",
-            borderRadius: 14, padding: "12px 28px",
-            color: "#D4AF37", fontWeight: 700, fontSize: 13,
-            letterSpacing: "0.1em", cursor: "pointer",
-            fontFamily: "var(--font-dm-sans, system-ui)",
-            boxShadow: "0 0 20px rgba(212,175,55,0.12)",
-            zIndex: 15,
-          }}
-        >
-          📜 EXAMINER · {MANUSCRIPTS[nearbyMs]?.title}
-        </motion.button>
+        isMobile ? (
+          // Mobile : côté GAUCHE au-dessus du joystick, hors LookZone (droite 55%)
+          // touchAction manipulation = tap immédiat sans délai 300ms
+          <button
+            onTouchEnd={e => { e.preventDefault(); handleExamine(); }}
+            onClick={handleExamine}
+            style={{
+              position: "fixed",
+              bottom: 165,
+              left: "50%", transform: "translateX(-50%)",
+              background: "rgba(212,175,55,0.22)",
+              border: "2px solid rgba(212,175,55,0.7)",
+              borderRadius: 18, padding: "18px 32px",
+              color: "#D4AF37", fontWeight: 700, fontSize: 15,
+              letterSpacing: "0.1em", cursor: "pointer",
+              fontFamily: "var(--font-dm-sans, system-ui)",
+              boxShadow: "0 0 28px rgba(212,175,55,0.25)",
+              zIndex: 20,
+              minHeight: 64,
+              touchAction: "manipulation",
+              WebkitTapHighlightColor: "transparent",
+            }}
+          >
+            📜 EXAMINER
+          </button>
+        ) : (
+          // Desktop : centré bas
+          <motion.button
+            key={`exam-${nearbyMs}`}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            onClick={handleExamine}
+            style={{
+              position: "fixed",
+              bottom: 70,
+              left: "50%", transform: "translateX(-50%)",
+              background: "rgba(212,175,55,0.15)",
+              border: "1.5px solid rgba(212,175,55,0.55)",
+              borderRadius: 14, padding: "12px 28px",
+              color: "#D4AF37", fontWeight: 700, fontSize: 13,
+              letterSpacing: "0.1em", cursor: "pointer",
+              fontFamily: "var(--font-dm-sans, system-ui)",
+              boxShadow: "0 0 20px rgba(212,175,55,0.12)",
+              zIndex: 20,
+            }}
+          >
+            📜 EXAMINER · {MANUSCRIPTS[nearbyMs]?.title}
+          </motion.button>
+        )
       )}
 
       {/* ── Contrôles mobiles ── */}

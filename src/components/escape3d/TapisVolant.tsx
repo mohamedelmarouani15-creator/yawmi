@@ -64,13 +64,14 @@ function makeTapisTexture(): THREE.CanvasTexture {
 }
 
 // ── Shaders ─────────────────────────────────────────────────────────
+// Ondulation verticale : vagues propagées de haut en bas (axe Y du plan)
 const vertexShader = /* glsl */`
   uniform float uTime;
   varying vec2 vUv;
   void main() {
     vec3 pos = position;
-    pos.z += sin(pos.x * 4.0 + uTime * 2.0)  * 0.020;
-    pos.z += cos(pos.y * 3.0 + uTime * 1.5)  * 0.015;
+    pos.z += sin(pos.y * 5.0 + uTime * 2.2)  * 0.022;
+    pos.z += cos(pos.y * 9.0 + uTime * 3.5)  * 0.010;
     vUv = uv;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
   }
@@ -82,13 +83,16 @@ const fragmentShader = /* glsl */`
 `;
 
 // ── Franges ─────────────────────────────────────────────────────────
+// Le tapis est debout (group.rotation.x = PI/2).
+// En espace local groupe (plan XZ, mesh rotation -PI/2) :
+//   - bord inférieur du tapis debout = group Z = +0.41
+//   - "vers le bas" en world = +group.Z direction (world.Y = -group.Z)
 function makeFringeGeometry(): THREE.BufferGeometry {
-  const count = 20;
+  const count = 22;
   const pts: number[] = [];
   for (let i = 0; i < count; i++) {
     const x = -0.55 + (i / (count - 1)) * 1.1;
-    pts.push(x, 0, -0.41,  x, -0.08, -0.41);
-    pts.push(x, 0,  0.41,  x, -0.08,  0.41);
+    pts.push(x, 0, 0.41, x, 0, 0.54);  // fringe de 13cm sous le bord inférieur
   }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute("position", new THREE.Float32BufferAttribute(pts, 3));
@@ -169,14 +173,19 @@ export default function TapisVolant({
     // Orientation yaw (+PI pour que la face décorée regarde vers l'avant)
     if (yawRef) groupRef.current.rotation.y = yawRef.current + Math.PI;
 
-    // ── Inclinaison — override pendant la danse ───────────────────
-    const vel   = velRef?.current ?? velocity;
-    const speed = Math.sqrt(vel.x * vel.x + vel.z * vel.z);
+    // ── Inclinaison — tapis debout (base PI/2) ───────────────────
+    const vel = velRef?.current ?? velocity;
+
+    // Inclinaison avant/arrière selon la vitesse longitudinale
+    const targetRotX = isDancing      ? Math.PI / 2
+                     : vel.z > 0.5    ? Math.PI / 2 - 0.30   // penché vers l'avant
+                     : vel.z < -0.5   ? Math.PI / 2 + 0.30   // penché vers l'arrière
+                     :                  Math.PI / 2;          // debout au repos
 
     groupRef.current.rotation.x = THREE.MathUtils.lerp(
       groupRef.current.rotation.x,
-      isDancing ? 0 : -speed * 0.10,
-      isDancing ? 0.25 : 0.12,
+      targetRotX,
+      isDancing ? 0.25 : 0.10,
     );
     // Direct (pas de lerp) pendant la danse pour garder le rythme
     groupRef.current.rotation.z = isDancing

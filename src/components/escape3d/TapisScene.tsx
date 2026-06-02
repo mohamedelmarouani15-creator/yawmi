@@ -13,7 +13,7 @@ import { gameStorage } from "@/lib/game/game-storage";
 
 const SPEED       = 4.0;
 const TURN_SPEED  = 2.2;
-const MOVE_SPEED  = 0.003;  // world units per pixel (left stick)
+const MOVE_SPEED  = 0.008;  // world units per pixel (left stick)
 const LOOK_SPEED  = 0.004;  // radians per pixel (right stick)
 const BOUNDS      = { xMin: -6.5, xMax: 6.5, zMin: -9.5, zMax: 9.5 };
 const STORAGE_KEY = "escape_room_bibliotheque_1";
@@ -59,7 +59,10 @@ function TapisMovement({ inputRef, posRef, yawRef, velRef, nearIdRef }: {
     posRef.current.x = Math.max(BOUNDS.xMin, Math.min(BOUNDS.xMax, posRef.current.x + vx * dt));
     posRef.current.z = Math.max(BOUNDS.zMin, Math.min(BOUNDS.zMax, posRef.current.z + vz * dt));
 
-    velRef.current = { x: inp.x * SPEED * speedMult * 0.35, z: fwd * SPEED * speedMult };
+    // Ne pas écraser velRef si pas d'input clavier (le touch l'écrit directement)
+    if (inp.x !== 0 || inp.y !== 0) {
+      velRef.current = { x: inp.x * SPEED * speedMult * 0.35, z: fwd * SPEED * speedMult };
+    }
   });
   return null;
 }
@@ -98,13 +101,14 @@ function CameraFollower({ posRef, yawRef }: {
   useFrame(({ camera }) => {
     const yaw = yawRef.current;
     const pos = posRef.current;
+    // Caméra derrière le tapis debout : 3 unités derrière, 0.5 au-dessus
     targetPos.current.set(
-      pos.x - Math.sin(yaw) * 2.5,
-      pos.y + 1.5,
-      pos.z - Math.cos(yaw) * 2.5,
+      pos.x - Math.sin(yaw) * 3.0,
+      pos.y + 0.5,
+      pos.z - Math.cos(yaw) * 3.0,
     );
     camera.position.lerp(targetPos.current, 0.08);
-    lookTarget.current.set(pos.x, pos.y + 0.3, pos.z);
+    lookTarget.current.set(pos.x, pos.y, pos.z);
     camera.lookAt(lookTarget.current);
   });
   return null;
@@ -388,11 +392,14 @@ export default function TapisScene() {
           const mult = getSpeedMult();
           // forward = (sin yaw, 0, cos yaw), right = (cos yaw, 0, -sin yaw)
           const newX = posRef.current.x
-            + (-dy * Math.sin(yaw) + dx * Math.cos(yaw)) * MOVE_SPEED * mult * 60;
+            + (-dy * Math.sin(yaw) + dx * Math.cos(yaw)) * MOVE_SPEED * mult;
           const newZ = posRef.current.z
-            + (-dy * Math.cos(yaw) - dx * Math.sin(yaw)) * MOVE_SPEED * mult * 60;
+            + (-dy * Math.cos(yaw) - dx * Math.sin(yaw)) * MOVE_SPEED * mult;
           posRef.current.x = Math.max(BOUNDS.xMin, Math.min(BOUNDS.xMax, newX));
           posRef.current.z = Math.max(BOUNDS.zMin, Math.min(BOUNDS.zMax, newZ));
+          // Alimente velRef pour l'animation d'inclinaison du tapis vertical
+          velRef.current = { x: velRef.current.x, z: -dy * 40 };
+          console.log("[DualStick] Zone: move", "dy:", dy.toFixed(1), "pos.z:", posRef.current.z.toFixed(2)); // TODO: supprimer après test
         } else {
           yawRef.current += dx * LOOK_SPEED;
         }
@@ -401,6 +408,8 @@ export default function TapisScene() {
 
     function onTouchEnd(e: TouchEvent) {
       Array.from(e.changedTouches).forEach(touch => {
+        const t = activeTouches.current.get(touch.identifier);
+        if (t?.zone === "move") velRef.current = { x: 0, z: 0 };
         activeTouches.current.delete(touch.identifier);
       });
     }
@@ -530,7 +539,7 @@ export default function TapisScene() {
       </AnimatePresence>
 
       {/* Légende clavier — desktop uniquement */}
-      <p className="hidden md:block" style={{
+      <p className="hidden lg:block" style={{
         position: "absolute", bottom: 20, right: 20, zIndex: 20, pointerEvents: "none",
         color: "rgba(212,175,55,0.28)", fontSize: 9, fontFamily: "var(--font-dm-sans)",
         letterSpacing: "0.15em", textTransform: "uppercase", whiteSpace: "nowrap",

@@ -11,22 +11,18 @@ import { getEscapeRoom } from "@/lib/game/escape-rooms";
 import type { EscapeLock } from "@/lib/game/escape-rooms";
 import { gameStorage } from "@/lib/game/game-storage";
 
-const SPEED       = 4.0;
-const TURN_SPEED  = 2.2;
-const MOVE_SPEED  = 0.008;  // world units per pixel (left stick)
-const LOOK_SPEED  = 0.004;  // radians per pixel (right stick)
-const BOUNDS      = { xMin: -6.5, xMax: 6.5, zMin: -9.5, zMax: 9.5 };
+const SPEED      = 4.0;    // vitesse clavier (unités/s)
+const TURN_SPEED = 2.2;    // virage clavier (rad/s)
+const MOVE_SPEED = 0.012;  // touch mouvement (unités/pixel)
+const LOOK_SPEED = 0.005;  // touch rotation (rad/pixel)
+const BOUNDS     = { xMin: -6.5, xMax: 6.5, zMin: -9.5, zMax: 9.5 };
 const STORAGE_KEY = "escape_room_bibliotheque_1";
 const ROOM_COLOR  = "#8B4513";
 
-interface TouchState {
-  currentX: number;
-  currentY: number;
-  zone: "move" | "look";
-}
-
 // ── Mouvement du tapis ──────────────────────────────────────────────
-function TapisMovement({ inputRef, posRef, yawRef, velRef, nearIdRef }: {
+function TapisMovement({ moveRef, lookRef, inputRef, posRef, yawRef, velRef, nearIdRef }: {
+  moveRef:   React.RefObject<{ x: number; z: number }>;
+  lookRef:   React.RefObject<{ x: number }>;
   inputRef:  React.RefObject<{ x: number; y: number }>;
   posRef:    React.RefObject<THREE.Vector3>;
   yawRef:    React.RefObject<number>;
@@ -34,35 +30,40 @@ function TapisMovement({ inputRef, posRef, yawRef, velRef, nearIdRef }: {
   nearIdRef: React.RefObject<string | null>;
 }) {
   useFrame((_, dt) => {
-    const inp = inputRef.current;
-    if (!inp) return;
+    // === ROTATION ===
+    const touchLook = lookRef.current.x;           // delta touch (zone droite)
+    const keyLook   = inputRef.current.x * TURN_SPEED * dt;  // clavier
+    yawRef.current += touchLook + keyLook;
+    lookRef.current.x = 0;                         // consommé
 
-    let minDist = Infinity;
+    // === DÉPLACEMENT ===
+    const mz = moveRef.current.z + inputRef.current.y * SPEED * dt;
+    const mx = moveRef.current.x;
+
+    // Signal visuel pour TapisVolant (inclinaisons)
+    velRef.current = { x: mx * 8 + touchLook * 12, z: mz };
+
+    if (Math.abs(mz) < 0.0001 && Math.abs(mx) < 0.0001) return;
+
+    // Ralentissement de proximité près des objets
+    let mult = 1.0;
     if (nearIdRef.current) {
       const obj = LIBRARY_OBJECTS.find(o => o.id === nearIdRef.current);
       if (obj) {
         const dx = posRef.current.x - obj.position[0];
         const dz = posRef.current.z - obj.position[2];
-        minDist = Math.sqrt(dx * dx + dz * dz);
+        const d  = Math.sqrt(dx * dx + dz * dz);
+        mult = d < 0.85 ? 0.04
+             : d < PROX_THRESHOLD ? (d - 0.85) / (PROX_THRESHOLD - 0.85) * 0.35
+             : 1.0;
       }
     }
-    const speedMult = minDist < 0.85 ? 0.04
-                    : minDist < PROX_THRESHOLD ? (minDist - 0.85) / (PROX_THRESHOLD - 0.85) * 0.35
-                    : 1.0;
 
-    yawRef.current += inp.x * TURN_SPEED * dt;
-
-    const fwd = inp.y;
-    const vx  =  Math.sin(yawRef.current) * fwd * SPEED * speedMult;
-    const vz  =  Math.cos(yawRef.current) * fwd * SPEED * speedMult;
-
-    posRef.current.x = Math.max(BOUNDS.xMin, Math.min(BOUNDS.xMax, posRef.current.x + vx * dt));
-    posRef.current.z = Math.max(BOUNDS.zMin, Math.min(BOUNDS.zMax, posRef.current.z + vz * dt));
-
-    // Ne pas écraser velRef si pas d'input clavier (le touch l'écrit directement)
-    if (inp.x !== 0 || inp.y !== 0) {
-      velRef.current = { x: inp.x * SPEED * speedMult * 0.35, z: fwd * SPEED * speedMult };
-    }
+    const yaw  = yawRef.current;
+    const newX = posRef.current.x + (Math.sin(yaw) * mz + Math.cos(yaw) * mx) * mult;
+    const newZ = posRef.current.z + (Math.cos(yaw) * mz - Math.sin(yaw) * mx) * mult;
+    posRef.current.x = Math.max(BOUNDS.xMin, Math.min(BOUNDS.xMax, newX));
+    posRef.current.z = Math.max(BOUNDS.zMin, Math.min(BOUNDS.zMax, newZ));
   });
   return null;
 }
@@ -101,14 +102,14 @@ function CameraFollower({ posRef, yawRef }: {
   useFrame(({ camera }) => {
     const yaw = yawRef.current;
     const pos = posRef.current;
-    // Caméra derrière le tapis debout : 3 unités derrière, 0.5 au-dessus
+    // Caméra derrière et au-dessus — vue Aladin
     targetPos.current.set(
       pos.x - Math.sin(yaw) * 3.0,
-      pos.y + 0.5,
+      pos.y + 1.8,
       pos.z - Math.cos(yaw) * 3.0,
     );
-    camera.position.lerp(targetPos.current, 0.08);
-    lookTarget.current.set(pos.x, pos.y, pos.z);
+    camera.position.lerp(targetPos.current, 0.06);
+    lookTarget.current.set(pos.x, pos.y + 0.3, pos.z);
     camera.lookAt(lookTarget.current);
   });
   return null;
@@ -171,7 +172,9 @@ function LibraryFloor() {
 }
 
 // ── Scène Three.js ──────────────────────────────────────────────────
-function Scene({ inputRef, posRef, yawRef, velRef, nearIdRef, setNearId, nearId, solvedLocks, victoryRef }: {
+function Scene({ moveRef, lookRef, inputRef, posRef, yawRef, velRef, nearIdRef, setNearId, nearId, solvedLocks, victoryRef }: {
+  moveRef:    React.RefObject<{ x: number; z: number }>;
+  lookRef:    React.RefObject<{ x: number }>;
   inputRef:   React.RefObject<{ x: number; y: number }>;
   posRef:     React.RefObject<THREE.Vector3>;
   yawRef:     React.RefObject<number>;
@@ -197,9 +200,10 @@ function Scene({ inputRef, posRef, yawRef, velRef, nearIdRef, setNearId, nearId,
       <LibraryFloor />
       <TapisVolant posRef={posRef} yawRef={yawRef} velRef={velRef} victoryRef={victoryRef} />
       <LibraryObjects nearId={nearId} solvedLocks={solvedLocks} tapisPos={posRef} />
-      <TapisMovement   inputRef={inputRef} posRef={posRef} yawRef={yawRef} velRef={velRef} nearIdRef={nearIdRef} />
+      <TapisMovement moveRef={moveRef} lookRef={lookRef} inputRef={inputRef}
+        posRef={posRef} yawRef={yawRef} velRef={velRef} nearIdRef={nearIdRef} />
       <ProximityDetector posRef={posRef} nearIdRef={nearIdRef} setNearId={setNearId} />
-      <CameraFollower  posRef={posRef} yawRef={yawRef} />
+      <CameraFollower posRef={posRef} yawRef={yawRef} />
     </>
   );
 }
@@ -306,14 +310,19 @@ function LockModal({ lock, onSolve, onClose }: {
 
 // ── Export principal ────────────────────────────────────────────────
 export default function TapisScene() {
-  const inputRef      = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const posRef        = useRef(new THREE.Vector3(0, 0.3, 0));
-  const yawRef        = useRef(0);
-  const velRef        = useRef({ x: 0, z: 0 });
-  const nearIdRef     = useRef<string | null>(null);
-  const victoryRef    = useRef(false);
-  const activeTouches = useRef(new Map<number, TouchState>());
-  const overlayRef    = useRef<HTMLDivElement>(null);
+  // Refs mouvement / rotation
+  const moveRef   = useRef({ x: 0, z: 0 });   // touch zone gauche
+  const lookRef   = useRef({ x: 0 });           // touch zone droite
+  const inputRef  = useRef({ x: 0, y: 0 });    // clavier
+  const posRef    = useRef(new THREE.Vector3(0, 0.4, 0));
+  const yawRef    = useRef(0);
+  const velRef    = useRef({ x: 0, z: 0 });    // pour les inclinaisons visuelles
+  const nearIdRef = useRef<string | null>(null);
+  const victoryRef = useRef(false);
+
+  // Suivi des touches actives
+  const touchMapRef = useRef(new Map<number, { x: number; y: number; isLeft: boolean }>());
+  const overlayRef  = useRef<HTMLDivElement>(null);
 
   const [nearId,      setNearId]      = useState<string | null>(null);
   const [activeLock,  setActiveLock]  = useState<EscapeLock | null>(null);
@@ -330,117 +339,73 @@ export default function TapisScene() {
 
   // Détection et verrouillage de l'orientation paysage
   useEffect(() => {
-    const checkOrientation = () => {
-      const portrait = window.innerHeight > window.innerWidth;
-      setIsPortrait(portrait);
-    };
-    checkOrientation();
-
+    const check = () => setIsPortrait(window.innerHeight > window.innerWidth);
+    check();
     try {
       const orient = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
       orient.lock?.("landscape")?.catch(() => {});
     } catch {}
-
-    window.addEventListener("resize", checkOrientation);
-    window.addEventListener("orientationchange", checkOrientation);
-    return () => {
-      window.removeEventListener("resize", checkOrientation);
-      window.removeEventListener("orientationchange", checkOrientation);
-    };
+    window.addEventListener("resize", check);
+    window.addEventListener("orientationchange", check);
+    return () => { window.removeEventListener("resize", check); window.removeEventListener("orientationchange", check); };
   }, []);
 
-  // Dual stick invisible — touch handlers
+  // ── Dual stick invisible ───────────────────────────────────────────
   useEffect(() => {
     const overlay = overlayRef.current;
     if (!overlay) return;
 
-    function getSpeedMult(): number {
-      if (!nearIdRef.current) return 1.0;
-      const obj = LIBRARY_OBJECTS.find(o => o.id === nearIdRef.current);
-      if (!obj) return 1.0;
-      const dx = posRef.current.x - obj.position[0];
-      const dz = posRef.current.z - obj.position[2];
-      const d  = Math.sqrt(dx * dx + dz * dz);
-      if (d < 0.85) return 0.04;
-      if (d < PROX_THRESHOLD) return (d - 0.85) / (PROX_THRESHOLD - 0.85) * 0.35;
-      return 1.0;
-    }
-
     function onTouchStart(e: TouchEvent) {
       e.preventDefault();
-      Array.from(e.changedTouches).forEach(touch => {
-        activeTouches.current.set(touch.identifier, {
-          currentX: touch.clientX,
-          currentY: touch.clientY,
-          zone: touch.clientX < window.innerWidth / 2 ? "move" : "look",
+      for (const touch of Array.from(e.changedTouches)) {
+        touchMapRef.current.set(touch.identifier, {
+          x:      touch.clientX,
+          y:      touch.clientY,
+          isLeft: touch.clientX < window.innerWidth * 0.5,
         });
-      });
+      }
     }
 
     function onTouchMove(e: TouchEvent) {
       e.preventDefault();
-      Array.from(e.changedTouches).forEach(touch => {
-        const t = activeTouches.current.get(touch.identifier);
-        if (!t) return;
-        const dx = touch.clientX - t.currentX;
-        const dy = touch.clientY - t.currentY;
-        t.currentX = touch.clientX;
-        t.currentY = touch.clientY;
-
-        if (t.zone === "move") {
-          const yaw  = yawRef.current;
-          const mult = getSpeedMult();
-          // forward = (sin yaw, 0, cos yaw), right = (cos yaw, 0, -sin yaw)
-          const newX = posRef.current.x
-            + (-dy * Math.sin(yaw) + dx * Math.cos(yaw)) * MOVE_SPEED * mult;
-          const newZ = posRef.current.z
-            + (-dy * Math.cos(yaw) - dx * Math.sin(yaw)) * MOVE_SPEED * mult;
-          posRef.current.x = Math.max(BOUNDS.xMin, Math.min(BOUNDS.xMax, newX));
-          posRef.current.z = Math.max(BOUNDS.zMin, Math.min(BOUNDS.zMax, newZ));
-          // Alimente velRef pour l'animation d'inclinaison du tapis vertical
-          velRef.current = { x: velRef.current.x, z: -dy * 40 };
+      for (const touch of Array.from(e.changedTouches)) {
+        const t = touchMapRef.current.get(touch.identifier);
+        if (!t) continue;
+        const dx = touch.clientX - t.x;
+        const dy = touch.clientY - t.y;
+        t.x = touch.clientX;
+        t.y = touch.clientY;
+        if (t.isLeft) {
+          // Zone gauche → mouvement relatif à la direction du tapis
+          moveRef.current.z = -dy * MOVE_SPEED;   // haut = avance
+          moveRef.current.x =  dx * MOVE_SPEED;   // droite = strafe droit
         } else {
-          yawRef.current += dx * LOOK_SPEED;
+          // Zone droite → rotation caméra (s'accumule jusqu'au prochain frame)
+          lookRef.current.x += dx * LOOK_SPEED;
         }
-      });
+      }
     }
 
     function onTouchEnd(e: TouchEvent) {
-      Array.from(e.changedTouches).forEach(touch => {
-        const t = activeTouches.current.get(touch.identifier);
-        if (t?.zone === "move") velRef.current = { x: 0, z: 0 };
-        activeTouches.current.delete(touch.identifier);
-      });
+      for (const touch of Array.from(e.changedTouches)) {
+        const t = touchMapRef.current.get(touch.identifier);
+        if (t) {
+          if (t.isLeft) { moveRef.current.x = 0; moveRef.current.z = 0; }
+          touchMapRef.current.delete(touch.identifier);
+        }
+      }
     }
 
-    overlay.addEventListener("touchstart",  onTouchStart,  { passive: false });
-    overlay.addEventListener("touchmove",   onTouchMove,   { passive: false });
-    overlay.addEventListener("touchend",    onTouchEnd,    { passive: true  });
-    overlay.addEventListener("touchcancel", onTouchEnd,    { passive: true  });
-
+    overlay.addEventListener("touchstart",  onTouchStart, { passive: false });
+    overlay.addEventListener("touchmove",   onTouchMove,  { passive: false });
+    overlay.addEventListener("touchend",    onTouchEnd,   { passive: true });
+    overlay.addEventListener("touchcancel", onTouchEnd,   { passive: true });
     return () => {
       overlay.removeEventListener("touchstart",  onTouchStart);
       overlay.removeEventListener("touchmove",   onTouchMove);
       overlay.removeEventListener("touchend",    onTouchEnd);
       overlay.removeEventListener("touchcancel", onTouchEnd);
     };
-  }, []);
-
-  const solveLock = useCallback((lockId: number) => {
-    setSolvedLocks(prev => {
-      const next = prev.includes(lockId) ? prev : [...prev, lockId];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      if (next.length === 4 && prev.length < 4) {
-        gameStorage.addXP(400);
-        gameStorage.addCoins(100);
-        gameStorage.addChest();
-        gameStorage.addChest();
-      }
-      return next;
-    });
-    victoryRef.current = true;
-    setFlash(true);
-    setTimeout(() => setFlash(false), 480);
   }, []);
 
   // Clavier WASD / flèches (desktop)
@@ -459,6 +424,23 @@ export default function TapisScene() {
     return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); };
   }, [activeLock]);
 
+  const solveLock = useCallback((lockId: number) => {
+    setSolvedLocks(prev => {
+      const next = prev.includes(lockId) ? prev : [...prev, lockId];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      if (next.length === 4 && prev.length < 4) {
+        gameStorage.addXP(400);
+        gameStorage.addCoins(100);
+        gameStorage.addChest();
+        gameStorage.addChest();
+      }
+      return next;
+    });
+    victoryRef.current = true;
+    setFlash(true);
+    setTimeout(() => setFlash(false), 480);
+  }, []);
+
   const openExamine = useCallback(() => {
     if (!nearObj) return;
     const room = getEscapeRoom("room_bibliotheque_1");
@@ -474,8 +456,9 @@ export default function TapisScene() {
         style={{ width: "100%", height: "100%" }}
       >
         <Scene
-          inputRef={inputRef} posRef={posRef} yawRef={yawRef}
-          velRef={velRef} nearIdRef={nearIdRef} setNearId={setNearId}
+          moveRef={moveRef} lookRef={lookRef} inputRef={inputRef}
+          posRef={posRef} yawRef={yawRef} velRef={velRef}
+          nearIdRef={nearIdRef} setNearId={setNearId}
           nearId={nearId} solvedLocks={solvedLocks} victoryRef={victoryRef}
         />
       </Canvas>
@@ -483,10 +466,7 @@ export default function TapisScene() {
       {/* Overlay invisible — capture les touches mobile */}
       <div
         ref={overlayRef}
-        style={{
-          position: "absolute", inset: 0, zIndex: 10,
-          touchAction: "none", userSelect: "none",
-        }}
+        style={{ position: "absolute", inset: 0, zIndex: 10, touchAction: "none", userSelect: "none" }}
       />
 
       {/* Message portrait → paysage */}
@@ -503,17 +483,12 @@ export default function TapisScene() {
             }}
           >
             <span style={{ fontSize: 48 }}>↻</span>
-            <p style={{
-              color: "var(--gold)", fontSize: 18, fontWeight: 700,
-              fontFamily: "var(--font-bricolage)", textAlign: "center",
-              padding: "0 32px",
-            }}>
+            <p style={{ color: "var(--gold)", fontSize: 18, fontWeight: 700,
+              fontFamily: "var(--font-bricolage)", textAlign: "center", padding: "0 32px" }}>
               Tourne ton iPhone pour jouer
             </p>
-            <p style={{
-              color: "rgba(248,244,236,0.45)", fontSize: 13,
-              fontFamily: "var(--font-dm-sans)", textAlign: "center",
-            }}>
+            <p style={{ color: "rgba(248,244,236,0.45)", fontSize: 13,
+              fontFamily: "var(--font-dm-sans)", textAlign: "center" }}>
               Le Tapis Voyageur se pilote en mode paysage
             </p>
           </motion.div>
@@ -523,21 +498,15 @@ export default function TapisScene() {
       {/* Flash doré — victoire cadenas */}
       <AnimatePresence>
         {flash && (
-          <motion.div
-            key="flash"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <motion.div key="flash" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             transition={{ duration: 0.12 }}
-            style={{
-              position: "absolute", inset: 0, zIndex: 15, pointerEvents: "none",
-              background: "radial-gradient(ellipse at 50% 60%, rgba(212,175,55,0.38) 0%, transparent 70%)",
-            }}
+            style={{ position: "absolute", inset: 0, zIndex: 15, pointerEvents: "none",
+              background: "radial-gradient(ellipse at 50% 60%, rgba(212,175,55,0.38) 0%, transparent 70%)" }}
           />
         )}
       </AnimatePresence>
 
-      {/* Légende clavier — desktop uniquement */}
+      {/* Légende clavier — desktop uniquement (≥ 1024px) */}
       <p className="hidden lg:block" style={{
         position: "absolute", bottom: 20, right: 20, zIndex: 20, pointerEvents: "none",
         color: "rgba(212,175,55,0.28)", fontSize: 9, fontFamily: "var(--font-dm-sans)",
@@ -546,7 +515,7 @@ export default function TapisScene() {
         WASD · flèches
       </p>
 
-      {/* Bouton EXAMINER — bas centre, accessible aux deux pouces */}
+      {/* Bouton EXAMINER — bas centre */}
       <AnimatePresence>
         {nearObj && !nearSolved && !activeLock && !allSolved && (
           <div style={{
@@ -555,39 +524,31 @@ export default function TapisScene() {
             left: "50%", transform: "translateX(-50%)",
             zIndex: 20, width: 200,
           }}>
-          <motion.div
-            key="examiner"
-            initial={{ y: 80, opacity: 0 }}
-            animate={{ y: 0,  opacity: 1 }}
-            exit={{   y: 80, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 380, damping: 32 }}
-          >
-            <motion.button
-              onClick={openExamine}
-              whileTap={{ scale: 0.96 }}
-              style={{
-                width: 200, height: 55,
-                background: "#D4AF37",
-                color: "#061A12", fontSize: 16, fontWeight: 800,
-                border: "none", borderRadius: 28, cursor: "pointer",
-                fontFamily: "var(--font-bricolage)", letterSpacing: "2px",
-                textTransform: "uppercase",
-                boxShadow: "0 0 24px rgba(212,175,55,0.55)",
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
-              }}
+            <motion.div key="examiner"
+              initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 380, damping: 32 }}
             >
-              <span style={{ fontSize: 20 }}>{nearObj.icon}</span>
-              Examiner
-            </motion.button>
-            <p style={{
-              textAlign: "center", marginTop: 8,
-              color: "rgba(212,175,55,0.55)", fontSize: 11,
-              fontFamily: "var(--font-dm-sans)", letterSpacing: "0.15em",
-              textTransform: "uppercase",
-            }}>
-              {nearObj.label}
-            </p>
-          </motion.div>
+              <motion.button onClick={openExamine} whileTap={{ scale: 0.96 }}
+                style={{
+                  width: 200, height: 55, background: "#D4AF37",
+                  color: "#061A12", fontSize: 16, fontWeight: 800,
+                  border: "none", borderRadius: 28, cursor: "pointer",
+                  fontFamily: "var(--font-bricolage)", letterSpacing: "2px",
+                  textTransform: "uppercase",
+                  boxShadow: "0 0 24px rgba(212,175,55,0.55)",
+                  display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
+                }}
+              >
+                <span style={{ fontSize: 20 }}>{nearObj.icon}</span>
+                Examiner
+              </motion.button>
+              <p style={{ textAlign: "center", marginTop: 8,
+                color: "rgba(212,175,55,0.55)", fontSize: 11,
+                fontFamily: "var(--font-dm-sans)", letterSpacing: "0.15em",
+                textTransform: "uppercase" }}>
+                {nearObj.label}
+              </p>
+            </motion.div>
           </div>
         )}
 
@@ -599,36 +560,29 @@ export default function TapisScene() {
             left: "50%", transform: "translateX(-50%)",
             zIndex: 20,
           }}>
-          <motion.div
-            key="solved"
-            initial={{ y: 64, opacity: 0 }}
-            animate={{ y: 0,  opacity: 1 }}
-            exit={{   y: 64, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 380, damping: 32 }}
-            style={{
-              display: "flex", alignItems: "center", gap: 10,
-              background: "rgba(4,6,8,0.88)", border: "1px solid rgba(74,222,128,0.35)",
-              borderRadius: 28, padding: "12px 24px", minHeight: 44,
-              backdropFilter: "blur(12px)", whiteSpace: "nowrap",
-            }}
-          >
-            <span style={{ fontSize: 18 }}>{nearObj.icon}</span>
-            <p style={{
-              color: "#4ade80", fontSize: 11, letterSpacing: "0.12em",
-              textTransform: "uppercase", fontFamily: "var(--font-dm-sans)", whiteSpace: "nowrap",
-            }}>
-              ✓ Cadenas ouvert
-            </p>
-          </motion.div>
+            <motion.div key="solved"
+              initial={{ y: 64, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 64, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 380, damping: 32 }}
+              style={{
+                display: "flex", alignItems: "center", gap: 10,
+                background: "rgba(4,6,8,0.88)", border: "1px solid rgba(74,222,128,0.35)",
+                borderRadius: 28, padding: "12px 24px", minHeight: 44,
+                backdropFilter: "blur(12px)", whiteSpace: "nowrap",
+              }}
+            >
+              <span style={{ fontSize: 18 }}>{nearObj.icon}</span>
+              <p style={{ color: "#4ade80", fontSize: 11, letterSpacing: "0.12em",
+                textTransform: "uppercase", fontFamily: "var(--font-dm-sans)", whiteSpace: "nowrap" }}>
+                ✓ Cadenas ouvert
+              </p>
+            </motion.div>
           </div>
         )}
 
         {/* Victoire */}
         {allSolved && (
-          <motion.div
-            key="victory"
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1,   opacity: 1 }}
+          <motion.div key="victory"
+            initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
             style={{
               position: "absolute", bottom: 80, left: 16, right: 16, zIndex: 20,
               background: "rgba(5,92,63,0.96)", border: "1px solid rgba(5,195,111,0.55)",
@@ -649,11 +603,7 @@ export default function TapisScene() {
       {/* Modal cadenas */}
       <AnimatePresence>
         {activeLock && (
-          <LockModal
-            lock={activeLock}
-            onSolve={solveLock}
-            onClose={() => setActiveLock(null)}
-          />
+          <LockModal lock={activeLock} onSolve={solveLock} onClose={() => setActiveLock(null)} />
         )}
       </AnimatePresence>
     </>

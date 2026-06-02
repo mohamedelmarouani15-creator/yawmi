@@ -13,8 +13,8 @@ import { gameStorage } from "@/lib/game/game-storage";
 
 const SPEED      = 4.0;    // vitesse clavier (unités/s)
 const TURN_SPEED = 2.2;    // virage clavier (rad/s)
-const MOVE_SPEED = 0.012;  // touch mouvement (unités/pixel)
-const LOOK_SPEED = 0.005;  // touch rotation (rad/pixel)
+const MOVE_SPEED = 0.015;  // touch mouvement (unités/pixel) — style Weeplay
+const LOOK_SPEED = 0.006;  // touch rotation (rad/pixel)
 const BOUNDS     = { xMin: -6.5, xMax: 6.5, zMin: -9.5, zMax: 9.5 };
 const STORAGE_KEY = "escape_room_bibliotheque_1";
 const ROOM_COLOR  = "#8B4513";
@@ -102,14 +102,14 @@ function CameraFollower({ posRef, yawRef }: {
   useFrame(({ camera }) => {
     const yaw = yawRef.current;
     const pos = posRef.current;
-    // Caméra derrière et au-dessus — vue Aladin
+    // Caméra troisième personne — style Weeplay (3.5u derrière, 2u au-dessus)
     targetPos.current.set(
-      pos.x - Math.sin(yaw) * 3.0,
-      pos.y + 1.8,
-      pos.z - Math.cos(yaw) * 3.0,
+      pos.x - Math.sin(yaw) * 3.5,
+      pos.y + 2.0,
+      pos.z - Math.cos(yaw) * 3.5,
     );
     camera.position.lerp(targetPos.current, 0.06);
-    lookTarget.current.set(pos.x, pos.y + 0.3, pos.z);
+    lookTarget.current.set(pos.x, pos.y + 0.4, pos.z);
     camera.lookAt(lookTarget.current);
   });
   return null;
@@ -320,9 +320,15 @@ export default function TapisScene() {
   const nearIdRef = useRef<string | null>(null);
   const victoryRef = useRef(false);
 
-  // Suivi des touches actives
-  const touchMapRef = useRef(new Map<number, { x: number; y: number; isLeft: boolean }>());
+  // Suivi des touches style Weeplay — une par zone max
+  const moveTouchId = useRef<number | null>(null);
+  const lookTouchId = useRef<number | null>(null);
+  const prevMove    = useRef({ x: 0, y: 0 });
+  const prevLook    = useRef({ x: 0 });
   const overlayRef  = useRef<HTMLDivElement>(null);
+
+  // Indicateur visuel zone gauche (cercle doré au point de contact)
+  const [indicator, setIndicator] = useState<{ x: number; y: number } | null>(null);
 
   const [nearId,      setNearId]      = useState<string | null>(null);
   const [activeLock,  setActiveLock]  = useState<EscapeLock | null>(null);
@@ -350,7 +356,7 @@ export default function TapisScene() {
     return () => { window.removeEventListener("resize", check); window.removeEventListener("orientationchange", check); };
   }, []);
 
-  // ── Dual stick invisible ───────────────────────────────────────────
+  // ── Dual stick style Weeplay ──────────────────────────────────────
   useEffect(() => {
     const overlay = overlayRef.current;
     if (!overlay) return;
@@ -358,29 +364,30 @@ export default function TapisScene() {
     function onTouchStart(e: TouchEvent) {
       e.preventDefault();
       for (const touch of Array.from(e.changedTouches)) {
-        touchMapRef.current.set(touch.identifier, {
-          x:      touch.clientX,
-          y:      touch.clientY,
-          isLeft: touch.clientX < window.innerWidth * 0.5,
-        });
+        const isLeft = touch.clientX < window.innerWidth * 0.5;
+        if (isLeft && moveTouchId.current === null) {
+          moveTouchId.current = touch.identifier;
+          prevMove.current = { x: touch.clientX, y: touch.clientY };
+          setIndicator({ x: touch.clientX, y: touch.clientY });
+        } else if (!isLeft && lookTouchId.current === null) {
+          lookTouchId.current = touch.identifier;
+          prevLook.current = { x: touch.clientX };
+        }
       }
     }
 
     function onTouchMove(e: TouchEvent) {
       e.preventDefault();
       for (const touch of Array.from(e.changedTouches)) {
-        const t = touchMapRef.current.get(touch.identifier);
-        if (!t) continue;
-        const dx = touch.clientX - t.x;
-        const dy = touch.clientY - t.y;
-        t.x = touch.clientX;
-        t.y = touch.clientY;
-        if (t.isLeft) {
-          // Zone gauche → mouvement relatif à la direction du tapis
-          moveRef.current.z = -dy * MOVE_SPEED;   // haut = avance
-          moveRef.current.x =  dx * MOVE_SPEED;   // droite = strafe droit
-        } else {
-          // Zone droite → rotation caméra (s'accumule jusqu'au prochain frame)
+        if (touch.identifier === moveTouchId.current) {
+          const dx = touch.clientX - prevMove.current.x;
+          const dy = touch.clientY - prevMove.current.y;
+          prevMove.current = { x: touch.clientX, y: touch.clientY };
+          moveRef.current.z = -dy * MOVE_SPEED;
+          moveRef.current.x =  dx * MOVE_SPEED;
+        } else if (touch.identifier === lookTouchId.current) {
+          const dx = touch.clientX - prevLook.current.x;
+          prevLook.current = { x: touch.clientX };
           lookRef.current.x += dx * LOOK_SPEED;
         }
       }
@@ -388,23 +395,34 @@ export default function TapisScene() {
 
     function onTouchEnd(e: TouchEvent) {
       for (const touch of Array.from(e.changedTouches)) {
-        const t = touchMapRef.current.get(touch.identifier);
-        if (t) {
-          if (t.isLeft) { moveRef.current.x = 0; moveRef.current.z = 0; }
-          touchMapRef.current.delete(touch.identifier);
+        if (touch.identifier === moveTouchId.current) {
+          moveTouchId.current = null;
+          moveRef.current.x = 0;
+          moveRef.current.z = 0;
+          setIndicator(null);
+        } else if (touch.identifier === lookTouchId.current) {
+          lookTouchId.current = null;
         }
       }
+    }
+
+    function onTouchCancel() {
+      moveTouchId.current = null;
+      lookTouchId.current = null;
+      moveRef.current.x = 0;
+      moveRef.current.z = 0;
+      setIndicator(null);
     }
 
     overlay.addEventListener("touchstart",  onTouchStart, { passive: false });
     overlay.addEventListener("touchmove",   onTouchMove,  { passive: false });
     overlay.addEventListener("touchend",    onTouchEnd,   { passive: true });
-    overlay.addEventListener("touchcancel", onTouchEnd,   { passive: true });
+    overlay.addEventListener("touchcancel", onTouchCancel, { passive: true });
     return () => {
       overlay.removeEventListener("touchstart",  onTouchStart);
       overlay.removeEventListener("touchmove",   onTouchMove);
       overlay.removeEventListener("touchend",    onTouchEnd);
-      overlay.removeEventListener("touchcancel", onTouchEnd);
+      overlay.removeEventListener("touchcancel", onTouchCancel);
     };
   }, []);
 
@@ -468,6 +486,23 @@ export default function TapisScene() {
         ref={overlayRef}
         style={{ position: "absolute", inset: 0, zIndex: 10, touchAction: "none", userSelect: "none" }}
       />
+
+      {/* Indicateur tactile Weeplay — cercle doré au point de contact */}
+      {indicator && (
+        <div style={{
+          position: "absolute",
+          left: indicator.x - 25,
+          top:  indicator.y - 25,
+          width: 50, height: 50,
+          borderRadius: "50%",
+          border: "2px solid #D4AF37",
+          background: "transparent",
+          opacity: 0.3,
+          pointerEvents: "none",
+          zIndex: 15,
+          transition: "opacity 0.1s ease",
+        }} />
+      )}
 
       {/* Message portrait → paysage */}
       <AnimatePresence>

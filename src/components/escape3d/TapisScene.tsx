@@ -399,7 +399,6 @@ export default function TapisScene() {
           posRef.current.z = Math.max(BOUNDS.zMin, Math.min(BOUNDS.zMax, newZ));
           // Alimente velRef pour l'animation d'inclinaison du tapis vertical
           velRef.current = { x: velRef.current.x, z: -dy * 40 };
-          console.log("[DualStick] Zone: move", "dy:", dy.toFixed(1), "pos.z:", posRef.current.z.toFixed(2)); // TODO: supprimer après test
         } else {
           yawRef.current += dx * LOOK_SPEED;
         }

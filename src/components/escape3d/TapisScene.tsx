@@ -147,7 +147,7 @@ function LibraryFloor() {
 }
 
 // ── Scène Three.js ──────────────────────────────────────────────────
-function Scene({ inputRef, posRef, yawRef, velRef, nearIdRef, setNearId, nearId, solvedLocks }: {
+function Scene({ inputRef, posRef, yawRef, velRef, nearIdRef, setNearId, nearId, solvedLocks, victoryRef }: {
   inputRef:   React.RefObject<{ x: number; y: number }>;
   posRef:     React.RefObject<THREE.Vector3>;
   yawRef:     React.RefObject<number>;
@@ -156,6 +156,7 @@ function Scene({ inputRef, posRef, yawRef, velRef, nearIdRef, setNearId, nearId,
   setNearId:  (id: string | null) => void;
   nearId:     string | null;
   solvedLocks: number[];
+  victoryRef: React.RefObject<boolean>;
 }) {
   return (
     <>
@@ -168,7 +169,7 @@ function Scene({ inputRef, posRef, yawRef, velRef, nearIdRef, setNearId, nearId,
       <pointLight position={[-6, 3, 0]} intensity={1.4} color="#ff9944" distance={14} decay={2} />
       <pointLight position={[ 6, 3, 0]} intensity={1.4} color="#ff9944" distance={14} decay={2} />
       <LibraryFloor />
-      <TapisVolant posRef={posRef} yawRef={yawRef} velRef={velRef} />
+      <TapisVolant posRef={posRef} yawRef={yawRef} velRef={velRef} victoryRef={victoryRef} />
       <LibraryObjects nearId={nearId} solvedLocks={solvedLocks} tapisPos={posRef} />
       <TapisMovement   inputRef={inputRef} posRef={posRef} yawRef={yawRef} velRef={velRef} nearIdRef={nearIdRef} />
       <ProximityDetector posRef={posRef} nearIdRef={nearIdRef} setNearId={setNearId} />
@@ -284,9 +285,11 @@ export default function TapisScene() {
   const yawRef     = useRef(0);
   const velRef     = useRef({ x: 0, z: 0 });
   const nearIdRef  = useRef<string | null>(null);
+  const victoryRef = useRef(false);
 
   const [nearId,      setNearId]      = useState<string | null>(null);
   const [activeLock,  setActiveLock]  = useState<EscapeLock | null>(null);
+  const [flash,       setFlash]       = useState(false);
   const [solvedLocks, setSolvedLocks] = useState<number[]>(() => {
     if (typeof window === "undefined") return [];
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]"); } catch { return []; }
@@ -302,6 +305,9 @@ export default function TapisScene() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       return next;
     });
+    victoryRef.current = true;           // déclenche la danse du tapis
+    setFlash(true);                      // flash doré à l'écran
+    setTimeout(() => setFlash(false), 480);
   }, []);
 
   const onJoystick = useCallback((v: { x: number; y: number }) => {
@@ -341,9 +347,26 @@ export default function TapisScene() {
         <Scene
           inputRef={inputRef} posRef={posRef} yawRef={yawRef}
           velRef={velRef} nearIdRef={nearIdRef} setNearId={setNearId}
-          nearId={nearId} solvedLocks={solvedLocks}
+          nearId={nearId} solvedLocks={solvedLocks} victoryRef={victoryRef}
         />
       </Canvas>
+
+      {/* Flash doré — victoire cadenas */}
+      <AnimatePresence>
+        {flash && (
+          <motion.div
+            key="flash"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.12 }}
+            style={{
+              position: "absolute", inset: 0, zIndex: 15, pointerEvents: "none",
+              background: "radial-gradient(ellipse at 50% 60%, rgba(212,175,55,0.38) 0%, transparent 70%)",
+            }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Joystick */}
       <div style={{ position: "absolute", bottom: 36, left: 28, zIndex: 20, touchAction: "none" }}>

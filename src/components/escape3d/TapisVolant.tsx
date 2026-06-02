@@ -101,10 +101,13 @@ export interface TapisVolantProps {
   basePosition?: [number, number, number];
   velocity?:     { x: number; z: number };
   // Mode piloté (jeu complet) — les refs sont mutées par TapisScene
-  posRef?: React.RefObject<THREE.Vector3>;
-  yawRef?: React.RefObject<number>;
-  velRef?: React.RefObject<{ x: number; z: number }>;
+  posRef?:     React.RefObject<THREE.Vector3>;
+  yawRef?:     React.RefObject<number>;
+  velRef?:     React.RefObject<{ x: number; z: number }>;
+  victoryRef?: React.RefObject<boolean>; // signal one-shot : true → déclenche la danse
 }
+
+const DANCE_DUR = 0.65; // secondes
 
 export default function TapisVolant({
   basePosition = [0, 0.3, 0],
@@ -112,9 +115,11 @@ export default function TapisVolant({
   posRef,
   yawRef,
   velRef,
+  victoryRef,
 }: TapisVolantProps) {
-  const groupRef    = useRef<THREE.Group>(null!);
-  const defaultPos  = useRef(new THREE.Vector3(...basePosition));
+  const groupRef       = useRef<THREE.Group>(null!);
+  const defaultPos     = useRef(new THREE.Vector3(...basePosition));
+  const victoryStart   = useRef<number | null>(null); // horodatage début danse
   const uniformsRef = useRef<{
     uTime: { value: number };
     uTex:  { value: THREE.Texture | null };
@@ -130,32 +135,53 @@ export default function TapisVolant({
     uniformsRef.current.uTime.value = t;
     if (!groupRef.current) return;
 
-    // Position — ref externe ou défaut
+    // ── Signal de victoire → déclenche la danse ──────────────────
+    if (victoryRef?.current && victoryStart.current === null) {
+      victoryStart.current   = t;
+      victoryRef.current     = false; // consommer le signal
+    }
+
+    // ── Calcul de l'animation de danse ───────────────────────────
+    let danceJumpY   = 0;
+    let danceWobbleZ = 0;
+    let isDancing    = false;
+
+    if (victoryStart.current !== null) {
+      const p = (t - victoryStart.current) / DANCE_DUR;
+      if (p < 1) {
+        isDancing    = true;
+        const env    = Math.sin(p * Math.PI);                       // enveloppe 0→peak→0
+        danceJumpY   = env * 0.30;                                  // saut vers le haut
+        danceWobbleZ = Math.sin(p * Math.PI * 4.5) * 0.26 * env;   // ±15° x2
+      } else {
+        victoryStart.current = null; // fin de la danse
+      }
+    }
+
+    // ── Position — ref externe ou défaut ─────────────────────────
     const base = posRef?.current ?? defaultPos.current;
     groupRef.current.position.set(
       base.x,
-      base.y + Math.sin(t * 1.2) * 0.08,  // flottement
+      base.y + Math.sin(t * 1.2) * 0.08 + danceJumpY,
       base.z,
     );
 
     // Orientation yaw
     if (yawRef) groupRef.current.rotation.y = yawRef.current;
 
-    // Inclinaison en mouvement (style Aladin)
-    const vel = velRef?.current ?? velocity;
+    // ── Inclinaison — override pendant la danse ───────────────────
+    const vel   = velRef?.current ?? velocity;
     const speed = Math.sqrt(vel.x * vel.x + vel.z * vel.z);
-    // Inclinaison avant/arrière relative à la direction de déplacement
+
     groupRef.current.rotation.x = THREE.MathUtils.lerp(
       groupRef.current.rotation.x,
-      -speed * 0.10,
-      0.12,
+      isDancing ? 0 : -speed * 0.10,
+      isDancing ? 0.25 : 0.12,
     );
-    // Inclinaison latérale dans les virages (lecture de vel.x = strafe)
-    groupRef.current.rotation.z = THREE.MathUtils.lerp(
-      groupRef.current.rotation.z,
-      vel.x * -0.08,
-      0.12,
-    );
+    // Direct (pas de lerp) pendant la danse pour garder le rythme
+    groupRef.current.rotation.z = isDancing
+      ? danceWobbleZ
+      : THREE.MathUtils.lerp(groupRef.current.rotation.z, vel.x * -0.08, 0.12);
   });
 
   return (

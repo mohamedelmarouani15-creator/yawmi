@@ -10,6 +10,7 @@ import VirtualJoystick from "./VirtualJoystick";
 import LibraryObjects, { LIBRARY_OBJECTS, PROX_THRESHOLD } from "./LibraryObjects";
 import { getEscapeRoom } from "@/lib/game/escape-rooms";
 import type { EscapeLock } from "@/lib/game/escape-rooms";
+import { gameStorage } from "@/lib/game/game-storage";
 
 const SPEED       = 4.0;
 const TURN_SPEED  = 2.2;
@@ -303,10 +304,17 @@ export default function TapisScene() {
     setSolvedLocks(prev => {
       const next = prev.includes(lockId) ? prev : [...prev, lockId];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      // Récompenses au dernier cadenas (une seule fois)
+      if (next.length === 4 && prev.length < 4) {
+        gameStorage.addXP(400);
+        gameStorage.addCoins(100);
+        gameStorage.addChest();
+        gameStorage.addChest();
+      }
       return next;
     });
-    victoryRef.current = true;           // déclenche la danse du tapis
-    setFlash(true);                      // flash doré à l'écran
+    victoryRef.current = true;
+    setFlash(true);
     setTimeout(() => setFlash(false), 480);
   }, []);
 

@@ -1,13 +1,72 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
-import { useState, useCallback } from "react";
+import { useState, useCallback, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Lock, Unlock, CheckCircle2 } from "lucide-react";
+import Link from "next/link";
+import dynamic from "next/dynamic";
 import { getEscapeRoom, getCurrentEscapeRoom } from "@/lib/game/escape-rooms";
 import { gameStorage } from "@/lib/game/game-storage";
 import { springTap } from "@/lib/motion";
 import type { EscapeLock } from "@/lib/game/escape-rooms";
+
+// Three.js ne tourne pas en SSR
+const TapisScene = dynamic(
+  () => import("@/components/escape3d/TapisScene"),
+  { ssr: false },
+);
+
+// ── Expérience 3D plein écran (Bibliothèque de Tombouctou) ──────────
+function BibliothequeFullscreen() {
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 60,
+      background: "#080502", overflow: "hidden",
+    }}>
+      {/* Bouton quitter */}
+      <Link
+        href="/oasis/escape"
+        style={{
+          position: "absolute", top: 16, left: 16, zIndex: 50,
+          display: "flex", alignItems: "center", gap: 8,
+          background: "rgba(0,0,0,0.55)", border: "1px solid rgba(212,175,55,0.3)",
+          borderRadius: 24, padding: "8px 14px", color: "var(--gold)",
+          backdropFilter: "blur(8px)", textDecoration: "none",
+          fontFamily: "var(--font-dm-sans)", fontSize: 11,
+          letterSpacing: "0.15em", textTransform: "uppercase",
+        }}
+      >
+        <ArrowLeft size={14} />
+        Quitter
+      </Link>
+
+      <Suspense fallback={
+        <div style={{
+          width: "100%", height: "100%",
+          display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "center", gap: 14,
+        }}>
+          <div style={{
+            width: 32, height: 32, borderRadius: "50%",
+            border: "2px solid #D4AF37", borderTopColor: "transparent",
+            animation: "spin 0.8s linear infinite",
+          }} />
+          <p style={{
+            color: "rgba(212,175,55,0.5)", fontSize: 10,
+            fontFamily: "var(--font-dm-sans)", letterSpacing: "0.2em",
+            textTransform: "uppercase",
+          }}>
+            La bibliothèque s&apos;éveille…
+          </p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
+      }>
+        <TapisScene />
+      </Suspense>
+    </div>
+  );
+}
 
 // ── Isometric room SVG ─────────────────────────────────────────
 function IsometricRoom({ theme, accentColor, wallColor, floorColor, solvedLocks }: {
@@ -293,6 +352,9 @@ export default function EscapeRoomPage() {
       <p style={{ color: "var(--text)" }}>Escape room introuvable.</p>
     </div>
   );
+
+  // ── Bibliothèque de Tombouctou → expérience 3D Tapis Voyageur ────
+  if (room.id === "room_bibliotheque_1") return <BibliothequeFullscreen />;
 
   return (
     <motion.main

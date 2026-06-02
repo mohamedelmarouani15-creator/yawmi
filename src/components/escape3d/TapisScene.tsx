@@ -13,8 +13,8 @@ import { gameStorage } from "@/lib/game/game-storage";
 
 const SPEED      = 4.0;    // vitesse clavier (unités/s)
 const TURN_SPEED = 2.2;    // virage clavier (rad/s)
-const MOVE_SPEED = 0.015;  // touch mouvement (unités/pixel) — style Weeplay
-const LOOK_SPEED = 0.006;  // touch rotation (rad/pixel)
+const MOVE_SPEED = 0.022;  // touch mouvement (unités/pixel) — pur avant/arrière
+const LOOK_SPEED = 0.010;  // touch rotation (rad/pixel) — plus réactif
 const BOUNDS     = { xMin: -6.5, xMax: 6.5, zMin: -9.5, zMax: 9.5 };
 const STORAGE_KEY = "escape_room_bibliotheque_1";
 const ROOM_COLOR  = "#8B4513";
@@ -36,14 +36,16 @@ function TapisMovement({ moveRef, lookRef, inputRef, posRef, yawRef, velRef, nea
     yawRef.current += touchLook + keyLook;
     lookRef.current.x = 0;                         // consommé
 
-    // === DÉPLACEMENT ===
+    // === DÉPLACEMENT — pur avant/arrière (pas de strafe touch) ===
     const mz = moveRef.current.z + inputRef.current.y * SPEED * dt;
-    const mx = moveRef.current.x;
 
-    // Signal visuel pour TapisVolant (inclinaisons)
-    velRef.current = { x: mx * 8 + touchLook * 12, z: mz };
+    // Consommer moveRef : le tapis s'arrête si le doigt ne glisse plus
+    moveRef.current.z = 0;
 
-    if (Math.abs(mz) < 0.0001 && Math.abs(mx) < 0.0001) return;
+    // Signal visuel pour TapisVolant (inclinaison avant/arrière + banking virage)
+    velRef.current = { x: touchLook * 12, z: mz };
+
+    if (Math.abs(mz) < 0.0001) return;
 
     // Ralentissement de proximité près des objets
     let mult = 1.0;
@@ -60,8 +62,8 @@ function TapisMovement({ moveRef, lookRef, inputRef, posRef, yawRef, velRef, nea
     }
 
     const yaw  = yawRef.current;
-    const newX = posRef.current.x + (Math.sin(yaw) * mz + Math.cos(yaw) * mx) * mult;
-    const newZ = posRef.current.z + (Math.cos(yaw) * mz - Math.sin(yaw) * mx) * mult;
+    const newX = posRef.current.x + Math.sin(yaw) * mz * mult;
+    const newZ = posRef.current.z + Math.cos(yaw) * mz * mult;
     posRef.current.x = Math.max(BOUNDS.xMin, Math.min(BOUNDS.xMax, newX));
     posRef.current.z = Math.max(BOUNDS.zMin, Math.min(BOUNDS.zMax, newZ));
   });
@@ -435,8 +437,8 @@ export default function TapisScene() {
           const dx = touch.clientX - prevMove.current.x;
           const dy = touch.clientY - prevMove.current.y;
           prevMove.current = { x: touch.clientX, y: touch.clientY };
+          // Axe vertical uniquement — pas de strafe touch
           moveRef.current.z = -dy * MOVE_SPEED;
-          moveRef.current.x =  dx * MOVE_SPEED;
         } else if (touch.identifier === lookTouchId.current) {
           const dx = touch.clientX - prevLook.current.x;
           prevLook.current = { x: touch.clientX };

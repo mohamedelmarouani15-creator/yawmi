@@ -125,7 +125,29 @@ function CarpetSpotLight({ posRef }: { posRef: React.RefObject<THREE.Vector3> })
     lightRef.current.target.position.set(p.x, p.y, p.z);
     lightRef.current.target.updateMatrixWorld();
   });
-  return <spotLight ref={lightRef} color="#D4AF37" intensity={0.6} angle={0.45} penumbra={0.7} decay={2} distance={6} />;
+  return <spotLight ref={lightRef} color="#D4AF37" intensity={0.5} angle={0.4} penumbra={0.8} decay={2} distance={6} />;
+}
+
+// ── Bougie — pointLight flickering ──────────────────────────────────
+function CandleLight({ position, index }: {
+  position: [number, number, number];
+  index:    number;
+}) {
+  const lightRef = useRef<THREE.PointLight>(null!);
+  useFrame(({ clock }) => {
+    if (!lightRef.current) return;
+    lightRef.current.intensity = 1.6 + Math.sin(clock.getElapsedTime() * 3.5 + index * 1.7) * 0.3;
+  });
+  return (
+    <pointLight
+      ref={lightRef}
+      position={position}
+      color="#FF9040"
+      intensity={1.6}
+      distance={7}
+      decay={2}
+    />
+  );
 }
 
 // ── Sol de la bibliothèque ──────────────────────────────────────────
@@ -191,11 +213,27 @@ function Scene({ moveRef, lookRef, inputRef, posRef, yawRef, velRef, nearIdRef, 
       <fog attach="fog" args={["#080502", 8, 22]} />
       <Stars radius={60} depth={50} count={2000} factor={1.5} fade speed={0.3} />
       <Environment preset="night" />
-      <ambientLight intensity={0.4} color="#c8a870" />
-      <hemisphereLight args={[0x1A2744, 0x0A0A05, 0.5]} />
-      <pointLight position={[0, 5, 0]}  intensity={3.5} color="#D4AF37" distance={12} decay={2} castShadow />
-      <pointLight position={[-6, 3, 0]} intensity={1.5} color="#ff9944" distance={6}  decay={2} />
-      <pointLight position={[ 6, 3, 0]} intensity={1.5} color="#ff9944" distance={6}  decay={2} />
+      {/* Ambiance de base */}
+      <ambientLight intensity={0.5} color="#0A1A0F" />
+      <hemisphereLight args={[0x1A2744, 0x061A12, 0.6]} />
+
+      {/* Lune — rayon entrant par une fenêtre imaginaire */}
+      <directionalLight color="#2A4A7F" intensity={0.8} position={[-9, 8, -6]} />
+
+      {/* Bougies sur les étagères — 6 positions, intensité pulsante */}
+      <CandleLight position={[-5.5, 1.2, -5]} index={0} />
+      <CandleLight position={[-5.5, 1.2,  0]} index={1} />
+      <CandleLight position={[-5.5, 1.2,  5]} index={2} />
+      <CandleLight position={[ 5.5, 1.2, -5]} index={3} />
+      <CandleLight position={[ 5.5, 1.2,  0]} index={4} />
+      <CandleLight position={[ 5.5, 1.2,  5]} index={5} />
+
+      {/* Spots sur les manuscrits — 2 unités au-dessus de chaque objet */}
+      {([[0,2,-4.5],[3.5,2,0],[-3.5,2,0],[0,2,4.5]] as [number,number,number][]).map((p, i) => (
+        <pointLight key={`ms${i}`} position={p} color="#D4AF37" intensity={0.6} distance={2.5} decay={2} />
+      ))}
+
+      {/* Spotlight qui suit le tapis */}
       <CarpetSpotLight posRef={posRef} />
       <LibraryFloor />
       <TapisVolant posRef={posRef} yawRef={yawRef} velRef={velRef} victoryRef={victoryRef} />

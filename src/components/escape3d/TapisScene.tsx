@@ -381,6 +381,20 @@ export default function TapisScene() {
   const nearSolved = nearObj ? solvedLocks.includes(nearObj.lockId) : false;
   const allSolved  = solvedLocks.length >= 4;
 
+  // Chrono — 30 minutes
+  const startedAtRef = useRef(typeof window !== "undefined" ? Date.now() : 0);
+  const [timeLeft, setTimeLeft] = useState(30 * 60);
+  useEffect(() => {
+    if (allSolved) return;
+    const id = setInterval(() => {
+      setTimeLeft(Math.max(0, 30 * 60 - Math.floor((Date.now() - startedAtRef.current) / 1000)));
+    }, 1000);
+    return () => clearInterval(id);
+  }, [allSolved]);
+  const timerMins   = Math.floor(timeLeft / 60).toString().padStart(2, "0");
+  const timerSecs   = (timeLeft % 60).toString().padStart(2, "0");
+  const timerUrgent = timeLeft < 5 * 60;
+
   // Détection et verrouillage de l'orientation paysage
   useEffect(() => {
     const check = () => setIsPortrait(window.innerHeight > window.innerWidth);
@@ -579,46 +593,109 @@ export default function TapisScene() {
         )}
       </AnimatePresence>
 
-      {/* Légende clavier — desktop uniquement (≥ 1024px) */}
-      <p className="hidden lg:block" style={{
-        position: "absolute", bottom: 20, right: 20, zIndex: 20, pointerEvents: "none",
-        color: "rgba(212,175,55,0.28)", fontSize: 9, fontFamily: "var(--font-dm-sans)",
-        letterSpacing: "0.15em", textTransform: "uppercase", whiteSpace: "nowrap",
+      {/* ── Tasbih — progression des manuscrits (top centre) ─────── */}
+      <div style={{
+        position: "absolute",
+        top: "calc(14px + env(safe-area-inset-top))",
+        left: "50%", transform: "translateX(-50%)",
+        zIndex: 20, pointerEvents: "none",
+        display: "flex", alignItems: "center",
       }}>
-        WASD · flèches
-      </p>
+        {[0, 1, 2, 3].map(i => (
+          <div key={i} style={{ display: "flex", alignItems: "center" }}>
+            {i > 0 && (
+              <div style={{
+                width: 16, height: 1.5,
+                background: solvedLocks.includes(i - 1) && solvedLocks.includes(i)
+                  ? "rgba(212,175,55,0.55)" : "rgba(212,175,55,0.15)",
+              }} />
+            )}
+            <motion.div
+              animate={solvedLocks.includes(i) ? { scale: [1, 1.4, 1] } : {}}
+              transition={{ duration: 0.35 }}
+              style={{
+                width: solvedLocks.includes(i) ? 12 : 7,
+                height: solvedLocks.includes(i) ? 12 : 7,
+                borderRadius: "50%",
+                background: solvedLocks.includes(i) ? "#D4AF37" : "rgba(212,175,55,0.15)",
+                border: "1px solid rgba(212,175,55,0.35)",
+                boxShadow: solvedLocks.includes(i) ? "0 0 8px rgba(212,175,55,0.65)" : "none",
+                transition: "all 0.3s ease",
+              }}
+            />
+          </div>
+        ))}
+      </div>
 
-      {/* Bouton EXAMINER — bas centre */}
+      {/* ── Chrono sablier (top droite) ──────────────────────────── */}
+      {!allSolved && (
+        <div style={{
+          position: "absolute",
+          top: "calc(10px + env(safe-area-inset-top))",
+          right: "calc(16px + env(safe-area-inset-right))",
+          zIndex: 20, pointerEvents: "none",
+          display: "flex", alignItems: "center", gap: 6,
+          background: "rgba(0,0,0,0.45)",
+          border: `1px solid ${timerUrgent ? "rgba(239,68,68,0.4)" : "rgba(212,175,55,0.2)"}`,
+          borderRadius: 20, padding: "7px 12px",
+          backdropFilter: "blur(8px)",
+        }}>
+          <span style={{ fontSize: 13 }}>⏳</span>
+          <motion.span
+            animate={timerUrgent ? { opacity: [1, 0.5, 1] } : {}}
+            transition={{ duration: 0.9, repeat: Infinity }}
+            style={{
+              color: timerUrgent ? "#ef4444" : "var(--gold)",
+              fontSize: 13, fontWeight: 700,
+              fontFamily: "var(--font-dm-sans)", letterSpacing: "0.08em",
+            }}
+          >
+            {timerMins}:{timerSecs}
+          </motion.span>
+        </div>
+      )}
+
+      {/* ── Bouton EXAMINER (bas centre) ─────────────────────────── */}
       <AnimatePresence>
         {nearObj && !nearSolved && !activeLock && !allSolved && (
-          <div style={{
-            position: "absolute",
-            bottom: "calc(28px + env(safe-area-inset-bottom))",
-            left: "50%", transform: "translateX(-50%)",
-            zIndex: 20, width: 200,
-          }}>
-            <motion.div key="examiner"
-              initial={{ y: 80, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 80, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 380, damping: 32 }}
+          <div
+            key={`examiner-${nearObj.id}`}
+            style={{
+              position: "absolute",
+              bottom: "calc(30px + env(safe-area-inset-bottom))",
+              left: "50%", transform: "translateX(-50%)",
+              zIndex: 20, width: "70%", maxWidth: 400,
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 420, damping: 26, duration: 0.3 }}
             >
-              <motion.button onClick={openExamine} whileTap={{ scale: 0.96 }}
+              <motion.button
+                onClick={openExamine}
+                whileTap={{ scale: 0.95 }}
                 style={{
-                  width: 200, height: 55, background: "#D4AF37",
-                  color: "#061A12", fontSize: 16, fontWeight: 800,
+                  width: "100%", height: 56,
+                  background: "#D4AF37", color: "#061A12",
+                  fontSize: 16, fontWeight: 700,
                   border: "none", borderRadius: 28, cursor: "pointer",
                   fontFamily: "var(--font-bricolage)", letterSpacing: "2px",
                   textTransform: "uppercase",
-                  boxShadow: "0 0 24px rgba(212,175,55,0.55)",
+                  boxShadow: "0 0 24px rgba(212,175,55,0.4)",
                   display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
                 }}
               >
                 <span style={{ fontSize: 20 }}>{nearObj.icon}</span>
                 Examiner
               </motion.button>
-              <p style={{ textAlign: "center", marginTop: 8,
-                color: "rgba(212,175,55,0.55)", fontSize: 11,
-                fontFamily: "var(--font-dm-sans)", letterSpacing: "0.15em",
-                textTransform: "uppercase" }}>
+              <p style={{
+                textAlign: "center", marginTop: 7,
+                color: "rgba(212,175,55,0.5)", fontSize: 10,
+                fontFamily: "var(--font-dm-sans)", letterSpacing: "0.14em",
+                textTransform: "uppercase",
+              }}>
                 {nearObj.label}
               </p>
             </motion.div>
@@ -627,25 +704,30 @@ export default function TapisScene() {
 
         {/* Objet déjà résolu */}
         {nearObj && nearSolved && !activeLock && (
-          <div style={{
-            position: "absolute",
-            bottom: "calc(28px + env(safe-area-inset-bottom))",
-            left: "50%", transform: "translateX(-50%)",
-            zIndex: 20,
-          }}>
-            <motion.div key="solved"
-              initial={{ y: 64, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 64, opacity: 0 }}
+          <div
+            key={`solved-${nearObj.id}`}
+            style={{
+              position: "absolute",
+              bottom: "calc(30px + env(safe-area-inset-bottom))",
+              left: "50%", transform: "translateX(-50%)",
+              zIndex: 20,
+            }}
+          >
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: "spring", stiffness: 380, damping: 32 }}
               style={{
                 display: "flex", alignItems: "center", gap: 10,
-                background: "rgba(4,6,8,0.88)", border: "1px solid rgba(74,222,128,0.35)",
-                borderRadius: 28, padding: "12px 24px", minHeight: 44,
+                background: "rgba(4,8,5,0.88)", border: "1px solid rgba(74,222,128,0.35)",
+                borderRadius: 28, padding: "12px 22px",
                 backdropFilter: "blur(12px)", whiteSpace: "nowrap",
               }}
             >
-              <span style={{ fontSize: 18 }}>{nearObj.icon}</span>
-              <p style={{ color: "#4ade80", fontSize: 11, letterSpacing: "0.12em",
-                textTransform: "uppercase", fontFamily: "var(--font-dm-sans)", whiteSpace: "nowrap" }}>
+              <span style={{ fontSize: 16 }}>{nearObj.icon}</span>
+              <p style={{ color: "#4ade80", fontSize: 10, letterSpacing: "0.12em",
+                textTransform: "uppercase", fontFamily: "var(--font-dm-sans)", margin: 0 }}>
                 ✓ Cadenas ouvert
               </p>
             </motion.div>
@@ -654,19 +736,23 @@ export default function TapisScene() {
 
         {/* Victoire */}
         {allSolved && (
-          <motion.div key="victory"
-            initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+          <motion.div
+            key="victory"
+            initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 30 }}
             style={{
-              position: "absolute", bottom: 80, left: 16, right: 16, zIndex: 20,
+              position: "absolute", bottom: "calc(30px + env(safe-area-inset-bottom))",
+              left: 16, right: 16, zIndex: 20,
               background: "rgba(5,92,63,0.96)", border: "1px solid rgba(5,195,111,0.55)",
               borderRadius: 20, padding: "18px 24px", textAlign: "center",
               backdropFilter: "blur(12px)",
             }}
           >
-            <p style={{ color: "var(--gold)", fontSize: 16, fontFamily: "var(--font-bricolage)", fontWeight: 600 }}>
+            <p style={{ color: "var(--gold)", fontSize: 15, fontFamily: "var(--font-bricolage)", fontWeight: 600, margin: 0 }}>
               🌙 Le Tapis Voyageur a sauvé la connaissance de Tombouctou.
             </p>
-            <p style={{ color: "var(--text)", fontSize: 12, opacity: 0.65, marginTop: 6, fontFamily: "var(--font-dm-sans)" }}>
+            <p style={{ color: "rgba(248,244,236,0.6)", fontSize: 11, marginTop: 6,
+              fontFamily: "var(--font-dm-sans)", margin: "6px 0 0" }}>
               Son voyage continue…
             </p>
           </motion.div>

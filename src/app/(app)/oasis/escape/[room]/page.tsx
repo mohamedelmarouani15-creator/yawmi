@@ -44,9 +44,9 @@ function BibliothequeFullscreen() {
           zIndex: 80,
           display: "flex", alignItems: "center", gap: 8,
           minHeight: 44,
-          background: "rgba(0,0,0,0.55)", border: "1px solid rgba(212,175,55,0.3)",
+          background: "rgba(212,175,55,0.10)", border: "1px solid rgba(212,175,55,0.35)",
           borderRadius: 24, padding: "10px 16px", color: "var(--gold)",
-          backdropFilter: "blur(8px)", textDecoration: "none",
+          backdropFilter: "blur(10px)", textDecoration: "none",
           fontFamily: "var(--font-dm-sans)", fontSize: 12,
           letterSpacing: "0.15em", textTransform: "uppercase",
         }}

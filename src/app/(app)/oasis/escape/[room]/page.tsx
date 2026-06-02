@@ -11,6 +11,8 @@ import { gameStorage } from "@/lib/game/game-storage";
 import { springTap } from "@/lib/motion";
 import type { EscapeLock } from "@/lib/game/escape-rooms";
 import EscapeLoadingScreen from "@/components/escape3d/EscapeLoadingScreen";
+import EscapeLobby, { generateSessionCode } from "@/components/escape3d/EscapeLobby";
+import { useAuth } from "@/hooks/useAuth";
 
 // Three.js ne tourne pas en SSR
 const TapisScene = dynamic(
@@ -66,6 +68,212 @@ function BibliothequeFullscreen() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+// ── Mode picker + Lobby (Tombouctou) ────────────────────────────────
+type EscapeScreen = "mode" | "lobby" | "game";
+
+function TombouctouExperience() {
+  const { user }   = useAuth();
+  const [screen,      setScreen]      = useState<EscapeScreen>("mode");
+  const [sessionCode, setSessionCode] = useState(() => generateSessionCode());
+  const [joinCode,    setJoinCode]    = useState("");
+  const [showJoin,    setShowJoin]    = useState(false);
+
+  const playerName =
+    (user?.user_metadata?.display_name as string | undefined)?.split(" ")[0]
+    ?? user?.email?.split("@")[0]
+    ?? "Joueur";
+
+  if (screen === "game")  return <BibliothequeFullscreen />;
+
+  if (screen === "lobby") return (
+    <EscapeLobby
+      sessionCode={sessionCode}
+      playerName={playerName}
+      onStart={() => setScreen("game")}
+      onLeave={() => { setScreen("mode"); setSessionCode(generateSessionCode()); setShowJoin(false); }}
+    />
+  );
+
+  // ── Écran de sélection du mode ──────────────────────────────────
+  return (
+    <div style={{
+      position: "fixed", inset: 0, zIndex: 60, overflow: "hidden",
+      background: "linear-gradient(160deg, #040E08 0%, #071A0E 50%, #030C06 100%)",
+      display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center",
+    }}>
+      {/* Particules dorées légères */}
+      {Array.from({ length: 16 }, (_, i) => (
+        <motion.div key={i}
+          animate={{ y: [0, -14, 0], opacity: [0.1, 0.45, 0.1] }}
+          transition={{ duration: 2.8 + (i % 4) * 0.6, delay: i * 0.22, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            position: "absolute",
+            left: `${(i * 41 + 7) % 94}%`, top: `${(i * 57 + 13) % 88}%`,
+            width: 2 + (i % 2), height: 2 + (i % 2), borderRadius: "50%",
+            background: "#D4AF37", pointerEvents: "none",
+          }}
+        />
+      ))}
+
+      {/* Bouton retour */}
+      <Link href="/oasis/escape" style={{
+        position: "absolute", top: "calc(16px + env(safe-area-inset-top))", left: 20,
+        display: "flex", alignItems: "center", gap: 6, color: "rgba(212,175,55,0.6)",
+        textDecoration: "none", fontFamily: "var(--font-dm-sans)", fontSize: 11,
+        letterSpacing: "0.12em", textTransform: "uppercase",
+      }}>
+        <ArrowLeft size={13} /> Retour
+      </Link>
+
+      <div style={{ textAlign: "center", padding: "0 28px", maxWidth: 360, width: "100%" }}>
+        {/* Titre jeu */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+          <p style={{ color: "#D4AF37", fontSize: 20, fontFamily: "var(--font-amiri, serif)",
+            direction: "rtl", marginBottom: 4, opacity: 0.7 }}>
+            مكتبة تمبكتو
+          </p>
+          <h1 style={{ color: "var(--text)", fontSize: 20, fontWeight: 800,
+            fontFamily: "var(--font-bricolage)", lineHeight: 1.2, marginBottom: 6 }}>
+            La Bibliothèque de Tombouctou
+          </h1>
+          <p style={{ color: "rgba(248,244,236,0.35)", fontSize: 11,
+            fontFamily: "var(--font-dm-sans)", marginBottom: 32, letterSpacing: "0.08em" }}>
+            Mali · XIVème siècle · 4 cadenas à ouvrir
+          </p>
+        </motion.div>
+
+        {/* Bouton SOLO */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
+          <motion.button
+            onClick={() => setScreen("game")}
+            whileTap={{ scale: 0.97 }}
+            style={{
+              width: "100%", height: 54, borderRadius: 27,
+              background: "#D4AF37", border: "none", cursor: "pointer",
+              color: "#061A12", fontSize: 15, fontWeight: 800,
+              fontFamily: "var(--font-bricolage)", letterSpacing: "2px",
+              textTransform: "uppercase",
+              boxShadow: "0 0 28px rgba(212,175,55,0.45)",
+              marginBottom: 12,
+            }}
+          >
+            ✈ Jouer en solo
+          </motion.button>
+        </motion.div>
+
+        {/* Section Famille */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }}>
+          {!showJoin ? (
+            <motion.button
+              onClick={() => setShowJoin(true)}
+              whileTap={{ scale: 0.97 }}
+              style={{
+                width: "100%", height: 54, borderRadius: 27,
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(212,175,55,0.25)", cursor: "pointer",
+                color: "rgba(248,244,236,0.75)", fontSize: 14, fontWeight: 700,
+                fontFamily: "var(--font-bricolage)", letterSpacing: "1px",
+              }}
+            >
+              👨‍👩‍👧 Jouer en famille
+            </motion.button>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
+              style={{
+                background: "rgba(255,255,255,0.04)", border: "1px solid rgba(212,175,55,0.2)",
+                borderRadius: 20, padding: "18px 16px",
+              }}
+            >
+              {/* Créer */}
+              <p style={{ color: "rgba(248,244,236,0.45)", fontSize: 10, letterSpacing: "0.1em",
+                textTransform: "uppercase", fontFamily: "var(--font-dm-sans)", marginBottom: 8 }}>
+                Crée ta session · partage le code
+              </p>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 10 }}>
+                <span style={{ color: "#D4AF37", fontSize: 24, fontWeight: 900,
+                  fontFamily: "var(--font-bricolage)", letterSpacing: "0.18em" }}>
+                  {sessionCode}
+                </span>
+                <motion.button
+                  onClick={() => { navigator.clipboard.writeText(sessionCode).catch(() => {}); }}
+                  whileTap={{ scale: 0.85 }}
+                  style={{ background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.3)",
+                    borderRadius: 8, padding: "4px 8px", cursor: "pointer",
+                    color: "rgba(212,175,55,0.6)", fontSize: 10 }}
+                >
+                  Copier
+                </motion.button>
+              </div>
+              <motion.button
+                onClick={() => { setSessionCode(sessionCode); setScreen("lobby"); }}
+                whileTap={{ scale: 0.97 }}
+                style={{
+                  width: "100%", height: 44, borderRadius: 22,
+                  background: "linear-gradient(135deg, #15803d, #16a34a)",
+                  border: "none", cursor: "pointer",
+                  color: "#F8F4EC", fontSize: 13, fontWeight: 700,
+                  fontFamily: "var(--font-bricolage)", marginBottom: 12,
+                  boxShadow: "0 0 18px rgba(22,163,74,0.3)",
+                }}
+              >
+                Créer la salle d&apos;attente
+              </motion.button>
+
+              {/* Rejoindre */}
+              <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 12 }}>
+                <p style={{ color: "rgba(248,244,236,0.35)", fontSize: 10, letterSpacing: "0.1em",
+                  textTransform: "uppercase", fontFamily: "var(--font-dm-sans)", marginBottom: 8 }}>
+                  Ou rejoins une session
+                </p>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input
+                    value={joinCode}
+                    onChange={e => setJoinCode(e.target.value.toUpperCase().slice(0, 4))}
+                    placeholder="CODE"
+                    maxLength={4}
+                    style={{
+                      flex: 1, height: 44, borderRadius: 12, border: "1px solid rgba(212,175,55,0.25)",
+                      background: "rgba(255,255,255,0.04)", color: "#D4AF37",
+                      fontSize: 16, fontWeight: 800, textAlign: "center",
+                      fontFamily: "var(--font-bricolage)", letterSpacing: "0.2em",
+                      outline: "none",
+                    }}
+                  />
+                  <motion.button
+                    onClick={() => { if (joinCode.length === 4) { setSessionCode(joinCode); setScreen("lobby"); } }}
+                    disabled={joinCode.length !== 4}
+                    whileTap={joinCode.length === 4 ? { scale: 0.95 } : {}}
+                    style={{
+                      height: 44, paddingInline: 16, borderRadius: 12,
+                      background: joinCode.length === 4 ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${joinCode.length === 4 ? "rgba(212,175,55,0.5)" : "rgba(255,255,255,0.08)"}`,
+                      cursor: joinCode.length === 4 ? "pointer" : "default",
+                      color: joinCode.length === 4 ? "#D4AF37" : "rgba(255,255,255,0.2)",
+                      fontSize: 12, fontWeight: 700, fontFamily: "var(--font-dm-sans)",
+                    }}
+                  >
+                    OK
+                  </motion.button>
+                </div>
+              </div>
+
+              <motion.button
+                onClick={() => setShowJoin(false)}
+                style={{ marginTop: 10, background: "none", border: "none", cursor: "pointer",
+                  color: "rgba(255,255,255,0.25)", fontSize: 11, fontFamily: "var(--font-dm-sans)" }}
+              >
+                Annuler
+              </motion.button>
+            </motion.div>
+          )}
+        </motion.div>
+      </div>
     </div>
   );
 }
@@ -355,8 +563,8 @@ export default function EscapeRoomPage() {
     </div>
   );
 
-  // ── Bibliothèque de Tombouctou → expérience 3D Tapis Voyageur ────
-  if (room.id === "room_bibliotheque_1") return <BibliothequeFullscreen />;
+  // ── Bibliothèque de Tombouctou → mode picker → lobby → jeu ────────
+  if (room.id === "room_bibliotheque_1") return <TombouctouExperience />;
 
   return (
     <motion.main

@@ -69,8 +69,8 @@ const vertexShader = /* glsl */`
   varying vec2 vUv;
   void main() {
     vec3 pos = position;
-    pos.z += sin(pos.x * 4.0 + uTime * 2.0) * 0.020;
-    pos.z += cos(pos.y * 3.0 + uTime * 1.5) * 0.015;
+    pos.z += sin(pos.x * 3.0 + uTime * 2.0) * 0.015;
+    pos.z += cos(pos.y * 4.0 + uTime * 1.5) * 0.010;
     vUv = uv;
     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
   }
@@ -162,26 +162,33 @@ export default function TapisVolant({
     const base = posRef?.current ?? defaultPos.current;
     groupRef.current.position.set(
       base.x,
-      base.y + Math.sin(t * 1.2) * 0.06 + danceJumpY,
+      base.y + Math.sin(t * 1.2) * 0.07 + danceJumpY,
       base.z,
     );
 
     // Orientation yaw (+PI pour que la face décorée regarde vers l'avant)
     if (yawRef) groupRef.current.rotation.y = yawRef.current + Math.PI;
 
-    // ── Inclinaisons — tapis à plat style Aladin ─────────────────
+    // ── Inclinaisons dynamiques — seuils précis ──────────────────
     const vel = velRef?.current ?? velocity;
 
-    // Avant/arrière : s'incline vers l'avant quand il avance
+    // Avant/arrière : -0.18 (avance) / +0.18 (recule) / 0 (repos)
+    const targetX = isDancing ? 0
+                  : vel.z > 0.004 ? -0.18
+                  : vel.z < -0.004 ? 0.18
+                  : 0;
     groupRef.current.rotation.x = THREE.MathUtils.lerp(
-      groupRef.current.rotation.x,
-      isDancing ? 0 : -vel.z * 1.5,
-      isDancing ? 0.25 : 0.08,
+      groupRef.current.rotation.x, targetX, isDancing ? 0.25 : 0.08,
     );
-    // Gauche/droite : s'incline dans les virages et strafe
-    groupRef.current.rotation.z = isDancing
-      ? danceWobbleZ
-      : THREE.MathUtils.lerp(groupRef.current.rotation.z, vel.x * -0.12, 0.08);
+
+    // Gauche/droite : -0.15 (virage droite) / +0.15 (gauche) / 0
+    const targetZ = isDancing ? danceWobbleZ
+                  : vel.x > 0.08 ? -0.15
+                  : vel.x < -0.08 ? 0.15
+                  : 0;
+    groupRef.current.rotation.z = THREE.MathUtils.lerp(
+      groupRef.current.rotation.z, targetZ, 0.08,
+    );
   });
 
   return (
@@ -198,6 +205,8 @@ export default function TapisVolant({
       <lineSegments geometry={fringeGeo}>
         <lineBasicMaterial color="#D4AF37" transparent opacity={0.8} />
       </lineSegments>
+      {/* Aura dorée sous le tapis — éclaire le sol en dessous */}
+      <pointLight color="#D4AF37" intensity={0.4} distance={3} decay={2} position={[0, -0.15, 0]} />
     </group>
   );
 }

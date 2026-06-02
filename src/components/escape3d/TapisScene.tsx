@@ -314,7 +314,7 @@ export default function TapisScene() {
   const moveRef   = useRef({ x: 0, z: 0 });   // touch zone gauche
   const lookRef   = useRef({ x: 0 });           // touch zone droite
   const inputRef  = useRef({ x: 0, y: 0 });    // clavier
-  const posRef    = useRef(new THREE.Vector3(0, 0.4, 0));
+  const posRef    = useRef(new THREE.Vector3(0, 0.5, 0));
   const yawRef    = useRef(0);
   const velRef    = useRef({ x: 0, z: 0 });    // pour les inclinaisons visuelles
   const nearIdRef = useRef<string | null>(null);

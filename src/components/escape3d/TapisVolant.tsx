@@ -4,31 +4,25 @@ import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
-// ── Texture procédurale du tapis ────────────────────────────────────
+// ── Texture procédurale ─────────────────────────────────────────────
 function makeTapisTexture(): THREE.CanvasTexture {
   const W = 480, H = 320;
   const canvas = document.createElement("canvas");
   canvas.width = W; canvas.height = H;
   const ctx = canvas.getContext("2d")!;
 
-  // Fond vert émeraude
   ctx.fillStyle = "#055C3F";
   ctx.fillRect(0, 0, W, H);
 
-  // Bordure épaisse extérieure
   const B = 18;
   ctx.strokeStyle = "#D4AF37";
   ctx.lineWidth = B;
   ctx.strokeRect(B / 2, B / 2, W - B, H - B);
-
-  // Bordure fine intérieure
   ctx.lineWidth = 2;
   ctx.strokeRect(B + 8, B + 8, W - (B + 8) * 2, H - (B + 8) * 2);
 
-  // Mihrab (arche islamique en haut du tapis — indique la Qibla)
-  const archCx = W / 2;
-  const archBaseY = H * 0.74;
-  const archW = 88, archH = 96;
+  // Mihrab (arche Qibla)
+  const archCx = W / 2, archBaseY = H * 0.74, archW = 88, archH = 96;
   ctx.beginPath();
   ctx.moveTo(archCx - archW / 2, archBaseY);
   ctx.lineTo(archCx - archW / 2, archBaseY - archH * 0.5);
@@ -36,61 +30,31 @@ function makeTapisTexture(): THREE.CanvasTexture {
   ctx.quadraticCurveTo(archCx + archW / 2, archBaseY - archH, archCx + archW / 2, archBaseY - archH * 0.5);
   ctx.lineTo(archCx + archW / 2, archBaseY);
   ctx.closePath();
-  ctx.strokeStyle = "#D4AF37";
-  ctx.lineWidth = 2.5;
-  ctx.globalAlpha = 0.55;
-  ctx.stroke();
-  ctx.globalAlpha = 0.07;
-  ctx.fillStyle = "#D4AF37";
-  ctx.fill();
-  ctx.globalAlpha = 1;
+  ctx.strokeStyle = "#D4AF37"; ctx.lineWidth = 2.5; ctx.globalAlpha = 0.55; ctx.stroke();
+  ctx.globalAlpha = 0.07; ctx.fillStyle = "#D4AF37"; ctx.fill(); ctx.globalAlpha = 1;
 
-  // Étoile islamique à 8 branches au centre
-  const cx = W / 2, cy = H / 2;
-  const R = Math.min(W, H) * 0.22;
-  const r = R * 0.42;
+  // Étoile islamique à 8 branches
+  const cx = W / 2, cy = H / 2, R = Math.min(W, H) * 0.22, r = R * 0.42;
   ctx.beginPath();
   for (let i = 0; i < 16; i++) {
     const radius = i % 2 === 0 ? R : r;
-    const angle = (i * Math.PI) / 8 - Math.PI / 2;
-    const x = cx + radius * Math.cos(angle);
-    const y = cy + radius * Math.sin(angle);
+    const angle  = (i * Math.PI) / 8 - Math.PI / 2;
+    const x = cx + radius * Math.cos(angle), y = cy + radius * Math.sin(angle);
     if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
   }
   ctx.closePath();
-  ctx.fillStyle = "#D4AF37";
-  ctx.globalAlpha = 0.9;
-  ctx.fill();
-  ctx.globalAlpha = 1;
+  ctx.fillStyle = "#D4AF37"; ctx.globalAlpha = 0.9; ctx.fill(); ctx.globalAlpha = 1;
 
-  // Cercle central vert (cœur de l'étoile)
-  ctx.beginPath();
-  ctx.arc(cx, cy, r * 0.58, 0, Math.PI * 2);
-  ctx.fillStyle = "#055C3F";
-  ctx.fill();
-  ctx.strokeStyle = "#D4AF37";
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
+  ctx.beginPath(); ctx.arc(cx, cy, r * 0.58, 0, Math.PI * 2);
+  ctx.fillStyle = "#055C3F"; ctx.fill();
+  ctx.strokeStyle = "#D4AF37"; ctx.lineWidth = 1.5; ctx.stroke();
 
-  // Ornements losanges aux 4 coins
-  [
-    [B + 24, B + 24],
-    [W - B - 24, B + 24],
-    [B + 24, H - B - 24],
-    [W - B - 24, H - B - 24],
-  ].forEach(([x, y]) => {
-    ctx.save();
-    ctx.translate(x, y);
-    ctx.strokeStyle = "#D4AF37";
-    ctx.lineWidth = 1.5;
-    ctx.globalAlpha = 0.65;
-    ctx.beginPath();
-    ctx.moveTo(0, -10); ctx.lineTo(10, 0); ctx.lineTo(0, 10); ctx.lineTo(-10, 0);
-    ctx.closePath(); ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(-6, 0); ctx.lineTo(6, 0);
-    ctx.moveTo(0, -6); ctx.lineTo(0, 6);
-    ctx.stroke();
+  // Ornements d'angle
+  [[B + 24, B + 24], [W - B - 24, B + 24], [B + 24, H - B - 24], [W - B - 24, H - B - 24]].forEach(([x, y]) => {
+    ctx.save(); ctx.translate(x, y); ctx.strokeStyle = "#D4AF37";
+    ctx.lineWidth = 1.5; ctx.globalAlpha = 0.65;
+    ctx.beginPath(); ctx.moveTo(0,-10); ctx.lineTo(10,0); ctx.lineTo(0,10); ctx.lineTo(-10,0); ctx.closePath(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-6,0); ctx.lineTo(6,0); ctx.moveTo(0,-6); ctx.lineTo(0,6); ctx.stroke();
     ctx.restore();
   });
 
@@ -99,7 +63,7 @@ function makeTapisTexture(): THREE.CanvasTexture {
   return tex;
 }
 
-// ── Shader d'ondulation (vertex) ────────────────────────────────────
+// ── Shaders ─────────────────────────────────────────────────────────
 const vertexShader = /* glsl */`
   uniform float uTime;
   varying vec2 vUv;
@@ -111,24 +75,19 @@ const vertexShader = /* glsl */`
     gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
   }
 `;
-
 const fragmentShader = /* glsl */`
   uniform sampler2D uTex;
   varying vec2 vUv;
-  void main() {
-    gl_FragColor = texture2D(uTex, vUv);
-  }
+  void main() { gl_FragColor = texture2D(uTex, vUv); }
 `;
 
-// ── Géométrie des franges ───────────────────────────────────────────
+// ── Franges ─────────────────────────────────────────────────────────
 function makeFringeGeometry(): THREE.BufferGeometry {
   const count = 20;
   const pts: number[] = [];
   for (let i = 0; i < count; i++) {
     const x = -0.55 + (i / (count - 1)) * 1.1;
-    // Franges avant (z = -0.41)
     pts.push(x, 0, -0.41,  x, -0.08, -0.41);
-    // Franges arrière (z = +0.41)
     pts.push(x, 0,  0.41,  x, -0.08,  0.41);
   }
   const geo = new THREE.BufferGeometry();
@@ -136,60 +95,71 @@ function makeFringeGeometry(): THREE.BufferGeometry {
   return geo;
 }
 
-// ── Composant ───────────────────────────────────────────────────────
+// ── Props ────────────────────────────────────────────────────────────
 export interface TapisVolantProps {
+  // Mode standalone (page de test)
   basePosition?: [number, number, number];
   velocity?:     { x: number; z: number };
+  // Mode piloté (jeu complet) — les refs sont mutées par TapisScene
+  posRef?: React.RefObject<THREE.Vector3>;
+  yawRef?: React.RefObject<number>;
+  velRef?: React.RefObject<{ x: number; z: number }>;
 }
 
 export default function TapisVolant({
   basePosition = [0, 0.3, 0],
   velocity     = { x: 0, z: 0 },
+  posRef,
+  yawRef,
+  velRef,
 }: TapisVolantProps) {
   const groupRef    = useRef<THREE.Group>(null!);
+  const defaultPos  = useRef(new THREE.Vector3(...basePosition));
   const uniformsRef = useRef<{
     uTime: { value: number };
     uTex:  { value: THREE.Texture | null };
   }>({ uTime: { value: 0 }, uTex: { value: null } });
 
-  const texture  = useMemo(() => typeof window !== "undefined" ? makeTapisTexture() : null, []);
+  const texture   = useMemo(() => typeof window !== "undefined" ? makeTapisTexture() : null, []);
   const fringeGeo = useMemo(() => makeFringeGeometry(), []);
 
-  // Injecter la texture dans les uniforms dès qu'elle est disponible
-  if (texture && !uniformsRef.current.uTex.value) {
-    uniformsRef.current.uTex.value = texture;
-  }
+  if (texture && !uniformsRef.current.uTex.value) uniformsRef.current.uTex.value = texture;
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     uniformsRef.current.uTime.value = t;
-
     if (!groupRef.current) return;
 
-    // Flottement vertical doux
+    // Position — ref externe ou défaut
+    const base = posRef?.current ?? defaultPos.current;
     groupRef.current.position.set(
-      basePosition[0],
-      basePosition[1] + Math.sin(t * 1.2) * 0.08,
-      basePosition[2],
+      base.x,
+      base.y + Math.sin(t * 1.2) * 0.08,  // flottement
+      base.z,
     );
 
-    // Inclinaison vers l'avant en mouvement (style Aladin)
+    // Orientation yaw
+    if (yawRef) groupRef.current.rotation.y = yawRef.current;
+
+    // Inclinaison en mouvement (style Aladin)
+    const vel = velRef?.current ?? velocity;
+    const speed = Math.sqrt(vel.x * vel.x + vel.z * vel.z);
+    // Inclinaison avant/arrière relative à la direction de déplacement
     groupRef.current.rotation.x = THREE.MathUtils.lerp(
       groupRef.current.rotation.x,
-      velocity.z * -0.15,
-      0.1,
+      -speed * 0.10,
+      0.12,
     );
-    // Inclinaison latérale dans les virages
+    // Inclinaison latérale dans les virages (lecture de vel.x = strafe)
     groupRef.current.rotation.z = THREE.MathUtils.lerp(
       groupRef.current.rotation.z,
-      velocity.x * -0.1,
-      0.1,
+      vel.x * -0.08,
+      0.12,
     );
   });
 
   return (
     <group ref={groupRef} castShadow>
-      {/* Corps du tapis — plan horizontal avec shader d'ondulation */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} castShadow receiveShadow>
         <planeGeometry args={[1.2, 0.8, 20, 20]} />
         <shaderMaterial
@@ -199,8 +169,6 @@ export default function TapisVolant({
           side={THREE.DoubleSide}
         />
       </mesh>
-
-      {/* Franges dorées aux deux extrémités */}
       <lineSegments geometry={fringeGeo}>
         <lineBasicMaterial color="#D4AF37" transparent opacity={0.8} />
       </lineSegments>

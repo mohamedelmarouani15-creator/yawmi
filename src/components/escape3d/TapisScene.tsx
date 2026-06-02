@@ -442,7 +442,7 @@ export default function TapisScene() {
         } else if (touch.identifier === lookTouchId.current) {
           const dx = touch.clientX - prevLook.current.x;
           prevLook.current = { x: touch.clientX };
-          lookRef.current.x += dx * LOOK_SPEED;
+          lookRef.current.x -= dx * LOOK_SPEED;
         }
       }
     }

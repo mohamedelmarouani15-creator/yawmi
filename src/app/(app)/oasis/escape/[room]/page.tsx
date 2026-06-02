@@ -10,6 +10,7 @@ import { getEscapeRoom, getCurrentEscapeRoom } from "@/lib/game/escape-rooms";
 import { gameStorage } from "@/lib/game/game-storage";
 import { springTap } from "@/lib/motion";
 import type { EscapeLock } from "@/lib/game/escape-rooms";
+import EscapeLoadingScreen from "@/components/escape3d/EscapeLoadingScreen";
 
 // Three.js ne tourne pas en SSR
 const TapisScene = dynamic(
@@ -19,19 +20,26 @@ const TapisScene = dynamic(
 
 // ── Expérience 3D plein écran (Bibliothèque de Tombouctou) ──────────
 function BibliothequeFullscreen() {
+  const [loading, setLoading] = useState(true);
+
   return (
     <div style={{
       position: "fixed", inset: 0, zIndex: 60,
       background: "#080502", overflow: "hidden",
     }}>
-      {/* Bouton quitter */}
+      {/* Scène 3D — charge en parallèle dès le montage */}
+      <Suspense fallback={null}>
+        <TapisScene />
+      </Suspense>
+
+      {/* Bouton quitter — toujours au-dessus */}
       <Link
         href="/oasis/escape"
         style={{
           position: "absolute",
           top: "calc(16px + env(safe-area-inset-top))",
           left: "calc(16px + env(safe-area-inset-left))",
-          zIndex: 50,
+          zIndex: 80,
           display: "flex", alignItems: "center", gap: 8,
           minHeight: 44,
           background: "rgba(0,0,0,0.55)", border: "1px solid rgba(212,175,55,0.3)",
@@ -45,29 +53,19 @@ function BibliothequeFullscreen() {
         Quitter
       </Link>
 
-      <Suspense fallback={
-        <div style={{
-          width: "100%", height: "100%",
-          display: "flex", flexDirection: "column",
-          alignItems: "center", justifyContent: "center", gap: 14,
-        }}>
-          <div style={{
-            width: 32, height: 32, borderRadius: "50%",
-            border: "2px solid #D4AF37", borderTopColor: "transparent",
-            animation: "spin 0.8s linear infinite",
-          }} />
-          <p style={{
-            color: "rgba(212,175,55,0.5)", fontSize: 10,
-            fontFamily: "var(--font-dm-sans)", letterSpacing: "0.2em",
-            textTransform: "uppercase",
-          }}>
-            La bibliothèque s&apos;éveille…
-          </p>
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-        </div>
-      }>
-        <TapisScene />
-      </Suspense>
+      {/* Écran de chargement — overlay 2 secondes minimum */}
+      <AnimatePresence>
+        {loading && (
+          <motion.div
+            key="loading"
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.55, ease: "easeInOut" }}
+            style={{ position: "absolute", inset: 0, zIndex: 70 }}
+          >
+            <EscapeLoadingScreen onDone={() => setLoading(false)} />
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

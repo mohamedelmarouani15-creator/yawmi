@@ -11,10 +11,11 @@ import { getEscapeRoom } from "@/lib/game/escape-rooms";
 import type { EscapeLock } from "@/lib/game/escape-rooms";
 import { gameStorage } from "@/lib/game/game-storage";
 
-const SPEED      = 4.0;    // vitesse clavier (unités/s)
-const TURN_SPEED = 2.2;    // virage clavier (rad/s)
-const MOVE_SPEED = 0.022;  // touch mouvement (unités/pixel) — pur avant/arrière
-const LOOK_SPEED = 0.010;  // touch rotation (rad/pixel) — plus réactif
+const SPEED          = 4.0;   // vitesse clavier (unités/s)
+const TURN_SPEED     = 2.2;   // virage clavier (rad/s)
+const LOOK_SPEED     = 0.010; // touch rotation (rad/pixel)
+const STICK_MAX      = 55;    // pixels — rayon max du joystick virtuel
+const MAX_TOUCH_VEL  = 0.08;  // unités/frame à pleine poussée (≈ 4.8u/s à 60fps)
 const BOUNDS     = { xMin: -6.5, xMax: 6.5, zMin: -9.5, zMax: 9.5 };
 const STORAGE_KEY = "escape_room_bibliotheque_1";
 const ROOM_COLOR  = "#8B4513";
@@ -29,6 +30,8 @@ function TapisMovement({ moveRef, lookRef, inputRef, posRef, yawRef, velRef, nea
   velRef:    React.RefObject<{ x: number; z: number }>;
   nearIdRef: React.RefObject<string | null>;
 }) {
+  const smoothMzRef = useRef(0); // vitesse lissée — persiste entre frames
+
   useFrame((_, dt) => {
     // === ROTATION ===
     const touchLook = lookRef.current.x;           // delta touch (zone droite)
@@ -36,16 +39,17 @@ function TapisMovement({ moveRef, lookRef, inputRef, posRef, yawRef, velRef, nea
     yawRef.current += touchLook + keyLook;
     lookRef.current.x = 0;                         // consommé
 
-    // === DÉPLACEMENT — pur avant/arrière (pas de strafe touch) ===
-    const mz = moveRef.current.z + inputRef.current.y * SPEED * dt;
+    // === DÉPLACEMENT — joystick virtuel avec lerp (accélération fluide) ===
+    const targetMz = moveRef.current.z + inputRef.current.y * SPEED * dt;
 
-    // Consommer moveRef : le tapis s'arrête si le doigt ne glisse plus
-    moveRef.current.z = 0;
+    // Lerp vers la vitesse cible → démarrage/arrêt progressif (pas de saccade)
+    smoothMzRef.current = THREE.MathUtils.lerp(smoothMzRef.current, targetMz, 0.22);
+    const mz = smoothMzRef.current;
 
     // Signal visuel pour TapisVolant (inclinaison avant/arrière + banking virage)
     velRef.current = { x: touchLook * 12, z: mz };
 
-    if (Math.abs(mz) < 0.0001) return;
+    if (Math.abs(mz) < 0.0002) return;
 
     // Ralentissement de proximité près des objets
     let mult = 1.0;
@@ -361,10 +365,10 @@ export default function TapisScene() {
   const victoryRef = useRef(false);
 
   // Suivi des touches style Weeplay — une par zone max
-  const moveTouchId = useRef<number | null>(null);
-  const lookTouchId = useRef<number | null>(null);
-  const prevMove    = useRef({ x: 0, y: 0 });
-  const prevLook    = useRef({ x: 0 });
+  const moveTouchId  = useRef<number | null>(null);
+  const lookTouchId  = useRef<number | null>(null);
+  const moveStartPos = useRef({ x: 0, y: 0 }); // point d'appui initial (joystick virtuel)
+  const prevLook     = useRef({ x: 0 });
   const overlayRef  = useRef<HTMLDivElement>(null);
 
   // Indicateur visuel zone gauche (cercle doré au point de contact)
@@ -421,7 +425,7 @@ export default function TapisScene() {
         const isLeft = touch.clientX < window.innerWidth * 0.5;
         if (isLeft && moveTouchId.current === null) {
           moveTouchId.current = touch.identifier;
-          prevMove.current = { x: touch.clientX, y: touch.clientY };
+          moveStartPos.current = { x: touch.clientX, y: touch.clientY };
           setIndicator({ x: touch.clientX, y: touch.clientY });
         } else if (!isLeft && lookTouchId.current === null) {
           lookTouchId.current = touch.identifier;
@@ -434,11 +438,10 @@ export default function TapisScene() {
       e.preventDefault();
       for (const touch of Array.from(e.changedTouches)) {
         if (touch.identifier === moveTouchId.current) {
-          const dx = touch.clientX - prevMove.current.x;
-          const dy = touch.clientY - prevMove.current.y;
-          prevMove.current = { x: touch.clientX, y: touch.clientY };
-          // Axe vertical uniquement — pas de strafe touch
-          moveRef.current.z = -dy * MOVE_SPEED;
+          // Offset depuis le point d'appui initial = vitesse (joystick virtuel)
+          const dy = touch.clientY - moveStartPos.current.y;
+          const clamped = Math.max(-STICK_MAX, Math.min(STICK_MAX, dy));
+          moveRef.current.z = -(clamped / STICK_MAX) * MAX_TOUCH_VEL;
         } else if (touch.identifier === lookTouchId.current) {
           const dx = touch.clientX - prevLook.current.x;
           prevLook.current = { x: touch.clientX };
@@ -451,8 +454,7 @@ export default function TapisScene() {
       for (const touch of Array.from(e.changedTouches)) {
         if (touch.identifier === moveTouchId.current) {
           moveTouchId.current = null;
-          moveRef.current.x = 0;
-          moveRef.current.z = 0;
+          moveRef.current.z = 0;  // cible → lerp amène doucement à 0
           setIndicator(null);
         } else if (touch.identifier === lookTouchId.current) {
           lookTouchId.current = null;
@@ -463,7 +465,6 @@ export default function TapisScene() {
     function onTouchCancel() {
       moveTouchId.current = null;
       lookTouchId.current = null;
-      moveRef.current.x = 0;
       moveRef.current.z = 0;
       setIndicator(null);
     }

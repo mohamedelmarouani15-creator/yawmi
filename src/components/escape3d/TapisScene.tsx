@@ -6,7 +6,6 @@ import { Stars, Environment } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
 import * as THREE from "three";
 import TapisVolant from "./TapisVolant";
-import VirtualJoystick from "./VirtualJoystick";
 import LibraryObjects, { LIBRARY_OBJECTS, PROX_THRESHOLD } from "./LibraryObjects";
 import { getEscapeRoom } from "@/lib/game/escape-rooms";
 import type { EscapeLock } from "@/lib/game/escape-rooms";
@@ -14,9 +13,17 @@ import { gameStorage } from "@/lib/game/game-storage";
 
 const SPEED       = 4.0;
 const TURN_SPEED  = 2.2;
+const MOVE_SPEED  = 0.003;  // world units per pixel (left stick)
+const LOOK_SPEED  = 0.004;  // radians per pixel (right stick)
 const BOUNDS      = { xMin: -6.5, xMax: 6.5, zMin: -9.5, zMax: 9.5 };
 const STORAGE_KEY = "escape_room_bibliotheque_1";
 const ROOM_COLOR  = "#8B4513";
+
+interface TouchState {
+  currentX: number;
+  currentY: number;
+  zone: "move" | "look";
+}
 
 // ── Mouvement du tapis ──────────────────────────────────────────────
 function TapisMovement({ inputRef, posRef, yawRef, velRef, nearIdRef }: {
@@ -30,7 +37,6 @@ function TapisMovement({ inputRef, posRef, yawRef, velRef, nearIdRef }: {
     const inp = inputRef.current;
     if (!inp) return;
 
-    // Ralentissement progressif près des objets
     let minDist = Infinity;
     if (nearIdRef.current) {
       const obj = LIBRARY_OBJECTS.find(o => o.id === nearIdRef.current);
@@ -46,7 +52,6 @@ function TapisMovement({ inputRef, posRef, yawRef, velRef, nearIdRef }: {
 
     yawRef.current += inp.x * TURN_SPEED * dt;
 
-    // forward = (sin yaw, 0, cos yaw) — relatif à la direction du tapis
     const fwd = inp.y;
     const vx  =  Math.sin(yawRef.current) * fwd * SPEED * speedMult;
     const vz  =  Math.cos(yawRef.current) * fwd * SPEED * speedMult;
@@ -93,7 +98,6 @@ function CameraFollower({ posRef, yawRef }: {
   useFrame(({ camera }) => {
     const yaw = yawRef.current;
     const pos = posRef.current;
-    // caméra derrière le tapis = carpet - forward * 2.5 + up * 1.5
     targetPos.current.set(
       pos.x - Math.sin(yaw) * 2.5,
       pos.y + 1.5,
@@ -196,7 +200,7 @@ function Scene({ inputRef, posRef, yawRef, velRef, nearIdRef, setNearId, nearId,
   );
 }
 
-// ── Modal cadenas (réutilisé depuis escape/[room]/page.tsx) ─────────
+// ── Modal cadenas ────────────────────────────────────────────────────
 function LockModal({ lock, onSolve, onClose }: {
   lock:    EscapeLock;
   onSolve: (lockId: number) => void;
@@ -298,16 +302,19 @@ function LockModal({ lock, onSolve, onClose }: {
 
 // ── Export principal ────────────────────────────────────────────────
 export default function TapisScene() {
-  const inputRef   = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
-  const posRef     = useRef(new THREE.Vector3(0, 0.3, 0));
-  const yawRef     = useRef(0);
-  const velRef     = useRef({ x: 0, z: 0 });
-  const nearIdRef  = useRef<string | null>(null);
-  const victoryRef = useRef(false);
+  const inputRef      = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const posRef        = useRef(new THREE.Vector3(0, 0.3, 0));
+  const yawRef        = useRef(0);
+  const velRef        = useRef({ x: 0, z: 0 });
+  const nearIdRef     = useRef<string | null>(null);
+  const victoryRef    = useRef(false);
+  const activeTouches = useRef(new Map<number, TouchState>());
+  const overlayRef    = useRef<HTMLDivElement>(null);
 
   const [nearId,      setNearId]      = useState<string | null>(null);
   const [activeLock,  setActiveLock]  = useState<EscapeLock | null>(null);
   const [flash,       setFlash]       = useState(false);
+  const [isPortrait,  setIsPortrait]  = useState(false);
   const [solvedLocks, setSolvedLocks] = useState<number[]>(() => {
     if (typeof window === "undefined") return [];
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]"); } catch { return []; }
@@ -317,11 +324,104 @@ export default function TapisScene() {
   const nearSolved = nearObj ? solvedLocks.includes(nearObj.lockId) : false;
   const allSolved  = solvedLocks.length >= 4;
 
+  // Détection et verrouillage de l'orientation paysage
+  useEffect(() => {
+    const checkOrientation = () => {
+      const portrait = window.innerHeight > window.innerWidth;
+      setIsPortrait(portrait);
+    };
+    checkOrientation();
+
+    try {
+      const orient = screen.orientation as ScreenOrientation & { lock?: (o: string) => Promise<void> };
+      orient.lock?.("landscape")?.catch(() => {});
+    } catch {}
+
+    window.addEventListener("resize", checkOrientation);
+    window.addEventListener("orientationchange", checkOrientation);
+    return () => {
+      window.removeEventListener("resize", checkOrientation);
+      window.removeEventListener("orientationchange", checkOrientation);
+    };
+  }, []);
+
+  // Dual stick invisible — touch handlers
+  useEffect(() => {
+    const overlay = overlayRef.current;
+    if (!overlay) return;
+
+    function getSpeedMult(): number {
+      if (!nearIdRef.current) return 1.0;
+      const obj = LIBRARY_OBJECTS.find(o => o.id === nearIdRef.current);
+      if (!obj) return 1.0;
+      const dx = posRef.current.x - obj.position[0];
+      const dz = posRef.current.z - obj.position[2];
+      const d  = Math.sqrt(dx * dx + dz * dz);
+      if (d < 0.85) return 0.04;
+      if (d < PROX_THRESHOLD) return (d - 0.85) / (PROX_THRESHOLD - 0.85) * 0.35;
+      return 1.0;
+    }
+
+    function onTouchStart(e: TouchEvent) {
+      e.preventDefault();
+      Array.from(e.changedTouches).forEach(touch => {
+        activeTouches.current.set(touch.identifier, {
+          currentX: touch.clientX,
+          currentY: touch.clientY,
+          zone: touch.clientX < window.innerWidth / 2 ? "move" : "look",
+        });
+      });
+    }
+
+    function onTouchMove(e: TouchEvent) {
+      e.preventDefault();
+      Array.from(e.changedTouches).forEach(touch => {
+        const t = activeTouches.current.get(touch.identifier);
+        if (!t) return;
+        const dx = touch.clientX - t.currentX;
+        const dy = touch.clientY - t.currentY;
+        t.currentX = touch.clientX;
+        t.currentY = touch.clientY;
+
+        if (t.zone === "move") {
+          const yaw  = yawRef.current;
+          const mult = getSpeedMult();
+          // forward = (sin yaw, 0, cos yaw), right = (cos yaw, 0, -sin yaw)
+          const newX = posRef.current.x
+            + (-dy * Math.sin(yaw) + dx * Math.cos(yaw)) * MOVE_SPEED * mult * 60;
+          const newZ = posRef.current.z
+            + (-dy * Math.cos(yaw) - dx * Math.sin(yaw)) * MOVE_SPEED * mult * 60;
+          posRef.current.x = Math.max(BOUNDS.xMin, Math.min(BOUNDS.xMax, newX));
+          posRef.current.z = Math.max(BOUNDS.zMin, Math.min(BOUNDS.zMax, newZ));
+        } else {
+          yawRef.current += dx * LOOK_SPEED;
+        }
+      });
+    }
+
+    function onTouchEnd(e: TouchEvent) {
+      Array.from(e.changedTouches).forEach(touch => {
+        activeTouches.current.delete(touch.identifier);
+      });
+    }
+
+    overlay.addEventListener("touchstart",  onTouchStart,  { passive: false });
+    overlay.addEventListener("touchmove",   onTouchMove,   { passive: false });
+    overlay.addEventListener("touchend",    onTouchEnd,    { passive: true  });
+    overlay.addEventListener("touchcancel", onTouchEnd,    { passive: true  });
+
+    return () => {
+      overlay.removeEventListener("touchstart",  onTouchStart);
+      overlay.removeEventListener("touchmove",   onTouchMove);
+      overlay.removeEventListener("touchend",    onTouchEnd);
+      overlay.removeEventListener("touchcancel", onTouchEnd);
+    };
+  }, []);
+
   const solveLock = useCallback((lockId: number) => {
     setSolvedLocks(prev => {
       const next = prev.includes(lockId) ? prev : [...prev, lockId];
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      // Récompenses au dernier cadenas (une seule fois)
       if (next.length === 4 && prev.length < 4) {
         gameStorage.addXP(400);
         gameStorage.addCoins(100);
@@ -335,11 +435,7 @@ export default function TapisScene() {
     setTimeout(() => setFlash(false), 480);
   }, []);
 
-  const onJoystick = useCallback((v: { x: number; y: number }) => {
-    inputRef.current = v;
-  }, []);
-
-  // Clavier WASD / flèches
+  // Clavier WASD / flèches (desktop)
   useEffect(() => {
     const keys = new Set<string>();
     const read = () => {
@@ -376,6 +472,46 @@ export default function TapisScene() {
         />
       </Canvas>
 
+      {/* Overlay invisible — capture les touches mobile */}
+      <div
+        ref={overlayRef}
+        style={{
+          position: "absolute", inset: 0, zIndex: 10,
+          touchAction: "none", userSelect: "none",
+        }}
+      />
+
+      {/* Message portrait → paysage */}
+      <AnimatePresence>
+        {isPortrait && (
+          <motion.div
+            key="portrait-warning"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{
+              position: "absolute", inset: 0, zIndex: 50,
+              background: "rgba(8,5,2,0.96)",
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center", gap: 16,
+            }}
+          >
+            <span style={{ fontSize: 48 }}>↻</span>
+            <p style={{
+              color: "var(--gold)", fontSize: 18, fontWeight: 700,
+              fontFamily: "var(--font-bricolage)", textAlign: "center",
+              padding: "0 32px",
+            }}>
+              Tourne ton iPhone pour jouer
+            </p>
+            <p style={{
+              color: "rgba(248,244,236,0.45)", fontSize: 13,
+              fontFamily: "var(--font-dm-sans)", textAlign: "center",
+            }}>
+              Le Tapis Voyageur se pilote en mode paysage
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Flash doré — victoire cadenas */}
       <AnimatePresence>
         {flash && (
@@ -393,34 +529,23 @@ export default function TapisScene() {
         )}
       </AnimatePresence>
 
-      {/* Joystick — safe area inset */}
-      <div style={{
-        position: "absolute",
-        bottom: "calc(36px + env(safe-area-inset-bottom))",
-        left: "calc(28px + env(safe-area-inset-left))",
-        zIndex: 20, touchAction: "none",
-      }}>
-        <VirtualJoystick onChange={onJoystick} />
-      </div>
-
-      {/* Légende clavier — masquée sur mobile */}
+      {/* Légende clavier — desktop uniquement */}
       <p className="hidden md:block" style={{
-        position: "absolute", bottom: 20, right: 20, zIndex: 10, pointerEvents: "none",
+        position: "absolute", bottom: 20, right: 20, zIndex: 20, pointerEvents: "none",
         color: "rgba(212,175,55,0.28)", fontSize: 9, fontFamily: "var(--font-dm-sans)",
         letterSpacing: "0.15em", textTransform: "uppercase", whiteSpace: "nowrap",
       }}>
         WASD · flèches
       </p>
 
-      {/* Bouton EXAMINER — grand, centré, mobile-friendly */}
+      {/* Bouton EXAMINER — bas centre, accessible aux deux pouces */}
       <AnimatePresence>
         {nearObj && !nearSolved && !activeLock && !allSolved && (
-          /* Wrapper fixe pour le centrage — motion.div gère uniquement l'animation */
           <div style={{
             position: "absolute",
-            bottom: "calc(100px + env(safe-area-inset-bottom))",
+            bottom: "calc(28px + env(safe-area-inset-bottom))",
             left: "50%", transform: "translateX(-50%)",
-            zIndex: 20, width: "80%", maxWidth: 320,
+            zIndex: 20, width: 200,
           }}>
           <motion.div
             key="examiner"
@@ -433,17 +558,17 @@ export default function TapisScene() {
               onClick={openExamine}
               whileTap={{ scale: 0.96 }}
               style={{
-                width: "100%", height: 60,
+                width: 200, height: 55,
                 background: "#D4AF37",
-                color: "#061A12", fontSize: 18, fontWeight: 800,
-                border: "none", borderRadius: 30, cursor: "pointer",
+                color: "#061A12", fontSize: 16, fontWeight: 800,
+                border: "none", borderRadius: 28, cursor: "pointer",
                 fontFamily: "var(--font-bricolage)", letterSpacing: "2px",
                 textTransform: "uppercase",
                 boxShadow: "0 0 24px rgba(212,175,55,0.55)",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
               }}
             >
-              <span style={{ fontSize: 22 }}>{nearObj.icon}</span>
+              <span style={{ fontSize: 20 }}>{nearObj.icon}</span>
               Examiner
             </motion.button>
             <p style={{
@@ -462,7 +587,7 @@ export default function TapisScene() {
         {nearObj && nearSolved && !activeLock && (
           <div style={{
             position: "absolute",
-            bottom: "calc(100px + env(safe-area-inset-bottom))",
+            bottom: "calc(28px + env(safe-area-inset-bottom))",
             left: "50%", transform: "translateX(-50%)",
             zIndex: 20,
           }}>

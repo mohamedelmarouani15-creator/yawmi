@@ -6,9 +6,19 @@ export const supabase = createClient(
 );
 
 export interface Profile {
-  id:           string;
-  display_name: string | null;
-  family_id:    string | null;
+  id:             string;
+  display_name:   string | null;
+  family_id:      string | null;
+  city:           string | null;
+  lat:            number | null;
+  lng:            number | null;
+  prayer_method:  string | null;
+  madhab:         string | null;
+  age_group:      string | null;
+  arabic_level:   string | null;
+  app_mode:       string | null;
+  mother_tongue:  string | null;
+  main_objective: string | null;
 }
 
 export interface Family {

@@ -38,12 +38,32 @@ function getDailyDhikr() {
   return DAILY_DHIKRS[new Date().getDay() % DAILY_DHIKRS.length];
 }
 
+const DAILY_ARABIC_WORDS = [
+  { ar: "صَبْر",     transliteration: "Sabr",     fr: "Patience",           category: "vertu" },
+  { ar: "شُكْر",    transliteration: "Shukr",    fr: "Gratitude",          category: "vertu" },
+  { ar: "تَوَكُّل", transliteration: "Tawakkul", fr: "Confiance en Allah", category: "foi"   },
+  { ar: "إِخْلَاص", transliteration: "Ikhlas",   fr: "Sincérité",          category: "foi"   },
+  { ar: "رَحْمَة",  transliteration: "Rahma",    fr: "Miséricorde",        category: "attribut" },
+  { ar: "نُور",     transliteration: "Nour",     fr: "Lumière",            category: "concept" },
+  { ar: "هُدَى",    transliteration: "Huda",     fr: "Guidance",           category: "foi"   },
+];
+
+function getDailyArabicWord() {
+  return DAILY_ARABIC_WORDS[new Date().getDay() % DAILY_ARABIC_WORDS.length];
+}
+
 function getTodayStats() {
   const log    = storage.getDhikrLog().find(s => s.date === todayKey());
   const tasks  = storage.getTasks();
   const done   = tasks.filter(t => t.done).length;
   const totalDhikr = Object.values(log?.counts ?? {}).reduce((a, b) => a + b, 0);
-  return { totalDhikr, tasksDone: done, tasksTotal: tasks.length };
+  const prayerLog  = storage.getPrayerLog();
+  const todayEntry = prayerLog.find(l => l.date === todayKey());
+  const tracked    = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
+  const prayersDoneToday = todayEntry
+    ? tracked.filter(k => todayEntry.done[k as keyof typeof todayEntry.done]).length
+    : 0;
+  return { totalDhikr, tasksDone: done, tasksTotal: tasks.length, prayersDoneToday };
 }
 
 function getAzkarStatus(times: ComputedPrayerTimes | null) {
@@ -101,12 +121,14 @@ export default function AccueilPage() {
   const { user }     = useAuth();
   const { message: ctxMsg, dismiss: dismissCtx } = useContextualMessage();
   useMosqueeGameLink(); // Connexion mosquée ↔ jeu : octroie les récompenses de streak
-  const [stats,       setStats]      = useState({ totalDhikr: 0, tasksDone: 0, tasksTotal: 0 });
+  const [stats,       setStats]      = useState({ totalDhikr: 0, tasksDone: 0, tasksTotal: 0, prayersDoneToday: 0 });
   const [azkarStatus, setAzkarStatus] = useState({ showMatin: false, showSoir: false, matinDone: false, soirDone: false });
   const [mosqueData,  setMosqueData]  = useState<{ stage: MosqueStage; streak: number }>({ stage: 1, streak: 0 });
   const ageMode       = ageGroupToMode(settings.ageGroup);
   const isPratiquant  = (settings.appMode ?? "pratiquant") === "pratiquant";
+  const mainObjective = settings.mainObjective;
   const dhikr         = getDailyDhikr();
+  const arabicWord    = getDailyArabicWord();
   const firstName  = user?.user_metadata?.display_name?.split(" ")[0] ?? null;
   const hijri      = getHijriDate();
   const upcomingEvents = getUpcomingEvents(3);
@@ -454,6 +476,183 @@ export default function AccueilPage() {
               </motion.div>
             </Link>
           )}
+        </motion.div>
+      )}
+
+      {/* ── OBJECTIF : apprendre — mot arabe + histoire ── */}
+      {mainObjective === "apprendre" && ageMode !== "kids" && ageMode !== "elder" && (
+        <motion.div variants={itemVariants} className="flex flex-col gap-3">
+          <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            Pour apprendre aujourd&apos;hui
+          </p>
+
+          {/* Mot arabe du jour */}
+          <div
+            className="rounded-2xl border p-4"
+            style={{ background: "rgba(212,175,55,0.05)", borderColor: "var(--border-gold)" }}
+          >
+            <p className="text-xs opacity-50 mb-2" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              Mot arabe du jour · {arabicWord.category}
+            </p>
+            <p className="text-3xl font-bold leading-loose" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)", direction: "rtl", textAlign: "right" }}>
+              {arabicWord.ar}
+            </p>
+            <p className="text-sm mt-1" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              {arabicWord.fr}
+            </p>
+            <p className="text-xs opacity-40 mt-0.5 italic" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              {arabicWord.transliteration}
+            </p>
+          </div>
+
+          {/* Suggestion chapitre Grande Histoire */}
+          <Link href="/histoire">
+            <motion.div
+              whileTap={{ scale: 0.985 }} transition={springTap}
+              className="flex items-center gap-4 rounded-2xl border px-4 py-3.5"
+              style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl shrink-0"
+                style={{ background: "var(--gold-faint)", color: "var(--gold)" }}>
+                <ScrollText size={18} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Reprends la Grande Histoire
+                </p>
+                <p className="text-xs opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Chapitre suivant disponible
+                </p>
+              </div>
+              <span className="text-xs opacity-40 shrink-0" style={{ color: "var(--text)" }}>→</span>
+            </motion.div>
+          </Link>
+        </motion.div>
+      )}
+
+      {/* ── OBJECTIF : pratiquer — streak + compteur prières ── */}
+      {mainObjective === "pratiquer" && ageMode !== "kids" && ageMode !== "elder" && (
+        <motion.div variants={itemVariants} className="flex flex-col gap-3">
+          <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            Ta pratique du jour
+          </p>
+
+          {/* Streak + prières en grande carte */}
+          <Link href="/prieres">
+            <motion.div
+              whileTap={{ scale: 0.985 }} transition={springTap}
+              className="rounded-2xl border p-4"
+              style={{ background: "rgba(5,92,63,0.12)", borderColor: "rgba(5,92,63,0.3)" }}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs opacity-50 mb-1" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                    Prières accomplis aujourd&apos;hui
+                  </p>
+                  <p className="text-3xl font-bold tabular-nums" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
+                    {stats.prayersDoneToday}
+                    <span className="text-base opacity-40 ml-1">/5</span>
+                  </p>
+                </div>
+                {mosqueData.streak > 0 && (
+                  <div className="text-right">
+                    <p className="text-2xl font-bold tabular-nums" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
+                      {mosqueData.streak}
+                    </p>
+                    <p className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                      jour{mosqueData.streak > 1 ? "s" : ""} de suite
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="mt-3 flex gap-2">
+                {["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"].map((p, i) => {
+                  const keys = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
+                  const prayerLog = storage.getPrayerLog();
+                  const todayEntry = prayerLog.find(l => l.date === todayKey());
+                  const done = todayEntry?.done[keys[i] as keyof typeof todayEntry.done] ?? false;
+                  return (
+                    <div key={p} className="flex-1 rounded-lg py-1 text-center text-xs"
+                      style={{
+                        background: done ? "rgba(5,92,63,0.4)" : "rgba(255,255,255,0.04)",
+                        color: done ? "var(--gold)" : "var(--text-muted)",
+                        fontFamily: "var(--font-dm-sans)",
+                        fontSize: "10px",
+                      }}>
+                      {p}
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </Link>
+
+          {/* Dhikr count */}
+          {stats.totalDhikr > 0 && (
+            <div className="flex items-center gap-3 rounded-xl border px-4 py-3"
+              style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}>
+              <TasbihIcon size={16} style={{ color: "var(--gold)", opacity: 0.7, flexShrink: 0 }} />
+              <p className="text-sm" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                <span className="font-bold" style={{ color: "var(--gold)" }}>{stats.totalDhikr}</span>
+                <span className="opacity-50 ml-1">dhikrs aujourd&apos;hui</span>
+              </p>
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {/* ── OBJECTIF : explorer — défi famille + toutes sections ── */}
+      {mainObjective === "explorer" && ageMode !== "kids" && ageMode !== "elder" && (
+        <motion.div variants={itemVariants} className="flex flex-col gap-3">
+          <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            Explore aujourd&apos;hui
+          </p>
+
+          {/* Défi du jour famille */}
+          <Link href="/famille">
+            <motion.div
+              whileTap={{ scale: 0.985 }} transition={springTap}
+              className="flex items-center gap-4 rounded-2xl border px-4 py-4"
+              style={{ background: "rgba(212,175,55,0.05)", borderColor: "var(--border-gold)" }}
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl shrink-0"
+                style={{ background: "var(--gold-faint)", color: "var(--gold)" }}>
+                <Users size={20} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+                  Défi du jour en famille
+                </p>
+                <p className="text-xs opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Quiz, duels et tâches partagées
+                </p>
+              </div>
+              <span className="text-xs opacity-40 shrink-0" style={{ color: "var(--text)" }}>→</span>
+            </motion.div>
+          </Link>
+
+          {/* Grille toutes sections */}
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { href: "/oasis",   label: "Jouer",    icon: Compass  },
+              { href: "/histoire", label: "Histoire", icon: ScrollText },
+              { href: "/coran",   label: "Coran",    icon: BookOpen  },
+            ].map(({ href, label, icon: Icon }) => (
+              <Link key={href} href={href}>
+                <motion.div
+                  whileTap={{ scale: 0.93 }} transition={springTap}
+                  className="flex flex-col items-center gap-2 rounded-2xl border py-4"
+                  style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}
+                >
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl"
+                    style={{ background: "var(--gold-faint)", color: "var(--gold)" }}>
+                    <Icon size={16} />
+                  </div>
+                  <p className="text-xs opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{label}</p>
+                </motion.div>
+              </Link>
+            ))}
+          </div>
         </motion.div>
       )}
 

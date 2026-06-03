@@ -1,0 +1,133 @@
+import { supabase } from "@/lib/supabase";
+import type { Question, MinigameData, QuestionOption } from "./types";
+
+type ArabicLevel = "none" | "beginner" | "intermediate" | "advanced";
+import { QUESTIONS, getQuestions } from "./questions";
+
+const CACHE_KEY = "yawmi_q_pool_v1";
+const CACHE_TTL = 24 * 60 * 60 * 1000; // 24h
+
+const ARABIC_LEVEL_ORDER: ArabicLevel[] = ["none", "beginner", "intermediate", "advanced"];
+
+interface Pool {
+  questions: Question[];
+  cachedAt:  string;
+}
+
+function rowToQuestion(row: Record<string, unknown>): Question {
+  return {
+    id:              row.id as string,
+    category:        row.category as Question["category"],
+    type:            row.type    as Question["type"],
+    difficulty:      row.difficulty as Question["difficulty"],
+    question:        row.question as string,
+    transliteration: (row.transliteration as string | null) ?? undefined,
+    options:         (row.options as QuestionOption[]) ?? [],
+    explanation:     (row.explanation as string | null) ?? undefined,
+    culturalCapsule: (row.cultural_capsule as { title: string; text: string } | null) ?? undefined,
+    locationId:      (row.location_id as string | null) ?? undefined,
+    eventId:         (row.event_id  as string | null) ?? undefined,
+    arabicRequired:  ((row.arabic_required as string | null) ?? "none") as Question["arabicRequired"],
+    minigameData:    (row.minigame_data as MinigameData | null) ?? undefined,
+  };
+}
+
+function loadCache(): Pool | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const pool = JSON.parse(raw) as Pool;
+    const age  = Date.now() - new Date(pool.cachedAt).getTime();
+    return age < CACHE_TTL ? pool : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveCache(questions: Question[]): void {
+  if (typeof window === "undefined") return;
+  try {
+    const pool: Pool = { questions, cachedAt: new Date().toISOString() };
+    localStorage.setItem(CACHE_KEY, JSON.stringify(pool));
+  } catch { /* storage plein — pas critique */ }
+}
+
+function pickQuestions(
+  pool: Question[],
+  count: number,
+  history: Record<string, { nextDue: string }>,
+  arabicLevel: ArabicLevel,
+): Question[] {
+  const today = new Date().toISOString().split("T")[0];
+  const userIdx = ARABIC_LEVEL_ORDER.indexOf(arabicLevel);
+
+  const eligible = pool.filter(q => {
+    const reqIdx = ARABIC_LEVEL_ORDER.indexOf(q.arabicRequired ?? "none");
+    return userIdx >= reqIdx;
+  });
+
+  const due    = eligible.filter(q => history[q.id]?.nextDue <= today);
+  const unseen = eligible.filter(q => !history[q.id]);
+
+  const result: Question[] = [];
+  for (const q of due)    if (result.length < Math.ceil(count * 0.4)) result.push(q);
+  for (const q of unseen) if (result.length < count) result.push(q);
+  for (const q of eligible) {
+    if (!result.find(r => r.id === q.id)) result.push(q);
+    if (result.length >= count) break;
+  }
+
+  return result.sort(() => Math.random() - 0.5).slice(0, count);
+}
+
+async function fetchFromSupabase(): Promise<Question[] | null> {
+  try {
+    const { data, error } = await supabase
+      .from("questions")
+      .select("id,category,type,difficulty,question,transliteration,options,explanation,cultural_capsule,location_id,event_id,arabic_required,minigame_data")
+      .eq("is_active", true)
+      .limit(500);
+
+    if (error || !data || data.length === 0) return null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return (data as any[]).map(rowToQuestion);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Charge les questions depuis Supabase (cache 24h) avec fallback sur questions.ts.
+ * Drop-in replacement asynchrone pour getQuestions().
+ */
+export async function getQuestionsAsync(
+  count: number,
+  history: Record<string, { nextDue: string }>,
+  arabicLevel: ArabicLevel,
+): Promise<Question[]> {
+  // 1. Cache local valide → direct
+  const cached = loadCache();
+  if (cached && cached.questions.length > 0) {
+    return pickQuestions(cached.questions, count, history, arabicLevel);
+  }
+
+  // 2. Supabase → rafraîchit le cache
+  const remote = await fetchFromSupabase();
+  if (remote && remote.length > 0) {
+    saveCache(remote);
+    return pickQuestions(remote, count, history, arabicLevel);
+  }
+
+  // 3. Fallback local — questions.ts (toujours disponible hors-ligne)
+  return getQuestions(count, history, arabicLevel);
+}
+
+/**
+ * Invalide le cache pour forcer un rechargement depuis Supabase.
+ */
+export function invalidateQuestionsCache(): void {
+  if (typeof window !== "undefined") {
+    localStorage.removeItem(CACHE_KEY);
+  }
+}

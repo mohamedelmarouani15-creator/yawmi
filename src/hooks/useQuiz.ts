@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { getQuestions } from "@/lib/game/questions";
+import { getQuestionsAsync } from "@/lib/game/questions-loader";
 import { updateSM2 } from "@/lib/game/sm2";
 import { gameStorage } from "@/lib/game/game-storage";
 import { getJoker50Eliminations } from "@/lib/game/powerups";
@@ -45,10 +45,10 @@ export function useQuiz(locationId: string) {
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   // ── Start ──────────────────────────────────────────────────────
-  const startQuiz = useCallback(() => {
+  const startQuiz = useCallback(async () => {
     const state    = gameStorage.get();
     const settings = storage.getSettings();
-    const questions = getQuestions(10, state.questionHistory, settings.arabicLevel ?? "beginner");
+    const questions = await getQuestionsAsync(10, state.questionHistory, settings.arabicLevel ?? "beginner");
     setSession({
       locationId,
       questions,

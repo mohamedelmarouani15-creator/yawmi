@@ -264,37 +264,41 @@ export default function QuizPage() {
     gameStorage.push(); // sync vers Supabase après la session de quiz
 
     // Met à jour strong_categories / weak_categories dans companion_memory
-    const quizScore = session.answers.filter(Boolean).length / session.questions.length;
-    // Catégorie majoritaire du quiz (pas seulement la première question)
-    const categoryCounts: Record<string, number> = {};
-    session.questions.forEach(q => {
-      categoryCounts[q.category] = (categoryCounts[q.category] ?? 0) + 1;
+    // Précision par catégorie sur toutes les questions du quiz
+    const catCorrect: Record<string, number> = {};
+    const catTotal:   Record<string, number> = {};
+    session.questions.forEach((q, i) => {
+      catTotal[q.category]   = (catTotal[q.category]   ?? 0) + 1;
+      if (session.answers[i]) catCorrect[q.category] = (catCorrect[q.category] ?? 0) + 1;
     });
-    const category = Object.entries(categoryCounts)
-      .sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
-    if (category) {
-      supabase.auth.getSession().then(({ data: { session: s } }) => {
-        if (!s?.access_token) return;
-        supabase.from("companion_memory")
-          .select("strong_categories, weak_categories")
-          .eq("user_id", s.user.id)
-          .single()
-          .then(({ data: mem }) => {
-            if (!mem) return;
-            const strong = [...new Set([...(mem.strong_categories as string[] ?? [])])];
-            const weak   = [...new Set([...(mem.weak_categories   as string[] ?? [])])];
-            if (quizScore >= 0.8 && !strong.includes(category)) strong.push(category);
-            if (quizScore < 0.4  && !weak.includes(category))   weak.push(category);
-            // Retirer des faibles si maintenant fort, et vice-versa
-            const finalStrong = strong.filter(c => c !== category || quizScore >= 0.8);
-            const finalWeak   = weak.filter(c => c !== category || quizScore < 0.4);
-            supabase.from("companion_memory")
-              .update({ strong_categories: finalStrong, weak_categories: finalWeak })
-              .eq("user_id", s.user.id)
-              .then(() => {});
+
+    supabase.auth.getSession().then(({ data: { session: s } }) => {
+      if (!s?.access_token) return;
+      supabase.from("companion_memory")
+        .select("strong_categories, weak_categories")
+        .eq("user_id", s.user.id)
+        .maybeSingle()
+        .then(({ data: mem }) => {
+          let strong: string[] = (mem?.strong_categories as string[]) ?? [];
+          let weak:   string[] = (mem?.weak_categories   as string[]) ?? [];
+
+          Object.entries(catTotal).forEach(([cat, total]) => {
+            const accuracy = (catCorrect[cat] ?? 0) / total;
+            if (accuracy >= 0.8) {
+              strong = [...new Set([...strong, cat])];
+              weak   = weak.filter(c => c !== cat);
+            } else if (accuracy < 0.4) {
+              weak   = [...new Set([...weak, cat])];
+              strong = strong.filter(c => c !== cat);
+            }
           });
-      });
-    }
+
+          supabase.from("companion_memory")
+            .upsert({ user_id: s.user.id, strong_categories: strong, weak_categories: weak },
+              { onConflict: "user_id" })
+            .then(() => {});
+        });
+    });
 
     refresh();
     setShowResult(true);

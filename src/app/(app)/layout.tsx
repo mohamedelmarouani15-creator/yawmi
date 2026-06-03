@@ -61,8 +61,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router  = useRouter();
   const [authReady,   setAuthReady]   = useState(false);
   const [splashDone,  setSplashDone]  = useState(false);
-  useAgeMode();       // applique la classe CSS age-* sur <html>
-  usePrayerTheme();   // bascule data-theme=day|night selon Fajr/Maghrib
+  useAgeMode();      // applique age-* + lang/dir sur <html> selon ageGroup/motherTongue
+  usePrayerTheme();  // bascule data-theme=day|night selon Fajr/Maghrib
 
   useEffect(() => {
     const done = localStorage.getItem("yawmi_onboarded");

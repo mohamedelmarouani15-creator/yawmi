@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { storage } from "@/lib/storage";
+import { useSettings } from "@/hooks/useSettings";
 
 export type AgeMode = "kids" | "teen" | "adult" | "parent" | "elder" | null;
 
@@ -17,16 +17,19 @@ export function ageGroupToMode(group: string | null | undefined): AgeMode {
 }
 
 export function useAgeMode(): AgeMode {
-  const settings = storage.getSettings();
+  const { settings } = useSettings();
   const mode = ageGroupToMode(settings.ageGroup);
+  const isRTL = settings.motherTongue === "arabe" || settings.motherTongue === "darija";
 
   useEffect(() => {
-    if (typeof document === "undefined") return;
     const root = document.documentElement;
-    // Retire tous les modes précédents
+
     root.classList.remove("age-kids", "age-teen", "age-adult", "age-parent", "age-elder");
     if (mode) root.classList.add(`age-${mode}`);
-  }, [mode]);
+
+    root.lang = isRTL ? "ar" : "fr";
+    root.dir  = isRTL ? "rtl" : "ltr";
+  }, [mode, isRTL]);
 
   return mode;
 }

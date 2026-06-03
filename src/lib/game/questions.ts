@@ -1533,6 +1533,7 @@ export const QUESTIONS: Question[] = [
     id: "mem_001", category: "quran", type: "memory", difficulty: 2,
     question: "Associe les sourates à leurs numéros",
     options: [{ text: "memory", correct: true }],
+    arabicRequired: "beginner",
     minigameData: {
       pairs: [
         { front: "الفاتحة", back: "Sourate 1" },
@@ -1563,6 +1564,7 @@ export const QUESTIONS: Question[] = [
     id: "mem_003", category: "religion", type: "memory", difficulty: 2,
     question: "Associe les piliers de l'Islam à leur signification",
     options: [{ text: "memory", correct: true }],
+    arabicRequired: "beginner",
     minigameData: {
       pairs: [
         { front: "الشهادة", back: "Témoignage de foi" },

@@ -48,6 +48,7 @@ export default function RootLayout({
   return (
     <html
       lang="fr"
+      suppressHydrationWarning
       className={`${bricolage.variable} ${dmSans.variable} ${amiri.variable} h-full antialiased`}
     >
       <head>

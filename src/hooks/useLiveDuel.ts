@@ -109,7 +109,8 @@ export function useLiveDuel(duelId: string | null) {
 
     // Mark as ready
     const readyField = isP1 ? "player1_ready" : "player2_ready";
-    await supabase.from("duels_live").update({ [readyField]: true }).eq("id", id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await supabase.from("duels_live").update({ [readyField]: true } as any).eq("id", id);
 
     // Realtime channel
     const channel = supabase.channel(`duel-live-${id}`)
@@ -202,7 +203,8 @@ export function useLiveDuel(duelId: string | null) {
       }
     }
 
-    await supabase.from("duels_live").update(update).eq("id", state.id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await supabase.from("duels_live").update(update as any).eq("id", state.id);
   }, [state, user, stopTimer]);
 
   useEffect(() => () => {

@@ -243,8 +243,10 @@ export const gameStorage = {
       lastGameDate: data.last_game_date ?? local.lastGameDate,
       unlockedLocations: Array.from(new Set([...local.unlockedLocations, ...(data.unlocked_locations ?? [])])),
       defeatedSages: Array.from(new Set([...local.defeatedSages, ...(data.defeated_sages ?? [])])),
-      categoryLevels: data.category_levels ?? local.categoryLevels,
-      powerupCounts: data.powerup_counts ?? local.powerupCounts,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      categoryLevels: (data.category_levels ?? local.categoryLevels) as any,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      powerupCounts: (data.powerup_counts ?? local.powerupCounts) as any,
     };
     this.save(merged);
   },

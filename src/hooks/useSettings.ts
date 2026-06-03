@@ -34,7 +34,7 @@ export function useSettings() {
             lng:           profile.lng           ?? local.lng,
             method:        (profile.prayer_method as CalcMethodKey) ?? local.method,
             madhab:        (profile.madhab        as MadhabKey)     ?? local.madhab,
-            ageGroup:      profile.age_group      ?? local.ageGroup,
+            ageGroup:      (profile.age_group as YawmiSettings["ageGroup"]) ?? local.ageGroup,
             arabicLevel:   (profile.arabic_level  as YawmiSettings["arabicLevel"])   ?? local.arabicLevel,
             appMode:       (profile.app_mode       as YawmiSettings["appMode"])       ?? local.appMode,
             motherTongue:  (profile.mother_tongue  as YawmiSettings["motherTongue"])  ?? local.motherTongue,

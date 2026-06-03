@@ -135,7 +135,7 @@ export function useFamily() {
     if (!data || data.length === 0) { setDuels([]); return; }
 
     // Noms des participants
-    const allIds = [...new Set(data.flatMap((d: Record<string, string>) => [d.challenger_id, d.challenged_id]))];
+    const allIds = [...new Set(data.flatMap((d) => [d.challenger_id, d.challenged_id]))];
     const { data: profs } = await supabase.from("profiles")
       .select("id, display_name")
       .in("id", allIds);
@@ -412,7 +412,8 @@ export function useFamily() {
     const otherScore = duel.isChallenger ? duel.challengedScore : duel.challengerScore;
     if (otherScore !== null) updates.status = "completed";
 
-    const { error } = await supabase.from("duels").update(updates).eq("id", duelId);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await supabase.from("duels").update(updates as any).eq("id", duelId);
     if (!error) {
       setDuels(prev => prev.map(d => {
         if (d.taskId !== duelId) return d;

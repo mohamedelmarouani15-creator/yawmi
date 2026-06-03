@@ -66,7 +66,8 @@ async function syncToSupabase(p: RiadProgress): Promise<void> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from("escape_progress").upsert({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.from("escape_progress") as any).upsert({
       user_id:      user.id,
       room_id:      ROOM_ID,
       solved:       p.solved,
@@ -80,8 +81,8 @@ export async function loadFromSupabase(): Promise<Partial<RiadProgress> | null> 
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
-    const { data } = await supabase
-      .from("escape_progress")
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data } = await (supabase.from("escape_progress") as any)
       .select("solved, started_at, completed_at")
       .eq("user_id", user.id)
       .eq("room_id", ROOM_ID)

@@ -69,6 +69,7 @@ export function useMosqueeGameLink() {
           coins:         gs.coins + milestone.coins,
           mosqueObjects: updatedObjects,
         });
+        gameStorage.push(); // sync vers Supabase après récompense mosquée
 
         markMilestoneGiven(milestone.days);
 

@@ -265,7 +265,13 @@ export default function QuizPage() {
 
     // Met à jour strong_categories / weak_categories dans companion_memory
     const quizScore = session.answers.filter(Boolean).length / session.questions.length;
-    const category  = session.questions[0]?.category ?? null;
+    // Catégorie majoritaire du quiz (pas seulement la première question)
+    const categoryCounts: Record<string, number> = {};
+    session.questions.forEach(q => {
+      categoryCounts[q.category] = (categoryCounts[q.category] ?? 0) + 1;
+    });
+    const category = Object.entries(categoryCounts)
+      .sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
     if (category) {
       supabase.auth.getSession().then(({ data: { session: s } }) => {
         if (!s?.access_token) return;

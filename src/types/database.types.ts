@@ -131,25 +131,31 @@ export type Database = {
           type:             "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i" | "calligraphy"
           difficulty:       number
           question:         string
+          transliteration:  string | null
           options:          Json
           explanation:      string | null
           cultural_capsule: Json | null
           location_id:      string | null
           event_id:         string | null
+          arabic_required:  "none" | "beginner" | "intermediate" | "advanced"
+          minigame_data:    Json | null
           is_active:        boolean
         }
         Insert: {
-          id:               string
-          category:         "religion" | "history" | "arabic" | "darija" | "quran"
-          type?:            "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i" | "calligraphy"
-          difficulty:       number
-          question:         string
-          options?:         Json
-          explanation?:     string | null
+          id:                string
+          category:          "religion" | "history" | "arabic" | "darija" | "quran"
+          type?:             "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i" | "calligraphy"
+          difficulty:        number
+          question:          string
+          transliteration?:  string | null
+          options?:          Json
+          explanation?:      string | null
           cultural_capsule?: Json | null
-          location_id?:     string | null
-          event_id?:        string | null
-          is_active?:       boolean
+          location_id?:      string | null
+          event_id?:         string | null
+          arabic_required?:  "none" | "beginner" | "intermediate" | "advanced"
+          minigame_data?:    Json | null
+          is_active?:        boolean
         }
         Update: {
           id?:               string
@@ -157,11 +163,14 @@ export type Database = {
           type?:             "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i" | "calligraphy"
           difficulty?:       number
           question?:         string
+          transliteration?:  string | null
           options?:          Json
           explanation?:      string | null
           cultural_capsule?: Json | null
           location_id?:      string | null
           event_id?:         string | null
+          arabic_required?:  "none" | "beginner" | "intermediate" | "advanced"
+          minigame_data?:    Json | null
           is_active?:        boolean
         }
         Relationships: []

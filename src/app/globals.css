@@ -291,6 +291,25 @@ body {
 /* Classes utilitaires */
 .age-elder .hide-elder { display: none !important; }
 
+/* ══ Adultes 18-35 (youngAdult / adult) ══════════════════════════ */
+.age-adult {
+  font-size: 16px;
+}
+.age-adult button, .age-adult a {
+  min-height: 48px;
+}
+
+/* ══ Parents 36-55 ════════════════════════════════════════════════ */
+.age-parent {
+  font-size: 17px;
+}
+.age-parent button, .age-parent a {
+  min-height: 52px;
+}
+.age-parent p, .age-parent span, .age-parent li {
+  line-height: 1.7;
+}
+
 /* ── Accessibilité ────────────────────────────────────────────── */
 :focus-visible {
   outline: 2px solid rgba(212, 175, 55, 0.7);

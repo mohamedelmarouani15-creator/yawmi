@@ -93,7 +93,7 @@ export async function POST(req: NextRequest) {
     lastSessionDate: mem?.last_session_at ?? null,
   };
 
-  // ── Appel Gemini ──────────────────────────────────────────────
+  // ── Appel Groq ──────────────────────────────────────────────
   let reply: string;
   try {
     reply = await askCompanion(userMessage, context, history);

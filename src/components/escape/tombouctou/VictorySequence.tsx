@@ -59,6 +59,7 @@ export default function VictorySequence({ timeRemaining, hintsUsed, onReplay }: 
 
   const addToMosquee = useCallback(() => {
     gameStorage.unlockTombouctouRewards();
+    gameStorage.push(); // sync vers Supabase après objets Tombouctou
     setAddedToMosq(true);
   }, []);
 

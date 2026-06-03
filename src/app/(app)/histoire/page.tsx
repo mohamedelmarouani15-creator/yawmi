@@ -1,9 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Lock, Star, Flame, Waves, Leaf, Moon, Shield, Route, Heart, Sparkles, Crown, type LucideIcon } from "lucide-react";
 import { pageVariants, itemVariants } from "@/lib/motion";
+import { supabase } from "@/lib/supabase";
 
 const ARCS = [
   // ── Disponible ──────────────────────────────────────────────
@@ -155,6 +157,20 @@ function TapisVoyageur() {
 
 export default function HistoirePage() {
   const router = useRouter();
+  // Statuts lus depuis Supabase — écrase les valeurs hardcodées de ARCS
+  const [arcStatuses, setArcStatuses] = useState<Record<string, "published" | "draft">>({});
+
+  useEffect(() => {
+    supabase
+      .from("stories")
+      .select("id, status")
+      .then(({ data }) => {
+        if (!data) return;
+        const map: Record<string, "published" | "draft"> = {};
+        data.forEach(s => { map[s.id] = s.status as "published" | "draft"; });
+        setArcStatuses(map);
+      });
+  }, []);
 
   return (
     <motion.main
@@ -194,7 +210,11 @@ export default function HistoirePage() {
       {/* Arcs disponibles */}
       <motion.div variants={itemVariants} className="flex flex-col gap-4">
         {ARCS.map((arc, idx) => {
-          const available = arc.status === "available";
+          // Priorité au statut Supabase ; fallback sur la valeur hardcodée
+          const supaStatus = arcStatuses[arc.id];
+          const available = supaStatus
+            ? supaStatus === "published"
+            : arc.status === "available";
           return (
             <motion.button
               key={arc.id}

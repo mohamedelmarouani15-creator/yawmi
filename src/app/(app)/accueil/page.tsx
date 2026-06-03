@@ -104,8 +104,9 @@ export default function AccueilPage() {
   const [stats,       setStats]      = useState({ totalDhikr: 0, tasksDone: 0, tasksTotal: 0 });
   const [azkarStatus, setAzkarStatus] = useState({ showMatin: false, showSoir: false, matinDone: false, soirDone: false });
   const [mosqueData,  setMosqueData]  = useState<{ stage: MosqueStage; streak: number }>({ stage: 1, streak: 0 });
-  const ageMode    = ageGroupToMode(settings.ageGroup);
-  const dhikr      = getDailyDhikr();
+  const ageMode       = ageGroupToMode(settings.ageGroup);
+  const isPratiquant  = (settings.appMode ?? "pratiquant") === "pratiquant";
+  const dhikr         = getDailyDhikr();
   const firstName  = user?.user_metadata?.display_name?.split(" ")[0] ?? null;
   const hijri      = getHijriDate();
   const upcomingEvents = getUpcomingEvents(3);
@@ -135,10 +136,9 @@ export default function AccueilPage() {
       animate="animate"
       className="flex flex-col gap-6 px-5 pt-12 pb-4"
     >
-      {/* Mascotte enfants — avec bouton Profil discret pour les parents */}
+      {/* Mascotte enfants */}
       {ageMode === "kids" && (
         <motion.div variants={itemVariants} className="relative flex flex-col items-center gap-3 py-2">
-          {/* Bouton Profil parent — discret en haut à droite */}
           <Link
             href="/profil"
             className="absolute right-0 top-0 flex h-8 w-8 items-center justify-center rounded-full border opacity-30"
@@ -147,7 +147,6 @@ export default function AccueilPage() {
           >
             <Settings size={14} />
           </Link>
-
           <motion.span
             animate={{ rotate: [0, -8, 8, -4, 4, 0] }}
             transition={{ duration: 1.8, delay: 0.5, ease: "easeInOut" }}
@@ -164,10 +163,8 @@ export default function AccueilPage() {
         </motion.div>
       )}
 
-      {/* Bannière événement islamique spécial */}
       {ageMode !== "kids" && <EventBanner />}
 
-      {/* Message contextuel du Compagnon — 1 par jour max */}
       <AnimatePresence>
         {ctxMsg && ageMode !== "kids" && (
           <m2.div
@@ -197,7 +194,6 @@ export default function AccueilPage() {
         )}
       </AnimatePresence>
 
-      {/* Header — masqué en mode kids (mascotte le remplace) */}
       {ageMode !== "kids" && (
         <motion.div variants={itemVariants} className="flex items-start justify-between">
           <div>
@@ -220,7 +216,6 @@ export default function AccueilPage() {
         </motion.div>
       )}
 
-      {/* Date Hijri */}
       <motion.div
         variants={itemVariants}
         className="flex items-center justify-between rounded-xl border px-4 py-3"
@@ -251,8 +246,61 @@ export default function AccueilPage() {
         </div>
       </motion.div>
 
-      {/* Prochaine prière */}
-      {nextPrayer && times && (
+      {/* ── EXPLORATEUR : CTA jeu en tête ── */}
+      {!isPratiquant && ageMode !== "kids" && ageMode !== "elder" && (
+        <motion.div variants={itemVariants}>
+          <Link href="/oasis">
+            <motion.div
+              whileTap={{ scale: 0.97 }} transition={springTap}
+              className="relative overflow-hidden rounded-2xl p-5"
+              style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-primary)" }}
+            >
+              <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 opacity-10">
+                <Compass size={72} style={{ color: "var(--gold)" }} />
+              </div>
+              <p className="text-xs tracking-widest uppercase opacity-60 mb-1" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                L&apos;Oasis
+              </p>
+              <p className="text-2xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
+                Explore &amp; apprends
+              </p>
+              <p className="text-sm opacity-60 mt-1" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                Quiz, histoires et escape games islamiques
+              </p>
+            </motion.div>
+          </Link>
+        </motion.div>
+      )}
+
+      {/* ── EXPLORATEUR : carte Grande Histoire ── */}
+      {!isPratiquant && ageMode !== "kids" && ageMode !== "elder" && (
+        <motion.div variants={itemVariants}>
+          <Link href="/histoire">
+            <motion.div
+              whileTap={{ scale: 0.985 }} transition={springTap}
+              className="flex items-center gap-4 rounded-2xl border px-4 py-4"
+              style={{ background: "rgba(255,255,255,0.02)", borderColor: "var(--gold-faint)" }}
+            >
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl shrink-0"
+                style={{ background: "var(--gold-faint)", color: "var(--gold)" }}>
+                <BookOpen size={20} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+                  La Grande Histoire
+                </p>
+                <p className="text-xs opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Aventures dans l&apos;histoire islamique
+                </p>
+              </div>
+              <span className="text-xs opacity-40 shrink-0" style={{ color: "var(--text)" }}>→</span>
+            </motion.div>
+          </Link>
+        </motion.div>
+      )}
+
+      {/* ── PRATIQUANT : carte prière grande avec streak ── */}
+      {isPratiquant && nextPrayer && times && (
         <motion.div variants={itemVariants} whileTap={{ scale: 0.985 }} transition={springTap}>
           <Link
             href="/prieres"
@@ -286,11 +334,47 @@ export default function AccueilPage() {
                 </p>
               </div>
             </div>
+            {mosqueData.streak > 0 && (
+              <div className="mt-3 pt-3 flex items-center gap-2 border-t" style={{ borderColor: "rgba(212,175,55,0.15)" }}>
+                <CrescentStar size={12} style={{ color: "var(--gold)", opacity: 0.7 }} />
+                <p className="text-xs opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  {mosqueData.streak} jour{mosqueData.streak > 1 ? "s" : ""} de prières complètes
+                </p>
+              </div>
+            )}
           </Link>
         </motion.div>
       )}
 
-      {/* CTA Jeu — enfants uniquement */}
+      {/* ── EXPLORATEUR : carte prière compacte ── */}
+      {!isPratiquant && nextPrayer && times && (
+        <motion.div variants={itemVariants} whileTap={{ scale: 0.985 }} transition={springTap}>
+          <Link
+            href="/prieres"
+            className="flex items-center gap-4 rounded-2xl border px-4 py-3.5"
+            style={{ background: "rgba(5,92,63,0.12)", borderColor: "rgba(5,92,63,0.3)" }}
+          >
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl shrink-0"
+              style={{ background: "rgba(5,92,63,0.2)", color: "var(--gold)" }}>
+              <CrescentStar size={18} />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+                {PRAYER_LABELS[nextPrayer].fr}
+                <span className="ml-2 text-xs opacity-50" style={{ fontFamily: "var(--font-amiri)" }}>
+                  {PRAYER_LABELS[nextPrayer].ar}
+                </span>
+              </p>
+              <p className="text-xs opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                {countdown} restant · {settings.cityName}
+              </p>
+            </div>
+            <span className="text-xs opacity-40 shrink-0" style={{ color: "var(--text)" }}>→</span>
+          </Link>
+        </motion.div>
+      )}
+
+      {/* CTA jeu enfants */}
       {ageMode === "kids" && (
         <motion.div variants={itemVariants}>
           <Link href="/oasis">
@@ -313,7 +397,7 @@ export default function AccueilPage() {
         </motion.div>
       )}
 
-      {/* Cartes Azkar (heure-based) */}
+      {/* Azkar — time-based, toujours visible */}
       {(azkarStatus.showMatin || azkarStatus.showSoir) && (
         <motion.div variants={itemVariants} className="flex flex-col gap-2">
           {azkarStatus.showMatin && (
@@ -373,11 +457,11 @@ export default function AccueilPage() {
         </motion.div>
       )}
 
-      {/* Stats du jour — masqué pour aînés et enfants */}
-      {ageMode !== "elder" && ageMode !== "kids" && (
+      {/* ── PRATIQUANT : stats du jour + mosquée ── */}
+      {isPratiquant && ageMode !== "elder" && ageMode !== "kids" && (
         <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
           {[
-            { value: stats.totalDhikr,  label: "Dhikrs aujourd'hui" },
+            { value: stats.totalDhikr, label: "Dhikrs aujourd'hui" },
             { value: `${stats.tasksDone}/${stats.tasksTotal}`, label: "Tâches famille" },
           ].map(({ value, label }) => (
             <div key={label} className="rounded-xl border p-4" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}>
@@ -388,8 +472,7 @@ export default function AccueilPage() {
         </motion.div>
       )}
 
-      {/* Mosquée isométrique — masquée pour aînés et enfants */}
-      {ageMode !== "elder" && ageMode !== "kids" && (
+      {isPratiquant && ageMode !== "elder" && ageMode !== "kids" && (
         <motion.div variants={itemVariants}>
           <Link href="/mosquee">
             <motion.div whileTap={{ scale: 0.985 }} transition={springTap}
@@ -407,7 +490,7 @@ export default function AccueilPage() {
         </motion.div>
       )}
 
-      {/* Dhikr du jour */}
+      {/* Dhikr du jour — commun */}
       <motion.div
         variants={itemVariants}
         className="rounded-2xl border p-5"
@@ -427,7 +510,7 @@ export default function AccueilPage() {
         </p>
       </motion.div>
 
-      {/* Événements islamiques — masqués pour aînés et enfants */}
+      {/* Événements islamiques — commun */}
       {ageMode !== "elder" && ageMode !== "kids" && upcomingEvents.length > 0 && (
         <motion.div variants={itemVariants}>
           <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
@@ -452,6 +535,48 @@ export default function AccueilPage() {
               </div>
             ))}
           </div>
+        </motion.div>
+      )}
+
+      {/* ── EXPLORATEUR : stats du jour ── */}
+      {!isPratiquant && ageMode !== "elder" && ageMode !== "kids" && (
+        <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
+          {[
+            { value: stats.totalDhikr, label: "Dhikrs aujourd'hui" },
+            { value: `${stats.tasksDone}/${stats.tasksTotal}`, label: "Tâches famille" },
+          ].map(({ value, label }) => (
+            <div key={label} className="rounded-xl border p-4" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}>
+              <p className="text-2xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>{value}</p>
+              <p className="mt-1 text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{label}</p>
+            </div>
+          ))}
+        </motion.div>
+      )}
+
+      {/* ── PRATIQUANT : CTA jeu discret en bas ── */}
+      {isPratiquant && ageMode !== "kids" && ageMode !== "elder" && (
+        <motion.div variants={itemVariants}>
+          <Link href="/oasis">
+            <motion.div
+              whileTap={{ scale: 0.97 }} transition={springTap}
+              className="flex items-center gap-4 rounded-2xl border px-4 py-3.5"
+              style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.08)" }}
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl shrink-0"
+                style={{ background: "var(--gold-faint)", color: "var(--gold)" }}>
+                <Compass size={18} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold opacity-70" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  L&apos;Oasis
+                </p>
+                <p className="text-xs opacity-40 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Quiz et aventures islamiques
+                </p>
+              </div>
+              <span className="text-xs opacity-30 shrink-0" style={{ color: "var(--text)" }}>→</span>
+            </motion.div>
+          </Link>
         </motion.div>
       )}
 

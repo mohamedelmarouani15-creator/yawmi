@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Flame, Waves, Leaf, Moon, Shield, Route, Heart, Sparkles, Crown, Star, type LucideIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 // Couleurs et emojis par arc
@@ -18,17 +19,17 @@ const ARC_COLOR: Record<string, string> = {
   arc_yusuf:      "#f43f5e",
 };
 
-const ARC_EMOJI: Record<string, string> = {
-  arc_ibrahim:    "🔥",
-  arc_moussa:     "🌊",
-  arc_maryam:     "🌸",
-  arc_sira:       "🌙",
-  arc_sahaba:     "🌿",
-  arc_hijra:      "🐪",
-  arc_ismail:     "🏔️",
-  arc_isra_miraj: "✨",
-  arc_souleimane: "👑",
-  arc_yusuf:      "💫",
+const ARC_ICON: Record<string, LucideIcon> = {
+  arc_ibrahim:    Flame,
+  arc_moussa:     Waves,
+  arc_maryam:     Leaf,
+  arc_sira:       Moon,
+  arc_sahaba:     Shield,
+  arc_hijra:      Route,
+  arc_ismail:     Heart,
+  arc_isra_miraj: Sparkles,
+  arc_souleimane: Crown,
+  arc_yusuf:      Star,
 };
 
 function splitIntoSlides(narrative: string, max = 5): string[] {
@@ -62,8 +63,8 @@ export default function StoryPrologue({
   narrative, storyId, chapterN, themeColor, themeEmoji, label, onComplete,
 }: Props) {
   const slides = splitIntoSlides(narrative);
-  const color  = themeColor ?? (storyId ? (ARC_COLOR[storyId] ?? "#D4AF37") : "#D4AF37");
-  const emoji  = themeEmoji ?? (storyId ? (ARC_EMOJI[storyId] ?? "✦") : "✦");
+  const color   = themeColor ?? (storyId ? (ARC_COLOR[storyId] ?? "#D4AF37") : "#D4AF37");
+  const ArcIcon = storyId ? (ARC_ICON[storyId] ?? null) : null;
 
   const [index,       setIndex]       = useState(0);
   const [isLoading,   setIsLoading]   = useState(false);
@@ -229,7 +230,7 @@ export default function StoryPrologue({
       {/* ── Header ────────────────────────────────────────────────── */}
       <div className="relative z-10 flex items-center justify-between px-5 pt-12">
         <div className="flex items-center gap-2">
-          <span style={{ fontSize: 20 }}>{emoji}</span>
+          {ArcIcon && <ArcIcon size={18} style={{ color, flexShrink: 0 }} />}
           <p className="text-xs tracking-widest uppercase opacity-70"
             style={{ color, fontFamily: "var(--font-dm-sans)" }}>
             {label ?? (chapterN ? `Chapitre ${chapterN} · ` : "")}Moment {index + 1}/{slides.length}
@@ -317,7 +318,7 @@ export default function StoryPrologue({
             fontFamily: "var(--font-dm-sans)",
           }}
         >
-          {index < slides.length - 1 ? "Moment suivant →" : "🎯 Répondre aux questions"}
+          {index < slides.length - 1 ? "Moment suivant →" : "Répondre aux questions →"}
         </motion.button>
       </div>
     </div>

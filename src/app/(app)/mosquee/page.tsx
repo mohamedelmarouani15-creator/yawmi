@@ -2,16 +2,20 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { MosqueIcon } from "@/components/IslamicIcons";
+import { Construction, Sparkles } from "lucide-react";
 import { storage } from "@/lib/storage";
 import { gameStorage } from "@/lib/game/game-storage";
 import MosqueIsometrique, { type MosqueStage } from "@/components/MosqueIsometrique";
 import { pageVariants, itemVariants } from "@/lib/motion";
 import { SAGES } from "@/lib/game/sages";
 
+const MILESTONE_ICONS = [MosqueIcon, Construction, Sparkles] as const;
+
 const MILESTONES = [
-  { streak: 0,  stade: 1, label: "Tapis de prière",      desc: "Premier pas — l'essentiel est là.",         emoji: "🕌" },
-  { streak: 7,  stade: 2, label: "Mosquée en construction", desc: "7 jours consécutifs — les murs s'élèvent.", emoji: "🏗" },
-  { streak: 30, stade: 3, label: "Mosquée complète",      desc: "30 jours — deux minarets, une fontaine.",    emoji: "✨" },
+  { streak: 0,  stade: 1, label: "Tapis de prière",      desc: "Premier pas — l'essentiel est là." },
+  { streak: 7,  stade: 2, label: "Mosquée en construction", desc: "7 jours consécutifs — les murs s'élèvent." },
+  { streak: 30, stade: 3, label: "Mosquée complète",      desc: "30 jours — deux minarets, une fontaine." },
 ];
 
 export default function MosqueePage() {
@@ -89,9 +93,10 @@ export default function MosqueePage() {
           Jalons d'évolution
         </p>
         <div className="flex flex-col gap-3">
-          {MILESTONES.map((m) => {
+          {MILESTONES.map((m, idx) => {
             const reached = streak >= m.streak;
             const isCurrent = stage === m.stade;
+            const MIcon = MILESTONE_ICONS[idx];
             return (
               <motion.div key={m.streak}
                 initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
@@ -100,7 +105,7 @@ export default function MosqueePage() {
                   background: isCurrent ? "rgba(5,92,63,0.2)" : reached ? "rgba(5,92,63,0.08)" : "rgba(255,255,255,0.02)",
                   borderColor: isCurrent ? "rgba(212,175,55,0.35)" : reached ? "rgba(212,175,55,0.15)" : "rgba(255,255,255,0.06)",
                 }}>
-                <span className="text-2xl">{m.emoji}</span>
+                <MIcon size={24} style={{ color: isCurrent ? "var(--gold)" : reached ? "rgba(212,175,55,0.6)" : "rgba(248,244,236,0.2)", flexShrink: 0 }} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold"
                     style={{ color: isCurrent ? "var(--gold)" : reached ? "var(--text)" : "rgba(248,244,236,0.35)", fontFamily: "var(--font-dm-sans)" }}>
@@ -158,16 +163,15 @@ export default function MosqueePage() {
           <div className="flex flex-wrap gap-2">
             {mosqueObjects.map(obj => {
               const labels: Record<string, string> = {
-                lantern_1: "🪔 Lanterne", carpet_1: "🪣 Tapis", chandelier_1: "💡 Lustre",
-                mihrab_1: "🕌 Mihrab", minaret_base: "🗼 Minaret", fountain_1: "⛲ Fontaine",
-                arch_1: "🌙 Arche", tiles_1: "🔷 Zellige", calligraphy_1: "✍️ Calligraphie",
-                dome_1: "🔵 Dôme",
-                // Tombouctou — escape game
-                tombouctou_astrolabe: "⚙️ Astrolabe d'Al-Biruni",
-                tombouctou_books:     "📚 Manuscrits de Tombouctou",
-                tombouctou_map:       "🗺️ Carte islamique médiévale",
-                tombouctou_lectern:   "📖 Pupitre du Coran",
-                tombouctou_lantern:   "🕯️ Lanterne de Tombouctou",
+                lantern_1: "Lanterne", carpet_1: "Tapis", chandelier_1: "Lustre",
+                mihrab_1: "Mihrab", minaret_base: "Minaret", fountain_1: "Fontaine",
+                arch_1: "Arche", tiles_1: "Zellige", calligraphy_1: "Calligraphie",
+                dome_1: "Dôme",
+                tombouctou_astrolabe: "Astrolabe d'Al-Biruni",
+                tombouctou_books:     "Manuscrits de Tombouctou",
+                tombouctou_map:       "Carte islamique médiévale",
+                tombouctou_lectern:   "Pupitre du Coran",
+                tombouctou_lantern:   "Lanterne de Tombouctou",
               };
               return (
                 <div key={obj} className="flex items-center gap-2 rounded-full px-3 py-1.5"

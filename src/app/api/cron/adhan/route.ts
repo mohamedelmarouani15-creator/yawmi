@@ -8,6 +8,10 @@ const PRAYER_KEYS = ["fajr", "dhuhr", "asr", "maghrib", "isha"] as const;
 const WINDOW_MS   = 2 * 60 * 1000; // fenêtre de 2 minutes
 
 export async function GET(req: NextRequest) {
+  if (!process.env.CRON_SECRET) {
+    console.error("[cron/adhan] CRON_SECRET manquant — configurer dans Vercel env vars");
+    return NextResponse.json({ error: "CRON_SECRET not configured" }, { status: 500 });
+  }
   if (req.headers.get("authorization") !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -29,8 +33,15 @@ export async function GET(req: NextRequest) {
     .not("lat", "is", null)
     .not("sub", "is", null);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  if (!subs?.length) return NextResponse.json({ ok: true, sent: 0 });
+  if (error) {
+    console.error("[cron/adhan] Supabase error:", error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+  if (!subs?.length) {
+    console.log("[cron/adhan] Aucun abonnement actif");
+    return NextResponse.json({ ok: true, sent: 0 });
+  }
+  console.log(`[cron/adhan] ${subs.length} abonnement(s) à vérifier`);
 
   const now  = new Date();
   let   sent = 0;
@@ -79,5 +90,6 @@ export async function GET(req: NextRequest) {
     })
   );
 
+  console.log(`[cron/adhan] Terminé — ${sent} notification(s) envoyée(s)`);
   return NextResponse.json({ ok: true, sent });
 }

@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, CheckCircle2, XCircle, Zap, Clock } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, Zap, Clock, Swords, Trophy, Handshake, Dumbbell } from "lucide-react";
 import { useLiveDuel } from "@/hooks/useLiveDuel";
 import { springTap } from "@/lib/motion";
 
@@ -78,7 +78,7 @@ export default function LiveDuelPage() {
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           className="flex h-20 w-20 items-center justify-center rounded-full text-4xl"
           style={{ background: `${COLOR}18`, border: `2px solid ${COLOR}40` }}>
-          ⚔️
+          <Swords size={36} style={{ color: COLOR }} />
         </motion.div>
         <div className="text-center">
           <p className="text-xl font-bold mb-2" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
@@ -117,7 +117,7 @@ export default function LiveDuelPage() {
           animate={{ scale: 1, opacity: 1 }}
           transition={{ type: "spring", stiffness: 280, damping: 20 }}
           className="text-7xl">
-          {tied ? "🤝" : iWon ? "🏆" : "💪"}
+          {tied ? <Handshake size={56} style={{ color: "#60a5fa" }} /> : iWon ? <Trophy size={56} style={{ color: "var(--gold)" }} /> : <Dumbbell size={56} style={{ color: "var(--text-muted)" }} />}
         </motion.div>
         <div className="text-center">
           <p className="text-2xl font-bold mb-1"

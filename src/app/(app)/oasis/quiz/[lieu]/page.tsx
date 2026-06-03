@@ -3,7 +3,8 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, CheckCircle2, XCircle, Star, Scissors, Shield, Zap, Snowflake } from "lucide-react";
+import { ArrowLeft, CheckCircle2, XCircle, Star, Scissors, Shield, Zap, Snowflake, Trophy, Coins } from "lucide-react";
+import { MosqueIcon } from "@/components/IslamicIcons";
 import { useQuiz } from "@/hooks/useQuiz";
 import { useGameState } from "@/hooks/useGameState";
 import { getLocation } from "@/lib/game/locations";
@@ -16,11 +17,12 @@ import { ageGroupToMode } from "@/hooks/useAgeMode";
 import StoryPrologue      from "@/components/StoryPrologue";
 import type { PowerUpType } from "@/lib/game/types";
 
-const CITY_EMOJI: Record<string, string> = {
-  medine:     "🌙", fes:        "🏺", cordoue:    "🌹",
-  marrakech:  "🏜️", damas:      "🌸", bagdad:     "📚",
-  samarcande: "🛤️", tombouctou: "🏛️", le_caire:   "🎓",
-  la_mecque:  "🕋",
+// Couleur d'accent par lieu (remplace les emojis pour cohérence visuelle)
+const CITY_COLOR: Record<string, string> = {
+  medine:     "#D4AF37", fes:        "#f97316", cordoue:    "#a78bfa",
+  marrakech:  "#fb923c", damas:      "#34d399", bagdad:     "#60a5fa",
+  samarcande: "#06b6d4", tombouctou: "#fbbf24", le_caire:   "#4ade80",
+  la_mecque:  "#D4AF37",
 };
 import DragDropGame    from "@/components/minigames/DragDropGame";
 import MemoryGame      from "@/components/minigames/MemoryGame";
@@ -168,7 +170,7 @@ function PowerUpBtn({
         {count}×
       </span>
       <span className="text-[8px] opacity-60" style={{ fontFamily: "var(--font-dm-sans)" }}>
-        {def.cost}🪙
+        {def.cost}<Coins size={8} style={{ display: "inline", marginLeft: 1 }} />
       </span>
       {active && (
         <motion.div
@@ -281,8 +283,7 @@ export default function QuizPage() {
     return (
       <StoryPrologue
         narrative={narrative}
-        themeColor={location.color}
-        themeEmoji={CITY_EMOJI[lieu] ?? "🌍"}
+        themeColor={CITY_COLOR[lieu] ?? location.color}
         label={location.nameFr}
         onComplete={() => setPrologueDone(true)}
       />
@@ -413,7 +414,7 @@ export default function QuizPage() {
               className="flex items-center gap-3 rounded-2xl border px-4 py-3 mb-2 w-full max-w-xs"
               style={{ background: "var(--bg-gold)", borderColor: "rgba(212,175,55,0.25)" }}
             >
-              <span className="text-xl">🏆</span>
+              <Trophy size={20} style={{ color: "var(--gold)", flexShrink: 0 }} />
               <div className="text-left">
                 <p className="text-xs font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>Succès débloqué !</p>
                 <p className="text-xs opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{id.replace(/_/g, " ")}</p>
@@ -494,7 +495,7 @@ export default function QuizPage() {
         </span>
         <div className="flex items-center gap-1.5">
           {session.bouclierActive && (
-            <span className="text-xs font-semibold" style={{ color: "#60a5fa", fontFamily: "var(--font-dm-sans)" }}>🛡 Actif</span>
+            <span className="flex items-center gap-1 text-xs font-semibold" style={{ color: "#60a5fa", fontFamily: "var(--font-dm-sans)" }}><Shield size={11} /> Actif</span>
           )}
           {session.doubleXpActive && (
             <span className="text-xs font-semibold" style={{ color: "#4ade80", fontFamily: "var(--font-dm-sans)" }}>⚡×2</span>

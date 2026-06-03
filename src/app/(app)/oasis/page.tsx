@@ -4,6 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { Swords, Lock, Flame, Coins, Package, ShoppingCart, Castle } from "lucide-react";
 import { useGameState } from "@/hooks/useGameState";
 import { LOCATIONS } from "@/lib/game/locations";
 import { SAGES } from "@/lib/game/sages";
@@ -462,7 +463,7 @@ function CityCard({
     : unlocked && sage
     ? "⚔  DÉFI DISPONIBLE"
     : !unlocked
-    ? `🔒  ${location.requiredXP} XP`
+    ? `⊘  ${location.requiredXP} XP`
     : "✦  POINT DE DÉPART";
   const badgeColor = defeated
     ? "var(--gold)"
@@ -577,7 +578,7 @@ export default function OasisPage() {
     if (!state) return;
     if (!locationUnlocked(locId)) {
       const loc = LOCATIONS.find(l => l.id === locId);
-      setToast(`🔒 ${loc?.nameFr} — ${loc?.requiredXP} XP requis`);
+      setToast(`⊘ ${loc?.nameFr} — ${loc?.requiredXP} XP requis`);
       return;
     }
     router.push(`/oasis/${locId}`);
@@ -657,19 +658,19 @@ export default function OasisPage() {
             {streak > 0 && (
               <div className="flex items-center gap-1 rounded-full px-2.5 py-1"
                 style={{ background: "rgba(249,115,22,0.12)", border: "1px solid rgba(249,115,22,0.22)" }}>
-                <span className="text-xs">🔥</span>
+                <Flame size={11} style={{ color: "#f97316" }} />
                 <span className="text-xs font-bold" style={{ color: "#f97316", fontFamily: "var(--font-dm-sans)" }}>{streak}</span>
               </div>
             )}
             <div className="flex items-center gap-1 rounded-full px-2.5 py-1"
               style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.2)" }}>
-              <span className="text-xs">🪙</span>
+              <Coins size={11} style={{ color: "var(--gold)" }} />
               <span className="text-xs font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>{coins}</span>
             </div>
             <Link href="/oasis/shop">
               <div className="flex items-center gap-1 rounded-full px-2.5 py-1"
                 style={{ background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)", cursor: "pointer" }}>
-                <span className="text-xs">{chests > 0 ? "📦" : "🛒"}</span>
+                {chests > 0 ? <Package size={11} style={{ color: "#a78bfa" }} /> : <ShoppingCart size={11} style={{ color: "#a78bfa" }} />}
                 {chests > 0 && (
                   <span className="text-xs font-bold" style={{ color: "#a78bfa", fontFamily: "var(--font-dm-sans)" }}>{chests}</span>
                 )}
@@ -724,9 +725,9 @@ export default function OasisPage() {
             boxShadow: "0 0 24px rgba(5,195,111,0.08)",
           }}
         >
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl"
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
             style={{ background: "rgba(5,195,111,0.12)" }}>
-            🏰
+            <Castle size={24} style={{ color: "#05C36F" }} />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">

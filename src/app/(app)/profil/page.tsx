@@ -17,8 +17,6 @@ function getStats() {
   const log    = storage.getDhikrLog();
   const tasks  = storage.getTasks();
   const today  = log.find(s => s.date === todayKey());
-  const total  = Object.values(today?.counts ?? {}).reduce((a, b) => a + b, 0);
-
   let streak = 0;
   const DHIKR_IDS = ["subhan", "hamdou", "akbar"];
   const TARGETS   = { subhan: 33, hamdou: 33, akbar: 34 };
@@ -34,7 +32,6 @@ function getStats() {
   const totalDhikrAll = log.reduce((acc, s) => acc + Object.values(s.counts).reduce((a, b) => a + b, 0), 0);
   const doneTasks = tasks.filter(t => t.done).length;
 
-  void total;
   return { streak, totalDhikrAll, doneTasks, totalTasks: tasks.length };
 }
 

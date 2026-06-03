@@ -75,7 +75,9 @@ export function computePrayerTimes(
   madhab: MadhabKey = "Shafi",
   date = new Date()
 ): ComputedPrayerTimes {
-  const coords = new Coordinates(lat, lng);
+  const safeLat = Math.max(-89.9, Math.min(89.9, isFinite(lat) ? lat : 48.8566));
+  const safeLng = Math.max(-180,  Math.min(180,  isFinite(lng) ? lng : 2.3522));
+  const coords = new Coordinates(safeLat, safeLng);
   const params = buildParams(method);
   params.madhab = madhab === "Hanafi" ? Madhab.Hanafi : Madhab.Shafi;
   const pt = new PrayerTimes(coords, date, params);

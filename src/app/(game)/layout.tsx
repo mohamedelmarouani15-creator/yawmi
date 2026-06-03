@@ -9,19 +9,15 @@ export default function GameLayout({ children }: { children: React.ReactNode }) 
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const done = localStorage.getItem("yawmi_onboarded");
-    if (done) { setReady(true); return; }
-
     supabase.auth.getSession()
       .then(({ data }) => {
         if (data.session) {
-          localStorage.setItem("yawmi_onboarded", "1");
           setReady(true);
         } else {
-          router.replace("/onboarding");
+          router.replace("/connexion");
         }
       })
-      .catch(() => router.replace("/onboarding"));
+      .catch(() => router.replace("/connexion"));
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!ready) return (

@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
+import { Lock } from "lucide-react";
 import { pageVariants, itemVariants } from "@/lib/motion";
 
 const ARCS = [
@@ -57,7 +58,7 @@ const ARCS = [
     titleAr: "السِّيرَةُ النَّبَوِيَّةُ",
     subtitle: "De La Mecque à Médine",
     chapters: 12,
-    status: "available",
+    status: "coming_soon",
     color: "#34d399",
     emoji: "🌙",
     description: "Les grandes étapes de la vie du Prophète Muhammad ﷺ — la révélation, les épreuves et la construction de la communauté.",
@@ -68,7 +69,7 @@ const ARCS = [
     titleAr: "الصَّحَابَةُ الْكِرَامُ",
     subtitle: "Histoires de courage et de foi",
     chapters: 10,
-    status: "available",
+    status: "coming_soon",
     color: "#fbbf24",
     emoji: "🛡️",
     description: "Abu Bakr, Omar, Bilal, Khadija, Fatima — les hommes et femmes qui ont porté l'islam à ses débuts.",
@@ -79,7 +80,7 @@ const ARCS = [
     titleAr: "الْهِجْرَةُ الْمُبَارَكَةُ",
     subtitle: "Le début du calendrier islamique",
     chapters: 5,
-    status: "available",
+    status: "coming_soon",
     color: "#60a5fa",
     emoji: "🐫",
     description: "La migration de La Mecque à Médine — un voyage de foi qui a changé le cours de l'histoire.",
@@ -90,7 +91,7 @@ const ARCS = [
     titleAr: "إِسْمَاعِيلُ وَالذَّبْحُ",
     subtitle: "L'origine de l'Aïd al-Adha — Sourate 37",
     chapters: 4,
-    status: "available",
+    status: "coming_soon",
     color: "#f43f5e",
     emoji: "🐑",
     description: "Le test suprême d'Ibrahim et de son fils Ismaïl — la naissance du sacrifice et de la foi absolue.",
@@ -101,7 +102,7 @@ const ARCS = [
     titleAr: "الْإِسْرَاءُ وَالْمِعْرَاجُ",
     subtitle: "Le voyage nocturne — Sourate 17",
     chapters: 5,
-    status: "available",
+    status: "coming_soon",
     color: "#c084fc",
     emoji: "✨",
     description: "Le voyage miraculeuse du Prophète ﷺ de La Mecque à Jérusalem, puis son ascension aux sept cieux.",
@@ -112,7 +113,7 @@ const ARCS = [
     titleAr: "سُلَيْمَانُ الْحَكِيمُ",
     subtitle: "Sagesse et pouvoir — Sourates 21, 27",
     chapters: 7,
-    status: "available",
+    status: "coming_soon",
     color: "#84cc16",
     emoji: "👑",
     description: "Le roi qui parlait aux oiseaux et commandait aux djinns — l'histoire de la sagesse divine au service de la justice.",
@@ -214,9 +215,10 @@ export default function HistoirePage() {
               }}
             >
               {!available && (
-                <div className="absolute top-3 right-3 rounded-full px-2 py-0.5 text-xs font-semibold"
+                <div className="absolute top-3 right-3 flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"
                   style={{ background: "rgba(255,255,255,0.06)", color: "rgba(248,244,236,0.35)", fontFamily: "var(--font-dm-sans)" }}>
-                  Bientôt
+                  <Lock size={10} />
+                  Bientôt disponible
                 </div>
               )}
               <div className="flex items-start gap-3 mb-3">

@@ -7,7 +7,7 @@ import { Sun, Moon, RotateCcw, Volume2, VolumeX } from "lucide-react";
 import { AZKAR_MATIN, AZKAR_SOIR, type Zikr } from "@/lib/azkar";
 import { storage, todayKey } from "@/lib/storage";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
-import { useZikrAudio, type AudioRate } from "@/hooks/useZikrAudio";
+import { useZikrAudio } from "@/hooks/useZikrAudio";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 
 type Session = "matin" | "soir";
@@ -18,7 +18,7 @@ export default function AzkarPage() {
   const params = useSearchParams();
   const [session, setSession] = useState<Session>(params.get("session") === "soir" ? "soir" : "matin");
   const [counts,  setCounts]  = useState<Record<string, number>>({});
-  const { playingId, rate, setRate, toggle, stop, supported } = useZikrAudio();
+  const { playingId, toggle, stop } = useZikrAudio();
 
   const ageMode = ageGroupToMode(storage.getSettings().ageGroup);
   const isKids  = ageMode === "kids";
@@ -95,25 +95,6 @@ export default function AzkarPage() {
               </motion.button>
             ))}
           </div>
-          {/* Vitesse de lecture — masquée pour kids et elder */}
-          {supported && !isKids && !isElder && (
-            <div className="flex items-center gap-1">
-              <Volume2 size={10} style={{ color: "rgba(212,175,55,0.4)" }} />
-              {([0.55, 0.75, 1.0] as AudioRate[]).map(r => (
-                <button key={r}
-                  onClick={() => setRate(r)}
-                  className="rounded-full px-2 py-0.5 text-xs"
-                  style={{
-                    background: rate === r ? "rgba(212,175,55,0.15)" : "transparent",
-                    color: rate === r ? "var(--gold)" : "var(--text-dim)",
-                    border: rate === r ? "1px solid rgba(212,175,55,0.3)" : "1px solid transparent",
-                    fontFamily: "var(--font-dm-sans)",
-                  }}>
-                  {r === 0.55 ? "Lent" : r === 0.75 ? "Moyen" : "Normal"}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
       </motion.div>
 
@@ -205,10 +186,10 @@ export default function AzkarPage() {
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    {/* Bouton audio */}
-                    {supported && (
+                    {/* Bouton audio — affiché seulement si un MP3 est disponible */}
+                    {zikr.audioUrl && (
                       <motion.button
-                        onClick={() => toggle(zikr.id, zikr.ar)}
+                        onClick={() => toggle(zikr.id, zikr.audioUrl)}
                         whileTap={{ scale: 0.85 }} transition={springTap}
                         className="relative flex h-7 w-7 items-center justify-center rounded-full border"
                         style={{

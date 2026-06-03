@@ -6,6 +6,7 @@ export interface Zikr {
   darija?:        string;
   count:          number;
   source:         string;
+  audioUrl?:      string; // CDN audio libre — undefined = silencieux
 }
 
 export const AZKAR_MATIN: Zikr[] = [
@@ -15,6 +16,8 @@ export const AZKAR_MATIN: Zikr[] = [
     transliteration: "A'udhu billahi minash-shaytanir-rajim. Allahu la ilaha illa huwal-hayyul-qayyum...",
     fr: "Ayat al-Kursi — À réciter 1 fois le matin",
     source: "Al-Baqara 2:255",
+    // Ayat al-Kursi = ayah globale 262 (7 ayahs Al-Fatiha + 255)
+    audioUrl: "https://cdn.islamic.network/quran/audio/128/ar.alafasy/262.mp3",
   },
   {
     id: "m2", count: 3,
@@ -22,6 +25,7 @@ export const AZKAR_MATIN: Zikr[] = [
     transliteration: "Qul huwallahu ahad. Allahus-samad. Lam yalid wa lam yulad. Wa lam yakun lahu kufuwan ahad.",
     fr: "Sourate Al-Ikhlas",
     source: "Al-Ikhlas 112",
+    audioUrl: "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/112.mp3",
   },
   {
     id: "m3", count: 3,
@@ -29,6 +33,7 @@ export const AZKAR_MATIN: Zikr[] = [
     transliteration: "Qul a'udhu bi rabbil-falaq. Min sharri ma khalaq. Wa min sharri ghasiqin idha waqab. Wa min sharrin-naffathati fil-'uqad. Wa min sharri hasidin idha hasad.",
     fr: "Sourate Al-Falaq",
     source: "Al-Falaq 113",
+    audioUrl: "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/113.mp3",
   },
   {
     id: "m4", count: 3,
@@ -36,6 +41,7 @@ export const AZKAR_MATIN: Zikr[] = [
     transliteration: "Qul a'udhu bi rabbin-nas. Malikin-nas. Ilahin-nas. Min sharril-waswasil-khannas. Alladhi yuwaswisu fi sudurin-nas. Minal-jinnati wan-nas.",
     fr: "Sourate An-Nas",
     source: "An-Nas 114",
+    audioUrl: "https://cdn.islamic.network/quran/audio-surah/128/ar.alafasy/114.mp3",
   },
   {
     id: "m5", count: 1,

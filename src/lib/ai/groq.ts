@@ -14,7 +14,7 @@ function getClient() {
 
 const MODEL = "llama-3.3-70b-versatile";
 
-export async function geminiChat(
+export async function groqChat(
   contextBlock: string,
   history: AIMessage[],
   userMessage: string,
@@ -42,7 +42,7 @@ export async function geminiChat(
   return completion.choices[0]?.message?.content ?? "";
 }
 
-export async function geminiSingle(prompt: string): Promise<string> {
+export async function groqSingle(prompt: string): Promise<string> {
   const client = getClient();
 
   const completion = await client.chat.completions.create({

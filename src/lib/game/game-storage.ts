@@ -223,7 +223,22 @@ export const gameStorage = {
     return { coins, powerup, object };
   },
 
-  // ── Supabase sync ─────────────────────────────────────────────
+  // ── Supabase sync — helpers publics (auth auto-détectée) ──────
+  async sync(): Promise<void> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) await this.syncFromSupabase(user.id);
+    } catch { /* offline graceful */ }
+  },
+
+  async push(): Promise<void> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) await this.pushToSupabase(user.id);
+    } catch { /* offline graceful */ }
+  },
+
+  // ── Supabase sync — méthodes bas niveau (userId requis) ───────
   async syncFromSupabase(userId: string): Promise<void> {
     const { data, error } = await supabase
       .from("player_progress")

@@ -554,6 +554,7 @@ export default function EscapeRoomPage() {
       gameStorage.addXP(room.reward.xp);
       gameStorage.addCoins(room.reward.coins);
       for (let i = 0; i < room.reward.chests; i++) gameStorage.addChest();
+      gameStorage.push(); // sync vers Supabase après escape game terminé
     }
   }, [solvedLocks, room, storageKey]);
 

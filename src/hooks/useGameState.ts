@@ -10,6 +10,8 @@ export function useGameState() {
 
   useEffect(() => {
     setState(gameStorage.get());
+    // Charge depuis Supabase au démarrage si connecté (Supabase = source de vérité)
+    gameStorage.sync().then(() => setState(gameStorage.get()));
   }, []);
 
   const refresh = useCallback(() => {
@@ -21,6 +23,7 @@ export function useGameState() {
     gameStorage.addCoins(coins);
     gameStorage.updateStreak();
     setState(gameStorage.get());
+    gameStorage.push(); // sync vers Supabase après chaque récompense
   }, []);
 
   const defeatSage = useCallback((sageId: string) => {

@@ -303,6 +303,7 @@ export default function ChapterPage() {
     if (json.rewards) {
       if (json.rewards.xp)    gameStorage.addXP(json.rewards.xp);
       if (json.rewards.coins) gameStorage.addCoins(json.rewards.coins);
+      gameStorage.push(); // sync vers Supabase après récompenses de chapitre
       setRewards(json.rewards);
     }
     setPhase("reward");

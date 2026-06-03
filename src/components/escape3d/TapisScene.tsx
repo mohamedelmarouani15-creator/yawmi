@@ -7,17 +7,25 @@ import { motion, AnimatePresence } from "framer-motion";
 import * as THREE from "three";
 import TapisVolant from "./TapisVolant";
 import LibraryObjects, { LIBRARY_OBJECTS, PROX_THRESHOLD } from "./LibraryObjects";
-import { getEscapeRoom } from "@/lib/game/escape-rooms";
-import type { EscapeLock } from "@/lib/game/escape-rooms";
+import ClueObjects from "./ClueObjects";
+import { useEscapeAudio } from "./useEscapeAudio";
+import {
+  TOMBOUCTOU_CLUES,
+  TOMBOUCTOU_LOCKS,
+  CLUE_DISCOVER_RANGE,
+  type TombouktouClue,
+  type TombouktouLock,
+} from "@/lib/escape3d/tombouctou-puzzles";
 import { gameStorage } from "@/lib/game/game-storage";
 
-const SPEED          = 4.0;   // vitesse clavier (unités/s)
-const TURN_SPEED     = 2.2;   // virage clavier (rad/s)
-const LOOK_SPEED     = 0.010; // touch rotation (rad/pixel)
-const STICK_MAX      = 55;    // pixels — rayon max du joystick virtuel
-const MAX_TOUCH_VEL  = 0.08;  // unités/frame à pleine poussée (≈ 4.8u/s à 60fps)
+const SPEED          = 4.0;
+const TURN_SPEED     = 2.2;
+const LOOK_SPEED     = 0.010;
+const STICK_MAX      = 55;
+const MAX_TOUCH_VEL  = 0.08;
 const BOUNDS     = { xMin: -6.5, xMax: 6.5, zMin: -9.5, zMax: 9.5 };
-const STORAGE_KEY = "escape_room_bibliotheque_1";
+const STORAGE_KEY       = "escape_room_bibliotheque_1";
+const CLUES_STORAGE_KEY = "escape_room_bibliotheque_1_clues";
 const ROOM_COLOR  = "#8B4513";
 
 // ── Mouvement du tapis ──────────────────────────────────────────────
@@ -30,28 +38,22 @@ function TapisMovement({ moveRef, lookRef, inputRef, posRef, yawRef, velRef, nea
   velRef:    React.RefObject<{ x: number; z: number }>;
   nearIdRef: React.RefObject<string | null>;
 }) {
-  const smoothMzRef = useRef(0); // vitesse lissée — persiste entre frames
+  const smoothMzRef = useRef(0);
 
   useFrame((_, dt) => {
-    // === ROTATION ===
-    const touchLook = lookRef.current.x;           // delta touch (zone droite)
-    const keyLook   = inputRef.current.x * TURN_SPEED * dt;  // clavier
+    const touchLook = lookRef.current.x;
+    const keyLook   = inputRef.current.x * TURN_SPEED * dt;
     yawRef.current += touchLook + keyLook;
-    lookRef.current.x = 0;                         // consommé
+    lookRef.current.x = 0;
 
-    // === DÉPLACEMENT — joystick virtuel avec lerp (accélération fluide) ===
     const targetMz = moveRef.current.z + inputRef.current.y * SPEED * dt;
-
-    // Lerp vers la vitesse cible → démarrage/arrêt progressif (pas de saccade)
     smoothMzRef.current = THREE.MathUtils.lerp(smoothMzRef.current, targetMz, 0.22);
     const mz = smoothMzRef.current;
 
-    // Signal visuel pour TapisVolant (inclinaison avant/arrière + banking virage)
     velRef.current = { x: touchLook * 12, z: mz };
 
     if (Math.abs(mz) < 0.0002) return;
 
-    // Ralentissement de proximité près des objets
     let mult = 1.0;
     if (nearIdRef.current) {
       const obj = LIBRARY_OBJECTS.find(o => o.id === nearIdRef.current);
@@ -74,7 +76,7 @@ function TapisMovement({ moveRef, lookRef, inputRef, posRef, yawRef, velRef, nea
   return null;
 }
 
-// ── Détection de proximité ──────────────────────────────────────────
+// ── Détection de proximité — manuscrits ────────────────────────────
 function ProximityDetector({ posRef, nearIdRef, setNearId }: {
   posRef:    React.RefObject<THREE.Vector3>;
   nearIdRef: React.MutableRefObject<string | null>;
@@ -97,6 +99,30 @@ function ProximityDetector({ posRef, nearIdRef, setNearId }: {
   return null;
 }
 
+// ── Détection de proximité — indices cachés ─────────────────────────
+function ClueDiscovery({ posRef, discoveredCluesRef, onDiscover }: {
+  posRef:              React.RefObject<THREE.Vector3>;
+  discoveredCluesRef:  React.RefObject<string[]>;
+  onDiscover:          (clue: TombouktouClue) => void;
+}) {
+  const onDiscoverRef = useRef(onDiscover);
+  onDiscoverRef.current = onDiscover;
+
+  useFrame(() => {
+    const discovered = discoveredCluesRef.current;
+    for (const clue of TOMBOUCTOU_CLUES) {
+      if (discovered.includes(clue.id)) continue;
+      const dx = posRef.current.x - clue.position[0];
+      const dz = posRef.current.z - clue.position[2];
+      if (Math.sqrt(dx * dx + dz * dz) < CLUE_DISCOVER_RANGE) {
+        onDiscoverRef.current(clue);
+        break;
+      }
+    }
+  });
+  return null;
+}
+
 // ── Caméra follow ───────────────────────────────────────────────────
 function CameraFollower({ posRef, yawRef }: {
   posRef: React.RefObject<THREE.Vector3>;
@@ -108,7 +134,6 @@ function CameraFollower({ posRef, yawRef }: {
   useFrame(({ camera }) => {
     const yaw = yawRef.current;
     const pos = posRef.current;
-    // Caméra troisième personne — style Weeplay (3.5u derrière, 2u au-dessus)
     targetPos.current.set(
       pos.x - Math.sin(yaw) * 3.5,
       pos.y + 2.0,
@@ -200,18 +225,22 @@ function LibraryFloor() {
 }
 
 // ── Scène Three.js ──────────────────────────────────────────────────
-function Scene({ moveRef, lookRef, inputRef, posRef, yawRef, velRef, nearIdRef, setNearId, nearId, solvedLocks, victoryRef }: {
-  moveRef:    React.RefObject<{ x: number; z: number }>;
-  lookRef:    React.RefObject<{ x: number }>;
-  inputRef:   React.RefObject<{ x: number; y: number }>;
-  posRef:     React.RefObject<THREE.Vector3>;
-  yawRef:     React.RefObject<number>;
-  velRef:     React.RefObject<{ x: number; z: number }>;
-  nearIdRef:  React.MutableRefObject<string | null>;
-  setNearId:  (id: string | null) => void;
-  nearId:     string | null;
-  solvedLocks: number[];
-  victoryRef: React.RefObject<boolean>;
+function Scene({ moveRef, lookRef, inputRef, posRef, yawRef, velRef, nearIdRef, setNearId, nearId, solvedLocks, readyLocks, victoryRef, discoveredClues, discoveredCluesRef, onDiscover }: {
+  moveRef:             React.RefObject<{ x: number; z: number }>;
+  lookRef:             React.RefObject<{ x: number }>;
+  inputRef:            React.RefObject<{ x: number; y: number }>;
+  posRef:              React.RefObject<THREE.Vector3>;
+  yawRef:              React.RefObject<number>;
+  velRef:              React.RefObject<{ x: number; z: number }>;
+  nearIdRef:           React.MutableRefObject<string | null>;
+  setNearId:           (id: string | null) => void;
+  nearId:              string | null;
+  solvedLocks:         number[];
+  readyLocks:          number[];
+  victoryRef:          React.RefObject<boolean>;
+  discoveredClues:     string[];
+  discoveredCluesRef:  React.RefObject<string[]>;
+  onDiscover:          (clue: TombouktouClue) => void;
 }) {
   return (
     <>
@@ -219,14 +248,10 @@ function Scene({ moveRef, lookRef, inputRef, posRef, yawRef, velRef, nearIdRef, 
       <fog attach="fog" args={["#080502", 8, 22]} />
       <Stars radius={60} depth={50} count={2000} factor={1.5} fade speed={0.3} />
       <Environment preset="night" />
-      {/* Ambiance de base */}
       <ambientLight intensity={0.5} color="#0A1A0F" />
       <hemisphereLight args={[0x1A2744, 0x061A12, 0.6]} />
-
-      {/* Lune — rayon entrant par une fenêtre imaginaire */}
       <directionalLight color="#2A4A7F" intensity={0.8} position={[-9, 8, -6]} />
 
-      {/* Bougies sur les étagères — 6 positions, intensité pulsante */}
       <CandleLight position={[-5.5, 1.2, -5]} index={0} />
       <CandleLight position={[-5.5, 1.2,  0]} index={1} />
       <CandleLight position={[-5.5, 1.2,  5]} index={2} />
@@ -234,119 +259,198 @@ function Scene({ moveRef, lookRef, inputRef, posRef, yawRef, velRef, nearIdRef, 
       <CandleLight position={[ 5.5, 1.2,  0]} index={4} />
       <CandleLight position={[ 5.5, 1.2,  5]} index={5} />
 
-      {/* Spots sur les manuscrits — 2 unités au-dessus de chaque objet */}
       {([[0,2,-4.5],[3.5,2,0],[-3.5,2,0],[0,2,4.5]] as [number,number,number][]).map((p, i) => (
         <pointLight key={`ms${i}`} position={p} color="#D4AF37" intensity={0.6} distance={2.5} decay={2} />
       ))}
 
-      {/* Spotlight qui suit le tapis */}
       <CarpetSpotLight posRef={posRef} />
       <LibraryFloor />
       <TapisVolant posRef={posRef} yawRef={yawRef} velRef={velRef} victoryRef={victoryRef} />
-      <LibraryObjects nearId={nearId} solvedLocks={solvedLocks} tapisPos={posRef} />
+      <LibraryObjects nearId={nearId} solvedLocks={solvedLocks} readyLocks={readyLocks} tapisPos={posRef} />
+      <ClueObjects discoveredClues={discoveredClues} />
       <TapisMovement moveRef={moveRef} lookRef={lookRef} inputRef={inputRef}
         posRef={posRef} yawRef={yawRef} velRef={velRef} nearIdRef={nearIdRef} />
       <ProximityDetector posRef={posRef} nearIdRef={nearIdRef} setNearId={setNearId} />
+      <ClueDiscovery posRef={posRef} discoveredCluesRef={discoveredCluesRef} onDiscover={onDiscover} />
       <CameraFollower posRef={posRef} yawRef={yawRef} />
     </>
   );
 }
 
-// ── Modal cadenas ────────────────────────────────────────────────────
-function LockModal({ lock, onSolve, onClose }: {
-  lock:    EscapeLock;
-  onSolve: (lockId: number) => void;
-  onClose: () => void;
+// ── Modal cadenas Tombouctou ─────────────────────────────────────────
+function TombouctouLockModal({ lock, clues, onSolve, onClose, onWrongAnswer }: {
+  lock:           TombouktouLock;
+  clues:          TombouktouClue[];
+  onSolve:        (lockId: number) => void;
+  onClose:        () => void;
+  onWrongAnswer:  () => void;
 }) {
   const [selected, setSelected] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
-  const [hintUsed, setHintUsed] = useState(false);
 
-  const isCorrect = selected !== null && lock.options[selected]?.correct;
+  const isCorrect = selected === lock.correctIndex;
 
   const submit = useCallback(() => {
     if (selected === null) return;
     setRevealed(true);
-    if (lock.options[selected]?.correct)
-      setTimeout(() => { onSolve(lock.id); onClose(); }, 1200);
-  }, [selected, lock, onSolve, onClose]);
+    if (selected === lock.correctIndex) {
+      setTimeout(() => { onSolve(lock.id); onClose(); }, 1400);
+    } else {
+      onWrongAnswer();
+    }
+  }, [selected, lock, onSolve, onClose, onWrongAnswer]);
 
   return (
     <motion.div
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       className="fixed inset-0 z-50 flex items-end justify-center"
-      style={{ background: "rgba(0,0,0,0.82)" }}
+      style={{ background: "rgba(0,0,0,0.85)" }}
       onClick={e => e.target === e.currentTarget && onClose()}
     >
       <motion.div
-        initial={{ y: 60 }} animate={{ y: 0 }} exit={{ y: 60 }}
+        initial={{ y: 80 }} animate={{ y: 0 }} exit={{ y: 80 }}
         transition={{ type: "spring", stiffness: 350, damping: 30 }}
-        className="w-full max-w-lg rounded-t-3xl p-6 pb-10"
-        style={{ background: "linear-gradient(180deg,#0A1A0E 0%,#061A12 100%)", border: "1px solid rgba(212,175,55,0.22)" }}
+        className="w-full max-w-lg rounded-t-3xl overflow-y-auto"
+        style={{
+          background: "linear-gradient(180deg,#0A1A0E 0%,#061A12 100%)",
+          border: "1px solid rgba(212,175,55,0.22)",
+          maxHeight: "88vh",
+        }}
       >
-        <div className="flex items-center gap-3 mb-5">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl"
-            style={{ background: `${ROOM_COLOR}22` }}>{lock.icon}</div>
-          <div>
-            <p className="text-xs uppercase tracking-widest mb-0.5"
-              style={{ color: `${ROOM_COLOR}99`, fontFamily: "var(--font-dm-sans)" }}>Cadenas {lock.id + 1}/4</p>
-            <p className="text-sm font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>{lock.label}</p>
+        {/* Header */}
+        <div className="p-5 pb-0">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-xl"
+              style={{ background: "rgba(212,175,55,0.1)" }}>
+              {lock.themeIcon}
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-widest mb-0.5"
+                style={{ color: "rgba(212,175,55,0.6)", fontFamily: "var(--font-dm-sans)" }}>
+                Cadenas {lock.id + 1}/4
+              </p>
+              <p className="text-sm font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+                {lock.title}
+              </p>
+            </div>
+            <button onClick={onClose} className="ml-auto opacity-40 hover:opacity-70"
+              style={{ color: "var(--text)", fontSize: 20 }}>✕</button>
           </div>
-          <button onClick={onClose} className="ml-auto opacity-40 hover:opacity-70"
-            style={{ color: "var(--text)", fontSize: 20 }}>✕</button>
-        </div>
 
-        <p className="text-base font-semibold leading-snug mb-5"
-          style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>{lock.question}</p>
+          {/* Narration */}
+          <p className="text-xs leading-relaxed mb-4"
+            style={{ color: "rgba(248,244,236,0.55)", fontFamily: "var(--font-dm-sans)" }}>
+            {lock.story}
+          </p>
 
-        <div className="flex flex-col gap-2 mb-4">
-          {lock.options.map((opt, idx) => {
-            let bg = "rgba(255,255,255,0.02)", border = "rgba(255,255,255,0.07)", textC = "var(--text)";
-            if (revealed) {
-              if (opt.correct) { bg = "rgba(74,222,128,0.09)"; border = "rgba(74,222,128,0.4)"; textC = "#4ade80"; }
-              else if (selected === idx) { bg = "rgba(248,113,113,0.09)"; border = "rgba(248,113,113,0.4)"; textC = "#f87171"; }
-            } else if (selected === idx) { bg = `${ROOM_COLOR}18`; border = ROOM_COLOR; textC = ROOM_COLOR; }
-            return (
-              <motion.button key={idx} onClick={() => !revealed && setSelected(idx)} disabled={revealed}
-                whileTap={!revealed ? { scale: 0.97 } : {}}
-                className="flex items-center gap-3 rounded-xl border px-4 py-3 text-left"
-                style={{ background: bg, borderColor: border }}>
-                <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                  style={{ background: "rgba(255,255,255,0.05)", color: textC, fontFamily: "var(--font-dm-sans)" }}>
-                  {String.fromCharCode(65 + idx)}
-                </span>
-                <span className="text-sm" style={{ color: textC, fontFamily: "var(--font-dm-sans)" }}>{opt.text}</span>
-              </motion.button>
-            );
-          })}
-        </div>
-
-        {!hintUsed
-          ? <motion.button onClick={() => setHintUsed(true)} whileTap={{ scale: 0.97 }}
-              className="w-full rounded-xl py-2.5 text-xs font-semibold mb-3"
-              style={{ background: "rgba(255,255,255,0.03)", color: "rgba(248,244,236,0.4)",
-                border: "1px solid rgba(255,255,255,0.06)", fontFamily: "var(--font-dm-sans)" }}>
-              💡 Voir l&apos;indice (-5 pièces)
-            </motion.button>
-          : <p className="text-xs mb-3 px-3 py-2 rounded-xl"
-              style={{ background: `${ROOM_COLOR}12`, color: `${ROOM_COLOR}cc`,
-                border: `1px solid ${ROOM_COLOR}28`, fontFamily: "var(--font-dm-sans)" }}>
-              💡 {lock.hint}
+          {/* Indices collectés */}
+          <div className="mb-4">
+            <p className="text-xs uppercase tracking-widest mb-2"
+              style={{ color: "rgba(212,175,55,0.5)", fontFamily: "var(--font-dm-sans)" }}>
+              Indices collectés
             </p>
-        }
+            <div className="flex flex-col gap-1.5">
+              {clues.map(clue => (
+                <div key={clue.id}
+                  className="flex items-start gap-2.5 px-3 py-2 rounded-xl"
+                  style={{
+                    background: "rgba(212,175,55,0.07)",
+                    border: "1px solid rgba(212,175,55,0.18)",
+                  }}>
+                  <span style={{ fontSize: 16, lineHeight: 1.4 }}>{clue.icon}</span>
+                  <div>
+                    <p className="text-xs font-semibold mb-0.5"
+                      style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+                      {clue.label}
+                    </p>
+                    <p className="text-xs"
+                      style={{ color: "rgba(248,244,236,0.7)", fontFamily: "var(--font-dm-sans)" }}>
+                      {clue.content}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
 
-        <motion.button onClick={submit} disabled={selected === null || revealed}
-          whileTap={selected !== null && !revealed ? { scale: 0.97 } : {}}
-          className="w-full rounded-full py-3.5 text-sm font-semibold"
-          style={{
-            background: revealed
-              ? isCorrect ? "linear-gradient(135deg,#22c55e,#16a34a)" : "rgba(248,113,113,0.2)"
-              : selected !== null ? `linear-gradient(135deg,${ROOM_COLOR},#3A1800)` : "rgba(255,255,255,0.06)",
-            color: revealed ? (isCorrect ? "var(--text)" : "#f87171") : selected !== null ? "var(--text)" : "var(--text-dim)",
-            fontFamily: "var(--font-dm-sans)",
-          }}>
-          {revealed ? (isCorrect ? "🔓 Cadenas ouvert !" : "❌ Mauvaise réponse") : "Valider"}
-        </motion.button>
+        {/* QCM */}
+        <div className="p-5 pt-2">
+          <p className="text-sm font-semibold leading-snug mb-4"
+            style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+            {lock.question}
+          </p>
+
+          <div className="flex flex-col gap-2 mb-4">
+            {lock.options.map((opt, idx) => {
+              let bg     = "rgba(255,255,255,0.02)";
+              let border = "rgba(255,255,255,0.07)";
+              let textC  = "var(--text)";
+              if (revealed) {
+                if (idx === lock.correctIndex) {
+                  bg = "rgba(74,222,128,0.09)"; border = "rgba(74,222,128,0.4)"; textC = "#4ade80";
+                } else if (selected === idx) {
+                  bg = "rgba(248,113,113,0.09)"; border = "rgba(248,113,113,0.4)"; textC = "#f87171";
+                }
+              } else if (selected === idx) {
+                bg = `${ROOM_COLOR}18`; border = ROOM_COLOR; textC = ROOM_COLOR;
+              }
+              return (
+                <motion.button key={idx} onClick={() => !revealed && setSelected(idx)} disabled={revealed}
+                  whileTap={!revealed ? { scale: 0.97 } : {}}
+                  className="flex items-center gap-3 rounded-xl border px-4 py-3 text-left"
+                  style={{ background: bg, borderColor: border }}>
+                  <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                    style={{ background: "rgba(255,255,255,0.05)", color: textC, fontFamily: "var(--font-dm-sans)" }}>
+                    {String.fromCharCode(65 + idx)}
+                  </span>
+                  <span className="text-sm" style={{ color: textC, fontFamily: "var(--font-dm-sans)" }}>{opt}</span>
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {/* Explication après réponse correcte */}
+          <AnimatePresence>
+            {revealed && isCorrect && (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                className="mb-4 px-3 py-2.5 rounded-xl text-xs leading-relaxed"
+                style={{
+                  background: "rgba(74,222,128,0.06)",
+                  border: "1px solid rgba(74,222,128,0.2)",
+                  color: "rgba(74,222,128,0.85)",
+                  fontFamily: "var(--font-dm-sans)",
+                }}>
+                📚 {lock.explanation}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <motion.button
+            onClick={submit}
+            disabled={selected === null || revealed}
+            whileTap={selected !== null && !revealed ? { scale: 0.97 } : {}}
+            className="w-full rounded-full py-3.5 text-sm font-semibold"
+            style={{
+              background: revealed
+                ? isCorrect
+                  ? "linear-gradient(135deg,#22c55e,#16a34a)"
+                  : "rgba(248,113,113,0.15)"
+                : selected !== null
+                  ? `linear-gradient(135deg,${ROOM_COLOR},#3A1800)`
+                  : "rgba(255,255,255,0.06)",
+              color: revealed
+                ? isCorrect ? "var(--text)" : "#f87171"
+                : selected !== null ? "var(--text)" : "var(--text-dim)",
+              fontFamily: "var(--font-dm-sans)",
+              border: "none", cursor: selected !== null && !revealed ? "pointer" : "default",
+            }}>
+            {revealed
+              ? isCorrect ? "🔓 Cadenas ouvert !" : "❌ Mauvaise réponse"
+              : "Valider"}
+          </motion.button>
+        </div>
       </motion.div>
     </motion.div>
   );
@@ -354,38 +458,57 @@ function LockModal({ lock, onSolve, onClose }: {
 
 // ── Export principal ────────────────────────────────────────────────
 export default function TapisScene() {
-  // Refs mouvement / rotation
-  const moveRef   = useRef({ x: 0, z: 0 });   // touch zone gauche
-  const lookRef   = useRef({ x: 0 });           // touch zone droite
-  const inputRef  = useRef({ x: 0, y: 0 });    // clavier
+  const moveRef   = useRef({ x: 0, z: 0 });
+  const lookRef   = useRef({ x: 0 });
+  const inputRef  = useRef({ x: 0, y: 0 });
   const posRef    = useRef(new THREE.Vector3(0, 0.5, 0));
   const yawRef    = useRef(0);
-  const velRef    = useRef({ x: 0, z: 0 });    // pour les inclinaisons visuelles
+  const velRef    = useRef({ x: 0, z: 0 });
   const nearIdRef = useRef<string | null>(null);
   const victoryRef = useRef(false);
 
-  // Suivi des touches style Weeplay — une par zone max
   const moveTouchId  = useRef<number | null>(null);
   const lookTouchId  = useRef<number | null>(null);
-  const moveStartPos = useRef({ x: 0, y: 0 }); // point d'appui initial (joystick virtuel)
+  const moveStartPos = useRef({ x: 0, y: 0 });
   const prevLook     = useRef({ x: 0 });
-  const overlayRef  = useRef<HTMLDivElement>(null);
+  const overlayRef   = useRef<HTMLDivElement>(null);
 
-  // Indicateur visuel zone gauche (cercle doré au point de contact)
   const [indicator, setIndicator] = useState<{ x: number; y: number } | null>(null);
 
+  const audio = useEscapeAudio();
+
   const [nearId,      setNearId]      = useState<string | null>(null);
-  const [activeLock,  setActiveLock]  = useState<EscapeLock | null>(null);
+  const [activeLock,  setActiveLock]  = useState<TombouktouLock | null>(null);
   const [flash,       setFlash]       = useState(false);
   const [isPortrait,  setIsPortrait]  = useState(false);
+  const [clueToast,   setClueToast]   = useState<TombouktouClue | null>(null);
+
   const [solvedLocks, setSolvedLocks] = useState<number[]>(() => {
     if (typeof window === "undefined") return [];
     try { return JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]"); } catch { return []; }
   });
 
+  const [discoveredClues, setDiscoveredClues] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
+    try { return JSON.parse(localStorage.getItem(CLUES_STORAGE_KEY) ?? "[]"); } catch { return []; }
+  });
+  const discoveredCluesRef = useRef<string[]>(discoveredClues);
+
   const nearObj    = LIBRARY_OBJECTS.find(o => o.id === nearId) ?? null;
   const nearSolved = nearObj ? solvedLocks.includes(nearObj.lockId) : false;
   const allSolved  = solvedLocks.length >= 4;
+
+  // Cadenas dont tous les indices sont trouvés mais pas encore résolus
+  const readyLocks = [0, 1, 2, 3].filter(id =>
+    !solvedLocks.includes(id) &&
+    TOMBOUCTOU_CLUES.filter(c => c.lockId === id && discoveredClues.includes(c.id)).length === 3
+  );
+
+  // Indices trouvés pour le cadenas près du tapis
+  const nearLockClues = nearObj
+    ? TOMBOUCTOU_CLUES.filter(c => c.lockId === nearObj.lockId && discoveredClues.includes(c.id))
+    : [];
+  const canExamine = nearObj && !nearSolved && nearLockClues.length === 3;
 
   // Chrono — 30 minutes
   const startedAtRef = useRef(typeof window !== "undefined" ? Date.now() : 0);
@@ -400,8 +523,27 @@ export default function TapisScene() {
   const timerMins   = Math.floor(timeLeft / 60).toString().padStart(2, "0");
   const timerSecs   = (timeLeft % 60).toString().padStart(2, "0");
   const timerUrgent = timeLeft < 5 * 60;
+  const isGameOver  = timeLeft === 0 && !allSolved;
 
-  // Détection et verrouillage de l'orientation paysage
+  // Init audio + ambient bibliothèque au premier touch
+  const audioInitRef = useRef(false);
+  const initAudio = useCallback(() => {
+    if (audioInitRef.current) return;
+    audioInitRef.current = true;
+    audio.init();
+    audio.changeRoom("library");
+  }, [audio]);
+
+  // Son d'urgence quand le chrono passe sous 5 min
+  const urgentPlayedRef = useRef(false);
+  useEffect(() => {
+    if (timerUrgent && !urgentPlayedRef.current && audioInitRef.current) {
+      urgentPlayedRef.current = true;
+      audio.playFail();
+    }
+  }, [timerUrgent, audio]);
+
+  // Orientation paysage
   useEffect(() => {
     const check = () => setIsPortrait(window.innerHeight > window.innerWidth);
     check();
@@ -421,6 +563,7 @@ export default function TapisScene() {
 
     function onTouchStart(e: TouchEvent) {
       e.preventDefault();
+      initAudio();
       for (const touch of Array.from(e.changedTouches)) {
         const isLeft = touch.clientX < window.innerWidth * 0.5;
         if (isLeft && moveTouchId.current === null) {
@@ -438,7 +581,6 @@ export default function TapisScene() {
       e.preventDefault();
       for (const touch of Array.from(e.changedTouches)) {
         if (touch.identifier === moveTouchId.current) {
-          // Offset depuis le point d'appui initial = vitesse (joystick virtuel)
           const dy = touch.clientY - moveStartPos.current.y;
           const clamped = Math.max(-STICK_MAX, Math.min(STICK_MAX, dy));
           moveRef.current.z = -(clamped / STICK_MAX) * MAX_TOUCH_VEL;
@@ -454,7 +596,7 @@ export default function TapisScene() {
       for (const touch of Array.from(e.changedTouches)) {
         if (touch.identifier === moveTouchId.current) {
           moveTouchId.current = null;
-          moveRef.current.z = 0;  // cible → lerp amène doucement à 0
+          moveRef.current.z = 0;
           setIndicator(null);
         } else if (touch.identifier === lookTouchId.current) {
           lookTouchId.current = null;
@@ -490,7 +632,7 @@ export default function TapisScene() {
         y: (keys.has("ArrowUp")    || keys.has("w") ? 1 : 0) - (keys.has("ArrowDown")  || keys.has("s") ? 1 : 0),
       };
     };
-    const down = (e: KeyboardEvent) => { if (!activeLock) { keys.add(e.key); read(); } };
+    const down = (e: KeyboardEvent) => { initAudio(); if (!activeLock) { keys.add(e.key); read(); } };
     const up   = (e: KeyboardEvent) => { keys.delete(e.key); read(); };
     window.addEventListener("keydown", down);
     window.addEventListener("keyup",   up);
@@ -506,18 +648,43 @@ export default function TapisScene() {
         gameStorage.addCoins(100);
         gameStorage.addChest();
         gameStorage.addChest();
+        gameStorage.push(); // sync vers Supabase après escape Riad terminé
+        audio.playVictory();
+      } else {
+        audio.playSuccess();
       }
       return next;
     });
     victoryRef.current = true;
     setFlash(true);
     setTimeout(() => setFlash(false), 480);
+  }, [audio]);
+
+  const discoverClue = useCallback((clue: TombouktouClue) => {
+    if (discoveredCluesRef.current.includes(clue.id)) return;
+    const next = [...discoveredCluesRef.current, clue.id];
+    discoveredCluesRef.current = next;
+    setDiscoveredClues(next);
+    localStorage.setItem(CLUES_STORAGE_KEY, JSON.stringify(next));
+    audio.playCollect();
+    setClueToast(clue);
+    setTimeout(() => setClueToast(c => c?.id === clue.id ? null : c), 2600);
+  }, [audio]);
+
+  const reset = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(CLUES_STORAGE_KEY);
+    setSolvedLocks([]);
+    setDiscoveredClues([]);
+    discoveredCluesRef.current = [];
+    urgentPlayedRef.current = false;
+    startedAtRef.current = Date.now();
+    setTimeLeft(30 * 60);
   }, []);
 
   const openExamine = useCallback(() => {
     if (!nearObj) return;
-    const room = getEscapeRoom("room_bibliotheque_1");
-    if (room) setActiveLock(room.locks[nearObj.lockId]);
+    setActiveLock(TOMBOUCTOU_LOCKS[nearObj.lockId]);
   }, [nearObj]);
 
   return (
@@ -532,7 +699,10 @@ export default function TapisScene() {
           moveRef={moveRef} lookRef={lookRef} inputRef={inputRef}
           posRef={posRef} yawRef={yawRef} velRef={velRef}
           nearIdRef={nearIdRef} setNearId={setNearId}
-          nearId={nearId} solvedLocks={solvedLocks} victoryRef={victoryRef}
+          nearId={nearId} solvedLocks={solvedLocks} readyLocks={readyLocks} victoryRef={victoryRef}
+          discoveredClues={discoveredClues}
+          discoveredCluesRef={discoveredCluesRef}
+          onDiscover={discoverClue}
         />
       </Canvas>
 
@@ -542,20 +712,14 @@ export default function TapisScene() {
         style={{ position: "absolute", inset: 0, zIndex: 10, touchAction: "none", userSelect: "none" }}
       />
 
-      {/* Indicateur tactile Weeplay — cercle doré au point de contact */}
+      {/* Indicateur tactile Weeplay */}
       {indicator && (
         <div style={{
           position: "absolute",
-          left: indicator.x - 25,
-          top:  indicator.y - 25,
-          width: 50, height: 50,
-          borderRadius: "50%",
-          border: "2px solid #D4AF37",
-          background: "transparent",
-          opacity: 0.3,
-          pointerEvents: "none",
-          zIndex: 15,
-          transition: "opacity 0.1s ease",
+          left: indicator.x - 25, top: indicator.y - 25,
+          width: 50, height: 50, borderRadius: "50%",
+          border: "2px solid #D4AF37", background: "transparent",
+          opacity: 0.3, pointerEvents: "none", zIndex: 15,
         }} />
       )}
 
@@ -596,7 +760,46 @@ export default function TapisScene() {
         )}
       </AnimatePresence>
 
-      {/* ── Tasbih — progression des manuscrits (top centre) ─────── */}
+      {/* Toast — indice découvert */}
+      <AnimatePresence>
+        {clueToast && (
+          <motion.div
+            key={clueToast.id}
+            initial={{ y: -16, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -16, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 400, damping: 28 }}
+            style={{
+              position: "absolute",
+              top: "calc(58px + env(safe-area-inset-top))",
+              left: "50%", transform: "translateX(-50%)",
+              zIndex: 25, pointerEvents: "none",
+              background: "rgba(5,10,7,0.92)",
+              border: "1px solid rgba(212,175,55,0.38)",
+              borderRadius: 16, padding: "9px 16px",
+              backdropFilter: "blur(12px)",
+              display: "flex", alignItems: "center", gap: 10,
+              whiteSpace: "nowrap",
+            }}
+          >
+            <span style={{ fontSize: 18 }}>{clueToast.icon}</span>
+            <div>
+              <p style={{ color: "var(--gold)", fontSize: 11, fontWeight: 600, margin: 0,
+                fontFamily: "var(--font-dm-sans)" }}>{clueToast.label}</p>
+              <p style={{ color: "rgba(248,244,236,0.5)", fontSize: 10, margin: 0,
+                fontFamily: "var(--font-dm-sans)" }}>{clueToast.hint}</p>
+            </div>
+            <p style={{
+              color: "rgba(212,175,55,0.55)", fontSize: 11, fontWeight: 700,
+              fontFamily: "var(--font-dm-sans)", marginLeft: 4,
+            }}>
+              {discoveredClues.filter(id =>
+                TOMBOUCTOU_CLUES.find(c => c.id === id)?.lockId === clueToast.lockId
+              ).length}/3
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Tasbih — progression cadenas (top centre) */}
       <div style={{
         position: "absolute",
         top: "calc(14px + env(safe-area-inset-top))",
@@ -630,7 +833,7 @@ export default function TapisScene() {
         ))}
       </div>
 
-      {/* ── Chrono sablier (top droite) ──────────────────────────── */}
+      {/* Chrono sablier (top droite) */}
       {!allSolved && (
         <div style={{
           position: "absolute",
@@ -658,9 +861,11 @@ export default function TapisScene() {
         </div>
       )}
 
-      {/* ── Bouton EXAMINER (bas centre) ─────────────────────────── */}
+      {/* Actions bas de l'écran */}
       <AnimatePresence>
-        {nearObj && !nearSolved && !activeLock && !allSolved && (
+
+        {/* ── Bouton EXAMINER (3/3 indices trouvés) ── */}
+        {nearObj && !nearSolved && canExamine && !activeLock && !allSolved && (
           <div
             key={`examiner-${nearObj.id}`}
             style={{
@@ -674,7 +879,7 @@ export default function TapisScene() {
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
-              transition={{ type: "spring", stiffness: 420, damping: 26, duration: 0.3 }}
+              transition={{ type: "spring", stiffness: 420, damping: 26 }}
             >
               <motion.button
                 onClick={openExamine}
@@ -705,7 +910,67 @@ export default function TapisScene() {
           </div>
         )}
 
-        {/* Objet déjà résolu */}
+        {/* ── Indices partiels — incitation à explorer ── */}
+        {nearObj && !nearSolved && !canExamine && nearLockClues.length > 0 && !activeLock && !allSolved && (
+          <motion.div
+            key={`partial-${nearObj.id}`}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 20, opacity: 0 }}
+            style={{
+              position: "absolute",
+              bottom: "calc(30px + env(safe-area-inset-bottom))",
+              left: "50%", transform: "translateX(-50%)",
+              zIndex: 20,
+              display: "flex", alignItems: "center", gap: 10,
+              background: "rgba(4,8,5,0.88)",
+              border: "1px solid rgba(212,175,55,0.22)",
+              borderRadius: 28, padding: "12px 20px",
+              backdropFilter: "blur(12px)",
+            }}
+          >
+            <span style={{ fontSize: 16 }}>{nearObj.icon}</span>
+            <p style={{
+              color: "rgba(212,175,55,0.7)", fontSize: 11, margin: 0,
+              fontFamily: "var(--font-dm-sans)", letterSpacing: "0.1em",
+              textTransform: "uppercase",
+            }}>
+              {nearLockClues.length}/3 indices trouvés
+            </p>
+          </motion.div>
+        )}
+
+        {/* ── Hint — aucun indice trouvé pour ce cadenas ── */}
+        {nearObj && !nearSolved && !canExamine && nearLockClues.length === 0 && !activeLock && !allSolved && (
+          <motion.div
+            key={`hint-${nearObj.id}`}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 20, opacity: 0 }}
+            style={{
+              position: "absolute",
+              bottom: "calc(30px + env(safe-area-inset-bottom))",
+              left: "50%", transform: "translateX(-50%)",
+              zIndex: 20,
+              display: "flex", alignItems: "center", gap: 10,
+              background: "rgba(4,8,5,0.88)",
+              border: "1px solid rgba(255,255,255,0.07)",
+              borderRadius: 28, padding: "12px 20px",
+              backdropFilter: "blur(12px)",
+            }}
+          >
+            <span style={{ fontSize: 16 }}>🔍</span>
+            <p style={{
+              color: "rgba(248,244,236,0.35)", fontSize: 11, margin: 0,
+              fontFamily: "var(--font-dm-sans)", letterSpacing: "0.1em",
+              textTransform: "uppercase",
+            }}>
+              Trouve les 3 indices d&apos;abord
+            </p>
+          </motion.div>
+        )}
+
+        {/* ── Objet déjà résolu ── */}
         {nearObj && nearSolved && !activeLock && (
           <div
             key={`solved-${nearObj.id}`}
@@ -737,7 +1002,7 @@ export default function TapisScene() {
           </div>
         )}
 
-        {/* Victoire */}
+        {/* ── Victoire ── */}
         {allSolved && (
           <motion.div
             key="victory"
@@ -762,10 +1027,103 @@ export default function TapisScene() {
         )}
       </AnimatePresence>
 
-      {/* Modal cadenas */}
+      {/* Game Over — temps écoulé */}
+      <AnimatePresence>
+        {isGameOver && (
+          <motion.div
+            key="gameover"
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{
+              position: "absolute", inset: 0, zIndex: 55,
+              background: "rgba(4,2,0,0.92)",
+              display: "flex", flexDirection: "column",
+              alignItems: "center", justifyContent: "center",
+              gap: 0,
+            }}
+          >
+            <motion.div
+              initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.15, type: "spring", stiffness: 300, damping: 28 }}
+              style={{
+                width: "calc(100% - 48px)", maxWidth: 420,
+                background: "linear-gradient(180deg,#0A0806 0%,#060402 100%)",
+                border: "1px solid rgba(212,175,55,0.18)",
+                borderRadius: 24, padding: "32px 28px",
+                textAlign: "center",
+              }}
+            >
+              <div style={{ fontSize: 52, marginBottom: 12 }}>⏳</div>
+              <p style={{
+                color: "var(--gold)", fontSize: 22, fontWeight: 700,
+                fontFamily: "var(--font-bricolage)", margin: "0 0 8px",
+              }}>
+                Temps écoulé
+              </p>
+              <p style={{
+                color: "rgba(248,244,236,0.45)", fontSize: 13,
+                fontFamily: "var(--font-dm-sans)", margin: "0 0 24px",
+              }}>
+                La bibliothèque ferme ses portes…
+              </p>
+
+              {/* Bilan */}
+              <div style={{
+                display: "flex", justifyContent: "center", gap: 20, marginBottom: 28,
+              }}>
+                <div style={{
+                  background: "rgba(212,175,55,0.07)", border: "1px solid rgba(212,175,55,0.15)",
+                  borderRadius: 14, padding: "12px 18px", minWidth: 90,
+                }}>
+                  <p style={{ color: "var(--gold)", fontSize: 24, fontWeight: 700, margin: 0, fontFamily: "var(--font-dm-sans)" }}>
+                    {solvedLocks.length}/4
+                  </p>
+                  <p style={{ color: "rgba(248,244,236,0.4)", fontSize: 10, margin: "4px 0 0", fontFamily: "var(--font-dm-sans)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                    Cadenas
+                  </p>
+                </div>
+                <div style={{
+                  background: "rgba(212,175,55,0.07)", border: "1px solid rgba(212,175,55,0.15)",
+                  borderRadius: 14, padding: "12px 18px", minWidth: 90,
+                }}>
+                  <p style={{ color: "var(--gold)", fontSize: 24, fontWeight: 700, margin: 0, fontFamily: "var(--font-dm-sans)" }}>
+                    {discoveredClues.length}/12
+                  </p>
+                  <p style={{ color: "rgba(248,244,236,0.4)", fontSize: 10, margin: "4px 0 0", fontFamily: "var(--font-dm-sans)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                    Indices
+                  </p>
+                </div>
+              </div>
+
+              <motion.button
+                onClick={reset}
+                whileTap={{ scale: 0.96 }}
+                style={{
+                  width: "100%", height: 52,
+                  background: "linear-gradient(135deg,#8B4513,#3A1800)",
+                  color: "var(--text)", fontSize: 15, fontWeight: 700,
+                  border: "none", borderRadius: 26, cursor: "pointer",
+                  fontFamily: "var(--font-bricolage)", letterSpacing: "1.5px",
+                  textTransform: "uppercase",
+                  boxShadow: "0 0 18px rgba(139,69,19,0.35)",
+                }}
+              >
+                Recommencer
+              </motion.button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modal cadenas Tombouctou */}
       <AnimatePresence>
         {activeLock && (
-          <LockModal lock={activeLock} onSolve={solveLock} onClose={() => setActiveLock(null)} />
+          <TombouctouLockModal
+            lock={activeLock}
+            clues={TOMBOUCTOU_CLUES.filter(c => c.lockId === activeLock.id && discoveredClues.includes(c.id))}
+            onSolve={solveLock}
+            onClose={() => setActiveLock(null)}
+            onWrongAnswer={audio.playFail}
+          />
         )}
       </AnimatePresence>
     </>

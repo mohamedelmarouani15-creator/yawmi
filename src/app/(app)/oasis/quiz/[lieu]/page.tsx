@@ -250,6 +250,7 @@ export default function QuizPage() {
     const gained = (newState.achievements ?? []).filter(a => !prevAchievements.includes(a));
     if (gained.length > 0) setNewAchievements(gained);
 
+    gameStorage.push(); // sync vers Supabase après la session de quiz
     refresh();
     setShowResult(true);
     if (navigator.vibrate) {

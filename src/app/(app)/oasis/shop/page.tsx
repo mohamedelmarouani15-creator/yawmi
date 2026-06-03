@@ -181,6 +181,7 @@ export default function ShopPage() {
     const spent = gameStorage.spendCoins(cost);
     if (!spent) { showToast("Impossible d'acheter"); return; }
     gameStorage.addPowerUp(id);
+    gameStorage.push(); // sync vers Supabase après achat
     refresh?.();
     showToast("Power-up ajouté !");
   }, [coins, refresh]);
@@ -188,6 +189,7 @@ export default function ShopPage() {
   const openChest = useCallback(() => {
     const reward = gameStorage.openChest();
     if (!reward) return;
+    gameStorage.push(); // sync vers Supabase après ouverture coffre
     refresh?.();
     setShowParticles(true);
     setTimeout(() => setShowParticles(false), 2200);

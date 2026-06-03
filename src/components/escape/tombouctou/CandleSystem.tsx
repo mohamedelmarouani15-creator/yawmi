@@ -25,7 +25,7 @@ const CANDLE_POSITIONS: [number, number, number][] = [
 ];
 
 // Intensité de base différente par bougie (diversité visuelle)
-const BASE_INTENSITY = [0.85, 0.75, 0.90, 0.70, 0.80, 0.88, 0.72, 0.83, 0.76, 0.87, 0.79, 0.95];
+const BASE_INTENSITY = [1.25, 1.15, 1.30, 1.10, 1.20, 1.28, 1.12, 1.23, 1.16, 1.27, 1.19, 1.40];
 
 interface Props {
   tensionLevelRef: React.MutableRefObject<number>;
@@ -85,7 +85,7 @@ export default function CandleSystem({ tensionLevelRef, isMobile = false }: Prop
             ref={(el) => { lightRefs.current[i] = el; }}
             color="#FF8C42"
             intensity={BASE_INTENSITY[i] ?? 0.8}
-            distance={i === 11 ? 6 : 3.2}  // chandelier porte plus loin
+            distance={i === 11 ? 8 : 5}  // chandelier porte plus loin
             decay={2}
             castShadow={false}
           />

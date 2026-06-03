@@ -348,10 +348,10 @@ function Window({
         position={[0, 0, 0.3]}
         target-position={[0, -1, 2]}
         color="#1A3A5C"
-        intensity={0.35}
+        intensity={0.65}
         angle={0.22}
         penumbra={0.8}
-        distance={12}
+        distance={14}
         castShadow={false}
       />
     </group>
@@ -390,8 +390,10 @@ export default function LibraryEnvironment() {
 
   return (
     <>
-      {/* Lumière ambiante très faible — pièce sombre */}
-      <ambientLight color="#0A0A05" intensity={0.18} />
+      {/* Lumière ambiante — assez pour voir les contours */}
+      <ambientLight color="#1E1A10" intensity={0.35} />
+      {/* Lune — éclairage hémisphérique nuit naturelle */}
+      <hemisphereLight args={["#1A2744", "#0A0A05", 0.4]} />
 
       {/* SOL zellige */}
       <mesh rotation={[-Math.PI/2, 0, 0]} position={[0, 0, 0]} receiveShadow>

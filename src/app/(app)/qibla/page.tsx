@@ -82,6 +82,63 @@ function Kaaba({ opacity, scale }: { opacity: number; scale: number }) {
   );
 }
 
+/* ── compass needle ──────────────────────────────────────────────────────── */
+function CompassNeedle({ rotation, active, aligned }: { rotation: number; active: boolean; aligned: boolean }) {
+  const sz = 148, cx = sz / 2;
+  return (
+    <svg width={sz} height={sz} viewBox={`0 0 ${sz} ${sz}`}>
+      {/* Outer ring */}
+      <circle cx={cx} cy={cx} r={cx - 2}
+        fill="rgba(0,0,0,0.55)"
+        stroke={aligned ? "rgba(212,175,55,0.85)" : "rgba(212,175,55,0.22)"}
+        strokeWidth={aligned ? 2.5 : 1.5}
+        style={{ transition: "stroke 0.35s, stroke-width 0.35s" }} />
+
+      {/* Alignment halo */}
+      {aligned && (
+        <circle cx={cx} cy={cx} r={cx - 2}
+          fill="none" stroke="rgba(212,175,55,0.18)" strokeWidth={10} />
+      )}
+
+      {/* Tick marks */}
+      {Array.from({ length: 36 }, (_, i) => {
+        const angle = (i * 10 - 90) * Math.PI / 180;
+        const major = i % 9 === 0;
+        const rIn  = major ? cx - 16 : cx - 10;
+        const rOut = cx - 4;
+        return (
+          <line key={i}
+            x1={cx + Math.cos(angle) * rIn}  y1={cx + Math.sin(angle) * rIn}
+            x2={cx + Math.cos(angle) * rOut} y2={cx + Math.sin(angle) * rOut}
+            stroke="rgba(212,175,55,0.3)" strokeWidth={major ? 1.5 : 0.7} />
+        );
+      })}
+
+      {/* N label (fixed, not rotating) */}
+      <text x={cx} y={14} textAnchor="middle" dominantBaseline="middle"
+        fontSize={9} fontWeight="700" fill="rgba(212,175,55,0.65)"
+        fontFamily="var(--font-dm-sans)">N</text>
+
+      {/* Rotating needle — points toward Qibla */}
+      <g transform={`rotate(${rotation}, ${cx}, ${cx})`}
+        style={{ transition: active ? "transform 0.22s ease-out" : "none" }}>
+        {/* Gold tip → Qibla */}
+        <polygon points={`${cx},${cx - 46} ${cx - 5.5},${cx + 6} ${cx + 5.5},${cx + 6}`}
+          fill={aligned ? "var(--gold)" : "rgba(212,175,55,0.75)"}
+          style={{ transition: "fill 0.3s" }} />
+        {/* Dim tail */}
+        <polygon points={`${cx},${cx + 36} ${cx - 4},${cx + 6} ${cx + 4},${cx + 6}`}
+          fill="rgba(248,244,236,0.15)" />
+        {/* Center pivot */}
+        <circle cx={cx} cy={cx} r={5.5}
+          fill={aligned ? "var(--gold)" : "rgba(212,175,55,0.55)"}
+          style={{ transition: "fill 0.3s" }} />
+        <circle cx={cx} cy={cx} r={2.5} fill="#040608" />
+      </g>
+    </svg>
+  );
+}
+
 /* ── main component ──────────────────────────────────────────────────────── */
 export default function QiblaPage() {
   const { settings }    = useSettings();
@@ -92,9 +149,11 @@ export default function QiblaPage() {
   const bearing = Math.round(Qibla(new Coordinates(settings.lat, settings.lng)));
   const dist    = haversine(settings.lat, settings.lng);
 
-  const diff  = heading !== null ? angleDiff(heading, bearing) : 180;
-  const score = Math.max(0, 1 - diff / 40);           // 0 → 1
-  const isOn  = diff < 5 && heading !== null;
+  const diff     = heading !== null ? angleDiff(heading, bearing) : 180;
+  const score    = Math.max(0, 1 - diff / 40);
+  const isOn     = diff < 5 && heading !== null;
+  // angle to rotate needle so it points toward Qibla relative to device orientation
+  const rotation = heading !== null ? (bearing - heading + 360) % 360 : 0;
 
   // Vibration + state
   useEffect(() => {
@@ -124,8 +183,12 @@ export default function QiblaPage() {
     if (!permitted) return;
     const h = (e: DeviceOrientationEvent) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const v = (e as any).webkitCompassHeading ?? (e.absolute ? (360 - (e.alpha ?? 0)) : null);
-      if (v !== null) setHeading(v);
+      const webkit = (e as any).webkitCompassHeading as number | undefined;
+      // iOS: webkitCompassHeading = 0° Nord, croissant sens horaire ✓
+      // Android absolute: alpha croissant anti-horaire → 360-alpha donne cap Nord CW ✓
+      // Fallback non-absolute: même formule, précision réduite mais mieux que null
+      const v = webkit ?? ((360 - (e.alpha ?? 0)) % 360);
+      setHeading(v);
     };
     window.addEventListener("deviceorientationabsolute", h as EventListener, true);
     window.addEventListener("deviceorientation",         h as EventListener, true);
@@ -366,9 +429,10 @@ export default function QiblaPage() {
       {/* ── Bottom UI ────────────────────────────────────────────────────── */}
       <div className="relative z-10 -mt-8 flex w-full flex-col items-center gap-4 px-6 pb-6">
 
-        {/* Alignment status */}
         {heading !== null ? (
-          <div className="flex flex-col items-center gap-1">
+          /* Compass needle + alignment feedback */
+          <div className="flex flex-col items-center gap-3">
+            <CompassNeedle rotation={rotation} active aligned={isOn} />
             <div className="flex gap-1.5">
               {Array.from({ length: 8 }, (_, i) => (
                 <div key={i} className="h-1 w-6 rounded-full transition-all duration-300"
@@ -383,7 +447,13 @@ export default function QiblaPage() {
               {isOn ? "✦ Parfaitement aligné — Allahu Akbar" : `${Math.round(diff)}° de la Qibla`}
             </p>
           </div>
+        ) : permitted ? (
+          /* Permission accordée, en attente du premier événement */
+          <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            Recherche du cap…
+          </p>
         ) : (
+          /* Bouton activation boussole */
           <button onClick={activate}
             className="flex items-center gap-2 rounded-full px-8 py-3.5 text-sm font-semibold transition-all active:scale-95"
             style={{
@@ -392,7 +462,7 @@ export default function QiblaPage() {
               fontFamily: "var(--font-dm-sans)",
               boxShadow: "0 0 30px rgba(5,92,63,0.4)",
             }}>
-            Activer la boussole
+            Autoriser pour orienter la boussole
           </button>
         )}
       </div>

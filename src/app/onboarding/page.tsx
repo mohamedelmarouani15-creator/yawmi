@@ -413,10 +413,12 @@ export default function OnboardingPage() {
               <QuizHeader num={5} total={5} title="Ta langue maternelle ?" arabic="ما لغتك الأم؟" />
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { value: "français", icon: <Globe size={22} />,         label: "Français", sub: "Ma langue principale" },
-                  { value: "arabe",    icon: <Type size={22} />,          label: "Arabe",    sub: "اللغة العربية" },
-                  { value: "darija",   icon: <MessageCircle size={22} />, label: "Darija",   sub: "اللهجة المغربية" },
-                  { value: "autre",    icon: <Languages size={22} />,     label: "Autre",    sub: "Autre langue" },
+                  { value: "français",  icon: <span style={{fontSize:26}}>🇫🇷</span>, label: "Français",  sub: "Ma langue principale" },
+                  { value: "arabe",     icon: <span style={{fontSize:26}}>🌙</span>,  label: "العربية",  sub: "Arabic" },
+                  { value: "darija",    icon: <span style={{fontSize:26}}>🇲🇦</span>, label: "Darija",   sub: "Dialecte maghrébin" },
+                  { value: "anglais",   icon: <span style={{fontSize:26}}>🇬🇧</span>, label: "English",  sub: "Anglais" },
+                  { value: "espagnol",  icon: <span style={{fontSize:26}}>🇪🇸</span>, label: "Español",  sub: "Espagnol" },
+                  { value: "turc",      icon: <span style={{fontSize:26}}>🇹🇷</span>, label: "Türkçe",   sub: "Turc" },
                 ].map(opt => (
                   <GridCard key={opt.value}
                     icon={opt.icon} label={opt.label} sub={opt.sub}

@@ -7,6 +7,7 @@ import { Check, LogOut, Volume2, VolumeX, Star, Zap, Moon, Home, Crown, Sun, Sun
 import { MosqueIcon } from "@/components/IslamicIcons";
 import { useAuth }        from "@/hooks/useAuth";
 import { useSettings }    from "@/hooks/useSettings";
+import { useT }           from "@/hooks/useT";
 import { useNotifications } from "@/hooks/useNotifications";
 import { CALC_METHOD_LABELS, MADHAB_LABELS, computePrayerTimes, type CalcMethodKey, type MadhabKey } from "@/lib/prayer";
 import { CITIES } from "@/lib/cities";
@@ -47,6 +48,7 @@ const AGE_OPTIONS = [
 export default function ProfilPage() {
   const { user, signOut }   = useAuth();
   const { settings, save }  = useSettings();
+  const tt = useT();
   const { permission, prefs, toggle } = useNotifications();
   const [citySearch,   setCitySearch]   = useState("");
   const [showCities,   setShowCities]   = useState(false);
@@ -133,7 +135,7 @@ export default function ProfilPage() {
         {/* Déconnexion */}
         {user && (
           <Button variant="ghost" size="sm" icon={<LogOut size={12} />} onClick={signOut}>
-            Déco
+            {tt("profil.disconnect")}
           </Button>
         )}
       </motion.div>
@@ -163,7 +165,7 @@ export default function ProfilPage() {
           <div className="h-px flex-1" style={{ background: "rgba(212,175,55,0.12)" }} />
           <p className="text-xs font-semibold tracking-widest uppercase"
             style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)", opacity: 0.7 }}>
-            Mon expérience
+            {tt("profil.experience")}
           </p>
           <div className="h-px flex-1" style={{ background: "rgba(212,175,55,0.12)" }} />
         </div>
@@ -178,11 +180,11 @@ export default function ProfilPage() {
       <motion.div variants={itemVariants}>
         <p className="mb-1 text-xs tracking-widest uppercase opacity-40"
           style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          Tranche d'âge
+          {tt("profil.age")}
         </p>
         <p className="mb-3 text-xs opacity-30 leading-relaxed"
           style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          Personnalise le Compagnon IA et les contenus proposés
+          {tt("profil.ageSub")}
         </p>
         <div className="flex flex-wrap gap-2">
           {AGE_OPTIONS.map(opt => {
@@ -211,15 +213,15 @@ export default function ProfilPage() {
       {/* Mode app */}
       <motion.div variants={itemVariants}>
         <p className="mb-1 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          Mon mode
+          {tt("profil.mode")}
         </p>
         <p className="mb-3 text-xs opacity-30 leading-relaxed" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          Change le ton et le rythme de l'app
+          {tt("profil.modeSub")}
         </p>
         <div className="grid grid-cols-2 gap-2">
           {([
-            { id: "pratiquant"  as const, label: "Pratiquant",  sub: "Suivi complet, streaks, jeu" },
-            { id: "explorateur" as const, label: "Explorateur", sub: "Découverte, sans pression" },
+            { id: "pratiquant"  as const, label: tt("mode.pratiquant"),  sub: tt("mode.pratiquantSub") },
+            { id: "explorateur" as const, label: tt("mode.explorateur"), sub: tt("mode.explorateurSub") },
           ]).map(({ id, label, sub }) => {
             const active = (settings.appMode ?? "pratiquant") === id;
             return (
@@ -250,19 +252,21 @@ export default function ProfilPage() {
       <motion.div variants={itemVariants}>
         <p className="mb-1 text-xs tracking-widest uppercase opacity-40"
           style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          Langue maternelle
+          {tt("profil.language")}
         </p>
         <p className="mb-3 text-xs opacity-30 leading-relaxed"
           style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          Influence les explications du Compagnon et les traductions proposées
+          {tt("profil.languageSub")}
         </p>
         <div className="grid grid-cols-2 gap-2">
           {([
-            { id: "français" as const, label: "Français",      sub: "Langue principale" },
-            { id: "arabe"    as const, label: "Arabe",          sub: "العربية" },
-            { id: "darija"   as const, label: "Darija",         sub: "Dialecte marocain / maghrébin" },
-            { id: "autre"    as const, label: "Autre langue",   sub: "Non listée" },
-          ] as const).map(({ id, label, sub }) => {
+            { id: "français"  as const, label: "Français",  sub: "Langue principale",        flag: "🇫🇷" },
+            { id: "arabe"     as const, label: "العربية",   sub: "Arabic",                   flag: "🌙" },
+            { id: "darija"    as const, label: "Darija",    sub: "Dialecte maghrébin",        flag: "🇲🇦" },
+            { id: "anglais"   as const, label: "English",   sub: "Anglais",                  flag: "🇬🇧" },
+            { id: "espagnol"  as const, label: "Español",   sub: "Espagnol",                 flag: "🇪🇸" },
+            { id: "turc"      as const, label: "Türkçe",    sub: "Turc",                     flag: "🇹🇷" },
+          ] as const).map(({ id, label, sub, flag }) => {
             const active = (settings.motherTongue ?? null) === id;
             return (
               <motion.button key={id}
@@ -279,7 +283,7 @@ export default function ProfilPage() {
                   background: active ? "var(--bg-primary)" : "rgba(255,255,255,0.02)",
                   borderColor: active ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.06)",
                 }}>
-                <Languages size={15} style={{ color: active ? "var(--gold)" : "rgba(248,244,236,0.35)", flexShrink: 0 }} />
+                <span style={{ fontSize: 18, flexShrink: 0 }}>{flag}</span>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold truncate"
                     style={{ color: active ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
@@ -351,18 +355,18 @@ export default function ProfilPage() {
       <motion.div variants={itemVariants}>
         <p className="mb-1 text-xs tracking-widest uppercase opacity-40"
           style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          Mon niveau en arabe
+          {tt("profil.arabicLevel")}
         </p>
         <p className="mb-3 text-xs opacity-30 leading-relaxed"
           style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          Adapte les questions de calligraphie et les versets à ton niveau
+          {tt("profil.arabicLevelSub")}
         </p>
         <div className="flex flex-col gap-2">
           {([
-            { id: "none"         as const, label: "Je ne lis pas l'arabe", sub: "Aucune question d'écriture arabe", Icon: Sprout },
-            { id: "beginner"     as const, label: "Débutant",               sub: "Je connais quelques lettres",      Icon: BookOpen },
-            { id: "intermediate" as const, label: "Intermédiaire",          sub: "Je lis lentement",                 Icon: PenTool },
-            { id: "advanced"     as const, label: "Avancé",                 sub: "Je lis et j'écris couramment",     Icon: GraduationCap },
+            { id: "none"         as const, label: tt("arabic.none"),         sub: tt("arabic.noneSub"),         Icon: Sprout },
+            { id: "beginner"     as const, label: tt("arabic.beginner"),     sub: tt("arabic.beginnerSub"),     Icon: BookOpen },
+            { id: "intermediate" as const, label: tt("arabic.intermediate"), sub: tt("arabic.intermediateSub"), Icon: PenTool },
+            { id: "advanced"     as const, label: tt("arabic.advanced"),     sub: tt("arabic.advancedSub"),     Icon: GraduationCap },
           ] as const).map(({ id, label, sub, Icon }) => {
             const active = (settings.arabicLevel ?? "beginner") === id;
             return (
@@ -604,7 +608,7 @@ export default function ProfilPage() {
             transition={{ type: "spring", stiffness: 400, damping: 28 }}
             className="fixed bottom-24 left-1/2 -translate-x-1/2 rounded-full px-4 py-2 text-sm font-semibold"
             style={{ background: "var(--primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            ✓ Sauvegardé
+            {tt("common.saved")}
           </motion.div>
         )}
       </AnimatePresence>

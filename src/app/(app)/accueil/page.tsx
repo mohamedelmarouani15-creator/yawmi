@@ -8,6 +8,7 @@ import { CrescentStar, TasbihIcon, Star8 } from "@/components/IslamicIcons";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useSettings }    from "@/hooks/useSettings";
+import { useT }           from "@/hooks/useT";
 import { useAuth }        from "@/hooks/useAuth";
 import { PRAYER_LABELS }  from "@/lib/prayer";
 import { storage, todayKey } from "@/lib/storage";
@@ -93,33 +94,34 @@ function getAzkarStatus(times: ComputedPrayerTimes | null) {
   return { showMatin, showSoir, matinDone, soirDone };
 }
 
-type ShortcutDef = { href: string; icon: React.ComponentType<{ size?: number }>; label: string };
+type ShortcutDef = { href: string; icon: React.ComponentType<{ size?: number }>; labelKey: string };
 
 const SHORTCUTS: ShortcutDef[] = [
-  { href: "/prieres", icon: CrescentStar, label: "Prières"  },
-  { href: "/coran",   icon: BookOpen,     label: "Coran"    },
-  { href: "/dhikr",   icon: TasbihIcon,   label: "Dhikr"    },
-  { href: "/azkar",   icon: Star8,        label: "Azkar"    },
-  { href: "/famille", icon: Users,        label: "Famille"  },
+  { href: "/prieres", icon: CrescentStar, labelKey: "nav.prayers" },
+  { href: "/coran",   icon: BookOpen,     labelKey: "nav.quran"   },
+  { href: "/dhikr",   icon: TasbihIcon,   labelKey: "nav.dhikr"   },
+  { href: "/azkar",   icon: Star8,        labelKey: "nav.dhikr"   },
+  { href: "/famille", icon: Users,        labelKey: "nav.family"  },
 ];
 
 const SHORTCUTS_KIDS: ShortcutDef[] = [
-  { href: "/oasis",   icon: Compass,      label: "Jouer !"  },
-  { href: "/coran",   icon: BookOpen,     label: "Coran"    },
-  { href: "/dhikr",   icon: TasbihIcon,   label: "Dhikr"    },
-  { href: "/azkar",   icon: Star8,        label: "Azkar"    },
+  { href: "/oasis",   icon: Compass,      labelKey: "nav.play"    },
+  { href: "/coran",   icon: BookOpen,     labelKey: "nav.quran"   },
+  { href: "/dhikr",   icon: TasbihIcon,   labelKey: "nav.dhikr"   },
+  { href: "/azkar",   icon: Star8,        labelKey: "nav.dhikr"   },
 ];
 
 const SHORTCUTS_ELDER: ShortcutDef[] = [
-  { href: "/prieres", icon: CrescentStar, label: "Prières"  },
-  { href: "/coran",   icon: BookOpen,     label: "Coran"    },
-  { href: "/dhikr",   icon: TasbihIcon,   label: "Dhikr"    },
+  { href: "/prieres", icon: CrescentStar, labelKey: "nav.prayers" },
+  { href: "/coran",   icon: BookOpen,     labelKey: "nav.quran"   },
+  { href: "/dhikr",   icon: TasbihIcon,   labelKey: "nav.dhikr"   },
 ];
 
 export default function AccueilPage() {
   const { times, nextPrayer, countdown } = usePrayerTimes();
   const { settings } = useSettings();
   const { user }     = useAuth();
+  const tt           = useT();
   const { message: ctxMsg, dismiss: dismissCtx } = useContextualMessage();
   useMosqueeGameLink(); // Connexion mosquée ↔ jeu : octroie les récompenses de streak
   const [stats,       setStats]      = useState({ totalDhikr: 0, tasksDone: 0, tasksTotal: 0, prayersDoneToday: 0 });
@@ -221,10 +223,10 @@ export default function AccueilPage() {
         <motion.div variants={itemVariants} className="flex items-start justify-between">
           <div>
             <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-              Assalamu alaykum
+              {tt("common.greeting")}
             </p>
             <h1 className="mt-1 text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-              {firstName ?? "Bienvenue"}
+              {firstName ?? tt("common.welcome")}
             </h1>
           </div>
           <motion.div whileTap={tapScale} transition={springTap}>
@@ -246,7 +248,7 @@ export default function AccueilPage() {
       >
         <div>
           <p className="text-xs opacity-40 tracking-widest uppercase" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            Calendrier islamique
+            {tt("accueil.calendar")}
           </p>
           <p className="mt-0.5 text-sm font-medium" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             {hijri.monthFr} {hijri.year} H
@@ -339,7 +341,7 @@ export default function AccueilPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs tracking-widest uppercase opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                  Prochaine prière · {settings.cityName}
+                  {tt("accueil.nextPrayer")} · {settings.cityName}
                 </p>
                 <p className="mt-1 text-2xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
                   {PRAYER_LABELS[nextPrayer].fr}
@@ -818,10 +820,10 @@ export default function AccueilPage() {
         return (
           <motion.div variants={itemVariants}>
             <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-              Accès rapide
+              {tt("accueil.shortcuts")}
             </p>
             <div className={`grid ${cols} gap-2`}>
-              {shortcuts.map(({ href, icon: Icon, label }) => (
+              {shortcuts.map(({ href, icon: Icon, labelKey }) => (
                 <motion.div key={href} whileTap={{ scale: 0.91 }} transition={springTap}>
                   <Link
                     href={href}
@@ -831,7 +833,7 @@ export default function AccueilPage() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl" style={{ background: "var(--border-primary)", color: "var(--gold)" }}>
                       <Icon size={18} />
                     </div>
-                    <p className="text-xs opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{label}</p>
+                    <p className="text-xs opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{tt(labelKey)}</p>
                   </Link>
                 </motion.div>
               ))}

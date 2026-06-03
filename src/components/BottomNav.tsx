@@ -5,42 +5,42 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { Home, Compass, BookOpen, Users } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
+import { useT } from "@/hooks/useT";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 import { CrescentStar, TasbihIcon } from "@/components/IslamicIcons";
 import type React from "react";
 
-type NavItem = { href: string; label: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number }> };
+type NavKey = { href: string; labelKey: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number }> };
 
-const NAV_DEFAULT: NavItem[] = [
-  { href: "/accueil",  label: "Accueil",  Icon: Home       },
-  { href: "/prieres",  label: "Prières",  Icon: CrescentStar },
-  { href: "/oasis",    label: "Oasis",    Icon: Compass    },
-  { href: "/histoire", label: "Histoire", Icon: BookOpen   },
-  { href: "/famille",  label: "Famille",  Icon: Users      },
+const NAV_DEFAULT: NavKey[] = [
+  { href: "/accueil",  labelKey: "nav.home",    Icon: Home       },
+  { href: "/prieres",  labelKey: "nav.prayers", Icon: CrescentStar },
+  { href: "/oasis",    labelKey: "nav.oasis",   Icon: Compass    },
+  { href: "/histoire", labelKey: "nav.history", Icon: BookOpen   },
+  { href: "/famille",  labelKey: "nav.family",  Icon: Users      },
 ];
 
-// Enfants : jeu + histoires animées en avant, pratique sacrée
-const NAV_KIDS: NavItem[] = [
-  { href: "/accueil",  label: "Accueil",  Icon: Home       },
-  { href: "/prieres",  label: "Prières",  Icon: CrescentStar },
-  { href: "/oasis",    label: "Jouer",    Icon: Compass    },
-  { href: "/histoire", label: "Histoires",Icon: BookOpen   },
-  { href: "/dhikr",    label: "Dhikr",    Icon: TasbihIcon },
+const NAV_KIDS: NavKey[] = [
+  { href: "/accueil",  labelKey: "nav.home",    Icon: Home       },
+  { href: "/prieres",  labelKey: "nav.prayers", Icon: CrescentStar },
+  { href: "/oasis",    labelKey: "nav.play",    Icon: Compass    },
+  { href: "/histoire", labelKey: "nav.stories", Icon: BookOpen   },
+  { href: "/dhikr",    labelKey: "nav.dhikr",   Icon: TasbihIcon },
 ];
 
-// Aînés : navigation réduite, pages essentielles uniquement
-const NAV_ELDER: NavItem[] = [
-  { href: "/accueil",  label: "Accueil",  Icon: Home       },
-  { href: "/prieres",  label: "Prières",  Icon: CrescentStar },
-  { href: "/coran",    label: "Coran",    Icon: BookOpen   },
-  { href: "/dhikr",    label: "Dhikr",    Icon: TasbihIcon },
-  { href: "/famille",  label: "Famille",  Icon: Users      },
+const NAV_ELDER: NavKey[] = [
+  { href: "/accueil",  labelKey: "nav.home",    Icon: Home       },
+  { href: "/prieres",  labelKey: "nav.prayers", Icon: CrescentStar },
+  { href: "/coran",    labelKey: "nav.quran",   Icon: BookOpen   },
+  { href: "/dhikr",    labelKey: "nav.dhikr",   Icon: TasbihIcon },
+  { href: "/famille",  labelKey: "nav.family",  Icon: Users      },
 ];
 
 export default function BottomNav() {
-  const pathname           = usePathname();
-  const { settings }       = useSettings();
-  const ageMode            = ageGroupToMode(settings.ageGroup);
+  const pathname     = usePathname();
+  const { settings } = useSettings();
+  const tt           = useT();
+  const ageMode      = ageGroupToMode(settings.ageGroup);
 
   const items =
     ageMode === "kids"  ? NAV_KIDS  :
@@ -57,7 +57,7 @@ export default function BottomNav() {
         WebkitBackdropFilter:"blur(16px)",
       }}
     >
-      {items.map(({ href, label, Icon }) => {
+      {items.map(({ href, labelKey, Icon }) => {
         const active = pathname === href || (href !== "/accueil" && pathname.startsWith(href));
         return (
           <motion.div key={href} whileTap={{ scale: 0.86 }} transition={{ type: "spring", stiffness: 500, damping: 25 }}>
@@ -76,7 +76,7 @@ export default function BottomNav() {
                 className="text-[9px] font-medium tracking-wide"
                 style={{ fontFamily: "var(--font-dm-sans)" }}
               >
-                {label}
+                {tt(labelKey)}
               </span>
               {active && (
                 <motion.span

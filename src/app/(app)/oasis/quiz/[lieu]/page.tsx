@@ -13,6 +13,7 @@ import { gameStorage } from "@/lib/game/game-storage";
 import { POWERUPS } from "@/lib/game/powerups";
 import { springTap }      from "@/lib/motion";
 import { storage }        from "@/lib/storage";
+import { Skeleton }       from "@/components/ui";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 import StoryPrologue      from "@/components/StoryPrologue";
 import type { PowerUpType } from "@/lib/game/types";
@@ -294,8 +295,12 @@ export default function QuizPage() {
   // ── Loading ──────────────────────────────────────────────────
   if (!session || !currentQuestion) {
     return (
-      <div className="flex items-center justify-center h-screen" style={{ background: "var(--bg)" }}>
-        <div className="animate-spin rounded-full h-8 w-8 border-2 border-t-transparent" style={{ borderColor: "var(--gold)" }} />
+      <div className="flex flex-col gap-4 px-5 pt-14 pb-8" style={{ background: "var(--bg)", minHeight: "100vh" }}>
+        <Skeleton variant="text" height={12} width="40%" />
+        <Skeleton variant="card" height={160} />
+        <div className="flex flex-col gap-3 mt-2">
+          {[1,2,3,4].map(i => <Skeleton key={i} variant="card" height={52} />)}
+        </div>
       </div>
     );
   }

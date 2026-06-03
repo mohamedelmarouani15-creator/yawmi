@@ -11,6 +11,7 @@ import { useFamily } from "@/hooks/useFamily";
 import type { DuelData } from "@/hooks/useFamily";
 import Link from "next/link";
 import { springTap } from "@/lib/motion";
+import { Button } from "@/components/ui";
 import DuelQuizModal  from "@/components/famille/DuelQuizModal";
 import NoFamilySetup  from "@/components/famille/NoFamilySetup";
 
@@ -180,11 +181,14 @@ export default function FamillePage() {
             {family.name}
           </h1>
           <div className="flex gap-2">
-            <motion.button onClick={copyCode} whileTap={{ scale: 0.93 }} transition={springTap}
-              className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs"
-              style={{ borderColor: "rgba(212,175,55,0.3)", color: copied ? "#4ade80" : "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
-              <Copy size={11} /> {copied ? "Copié !" : family.code}
-            </motion.button>
+            <Button
+              variant="ghost-gold"
+              size="sm"
+              icon={<Copy size={11} />}
+              onClick={copyCode}
+            >
+              {copied ? "Copié !" : family.code}
+            </Button>
           </div>
         </div>
         {/* Member count + my rank */}

@@ -12,6 +12,7 @@ import { Settings2, Volume2, VolumeX, ChevronDown, CheckCircle2, Circle, Moon, S
 import { MosqueIcon, CrescentStar } from "@/components/IslamicIcons";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
+import { Button, Card } from "@/components/ui";
 
 const RECITERS = [
   { id: "alafasy",    name: "Mishary Alafasy",      src: "/audio/adhan-alafasy.mp3"    },
@@ -170,14 +171,9 @@ export default function PrieresPage() {
             <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               Adhan · الأذان
             </p>
-            <motion.button
-              onClick={() => setShowReciters(v => !v)}
-              whileTap={{ scale: 0.94 }}
-              transition={springTap}
-              className="flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs"
-              style={{ borderColor: "rgba(212,175,55,0.25)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
-              {reciter.name} <ChevronDown size={11} />
-            </motion.button>
+            <Button variant="ghost-gold" size="sm" icon={<ChevronDown size={11} />} onClick={() => setShowReciters(v => !v)}>
+              {reciter.name}
+            </Button>
           </div>
           <AnimatePresence>
             {showReciters && (

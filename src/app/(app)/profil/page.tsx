@@ -12,6 +12,7 @@ import { CALC_METHOD_LABELS, MADHAB_LABELS, computePrayerTimes, type CalcMethodK
 import { CITIES } from "@/lib/cities";
 import { storage, todayKey } from "@/lib/storage";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
+import { Button, Card } from "@/components/ui";
 
 function getStats() {
   const log    = storage.getDhikrLog();
@@ -131,12 +132,9 @@ export default function ProfilPage() {
 
         {/* Déconnexion */}
         {user && (
-          <motion.button onClick={signOut}
-            whileTap={{ scale: 0.93 }} transition={springTap}
-            className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs"
-            style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
-            <LogOut size={12} /> Déco
-          </motion.button>
+          <Button variant="ghost" size="sm" icon={<LogOut size={12} />} onClick={signOut}>
+            Déco
+          </Button>
         )}
       </motion.div>
 
@@ -147,8 +145,7 @@ export default function ProfilPage() {
           { value: stats.totalDhikrAll, label: "Total\ndhikrs" },
           { value: `${stats.doneTasks}/${stats.totalTasks}`, label: "Tâches\nterminées" },
         ].map(({ value, label }) => (
-          <div key={label} className="flex flex-col items-center rounded-xl border py-4"
-            style={{ background: "rgba(255,255,255,0.02)", borderColor: "var(--gold-faint)" }}>
+          <Card key={label} variant="gold" padding="none" className="flex flex-col items-center py-4">
             <p className="text-xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
               {value}
             </p>
@@ -156,7 +153,7 @@ export default function ProfilPage() {
               style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               {label}
             </p>
-          </div>
+          </Card>
         ))}
       </motion.div>
 

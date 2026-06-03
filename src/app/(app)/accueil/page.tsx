@@ -15,6 +15,7 @@ import { getHijriDate, formatHijri } from "@/lib/hijri";
 import { getUpcomingEvents, formatGregorian } from "@/lib/islamic-events";
 import { useEffect, useState } from "react";
 import { pageVariants, itemVariants, tapScale, springTap } from "@/lib/motion";
+import { Card } from "@/components/ui";
 import type { ComputedPrayerTimes } from "@/lib/prayer";
 import type { MosqueStage } from "@/components/MosqueIsometrique";
 import dynamic from "next/dynamic";
@@ -690,11 +691,8 @@ export default function AccueilPage() {
       )}
 
       {/* Dhikr du jour — commun */}
-      <motion.div
-        variants={itemVariants}
-        className="rounded-2xl border p-5"
-        style={{ background: "rgba(255,255,255,0.02)", borderColor: "var(--gold-faint)" }}
-      >
+      <motion.div variants={itemVariants}>
+      <Card variant="gold" padding="lg">
         <div className="flex items-center gap-2">
           <TasbihIcon size={14} style={{ color: "var(--gold)", opacity: 0.55 }} />
           <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
@@ -707,6 +705,7 @@ export default function AccueilPage() {
         <p className="mt-1 text-sm opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           {dhikr.fr}
         </p>
+      </Card>
       </motion.div>
 
       {/* Événements islamiques — commun */}

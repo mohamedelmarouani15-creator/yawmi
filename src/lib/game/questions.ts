@@ -123,11 +123,6 @@ export const QUESTIONS: Question[] = [
     options: [{ text: "605 apr. J.-C.", correct: false }, { text: "610 apr. J.-C.", correct: false }, { text: "622 apr. J.-C.", correct: true }, { text: "632 apr. J.-C.", correct: false }],
     culturalCapsule: { title: "L'Hégire", text: "L'Hégire marque le début du calendrier islamique. La migration de La Mecque à Médine représenta un tournant historique pour la communauté musulmane naissante." },
   },
-  {
-    id: "rel_025", category: "religion", type: "mcq", difficulty: 2,
-    question: "Quel est le nom du voyage nocturne du Prophète ﷺ vers Jérusalem puis vers les cieux ?",
-    options: [{ text: "Al-Hijra", correct: false }, { text: "Al-Isra wal-Miraj", correct: true }, { text: "Al-Fath", correct: false }, { text: "Al-Badr", correct: false }],
-  },
 
   // ── HISTOIRE ──────────────────────────────────────────────────────────
   {
@@ -447,11 +442,6 @@ export const QUESTIONS: Question[] = [
     options: [{ text: "La prière du soir", correct: false }, { text: "La prière du vendredi", correct: true }, { text: "La prière du matin", correct: false }, { text: "La prière de fête", correct: false }],
   },
   {
-    id: "rel_031", category: "religion", type: "mcq", difficulty: 2,
-    question: "Qu'est-ce que le Wudu ?",
-    options: [{ text: "Le jeûne", correct: false }, { text: "L'ablution (purification avant la prière)", correct: true }, { text: "La Zakat", correct: false }, { text: "La prière du soir", correct: false }],
-  },
-  {
     id: "rel_032", category: "religion", type: "mcq", difficulty: 3,
     question: "Combien de piliers compte la Ka'ba (les 4 coins) dans la tradition ?",
     options: [{ text: "3", correct: false }, { text: "4", correct: true }, { text: "5", correct: false }, { text: "6", correct: false }],
@@ -516,11 +506,6 @@ export const QUESTIONS: Question[] = [
     id: "rel_044", category: "religion", type: "mcq", difficulty: 3,
     question: "Qu'est-ce que le Tawakkul ?",
     options: [{ text: "L'humilité devant Dieu", correct: false }, { text: "La confiance totale en Dieu", correct: true }, { text: "La gratitude envers Dieu", correct: false }, { text: "La patience dans l'adversité", correct: false }],
-  },
-  {
-    id: "rel_045", category: "religion", type: "mcq", difficulty: 3,
-    question: "Combien de prophètes sont mentionnés nommément dans le Coran ?",
-    options: [{ text: "18", correct: false }, { text: "25", correct: true }, { text: "30", correct: false }, { text: "40", correct: false }],
   },
   {
     id: "rel_046", category: "religion", type: "mcq", difficulty: 2,
@@ -870,16 +855,6 @@ export const QUESTIONS: Question[] = [
     options: [{ text: "Comment", correct: false }, { text: "Où", correct: false }, { text: "Est-ce que / quoi (particule interrogative)", correct: true }, { text: "Qui", correct: false }],
   },
   {
-    id: "dar_017", category: "darija", type: "mcq", difficulty: 1,
-    question: "Comment dit-on 'maintenant' en darija marocaine ?",
-    options: [{ text: "غدا (ghda)", correct: false }, { text: "دابا (daba)", correct: true }, { text: "بكري (bekri)", correct: false }, { text: "اليوم (lyum)", correct: false }],
-  },
-  {
-    id: "dar_018", category: "darija", type: "mcq", difficulty: 2,
-    question: "Que signifie « خويا / Khwiya » en darija ?",
-    options: [{ text: "Mon père", correct: false }, { text: "Mon ami (familier)", correct: false }, { text: "Mon frère (familier)", correct: true }, { text: "Mon fils", correct: false }],
-  },
-  {
     id: "dar_019", category: "darija", type: "mcq", difficulty: 1,
     question: "Comment dit-on 'oui' en darija marocaine ?",
     options: [{ text: "لا (la)", correct: false }, { text: "آه (ah)", correct: true }, { text: "واخا (wakha)", correct: false }, { text: "بلا (bla)", correct: false }],
@@ -888,16 +863,6 @@ export const QUESTIONS: Question[] = [
     id: "dar_020", category: "darija", type: "mcq", difficulty: 2,
     question: "Que signifie « واخا / Wakha » en darija ?",
     options: [{ text: "Non", correct: false }, { text: "Peut-être", correct: false }, { text: "D'accord / OK", correct: true }, { text: "Jamais", correct: false }],
-  },
-  {
-    id: "dar_021", category: "darija", type: "mcq", difficulty: 2,
-    question: "Comment dit-on 'j'ai faim' en darija marocaine ?",
-    options: [{ text: "جيت عطشان", correct: false }, { text: "جيت عياّن", correct: false }, { text: "جيت جعان", correct: true }, { text: "جيت نعسان", correct: false }],
-  },
-  {
-    id: "dar_022", category: "darija", type: "mcq", difficulty: 1,
-    question: "Que signifie « بزاف / Bzaf » en darija ?",
-    options: [{ text: "Un peu", correct: false }, { text: "Jamais", correct: false }, { text: "Beaucoup", correct: true }, { text: "Maintenant", correct: false }],
   },
   {
     id: "dar_023", category: "darija", type: "mcq", difficulty: 2,
@@ -1151,7 +1116,7 @@ export const QUESTIONS: Question[] = [
   {
     id: "qur_021", category: "quran", type: "mcq", difficulty: 3,
     question: "Quel verset coranique est le plus long ?",
-    options: [{ text: "Ayat al-Kursi (Al-Baqara 255)", correct: false }, { text: "Al-Baqara 282 — le verset de la dette (Maïda)", correct: false }, { text: "Al-Baqara 282 — le verset de la dette", correct: true }, { text: "An-Nisa 11", correct: false }],
+    options: [{ text: "Ayat al-Kursi (Al-Baqara 255)", correct: false }, { text: "Al-Baqara 282 — le verset de la dette (plus de 50 mots)", correct: true }, { text: "An-Nisa 11 — les règles d'héritage", correct: false }, { text: "Al-Baqara 233 — l'allaitement", correct: false }],
   },
   {
     id: "qur_022", category: "quran", type: "mcq", difficulty: 2,
@@ -1224,9 +1189,9 @@ export const QUESTIONS: Question[] = [
   },
   {
     id: "qur_035", category: "quran", type: "mcq", difficulty: 4,
-    question: "Quelle sourate coranique porte le nom d'une insecte ?",
-    options: [{ text: "An-Nahl (L'Abeille, sourate 16)", correct: true }, { text: "Al-Fil (L'Éléphant)", correct: false }, { text: "An-Naml (La Fourmi, sourate 27)", correct: false }, { text: "Les deux — An-Nahl et An-Naml", correct: false }],
-    explanation: "An-Nahl (Abeille) et An-Naml (Fourmi) sont toutes deux des insectes. An-Naml est aussi le nom d'une insecte (fourmi). La question portait sur une seule, An-Nahl est la plus connue.",
+    question: "Quelles sourates coraniques portent le nom d'un insecte ?",
+    options: [{ text: "An-Nahl (L'Abeille, 16) seulement", correct: false }, { text: "An-Naml (La Fourmi, 27) seulement", correct: false }, { text: "Al-Fil (L'Éléphant) — ce n'est pas un insecte", correct: false }, { text: "An-Nahl (16) et An-Naml (27) — toutes deux", correct: true }],
+    explanation: "An-Nahl (abeille, sourate 16) et An-Naml (fourmi, sourate 27) portent toutes deux le nom d'un insecte.",
   },
   {
     id: "qur_036", category: "quran", type: "mcq", difficulty: 3,
@@ -1626,17 +1591,6 @@ export const QUESTIONS: Question[] = [
 
   // ── NOUVELLES MCQ — enrichissement ──────────────────────────
   {
-    id: "rel_new_001", category: "religion", type: "mcq", difficulty: 2,
-    question: "Quel est le sens du mot 'Islam' en arabe ?",
-    options: [
-      { text: "Soumission à la volonté d'Allah", correct: true },
-      { text: "Paix universelle", correct: false },
-      { text: "Foi et dévotion", correct: false },
-      { text: "Chemin de vérité", correct: false },
-    ],
-    explanation: "Islam vient de la racine arabe S-L-M (سلم) qui signifie 'paix' et 'soumission'. Être musulman, c'est être en paix par la soumission à Allah.",
-  },
-  {
     id: "rel_new_002", category: "religion", type: "mcq", difficulty: 3,
     question: "Qu'est-ce que la 'Sunna' du Prophète ﷺ ?",
     options: [
@@ -1646,52 +1600,6 @@ export const QUESTIONS: Question[] = [
       { text: "La deuxième source après le Coran", correct: false },
     ],
     explanation: "La Sunna englobe tout ce que le Prophète ﷺ a dit (qawl), fait (fi'l) ou approuvé silencieusement (taqrir). Elle est la deuxième source de droit islamique après le Coran.",
-  },
-  {
-    id: "his_new_001", category: "history", type: "mcq", difficulty: 2,
-    question: "L'Al-Qarawiyyin de Fès est considérée comme :",
-    options: [
-      { text: "La plus ancienne université au monde en activité", correct: true },
-      { text: "La plus grande mosquée d'Afrique", correct: false },
-      { text: "Le premier centre de calligraphie islamique", correct: false },
-      { text: "La principale madrasa almohade", correct: false },
-    ],
-    culturalCapsule: {
-      title: "Al-Qarawiyyin — la plus ancienne université du monde",
-      text: "Fondée en 859 à Fès par Fatima al-Fihri, une femme tunisienne, Al-Qarawiyyin est reconnue par le Guinness Book comme la plus ancienne université en activité continue. Ibn Khaldoun, Al-Idrissi et le pape Sylvestre II (qui introduisit les chiffres arabes en Europe) y ont étudié.",
-    },
-  },
-  {
-    id: "his_new_002", category: "history", type: "mcq", difficulty: 3,
-    question: "Qui a fondé Al-Qarawiyyin, la plus ancienne université du monde ?",
-    options: [
-      { text: "Fatima al-Fihri", correct: true },
-      { text: "Ibn Toumert", correct: false },
-      { text: "Moulay Idriss II", correct: false },
-      { text: "Al-Idrissi", correct: false },
-    ],
-    explanation: "Fatima al-Fihri (800-880), fille d'un riche marchand tunisien émigré à Fès, fonda Al-Qarawiyyin en 859 avec son héritage. Sa sœur Maryam fonda la mosquée des Andalous dans la même ville.",
-  },
-  {
-    id: "arabic_new_001", category: "arabic", type: "mcq", difficulty: 2,
-    question: "Comment dit-on 'merci' en arabe classique ?",
-    options: [
-      { text: "شُكْراً (Shukran)", correct: true },
-      { text: "مَرْحَباً (Marhaban)", correct: false },
-      { text: "صَبَاحُ الْخَيْرِ (Sabah al-khayr)", correct: false },
-      { text: "يَسْلَمُو (Yeslamu)", correct: false },
-    ],
-  },
-  {
-    id: "arabic_new_002", category: "arabic", type: "mcq", difficulty: 2,
-    question: "Que signifie 'Insha'Allah' (إن شاء الله) ?",
-    options: [
-      { text: "Si Allah le veut", correct: true },
-      { text: "Grâce à Allah", correct: false },
-      { text: "Allah est grand", correct: false },
-      { text: "Avec la permission d'Allah", correct: false },
-    ],
-    explanation: "Expression coranique (Coran 18:23-24) signifiant 'Si Allah le veut' — utilisée pour tout projet futur, rappel que le futur appartient à Allah.",
   },
   {
     id: "dar_new_001", category: "darija", type: "mcq", difficulty: 1,
@@ -1714,31 +1622,6 @@ export const QUESTIONS: Question[] = [
       { text: "Avec votre permission", correct: false },
     ],
     explanation: "Contraction de 'Al-hamdulillah'. Utilisé pour dire que tout va bien, exprimer la gratitude, ou répondre à 'Comment tu vas ?'.",
-  },
-  {
-    id: "qur_new_001", category: "quran", type: "mcq", difficulty: 3,
-    question: "Quel prophète est mentionné le plus de fois dans le Coran ?",
-    options: [
-      { text: "Musa (Moïse)", correct: true },
-      { text: "Ibrahim (Abraham)", correct: false },
-      { text: "Muhammad ﷺ", correct: false },
-      { text: "Issa (Jésus)", correct: false },
-    ],
-    culturalCapsule: {
-      title: "Musa — le prophète le plus cité du Coran",
-      text: "Musa (Moïse) est mentionné 136 fois dans 36 sourates, plus que tout autre prophète. Son histoire avec Pharaon est un archétype de la lutte entre foi et tyrannie. Le Coran y revient pour enseigner la persévérance, la confiance en Allah et la libération des opprimés.",
-    },
-  },
-  {
-    id: "qur_new_002", category: "quran", type: "mcq", difficulty: 2,
-    question: "Quelle est la plus longue sourate du Coran ?",
-    options: [
-      { text: "Al-Baqara (La Vache) — 286 versets", correct: true },
-      { text: "Al-Imran — 200 versets", correct: false },
-      { text: "An-Nisa — 176 versets", correct: false },
-      { text: "Al-Maidah — 120 versets", correct: false },
-    ],
-    explanation: "Al-Baqara (Sourate 2) contient 286 versets dont le verset du Trône (Ayat al-Kursi, v.255) et les deux derniers versets (Amana ar-Rassul…) qui valent un tiers du Coran selon certains hadiths.",
   },
 
   // ── CALLIGRAPHIE AU DOIGT ─────────────────────────────────────
@@ -1855,7 +1738,10 @@ type ArabicLevel = "none" | "beginner" | "intermediate" | "advanced";
 const ARABIC_LEVEL_ORDER: ArabicLevel[] = ["none", "beginner", "intermediate", "advanced"];
 
 function meetsArabicLevel(q: Question, userLevel: ArabicLevel): boolean {
-  const required = q.arabicRequired ?? "none";
+  // La catégorie "arabic" implique la lecture de texte arabe → niveau beginner requis par défaut.
+  // Les questions avec arabicRequired explicite ont la priorité.
+  const categoryDefault: ArabicLevel = q.category === "arabic" ? "beginner" : "none";
+  const required = q.arabicRequired ?? categoryDefault;
   return ARABIC_LEVEL_ORDER.indexOf(userLevel) >= ARABIC_LEVEL_ORDER.indexOf(required);
 }
 

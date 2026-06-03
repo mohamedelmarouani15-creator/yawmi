@@ -10,13 +10,20 @@ function supabaseAdmin() {
   );
 }
 
+const VALID_TRIGGERS = new Set([
+  "streak_3", "streak_7", "sage_defeated", "category_arabic_up",
+  "daily_comeback", "perfect_quiz", "story_chapter", "first_calligraphy",
+]);
+
 // Détermine quel trigger utiliser selon l'état de l'utilisateur
 function detectTrigger(
   gameStreak: number,
   defeatedSages: string[],
   lastSessionDate: string | null,
+  hint: string | null,
 ): string | null {
-  const today = new Date().toISOString().split("T")[0];
+  // Hint passé par le client (depuis quiz, histoire, calligraphie...)
+  if (hint && VALID_TRIGGERS.has(hint)) return hint;
 
   // Retour après absence
   if (lastSessionDate) {
@@ -30,8 +37,8 @@ function detectTrigger(
   if (gameStreak === 7)  return "streak_7";
   if (gameStreak === 3)  return "streak_3";
 
-  // Victoire sage récente (sage débloqué aujourd'hui — heuristique simple)
-  if (defeatedSages.length > 0) return "sage_defeated";
+  // Victoire sage — seulement si un sage a été vaincu récemment (heuristique)
+  if (defeatedSages.length > 0 && defeatedSages.length <= 3) return "sage_defeated";
 
   return null;
 }
@@ -73,11 +80,12 @@ export async function GET(req: NextRequest) {
     supabase.from("profiles").select("display_name, age_group, main_objective, mother_tongue, app_mode").eq("id", userId).single(),
   ]);
 
-  const gameStreak     = progress?.game_streak ?? 0;
-  const defeatedSages  = (progress?.defeated_sages as string[]) ?? [];
+  const gameStreak      = progress?.game_streak ?? 0;
+  const defeatedSages   = (progress?.defeated_sages as string[]) ?? [];
   const lastSessionDate = mem?.last_session_at ?? null;
+  const hint            = req.nextUrl.searchParams.get("hint");
 
-  const trigger = detectTrigger(gameStreak, defeatedSages, lastSessionDate);
+  const trigger = detectTrigger(gameStreak, defeatedSages, lastSessionDate, hint);
   if (!trigger) return NextResponse.json({ message: null });
 
   // ── Génère le message contextuel ─────────────────────────────

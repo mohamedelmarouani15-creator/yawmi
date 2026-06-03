@@ -14,6 +14,7 @@ import { POWERUPS } from "@/lib/game/powerups";
 import { springTap }      from "@/lib/motion";
 import { storage }        from "@/lib/storage";
 import { Skeleton }       from "@/components/ui";
+import { supabase }       from "@/lib/supabase";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 import StoryPrologue      from "@/components/StoryPrologue";
 import type { PowerUpType } from "@/lib/game/types";
@@ -242,8 +243,17 @@ export default function QuizPage() {
     }
 
     // Check for perfect game
-    if (session.answers.every(Boolean)) {
+    const isPerfect = session.answers.every(Boolean);
+    if (isPerfect) {
       gameStorage.unlockAchievement("perfect_game");
+      // Déclenche le message contextuel du Compagnon
+      supabase.auth.getSession().then(({ data: { session: s } }) => {
+        if (s?.access_token) {
+          fetch(`/api/companion/context?hint=perfect_quiz`, {
+            headers: { Authorization: `Bearer ${s.access_token}` },
+          }).catch(() => {});
+        }
+      });
     }
 
     // New achievements since quiz started
@@ -252,6 +262,34 @@ export default function QuizPage() {
     if (gained.length > 0) setNewAchievements(gained);
 
     gameStorage.push(); // sync vers Supabase après la session de quiz
+
+    // Met à jour strong_categories / weak_categories dans companion_memory
+    const quizScore = session.answers.filter(Boolean).length / session.questions.length;
+    const category  = session.questions[0]?.category ?? null;
+    if (category) {
+      supabase.auth.getSession().then(({ data: { session: s } }) => {
+        if (!s?.access_token) return;
+        supabase.from("companion_memory")
+          .select("strong_categories, weak_categories")
+          .eq("user_id", s.user.id)
+          .single()
+          .then(({ data: mem }) => {
+            if (!mem) return;
+            const strong = [...new Set([...(mem.strong_categories as string[] ?? [])])];
+            const weak   = [...new Set([...(mem.weak_categories   as string[] ?? [])])];
+            if (quizScore >= 0.8 && !strong.includes(category)) strong.push(category);
+            if (quizScore < 0.4  && !weak.includes(category))   weak.push(category);
+            // Retirer des faibles si maintenant fort, et vice-versa
+            const finalStrong = strong.filter(c => c !== category || quizScore >= 0.8);
+            const finalWeak   = weak.filter(c => c !== category || quizScore < 0.4);
+            supabase.from("companion_memory")
+              .update({ strong_categories: finalStrong, weak_categories: finalWeak })
+              .eq("user_id", s.user.id)
+              .then(() => {});
+          });
+      });
+    }
+
     refresh();
     setShowResult(true);
     if (navigator.vibrate) {

@@ -124,14 +124,13 @@ export interface ParcheminMessage {
 }
 
 interface Props {
-  // Pour l'instant : pas encore connecté à Gemini
-  // Ces props seront remplies en tâche 23
   onSend?: (message: string) => Promise<string>;
   initialMessages?: ParcheminMessage[];
+  remaining?: number;
 }
 
 // ── Composant principal ────────────────────────────────────────
-export default function Parchemin({ onSend, initialMessages = [] }: Props) {
+export default function Parchemin({ onSend, initialMessages = [], remaining = 20 }: Props) {
   const [isOpen,    setIsOpen]    = useState(false);
   const [messages,  setMessages]  = useState<ParcheminMessage[]>(initialMessages);
   const [input,     setInput]     = useState("");
@@ -427,6 +426,16 @@ export default function Parchemin({ onSend, initialMessages = [] }: Props) {
                 {loading && <TypingIndicator />}
                 <div ref={messagesEndRef} />
               </motion.div>
+
+              {/* ─── Compteur messages restants ─── */}
+              {remaining <= 5 && (
+                <p className="text-center text-xs px-4 pt-1.5 pb-0.5"
+                  style={{ color: remaining === 0 ? "#C05050" : "rgba(92,58,10,0.45)", fontFamily: "var(--font-dm-sans)" }}>
+                  {remaining === 0
+                    ? "Limite quotidienne atteinte — reviens demain"
+                    : `${remaining} message${remaining > 1 ? "s" : ""} restant${remaining > 1 ? "s" : ""} aujourd'hui`}
+                </p>
+              )}
 
               {/* ─── Input ─── */}
               <div

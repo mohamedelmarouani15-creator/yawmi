@@ -259,6 +259,45 @@ export function useEscapeAudio() {
     });
   }, []);
 
+  // Collecte d'indice : cloche cristalline (C6) — court et doux
+  const playCollect = useCallback(() => {
+    if (!readyRef.current) return;
+    const c = getCtx(); const now = c.currentTime;
+    const osc = c.createOscillator();
+    osc.type = "sine"; osc.frequency.value = 1046; // C6
+    const env = c.createGain();
+    env.gain.setValueAtTime(0, now);
+    env.gain.linearRampToValueAtTime(0.065, now + 0.010);
+    env.gain.exponentialRampToValueAtTime(0.0001, now + 0.50);
+    osc.connect(env); env.connect(masterRef.current!);
+    osc.start(now); osc.stop(now + 0.55);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Victoire totale : arpège ascendant + résolution sur fondamentale
+  const playVictory = useCallback(() => {
+    if (!readyRef.current) return;
+    const c = getCtx(); const now = c.currentTime;
+    [392, 494, 587, 740, 988].forEach((freq, i) => {
+      const osc = c.createOscillator(); osc.type = "sine"; osc.frequency.value = freq;
+      const env = c.createGain(); const t = now + i * 0.19;
+      env.gain.setValueAtTime(0, t);
+      env.gain.linearRampToValueAtTime(0.10, t + 0.13);
+      env.gain.setTargetAtTime(0, t + 0.30, 0.50);
+      osc.connect(env); env.connect(masterRef.current!);
+      osc.start(t); osc.stop(t + 2.2);
+    });
+    // Fondamentale grave finale
+    const bass = c.createOscillator(); bass.type = "sine"; bass.frequency.value = 196;
+    const benv = c.createGain(); const bt = now + 0.95;
+    benv.gain.setValueAtTime(0, bt);
+    benv.gain.linearRampToValueAtTime(0.07, bt + 0.18);
+    benv.gain.setTargetAtTime(0, bt + 0.40, 0.70);
+    bass.connect(benv); benv.connect(masterRef.current!);
+    bass.start(bt); bass.stop(bt + 2.8);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Mauvaise réponse : deux sinus descendants, très discrets
   const playFail = useCallback(() => {
     if (!readyRef.current) return;
@@ -282,5 +321,5 @@ export function useEscapeAudio() {
     ctxRef.current?.close();
   }, []);
 
-  return { init, changeRoom, playFootstep, playSuccess, playFail, setAmbientVolume, setUIVolume };
+  return { init, changeRoom, playFootstep, playSuccess, playFail, playCollect, playVictory, setAmbientVolume, setUIVolume };
 }

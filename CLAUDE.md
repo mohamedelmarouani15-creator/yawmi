@@ -34,8 +34,8 @@ Yawmi is an Islamic PWA (Next.js 16 App Router) for a French-speaking family aud
 
 **3. AI Companion + Stories** → Supabase only
 - Tables: `companion_memory`, `companion_messages`, `stories`, `story_chapters`, `story_progress`
-- API routes in `src/app/api/companion/` call Groq (llama-3.3-70b) via `src/lib/ai/gemini.ts` (file kept as `gemini.ts` despite using Groq)
-- `src/lib/ai/companion.ts` is the public interface — never import from `gemini.ts` directly
+- API routes in `src/app/api/companion/` call Groq (llama-3.3-70b) via `src/lib/ai/groq.ts`
+- `src/lib/ai/companion.ts` is the public interface — never import from `groq.ts` directly
 
 ### Route structure
 
@@ -74,9 +74,9 @@ The `(app)` route group wraps all authenticated pages. Its `layout.tsx` handles 
 - Realtime: used for live duels (`duels_live` table)
 - Migrations are in `supabase/migrations/` — run manually via Supabase dashboard SQL editor
 
-### AI companion (`gemini.ts` = Groq)
+### AI companion (groq.ts)
 
-`src/lib/ai/gemini.ts` exports `geminiChat` and `geminiSingle` but uses Groq (`llama-3.3-70b-versatile`) after migration from Gemini. Function names kept for backward compatibility. Rate limit: 20 messages/day/user, enforced in `src/app/api/companion/chat/route.ts`.
+`src/lib/ai/groq.ts` exports `groqChat` and `groqSingle` using Groq (`llama-3.3-70b-versatile`). Rate limit: 20 messages/day/user, enforced in `src/app/api/companion/chat/route.ts`.
 
 ### Game engine
 

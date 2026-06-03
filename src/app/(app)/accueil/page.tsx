@@ -751,6 +751,33 @@ export default function AccueilPage() {
         </motion.div>
       )}
 
+      {/* ── FALLBACK : mainObjective null (onboarding pas complété) ── */}
+      {!mainObjective && ageMode !== "kids" && ageMode !== "elder" && (
+        <motion.div variants={itemVariants}>
+          <Link href="/onboarding">
+            <motion.div
+              whileTap={{ scale: 0.985 }} transition={springTap}
+              className="flex items-center gap-4 rounded-2xl border px-4 py-4"
+              style={{ background: "rgba(212,175,55,0.05)", borderColor: "var(--border-gold)" }}
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl shrink-0"
+                style={{ background: "var(--gold-faint)", color: "var(--gold)" }}>
+                <Star8 size={18} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+                  Personnalise ton expérience
+                </p>
+                <p className="text-xs opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Dis-nous ce que tu veux apprendre
+                </p>
+              </div>
+              <span className="text-xs opacity-40 shrink-0" style={{ color: "var(--text)" }}>→</span>
+            </motion.div>
+          </Link>
+        </motion.div>
+      )}
+
       {/* ── PRATIQUANT : CTA jeu discret en bas ── */}
       {isPratiquant && ageMode !== "kids" && ageMode !== "elder" && (
         <motion.div variants={itemVariants}>

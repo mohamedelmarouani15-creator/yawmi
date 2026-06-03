@@ -305,6 +305,10 @@ export default function ChapterPage() {
       if (json.rewards.coins) gameStorage.addCoins(json.rewards.coins);
       gameStorage.push(); // sync vers Supabase après récompenses de chapitre
       setRewards(json.rewards);
+      // Déclenche le message contextuel du Compagnon
+      fetch(`/api/companion/context?hint=story_chapter`, {
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      }).catch(() => {});
     }
     setPhase("reward");
   }, [data, storyId, chapterN]); // eslint-disable-line

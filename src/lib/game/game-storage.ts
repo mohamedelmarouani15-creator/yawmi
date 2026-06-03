@@ -282,6 +282,8 @@ export const gameStorage = {
 
   async pushToSupabase(userId: string): Promise<void> {
     const state = this.get();
+
+    // Progression principale
     await supabase.from("player_progress").upsert({
       user_id: userId,
       xp: state.xp,
@@ -296,6 +298,29 @@ export const gameStorage = {
       powerup_counts: state.powerupCounts,
       updated_at: new Date().toISOString(),
     });
+
+    // Récompenses (mosquée, coffres, titres, cartes sages)
+    if (state.mosqueObjects.length > 0 || state.chestsAvailable > 0 || state.sageCards.length > 0) {
+      await supabase.from("rewards").upsert({
+        user_id:           userId,
+        chests_available:  state.chestsAvailable,
+        mosque_objects:    state.mosqueObjects,
+        sage_cards:        state.sageCards,
+        titles:            state.titles,
+        unlocked_avatars:  ["default"],
+        unlocked_reciters: [],
+      }, { onConflict: "user_id" });
+    }
+
+    // Achievements — insert uniquement les nouveaux (ignore les doublons)
+    if (state.achievements.length > 0) {
+      const rows = state.achievements.map(id => ({
+        user_id:        userId,
+        achievement_id: id,
+        unlocked_at:    new Date().toISOString(),
+      }));
+      await supabase.from("achievements").upsert(rows, { onConflict: "user_id,achievement_id" });
+    }
   },
 };
 

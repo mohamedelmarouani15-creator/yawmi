@@ -57,32 +57,37 @@ export function ConnectionBeam({ tapisPos, worldTo }: {
 }
 
 // ── Halo + lumière par objet (espace local du group parent) ─────────
-function ObjectGlow({ isNear, isSolved }: { isNear: boolean; isSolved: boolean }) {
+function ObjectGlow({ isNear, isSolved, isReady }: { isNear: boolean; isSolved: boolean; isReady: boolean }) {
   const ringRef  = useRef<THREE.Mesh>(null!);
   const lightRef = useRef<THREE.PointLight>(null!);
 
   useFrame(({ clock }) => {
-    const t     = clock.getElapsedTime();
-    const pulse = isNear
-      ? Math.sin(t * 3.8) * 0.5 + 0.5
-      : Math.sin(t * 1.2) * 0.5 + 0.5;
+    const t = clock.getElapsedTime();
+    const rate  = isReady ? 5.2 : isNear ? 3.8 : 1.2;
+    const pulse = Math.sin(t * rate) * 0.5 + 0.5;
 
     if (ringRef.current) {
-      const s = isNear ? 1.0 + pulse * 0.22 : 0.9 + pulse * 0.08;
+      const s = isReady
+        ? 1.1 + pulse * 0.38
+        : isNear ? 1.0 + pulse * 0.22 : 0.9 + pulse * 0.08;
       ringRef.current.scale.setScalar(s);
       const mat = ringRef.current.material as THREE.MeshBasicMaterial;
       mat.opacity = isSolved
         ? 0.4 + pulse * 0.25
-        : (isNear ? 0.55 + pulse * 0.4 : 0.10 + pulse * 0.1);
+        : isReady
+          ? 0.5 + pulse * 0.45
+          : (isNear ? 0.55 + pulse * 0.4 : 0.10 + pulse * 0.1);
     }
     if (lightRef.current) {
       lightRef.current.intensity = isSolved
         ? 1.0 + pulse * 0.5
-        : (isNear ? 2.8 + pulse * 2.2 : 0.35 + pulse * 0.25);
+        : isReady
+          ? 3.2 + pulse * 3.0
+          : (isNear ? 2.8 + pulse * 2.2 : 0.35 + pulse * 0.25);
     }
   });
 
-  const color = isSolved ? "#4ade80" : "#D4AF37";
+  const color = isSolved ? "#4ade80" : isReady ? "#F97316" : "#D4AF37";
   return (
     <>
       <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.018, 0]}>
@@ -191,10 +196,11 @@ function TapisSonghaiMesh({ solved }: { solved: boolean }) {
 interface Props {
   nearId:      string | null;
   solvedLocks: number[];
+  readyLocks:  number[];
   tapisPos:    React.RefObject<THREE.Vector3>;
 }
 
-export default function LibraryObjects({ nearId, solvedLocks, tapisPos }: Props) {
+export default function LibraryObjects({ nearId, solvedLocks, readyLocks, tapisPos }: Props) {
   const nearObj    = LIBRARY_OBJECTS.find(o => o.id === nearId) ?? null;
   const nearSolved = nearObj ? solvedLocks.includes(nearObj.lockId) : false;
 
@@ -202,6 +208,7 @@ export default function LibraryObjects({ nearId, solvedLocks, tapisPos }: Props)
     <>
       {LIBRARY_OBJECTS.map(obj => {
         const solved = solvedLocks.includes(obj.lockId);
+        const ready  = !solved && readyLocks.includes(obj.lockId);
         const near   = nearId === obj.id;
         return (
           <group key={obj.id} position={obj.position}>
@@ -209,12 +216,11 @@ export default function LibraryObjects({ nearId, solvedLocks, tapisPos }: Props)
             {obj.id === "traite"     && <TraiteMesh       solved={solved} />}
             {obj.id === "enluminure" && <EnluminureMesh   solved={solved} />}
             {obj.id === "songhai"    && <TapisSonghaiMesh solved={solved} />}
-            <ObjectGlow isNear={near} isSolved={solved} />
+            <ObjectGlow isNear={near} isSolved={solved} isReady={ready} />
           </group>
         );
       })}
 
-      {/* Beam à la racine (coords monde pures) */}
       {nearObj && !nearSolved && (
         <ConnectionBeam tapisPos={tapisPos} worldTo={nearObj.position} />
       )}

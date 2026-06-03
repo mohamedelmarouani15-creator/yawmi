@@ -48,11 +48,11 @@ function NotifScheduler() {
 }
 
 function AppWithCompanion({ children }: { children: React.ReactNode }) {
-  const { send } = useCompanion();
+  const { send, remaining } = useCompanion();
   return (
     <>
       {children}
-      <Parchemin onSend={send} />
+      <Parchemin onSend={send} remaining={remaining} />
     </>
   );
 }

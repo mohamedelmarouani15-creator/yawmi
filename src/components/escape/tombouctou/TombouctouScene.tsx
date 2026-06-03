@@ -15,7 +15,7 @@ import Enigme             from "./Enigme";
 import KnowledgeReveal    from "./KnowledgeReveal";
 import CompanionVoice     from "./CompanionVoice";
 import VictorySequence    from "./VictorySequence";
-import VirtualJoystick    from "@/components/escape3d/VirtualJoystick";
+// VirtualJoystick supprimé — remplacé par dual-stick invisible ci-dessous
 import LookZone           from "@/components/escape3d/LookZone";
 import { useTombouctouAudio } from "@/hooks/useTombouctouAudio";
 import { useTombouctouSession } from "@/hooks/useTombouctouSession";
@@ -774,12 +774,33 @@ export default function TombouctouScene() {
         )
       )}
 
-      {/* ── Contrôles mobiles ── */}
+      {/* ── Contrôles mobiles dual-stick invisible ── */}
       {isMobile && introComplete && (
         <>
-          <div style={{ position: "absolute", bottom: 36, left: 24, zIndex: 10 }}>
-            <VirtualJoystick onChange={v => { joystickRef.current = v; }} />
-          </div>
+          {/* Zone gauche — mouvement (invisible, style Fortnite) */}
+          <div
+            style={{ position: "absolute", inset: 0, right: "50%", zIndex: 10, touchAction: "none" }}
+            onTouchStart={e => {
+              const t = e.changedTouches[0];
+              (e.currentTarget as HTMLElement).dataset.sx = String(t.clientX);
+              (e.currentTarget as HTMLElement).dataset.sy = String(t.clientY);
+              (e.currentTarget as HTMLElement).dataset.id = String(t.identifier);
+            }}
+            onTouchMove={e => {
+              const el = e.currentTarget as HTMLElement;
+              for (const t of Array.from(e.changedTouches)) {
+                if (String(t.identifier) !== el.dataset.id) continue;
+                const sx = Number(el.dataset.sx ?? t.clientX);
+                const sy = Number(el.dataset.sy ?? t.clientY);
+                const MAX = 55;
+                const dx = Math.max(-MAX, Math.min(MAX, t.clientX - sx));
+                const dy = Math.max(-MAX, Math.min(MAX, t.clientY - sy));
+                joystickRef.current = { x: dx / MAX, y: -dy / MAX };
+              }
+            }}
+            onTouchEnd={() => { joystickRef.current = { x: 0, y: 0 }; }}
+            onTouchCancel={() => { joystickRef.current = { x: 0, y: 0 }; }}
+          />
           <LookZone onChange={handleLook} />
         </>
       )}

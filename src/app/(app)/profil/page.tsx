@@ -266,7 +266,13 @@ export default function ProfilPage() {
             const active = (settings.motherTongue ?? null) === id;
             return (
               <motion.button key={id}
-                onClick={() => { save({ ...settings, motherTongue: id }); flash(); }}
+                onClick={() => {
+                  save({ ...settings, motherTongue: id });
+                  const isRTL = id === "arabe" || id === "darija";
+                  document.documentElement.lang = isRTL ? "ar" : "fr";
+                  document.documentElement.dir  = isRTL ? "rtl" : "ltr";
+                  flash();
+                }}
                 whileTap={{ scale: 0.95 }} transition={springTap}
                 className="flex items-center gap-2 rounded-xl border px-4 py-3 text-left"
                 style={{

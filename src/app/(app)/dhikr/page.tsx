@@ -2,17 +2,23 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, RotateCcw } from "lucide-react";
+import { Check, RotateCcw, Leaf, Sparkles, PartyPopper } from "lucide-react";
 import { TasbihIcon, Star8 } from "@/components/IslamicIcons";
 import { useSettings } from "@/hooks/useSettings";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 import { storage, todayKey } from "@/lib/storage";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
 
+const DHIKR_ICON = {
+  subhan: Leaf,
+  hamdou: Star8,
+  akbar:  Sparkles,
+} as const;
+
 const DHIKRS = [
-  { id: "subhan",  label: "Subhan Allah",   emoji: "🌿", arabic: "سُبْحَانَ اللّهِ",   target: 33 },
-  { id: "hamdou",  label: "Alhamdulillah",  emoji: "🙏", arabic: "الْحَمْدُ لِلَّهِ",  target: 33 },
-  { id: "akbar",   label: "Allahu Akbar",   emoji: "✨", arabic: "اللَّهُ أَكْبَرُ",   target: 34 },
+  { id: "subhan",  label: "Subhan Allah",   arabic: "سُبْحَانَ اللّهِ",   target: 33 },
+  { id: "hamdou",  label: "Alhamdulillah",  arabic: "الْحَمْدُ لِلَّهِ",  target: 33 },
+  { id: "akbar",   label: "Allahu Akbar",   arabic: "اللَّهُ أَكْبَرُ",   target: 34 },
 ];
 
 function loadCounts(): Record<string, number> {
@@ -110,7 +116,7 @@ export default function DhikrPage() {
                 </p>
               </div>
               <h1 className="mt-1 text-2xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
-                {dhikr.emoji} {dhikr.label}
+                {(() => { const I = DHIKR_ICON[dhikr.id as keyof typeof DHIKR_ICON]; return I ? <I size={14} style={{ display: "inline", marginRight: 4 }} /> : null; })()}{dhikr.label}
               </h1>
             </>
           ) : (
@@ -161,7 +167,7 @@ export default function DhikrPage() {
               {isDone ? (
                 <Check size={14} className="mx-auto" />
               ) : ageMode === "kids" ? (
-                <span>{d.emoji} {d.label.split(" ")[0]}</span>
+                <span>{d.label.split(" ")[0]}</span>
               ) : ageMode === "elder" ? (
                 <span style={{ fontSize: 11 }}>{d.label}</span>
               ) : (
@@ -283,7 +289,7 @@ export default function DhikrPage() {
               className="rounded-full px-5 py-2.5 text-sm font-semibold"
               style={{ background: "var(--gradient-primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
             >
-              {ageMode === "kids" ? `${DHIKRS[current + 1].emoji} Suivant !` : "Suivant →"}
+              {ageMode === "kids" ? "Suivant !" : "Suivant →"}
             </motion.button>
           )}
         </AnimatePresence>
@@ -304,9 +310,9 @@ export default function DhikrPage() {
                 <motion.p
                   animate={{ scale: [1, 1.15, 1] }}
                   transition={{ duration: 0.5, delay: 0.3 }}
-                  style={{ fontSize: 40 }}
+                  style={{ color: "var(--gold)" }}
                 >
-                  🎉
+                  <PartyPopper size={40} />
                 </motion.p>
                 <p className="text-base font-bold mt-1" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
                   Bravo ! Tasbih complété !

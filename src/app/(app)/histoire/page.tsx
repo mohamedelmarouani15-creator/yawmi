@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Lock } from "lucide-react";
+import { Lock, Star, Flame, Waves, Leaf, Moon, Shield, Route, Heart, Sparkles, Crown, type LucideIcon } from "lucide-react";
 import { pageVariants, itemVariants } from "@/lib/motion";
 
 const ARCS = [
@@ -15,7 +15,7 @@ const ARCS = [
     chapters: 10,
     status: "available",
     color: "var(--gold)",
-    emoji: "⭐",
+    Icon: Star,
     description: "Dix chapitres pour découvrir l'histoire de Yûsuf — la jalousie, le puits, l'Égypte, la prison et le pardon.",
   },
 
@@ -27,7 +27,7 @@ const ARCS = [
     chapters: 8,
     status: "available",
     color: "#f97316",
-    emoji: "🔥",
+    Icon: Flame,
     description: "De la destruction des idoles à la construction de la Ka'ba — le courage inébranlable d'Ibrahim face au roi Nimrod.",
   },
   {
@@ -38,7 +38,7 @@ const ARCS = [
     chapters: 10,
     status: "available",
     color: "#06b6d4",
-    emoji: "🌊",
+    Icon: Waves,
     description: "Du berceau sur le Nil à la traversée de la mer Rouge — Moussa face au plus grand tyran de son époque.",
   },
   {
@@ -49,7 +49,7 @@ const ARCS = [
     chapters: 6,
     status: "available",
     color: "#a78bfa",
-    emoji: "🌿",
+    Icon: Leaf,
     description: "L'histoire de la femme la plus mentionnée dans le Coran — sa dévotion, sa pureté et la naissance miraculeuse.",
   },
   {
@@ -60,7 +60,7 @@ const ARCS = [
     chapters: 12,
     status: "coming_soon",
     color: "#34d399",
-    emoji: "🌙",
+    Icon: Moon,
     description: "Les grandes étapes de la vie du Prophète Muhammad ﷺ — la révélation, les épreuves et la construction de la communauté.",
   },
   {
@@ -71,7 +71,7 @@ const ARCS = [
     chapters: 10,
     status: "coming_soon",
     color: "#fbbf24",
-    emoji: "🛡️",
+    Icon: Shield,
     description: "Abu Bakr, Omar, Bilal, Khadija, Fatima — les hommes et femmes qui ont porté l'islam à ses débuts.",
   },
   {
@@ -82,7 +82,7 @@ const ARCS = [
     chapters: 5,
     status: "coming_soon",
     color: "#60a5fa",
-    emoji: "🐫",
+    Icon: Route,
     description: "La migration de La Mecque à Médine — un voyage de foi qui a changé le cours de l'histoire.",
   },
   {
@@ -93,7 +93,7 @@ const ARCS = [
     chapters: 4,
     status: "coming_soon",
     color: "#f43f5e",
-    emoji: "🐑",
+    Icon: Heart,
     description: "Le test suprême d'Ibrahim et de son fils Ismaïl — la naissance du sacrifice et de la foi absolue.",
   },
   {
@@ -104,7 +104,7 @@ const ARCS = [
     chapters: 5,
     status: "coming_soon",
     color: "#c084fc",
-    emoji: "✨",
+    Icon: Sparkles,
     description: "Le voyage miraculeuse du Prophète ﷺ de La Mecque à Jérusalem, puis son ascension aux sept cieux.",
   },
   {
@@ -115,7 +115,7 @@ const ARCS = [
     chapters: 7,
     status: "coming_soon",
     color: "#84cc16",
-    emoji: "👑",
+    Icon: Crown,
     description: "Le roi qui parlait aux oiseaux et commandait aux djinns — l'histoire de la sagesse divine au service de la justice.",
   },
 ];
@@ -222,7 +222,7 @@ export default function HistoirePage() {
                 </div>
               )}
               <div className="flex items-start gap-3 mb-3">
-                <span style={{ fontSize: 28, opacity: available ? 1 : 0.6 }}>{arc.emoji}</span>
+                <arc.Icon size={28} style={{ color: arc.color, opacity: available ? 1 : 0.6, flexShrink: 0 }} />
                 <div className="flex-1 pr-12">
                   <p className="font-bold text-base leading-tight mb-0.5"
                     style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>

@@ -8,7 +8,7 @@ import { PRAYER_LABELS, PRAYER_ORDER, formatTime, type PrayerKey } from "@/lib/p
 import { storage, todayKey } from "@/lib/storage";
 import { Qibla, Coordinates } from "adhan";
 import Link from "next/link";
-import { Settings2, Volume2, VolumeX, ChevronDown, CheckCircle2, Circle } from "lucide-react";
+import { Settings2, Volume2, VolumeX, ChevronDown, CheckCircle2, Circle, Moon, Sun, CloudSun, Star, Sunrise, Sunset, type LucideIcon } from "lucide-react";
 import { MosqueIcon, CrescentStar } from "@/components/IslamicIcons";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
@@ -20,8 +20,8 @@ const RECITERS = [
   { id: "husary",     name: "Mahmoud Al-Husary",    src: "/audio/adhan-husary.mp3"     },
 ];
 
-const PRAYER_EMOJI: Record<string, string> = {
-  fajr: "🌙", sunrise: "🌅", dhuhr: "☀️", asr: "🌤️", maghrib: "🌆", isha: "⭐",
+const PRAYER_ICON: Record<string, LucideIcon> = {
+  fajr: Moon, sunrise: Sunrise, dhuhr: Sun, asr: CloudSun, maghrib: Sunset, isha: Star,
 };
 
 function getQibla(lat: number, lng: number) {
@@ -95,7 +95,7 @@ export default function PrieresPage() {
       {/* Header — mascotte kids */}
       {ageMode === "kids" ? (
         <motion.div variants={itemVariants} className="flex flex-col items-center gap-2 py-1">
-          <span style={{ fontSize: 44 }}>🕌</span>
+          <MosqueIcon size={44} style={{ color: "var(--gold)" }} />
           <h1 className="text-xl font-bold text-center" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
             Mes Prières du jour
           </h1>
@@ -137,9 +137,7 @@ export default function PrieresPage() {
             <p className="text-xs tracking-widest uppercase opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               Prochaine prière
             </p>
-            {ageMode === "kids" && (
-              <p className="mt-1 text-3xl">{PRAYER_EMOJI[nextPrayer]}</p>
-            )}
+            {ageMode === "kids" && (() => { const Icon = PRAYER_ICON[nextPrayer]; return Icon ? <Icon size={32} className="mt-1" style={{ color: "var(--gold)" }} /> : null; })()}
             <p className="mt-1 text-4xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
               {PRAYER_LABELS[nextPrayer].fr}
             </p>
@@ -243,10 +241,8 @@ export default function PrieresPage() {
                   background: isNext ? "rgba(5,92,63,0.2)" : donePrayers[key] ? "rgba(5,92,63,0.08)" : "rgba(255,255,255,0.02)",
                   borderColor: isNext ? "rgba(212,175,55,0.3)" : donePrayers[key] ? "rgba(212,175,55,0.2)" : "rgba(255,255,255,0.06)",
                 }}>
-                {/* Indicateur : emoji pour kids, dot sinon */}
-                {ageMode === "kids" ? (
-                  <span style={{ fontSize: 20, flexShrink: 0 }}>{PRAYER_EMOJI[key]}</span>
-                ) : (
+                {/* Indicateur : icône pour kids, dot sinon */}
+                {ageMode === "kids" ? (() => { const Icon = PRAYER_ICON[key]; return Icon ? <Icon size={18} style={{ color: "var(--gold)", flexShrink: 0 }} /> : null; })() : (
                   <div className="h-2 w-2 rounded-full flex-shrink-0"
                     style={{ background: isPast ? "var(--primary)" : isNext ? "var(--gold)" : "rgba(255,255,255,0.15)" }} />
                 )}

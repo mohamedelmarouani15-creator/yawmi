@@ -4,7 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Copy, Loader2, Plus, Trash2, UserPlus, LogIn, CheckCircle2, XCircle,
-  Swords, Trophy, Users, ListTodo, Star, Flame, Target, LogOut,
+  Swords, Trophy, Users, ListTodo, Star, Flame, Target, LogOut, Handshake, Medal,
 } from "lucide-react";
 import { useAuth }   from "@/hooks/useAuth";
 import { useFamily } from "@/hooks/useFamily";
@@ -15,7 +15,7 @@ import DuelQuizModal  from "@/components/famille/DuelQuizModal";
 import NoFamilySetup  from "@/components/famille/NoFamilySetup";
 
 // ── helpers ────────────────────────────────────────────────────
-const RANK_EMOJI = ["🥇", "🥈", "🥉", "4️⃣", "5️⃣"];
+const RANK_COLOR = ["#D4AF37", "#94a3b8", "#cd7f32", "rgba(248,244,236,0.4)", "rgba(248,244,236,0.3)"];
 const MEMBER_COLORS: Record<string, string> = {
   Tous: "#055C3F", Papa: "#7B5EA7", Maman: "#D4AF37",
   Enfants: "#C0634E", Moi: "#3B82F6",
@@ -194,7 +194,7 @@ export default function FamillePage() {
           </span>
           {myRank > 0 && (
             <span className="text-xs" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
-              {RANK_EMOJI[myRank - 1] ?? `#${myRank}`} classement famille
+              <Medal size={12} style={{ display: "inline", marginRight: 3, color: RANK_COLOR[myRank - 1] ?? "var(--gold)" }} />#{myRank} classement famille
             </span>
           )}
         </div>
@@ -596,7 +596,7 @@ export default function FamillePage() {
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-semibold"
                           style={{ color: win ? "var(--gold)" : draw ? "#94a3b8" : "#f87171", fontFamily: "var(--font-dm-sans)" }}>
-                          {win ? "🏆 Victoire !" : draw ? "🤝 Égalité" : "😔 Défaite"}
+                          {win ? <><Trophy size={12} style={{ display: "inline", marginRight: 4 }} />Victoire !</> : draw ? <><Handshake size={12} style={{ display: "inline", marginRight: 4 }} />Égalité</> : "Défaite"}
                         </p>
                         <p className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                           Toi {myScore ?? "–"} · {d.isChallenger ? d.challengedName : d.challengerName} {theirScore ?? "–"}
@@ -628,7 +628,7 @@ export default function FamillePage() {
                     background: m.isMe ? "rgba(5,92,63,0.12)" : "rgba(255,255,255,0.02)",
                     borderColor: m.isMe ? "rgba(212,175,55,0.25)" : "rgba(255,255,255,0.07)",
                   }}>
-                  <span className="text-xl w-8 text-center">{RANK_EMOJI[i] ?? `#${i+1}`}</span>
+                  <span className="w-8 flex justify-center"><Medal size={18} style={{ color: RANK_COLOR[i] ?? "rgba(248,244,236,0.3)" }} /></span>
                   <Avatar name={m.displayName} size={36} color={i === 0 ? "#D4AF37" : i === 1 ? "#94a3b8" : i === 2 ? "#cd7f32" : "#055C3F"} />
                   <div className="flex-1 min-w-0">
                     <p className="font-semibold text-sm truncate"
@@ -726,7 +726,7 @@ export default function FamillePage() {
                     </div>
                     <div className="flex items-center gap-3 mt-1">
                       <span className="text-xs opacity-35" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                        🏆 {m.defeatedSages} sage{m.defeatedSages > 1 ? "s" : ""}
+                        <Trophy size={10} style={{ display: "inline", marginRight: 3 }} />{m.defeatedSages} sage{m.defeatedSages > 1 ? "s" : ""}
                       </span>
                       <span className="text-xs opacity-35" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                         <Star size={9} className="inline mr-0.5" fill="currentColor" style={{ color: "var(--gold)" }} />

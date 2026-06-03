@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, LogOut, Volume2, VolumeX, Star, Zap, Moon, Home, Crown } from "lucide-react";
+import { Check, LogOut, Volume2, VolumeX, Star, Zap, Moon, Home, Crown, Sun, Sunrise, Swords, CalendarDays, Trophy, type LucideIcon } from "lucide-react";
+import { MosqueIcon } from "@/components/IslamicIcons";
 import { useAuth }        from "@/hooks/useAuth";
 import { useSettings }    from "@/hooks/useSettings";
 import { useNotifications } from "@/hooks/useNotifications";
@@ -244,10 +245,10 @@ export default function ProfilPage() {
         </p>
         <div className="grid grid-cols-3 gap-2">
           {([
-            { id: "night" as const, emoji: "🌙", label: "Nuit",  sub: "Sombre" },
-            { id: "day"   as const, emoji: "☀️", label: "Jour",  sub: "Clair"  },
-            { id: "auto"  as const, emoji: "🌅", label: "Auto",  sub: "Fajr→Maghrib" },
-          ]).map(({ id, emoji, label, sub }) => {
+            { id: "night" as const, Icon: Moon,    label: "Nuit",  sub: "Sombre" },
+            { id: "day"   as const, Icon: Sun,      label: "Jour",  sub: "Clair"  },
+            { id: "auto"  as const, Icon: Sunrise,  label: "Auto",  sub: "Fajr→Maghrib" },
+          ] as { id: "night"|"day"|"auto"; Icon: LucideIcon; label: string; sub: string }[]).map(({ id, Icon, label, sub }) => {
             const active = (settings.themeMode ?? "night") === id;
             return (
               <motion.button key={id}
@@ -271,7 +272,7 @@ export default function ProfilPage() {
                   background: active ? "var(--bg-primary)" : "rgba(255,255,255,0.02)",
                   borderColor: active ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.06)",
                 }}>
-                <span style={{ fontSize: 22 }}>{emoji}</span>
+                <Icon size={22} style={{ color: active ? "var(--gold)" : "var(--text-dim)" }} />
                 <p className="text-xs font-semibold" style={{ color: active ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                   {label}
                 </p>
@@ -372,10 +373,10 @@ export default function ProfilPage() {
         </p>
         <div className="flex flex-col gap-2">
           {([
-            { key: "prayers" as const, icon: "🕌", label: "Rappels de prières",  sub: "Horaires des 5 prières" },
-            { key: "duels"   as const, icon: "⚔️", label: "Défis famille",       sub: "Quand on te défie ou c'est ton tour" },
-            { key: "daily"   as const, icon: "📅", label: "Défi du jour",        sub: "Rappel quotidien" },
-          ]).map(({ key, icon, label, sub }) => {
+            { key: "prayers" as const, Icon: MosqueIcon, label: "Rappels de prières",  sub: "Horaires des 5 prières" },
+            { key: "duels"   as const, Icon: Swords,     label: "Défis famille",       sub: "Quand on te défie ou c'est ton tour" },
+            { key: "daily"   as const, Icon: CalendarDays, label: "Défi du jour",      sub: "Rappel quotidien" },
+          ] as { key: "prayers"|"duels"|"daily"; Icon: React.ComponentType<{size?:number;style?:React.CSSProperties}>; label: string; sub: string }[]).map(({ key, Icon, label, sub }) => {
             const active = prefs[key];
             return (
               <motion.button key={key}
@@ -392,7 +393,7 @@ export default function ProfilPage() {
                   background:   active ? "rgba(5,92,63,0.2)"        : "rgba(255,255,255,0.02)",
                   borderColor:  active ? "rgba(212,175,55,0.3)"      : "rgba(255,255,255,0.06)",
                 }}>
-                <span className="text-xl">{icon}</span>
+                <Icon size={20} style={{ color: active ? "var(--gold)" : "rgba(248,244,236,0.4)", flexShrink: 0 }} />
                 <div className="flex-1">
                   <p className="text-sm font-medium" style={{ color: active ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {label}
@@ -466,9 +467,9 @@ export default function ProfilPage() {
         <Link href="/profil/trophees">
           <div className="flex items-center gap-4 rounded-2xl border px-4 py-4 mb-6"
             style={{ background: "rgba(212,175,55,0.05)", borderColor: "var(--border-gold)", cursor: "pointer" }}>
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl text-2xl"
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl"
               style={{ background: "var(--gold-faint)" }}>
-              🏆
+              <Trophy size={22} style={{ color: "var(--gold)" }} />
             </div>
             <div className="flex-1">
               <p className="font-semibold text-sm" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>

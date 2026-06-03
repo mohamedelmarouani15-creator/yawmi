@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Moon, BookOpen, Users, Settings, Sun, CheckCircle2, Compass } from "lucide-react";
+import { Moon, BookOpen, Users, Settings, Sun, CheckCircle2, Compass, Star, Palmtree, ScrollText } from "lucide-react";
 import type React from "react";
 import { CrescentStar, TasbihIcon, Star8 } from "@/components/IslamicIcons";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
@@ -151,9 +151,9 @@ export default function AccueilPage() {
           <motion.span
             animate={{ rotate: [0, -8, 8, -4, 4, 0] }}
             transition={{ duration: 1.8, delay: 0.5, ease: "easeInOut" }}
-            style={{ fontSize: 52, display: "inline-block" }}
+            style={{ display: "inline-block", color: "var(--gold)" }}
           >
-            🌟
+            <Star size={52} />
           </motion.span>
           <p className="text-xl font-bold text-center" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
             Salam {firstName ?? "petit(e)"} !
@@ -181,7 +181,7 @@ export default function AccueilPage() {
               border: "1px solid rgba(212,175,55,0.2)",
             }}
           >
-            <span style={{ fontSize: 18, flexShrink: 0, marginTop: 1 }}>📜</span>
+            <ScrollText size={18} style={{ color: "var(--gold)", flexShrink: 0, marginTop: 1 }} />
             <p className="flex-1 text-sm leading-relaxed"
               style={{ color: "rgba(248,244,236,0.75)", fontFamily: "var(--font-dm-sans)" }}>
               {ctxMsg.text}
@@ -307,7 +307,7 @@ export default function AccueilPage() {
                   Apprends l&apos;islam en jouant
                 </p>
               </div>
-              <span style={{ fontSize: 38 }}>🌴</span>
+              <Palmtree size={38} style={{ color: "var(--gold)" }} />
             </motion.div>
           </Link>
         </motion.div>

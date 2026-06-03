@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trophy } from "lucide-react";
 import { useGameState } from "@/hooks/useGameState";
 import { ACHIEVEMENTS } from "@/lib/game/achievements";
 import { springTap } from "@/lib/motion";
@@ -154,7 +154,7 @@ export default function TropheesPage() {
       {/* Empty state */}
       {filtered.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-4xl mb-3">🏆</p>
+          <Trophy size={40} className="mb-3 mx-auto" style={{ color: "rgba(212,175,55,0.4)" }} />
           <p className="text-sm" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
             Aucun trophée dans cette catégorie
           </p>
@@ -168,7 +168,7 @@ export default function TropheesPage() {
             initial={{ opacity: 0, scale: 0.8, y: 40 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.8 }}
             className="fixed bottom-24 left-1/2 -translate-x-1/2 rounded-2xl px-5 py-3 flex items-center gap-2 z-50"
             style={{ background: "rgba(15,35,22,0.97)", border: "1px solid rgba(212,175,55,0.4)", boxShadow: "0 0 24px rgba(212,175,55,0.2)" }}>
-            <span style={{ fontSize: 20 }}>🏆</span>
+            <Trophy size={20} style={{ color: "var(--gold)" }} />
             <div>
               <p className="text-xs font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
                 Trophée débloqué !

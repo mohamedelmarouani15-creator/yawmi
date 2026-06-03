@@ -83,10 +83,19 @@ export function useNotifications() {
           userVisibleOnly: true,
           applicationServerKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,
         });
+      // Lire les settings prayer pour que le cron serveur puisse calculer les horaires
+      const s = storage.getSettings();
       await fetch("/api/push/subscribe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ subscription: sub.toJSON(), userId }),
+        body: JSON.stringify({
+          subscription:  sub.toJSON(),
+          userId,
+          lat:           s.lat,
+          lng:           s.lng,
+          prayerMethod:  s.method,
+          madhab:        s.madhab,
+        }),
       });
       return true;
     } catch { return false; }

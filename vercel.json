@@ -5,5 +5,11 @@
       "destination": "/accueil",
       "permanent": false
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/adhan",
+      "schedule": "* * * * *"
+    }
   ]
 }

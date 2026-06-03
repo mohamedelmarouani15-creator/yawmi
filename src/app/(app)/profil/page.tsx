@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, LogOut, Volume2, VolumeX, Star, Zap, Moon, Home, Crown, Sun, Sunrise, Swords, CalendarDays, Trophy, type LucideIcon } from "lucide-react";
+import { Check, LogOut, Volume2, VolumeX, Star, Zap, Moon, Home, Crown, Sun, Sunrise, Swords, CalendarDays, Trophy, Languages, Sprout, BookOpen, PenTool, GraduationCap, type LucideIcon } from "lucide-react";
 import { MosqueIcon } from "@/components/IslamicIcons";
 import { useAuth }        from "@/hooks/useAuth";
 import { useSettings }    from "@/hooks/useSettings";
@@ -163,6 +163,23 @@ export default function ProfilPage() {
         ))}
       </motion.div>
 
+      {/* ── Section Mon expérience ──────────────────────────── */}
+      <motion.div variants={itemVariants}>
+        <div className="flex items-center gap-2 mb-1">
+          <div className="h-px flex-1" style={{ background: "rgba(212,175,55,0.12)" }} />
+          <p className="text-xs font-semibold tracking-widest uppercase"
+            style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)", opacity: 0.7 }}>
+            Mon expérience
+          </p>
+          <div className="h-px flex-1" style={{ background: "rgba(212,175,55,0.12)" }} />
+        </div>
+        <p className="mb-4 text-xs opacity-30 text-center leading-relaxed"
+          style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+          Ces réglages personnalisent le Compagnon IA, les contenus et l'interface.
+          Aucun onboarding requis — le changement est immédiat.
+        </p>
+      </motion.div>
+
       {/* Tranche d'âge */}
       <motion.div variants={itemVariants}>
         <p className="mb-1 text-xs tracking-widest uppercase opacity-40"
@@ -235,6 +252,51 @@ export default function ProfilPage() {
         </div>
       </motion.div>
 
+      {/* Langue maternelle */}
+      <motion.div variants={itemVariants}>
+        <p className="mb-1 text-xs tracking-widest uppercase opacity-40"
+          style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+          Langue maternelle
+        </p>
+        <p className="mb-3 text-xs opacity-30 leading-relaxed"
+          style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+          Influence les explications du Compagnon et les traductions proposées
+        </p>
+        <div className="grid grid-cols-2 gap-2">
+          {([
+            { id: "français" as const, label: "Français",      sub: "Langue principale" },
+            { id: "arabe"    as const, label: "Arabe",          sub: "العربية" },
+            { id: "darija"   as const, label: "Darija",         sub: "Dialecte marocain / maghrébin" },
+            { id: "autre"    as const, label: "Autre langue",   sub: "Non listée" },
+          ] as const).map(({ id, label, sub }) => {
+            const active = (settings.motherTongue ?? null) === id;
+            return (
+              <motion.button key={id}
+                onClick={() => { save({ ...settings, motherTongue: id }); flash(); }}
+                whileTap={{ scale: 0.95 }} transition={springTap}
+                className="flex items-center gap-2 rounded-xl border px-4 py-3 text-left"
+                style={{
+                  background: active ? "var(--bg-primary)" : "rgba(255,255,255,0.02)",
+                  borderColor: active ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.06)",
+                }}>
+                <Languages size={15} style={{ color: active ? "var(--gold)" : "rgba(248,244,236,0.35)", flexShrink: 0 }} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold truncate"
+                    style={{ color: active ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                    {label}
+                  </p>
+                  <p className="text-xs opacity-40 truncate"
+                    style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                    {sub}
+                  </p>
+                </div>
+                {active && <Check size={13} style={{ color: "var(--gold)", flexShrink: 0 }} />}
+              </motion.button>
+            );
+          })}
+        </div>
+      </motion.div>
+
       {/* Thème d'affichage */}
       <motion.div variants={itemVariants}>
         <p className="mb-1 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
@@ -297,22 +359,22 @@ export default function ProfilPage() {
         </p>
         <div className="flex flex-col gap-2">
           {([
-            { id: "none"         as const, label: "Je ne lis pas l'arabe", sub: "Aucune question d'écriture arabe", emoji: "🌱" },
-            { id: "beginner"     as const, label: "Débutant",               sub: "Je connais quelques lettres",      emoji: "📖" },
-            { id: "intermediate" as const, label: "Intermédiaire",          sub: "Je lis lentement",                 emoji: "✍️" },
-            { id: "advanced"     as const, label: "Avancé",                 sub: "Je lis et j'écris couramment",     emoji: "🎓" },
-          ] as const).map(({ id, label, sub, emoji }) => {
+            { id: "none"         as const, label: "Je ne lis pas l'arabe", sub: "Aucune question d'écriture arabe", Icon: Sprout },
+            { id: "beginner"     as const, label: "Débutant",               sub: "Je connais quelques lettres",      Icon: BookOpen },
+            { id: "intermediate" as const, label: "Intermédiaire",          sub: "Je lis lentement",                 Icon: PenTool },
+            { id: "advanced"     as const, label: "Avancé",                 sub: "Je lis et j'écris couramment",     Icon: GraduationCap },
+          ] as const).map(({ id, label, sub, Icon }) => {
             const active = (settings.arabicLevel ?? "beginner") === id;
             return (
               <motion.button key={id}
-                onClick={() => save({ ...settings, arabicLevel: id })}
+                onClick={() => { save({ ...settings, arabicLevel: id }); flash(); }}
                 whileTap={{ scale: 0.97 }} transition={springTap}
                 className="flex items-center gap-3 rounded-xl border px-4 py-3 text-left"
                 style={{
                   background: active ? "rgba(212,175,55,0.1)" : "rgba(255,255,255,0.02)",
                   borderColor: active ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.06)",
                 }}>
-                <span style={{ fontSize: 20 }}>{emoji}</span>
+                <Icon size={20} style={{ color: active ? "var(--gold)" : "rgba(248,244,236,0.35)", flexShrink: 0 }} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold" style={{ color: active ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {label}

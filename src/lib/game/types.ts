@@ -1,5 +1,35 @@
 export type Category = "religion" | "history" | "arabic" | "darija" | "quran";
-export type QuestionType = "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i" | "calligraphy";
+
+export type DailyQuestType    = "quiz_win" | "correct_answers" | "story_chapter" | "calligraphy" | "timeline_correct";
+export type WeeklyChallengeType = "stages_complete" | "perfect_quizzes" | "total_correct" | "calligraphy_correct" | "timeline_correct" | "arcs_read";
+
+export interface WeeklyChallenge {
+  id: string;
+  title: string;
+  description: string;
+  type: WeeklyChallengeType;
+  target: number;
+  progress: number;
+  completed: boolean;
+  weekStartDate: string;   // ISO date of Monday
+  rewardXP: number;
+  rewardCoins: number;
+  rewardEnergy: number;
+}
+
+export interface DailyQuest {
+  id: string;
+  type: DailyQuestType;
+  title: string;
+  description: string;
+  target: number;
+  progress: number;
+  completed: boolean;
+  rewardXP: number;
+  rewardCoins: number;
+  rewardEnergy?: number;
+}
+export type QuestionType = "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i" | "calligraphy" | "timeline" | "scholars_match";
 export type Difficulty = 1 | 2 | 3 | 4 | 5;
 export type PowerUpType = "joker50" | "bouclier" | "double_xp" | "time_freeze";
 
@@ -25,6 +55,10 @@ export interface MinigameData {
   letterTranslit?: string; // e.g. "Alif [a]"
   strokeHints?: string[];
   passCoverage?: number;
+  // timeline: chronological ordering
+  events?: Array<{ text: string; year: number; hint?: string }>;
+  // scholars_match: 4 scholars ↔ 4 works
+  matchPairs?: Array<{ scholar: string; work: string; hint?: string }>;
 }
 
 export interface QuestionTranslation {
@@ -85,6 +119,19 @@ export interface GameState {
   // meta
   totalQuestionsAnswered: number;
   totalCorrectAnswers: number;
+  // energy system
+  energy: number;              // current energy (max 30)
+  lastEnergyUpdate: string | null; // ISO timestamp of last spend/recharge sync
+  // location stage progression
+  locationStages: Record<string, number>; // locationId → stages completed (0–3)
+  // mastery system
+  categoryMastery: Record<Category, number>;   // 0–100 per category
+  manuscripts: Record<string, number>;         // manuscriptId → pages collected
+  completedArcs: string[];                     // story arc IDs fully completed
+  dailyQuests: DailyQuest[];
+  lastQuestDate: string | null;                // ISO date of last quest generation
+  weeklyChallenge: WeeklyChallenge | null;
+  prestigeLevel: number;                       // 0 = normal, 1+ = Hafiz prestige
 }
 
 export interface LocationTranslation { description?: string; country?: string; }
@@ -145,6 +192,7 @@ export interface QuizSession {
   bouclierActive: boolean;    // forgives next wrong answer
   bouclierUsed: boolean;      // bouclier was triggered this session
   doubleXpActive: boolean;    // double XP for current question
+  startedStoryIds: string[];  // story arcs user has started (for contextual questions)
 }
 
 export interface AchievementDef {

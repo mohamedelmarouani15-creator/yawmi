@@ -528,6 +528,28 @@ export default function ProfilPage() {
         </AnimatePresence>
       </motion.div>
 
+      {/* Profil Savant link */}
+      <motion.div variants={itemVariants}>
+        <Link href="/profil/savant">
+          <div className="flex items-center gap-4 rounded-2xl border px-4 py-4 mb-3"
+            style={{ background: "rgba(96,165,250,0.05)", borderColor: "rgba(96,165,250,0.2)", cursor: "pointer" }}>
+            <div className="flex h-11 w-11 items-center justify-center rounded-2xl text-xl"
+              style={{ background: "rgba(96,165,250,0.1)" }}>
+              📚
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-sm" style={{ color: "#60a5fa", fontFamily: "var(--font-bricolage)" }}>
+                Profil du Savant
+              </p>
+              <p className="text-xs" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
+                Titre, attributs, manuscrits, progression des ères
+              </p>
+            </div>
+            <span style={{ color: "rgba(96,165,250,0.5)", fontSize: 18 }}>›</span>
+          </div>
+        </Link>
+      </motion.div>
+
       {/* Trophées link */}
       <motion.div variants={itemVariants}>
         <Link href="/profil/trophees">

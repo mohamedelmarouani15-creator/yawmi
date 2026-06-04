@@ -3,21 +3,28 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { getQuestionsAsync } from "@/lib/game/questions-loader";
 import { updateSM2 } from "@/lib/game/sm2";
-import { gameStorage } from "@/lib/game/game-storage";
+import { gameStorage, ENERGY_COST } from "@/lib/game/game-storage";
 import { getJoker50Eliminations } from "@/lib/game/powerups";
 import { getActiveGameEvent } from "@/lib/game/game-events";
+import { getEventBonuses } from "@/lib/game/events";
 import { storage } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
+import { getStageConfig, currentStageIndex } from "@/lib/game/stages";
 import type { Question, QuizSession, PowerUpType, Category } from "@/lib/game/types";
 
 const XP_PER_CORRECT    = 10;
 const COINS_PER_CORRECT = 2;
 const PERFECT_BONUS_XP  = 50;
 const PERFECT_BONUS_COINS = 10;
-const QUESTION_TIME     = 20; // seconds
 
 export function useQuiz(locationId: string) {
-  const [session, setSession] = useState<QuizSession | null>(null);
+  const [session,     setSession]     = useState<QuizSession | null>(null);
+  const [noEnergy,    setNoEnergy]    = useState(false);
+  const [stageIdx,    setStageIdx]    = useState(1);
+  const [stageConfig, setStageConfig] = useState(getStageConfig(1));
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const QUESTION_TIME = session?.timeLeft !== undefined ? stageConfig.timer : stageConfig.timer;
 
   // ── Timer ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -46,9 +53,38 @@ export function useQuiz(locationId: string) {
 
   // ── Start ──────────────────────────────────────────────────────
   const startQuiz = useCallback(async () => {
-    const state    = gameStorage.get();
-    const settings = storage.getSettings();
-    const questions = await getQuestionsAsync(10, state.questionHistory, settings.arabicLevel ?? "beginner");
+    const freshState = gameStorage.get();
+    const settings   = storage.getSettings();
+
+    // Energy gate (free during Ramadan night)
+    const seasonBonuses = getEventBonuses();
+    const energyFree = seasonBonuses.freeEnergyNight;
+    const spent = energyFree || gameStorage.spendEnergy(ENERGY_COST);
+    if (!spent) { setNoEnergy(true); return; }
+    setNoEnergy(false);
+
+    // Stage-aware difficulty
+    const currentIdx = currentStageIndex(freshState.locationStages ?? {}, locationId);
+    const stageCfg   = getStageConfig(currentIdx);
+    setStageIdx(currentIdx);
+    setStageConfig(stageCfg);
+
+    let startedStoryIds: string[] = [];
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data } = await supabase
+          .from("story_progress")
+          .select("story_id")
+          .eq("user_id", user.id);
+        startedStoryIds = (data ?? []).map(r => r.story_id as string);
+      }
+    } catch { /* offline graceful */ }
+
+    const questions = await getQuestionsAsync(
+      10, freshState.questionHistory, settings.arabicLevel ?? "beginner",
+      freshState.level, startedStoryIds, stageCfg.maxDiff,
+    );
     setSession({
       locationId,
       questions,
@@ -60,14 +96,15 @@ export function useQuiz(locationId: string) {
       xpEarned: 0,
       coinsEarned: 0,
       startedAt: Date.now(),
-      timeLeft: QUESTION_TIME,
+      timeLeft: stageCfg.timer as number,
       timerActive: true,
       hiddenOptions: [],
       bouclierActive: false,
       bouclierUsed: false,
       doubleXpActive: false,
+      startedStoryIds,
     });
-  }, [locationId]);
+  }, [locationId]); // eslint-disable-line
 
   // ── Select answer (MCQ) ───────────────────────────────────────
   const selectAnswer = useCallback((optionIndex: number) => {
@@ -117,10 +154,11 @@ export function useQuiz(locationId: string) {
     const newAnswers = [...session.answers];
     newAnswers[session.currentIndex] = isCorrect;
 
-    const eventMultiplier = getActiveGameEvent()?.rewardMultiplier ?? 1;
-    const xpMultiplier = (session.doubleXpActive ? 2 : 1) * eventMultiplier;
+    const legacyEvent  = getActiveGameEvent()?.rewardMultiplier ?? 1;
+    const seasonBonus  = getEventBonuses();
+    const xpMultiplier = (session.doubleXpActive ? 2 : 1) * legacyEvent * seasonBonus.xpMultiplier;
     const addedXP    = isCorrect ? XP_PER_CORRECT * xpMultiplier : 0;
-    const addedCoins = isCorrect ? COINS_PER_CORRECT : 0;
+    const addedCoins = isCorrect ? COINS_PER_CORRECT + seasonBonus.coinBonus : 0;
 
     const isLast = session.currentIndex === session.questions.length - 1;
     const correctCount = newAnswers.filter(Boolean).length + (isCorrect ? 0 : 0); // already counted above
@@ -134,16 +172,45 @@ export function useQuiz(locationId: string) {
         totalXP    += PERFECT_BONUS_XP;
         totalCoins += PERFECT_BONUS_COINS;
       }
-      const catXP: Partial<Record<Category, number>> = {};
+      // Per-category + per-type stats
+      const catXP:      Partial<Record<Category, number>> = {};
+      const catResults: Partial<Record<Category, { correct: number; total: number }>> = {};
+      let totalCorrectCount = 0;
+      let calligraphyCorrect = 0;
+      let timelineCorrect    = 0;
       newAnswers.forEach((correct, i) => {
+        const q   = session.questions[i];
+        const cat = q.category;
+        const r   = catResults[cat] ?? { correct: 0, total: 0 };
+        r.total  += 1;
         if (correct) {
-          const cat = session.questions[i].category;
+          r.correct += 1;
+          totalCorrectCount += 1;
           catXP[cat] = (catXP[cat] ?? 0) + XP_PER_CORRECT;
+          if (q.type === "calligraphy") calligraphyCorrect++;
+          if (q.type === "timeline")    timelineCorrect++;
         }
+        catResults[cat] = r;
       });
       (Object.entries(catXP) as [Category, number][]).forEach(([cat, xp]) => {
         gameStorage.updateCategoryLevel(cat, xp);
       });
+      gameStorage.updateCategoryMastery(catResults as Record<Category, { correct: number; total: number }>);
+      (Object.entries(catResults) as [Category, { correct: number; total: number }][]).forEach(([cat, r]) => {
+        gameStorage.addManuscriptPages(cat, r.correct);
+      });
+      // Daily quest progress
+      const isVictory   = newAnswers.filter(Boolean).length / newAnswers.length >= 0.7;
+      const isPerfect10 = newAnswers.every(Boolean);
+      if (isVictory)               gameStorage.progressQuest("quiz_win",         1);
+      if (totalCorrectCount > 0)   gameStorage.progressQuest("correct_answers",  totalCorrectCount);
+      if (calligraphyCorrect > 0)  gameStorage.progressQuest("calligraphy",      calligraphyCorrect);
+      if (timelineCorrect > 0)     gameStorage.progressQuest("timeline_correct", timelineCorrect);
+      // Weekly challenge progress
+      if (totalCorrectCount > 0)   gameStorage.progressWeekly("total_correct",      totalCorrectCount);
+      if (isPerfect10)             gameStorage.progressWeekly("perfect_quizzes",     1);
+      if (calligraphyCorrect > 0)  gameStorage.progressWeekly("calligraphy_correct", calligraphyCorrect);
+      if (timelineCorrect > 0)     gameStorage.progressWeekly("timeline_correct",    timelineCorrect);
     }
 
     setSession(s => s ? {
@@ -210,5 +277,8 @@ export function useQuiz(locationId: string) {
     correctCount,
     score,
     QUESTION_TIME,
+    noEnergy,
+    stageIndex:  stageIdx,
+    stageConfig,
   };
 }

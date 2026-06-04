@@ -4,11 +4,15 @@ import { useRef, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Swords, Lock, Flame, Coins, Package, ShoppingCart, Castle } from "lucide-react";
+import { Swords, Lock, Flame, Coins, Package, ShoppingCart, BookOpen, Castle } from "lucide-react";
+import { springTap } from "@/lib/motion";
 import { useGameState } from "@/hooks/useGameState";
 import { LOCATIONS } from "@/lib/game/locations";
 import { SAGES } from "@/lib/game/sages";
-import { xpProgress, xpInCurrentLevel } from "@/lib/game/game-storage";
+import { xpProgress, xpInCurrentLevel, gameStorage, computeCurrentEnergy, ENERGY_MAX } from "@/lib/game/game-storage";
+import { getEraForLevel, ERA_CONDITIONS, MANUSCRIPTS, getCurrentEraIndex, stagesDone } from "@/lib/game/stages";
+import { getActiveEvents } from "@/lib/game/events";
+import type { Category } from "@/lib/game/types";
 import { EventBanner } from "@/components/EventBanner";
 import { useT } from "@/hooks/useT";
 import { useLang } from "@/hooks/useLang";
@@ -431,12 +435,13 @@ function buildPath() {
 
 // ── Glass city card ────────────────────────────────────────────
 function CityCard({
-  locId, location, unlocked, defeated, isCurrent, sage,
+  locId, location, unlocked, defeated, isCurrent, sage, stagesN,
 }: {
   locId: string;
   location: { name: string; nameFr: string; color: string; requiredXP: number };
   unlocked: boolean; defeated: boolean; isCurrent: boolean;
   sage: { name: string } | undefined;
+  stagesN: number;
 }) {
   const tt = useT();
   const lang = useLang();
@@ -524,6 +529,13 @@ function CityCard({
         letterSpacing="0.5">
         {badgeText}
       </text>
+
+      {/* Stage stars — shown when at least 1 stage done */}
+      {unlocked && stagesN > 0 && (
+        <text x={52} y={y + 17} textAnchor="middle" fontSize={9}>
+          {stagesN >= 1 ? "★" : "☆"}{stagesN >= 2 ? "★" : "☆"}{stagesN >= 3 ? "★" : "☆"}
+        </text>
+      )}
     </g>
   );
 }
@@ -604,6 +616,27 @@ export default function OasisPage() {
   const unlocked  = state?.unlockedLocations ?? ["medine"];
   const chests    = state?.chestsAvailable ?? 0;
   const pathD     = buildPath();
+  const liveState    = gameStorage.get();
+  const energy       = computeCurrentEnergy(liveState.energy, liveState.lastEnergyUpdate);
+  const era          = getEraForLevel(level);
+  const dailyQuests  = gameStorage.getDailyQuests();
+  const categoryMastery = liveState.categoryMastery ?? { religion: 0, history: 0, arabic: 0, darija: 0, quran: 0 };
+  const completedArcs   = liveState.completedArcs ?? [];
+  const avgMastery      = Math.round(Object.values(categoryMastery).reduce((a, b) => a + b, 0) / 5);
+  const currentEraIdx   = getCurrentEraIndex(level, completedArcs.length, avgMastery);
+  const nextEra         = ERA_CONDITIONS.find(e => e.eraIndex === currentEraIdx + 1);
+  const manuscripts      = liveState.manuscripts ?? {};
+  const activeEvents     = getActiveEvents();
+  const era2Cond         = ERA_CONDITIONS.find(e => e.eraIndex === 2)!;
+  const era3Cond         = ERA_CONDITIONS.find(e => e.eraIndex === 3)!;
+  const era4Cond         = ERA_CONDITIONS.find(e => e.eraIndex === 4)!;
+  const era5Cond         = ERA_CONDITIONS.find(e => e.eraIndex === 5)!;
+  const ere2Unlocked     = level >= era2Cond.minLevel && completedArcs.length >= era2Cond.minArcsRead && avgMastery >= era2Cond.minAvgMastery;
+  const ere3Unlocked     = level >= era3Cond.minLevel && completedArcs.length >= era3Cond.minArcsRead && avgMastery >= era3Cond.minAvgMastery;
+  const ere4Unlocked     = level >= era4Cond.minLevel && completedArcs.length >= era4Cond.minArcsRead && avgMastery >= era4Cond.minAvgMastery;
+  const ere5Unlocked     = level >= era5Cond.minLevel && completedArcs.length >= era5Cond.minArcsRead && avgMastery >= era5Cond.minAvgMastery;
+  const weeklyChallenge  = gameStorage.getWeeklyChallenge();
+  const defeatedCount    = liveState.defeatedSages?.length ?? 0;
 
   const unlockedCount = ORDER.filter(id => locationUnlocked(id) || unlocked.includes(id)).length;
 
@@ -677,6 +710,11 @@ export default function OasisPage() {
               <Coins size={11} style={{ color: "var(--gold)" }} />
               <span className="text-xs font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>{coins}</span>
             </div>
+            <div className="flex items-center gap-1 rounded-full px-2.5 py-1"
+              style={{ background: energy < 10 ? "rgba(248,113,113,0.1)" : "rgba(255,255,255,0.06)", border: `1px solid ${energy < 10 ? "rgba(248,113,113,0.3)" : "rgba(255,255,255,0.1)"}` }}>
+              <span className="text-[10px]">⚡</span>
+              <span className="text-xs font-bold" style={{ color: energy < 10 ? "#f87171" : "rgba(248,244,236,0.6)", fontFamily: "var(--font-dm-sans)" }}>{energy}/{ENERGY_MAX}</span>
+            </div>
             <Link href="/oasis/shop">
               <div className="flex items-center gap-1 rounded-full px-2.5 py-1"
                 style={{ background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)", cursor: "pointer" }}>
@@ -686,6 +724,45 @@ export default function OasisPage() {
                 )}
               </div>
             </Link>
+          </div>
+        </div>
+
+        {/* Daily quests strip */}
+        <div className="flex items-center gap-2 px-4 pb-1 overflow-x-auto scrollbar-none">
+          {dailyQuests.map(q => {
+            const pct = Math.min(100, Math.round((q.progress / q.target) * 100));
+            return (
+              <div key={q.id} className="flex-shrink-0 rounded-2xl border px-3 py-2 min-w-[130px]"
+                style={{
+                  background: q.completed ? "rgba(74,222,128,0.08)" : "rgba(255,255,255,0.04)",
+                  borderColor: q.completed ? "rgba(74,222,128,0.35)" : "rgba(255,255,255,0.08)",
+                }}>
+                <p className="text-[10px] font-bold truncate"
+                  style={{ color: q.completed ? "#4ade80" : "rgba(248,244,236,0.7)", fontFamily: "var(--font-dm-sans)" }}>
+                  {q.completed ? "✓ " : ""}{q.title}
+                </p>
+                <div className="mt-1 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <div className="h-full rounded-full transition-all duration-500"
+                    style={{ width: `${pct}%`, background: q.completed ? "#4ade80" : "var(--gold)" }} />
+                </div>
+                <p className="text-[9px] mt-0.5 opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  {q.progress}/{q.target} · +{q.rewardXP}XP
+                </p>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Era badge */}
+        <div className="flex items-center justify-center gap-2 pb-1">
+          <div className="flex items-center gap-1.5 rounded-full px-3 py-1"
+            style={{ background: `${era.color}15`, border: `1px solid ${era.color}30` }}>
+            <span className="text-[10px] font-black uppercase tracking-wider" style={{ color: era.color, fontFamily: "var(--font-dm-sans)" }}>
+              {era.name}
+            </span>
+            <span className="text-[10px] opacity-60" style={{ color: era.color, fontFamily: "var(--font-dm-sans)" }}>
+              — {era.subtitle}
+            </span>
           </div>
         </div>
 
@@ -925,6 +1002,7 @@ export default function OasisPage() {
                   defeated={def}
                   isCurrent={isCur}
                   sage={sage}
+                  stagesN={stagesDone(liveState.locationStages ?? {}, locId)}
                 />
               </g>
             </motion.g>
@@ -939,6 +1017,320 @@ export default function OasisPage() {
       </svg>
 
       <Toast msg={toast ?? ""} show={!!toast} />
+
+      {/* ── BIBLIOTHÈQUE DU SAVANT ── */}
+      <div className="px-4 pb-10 flex flex-col gap-6 mt-2">
+
+        {/* Weekly challenge card */}
+        {weeklyChallenge && (
+          <div className="rounded-3xl border p-4"
+            style={{ background: weeklyChallenge.completed ? "rgba(74,222,128,0.06)" : "rgba(255,255,255,0.03)", borderColor: weeklyChallenge.completed ? "rgba(74,222,128,0.3)" : "rgba(255,255,255,0.08)" }}>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-[9px] uppercase tracking-widest opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                Défi de la semaine
+              </p>
+              {weeklyChallenge.completed && <span className="text-[10px] font-bold" style={{ color: "#4ade80", fontFamily: "var(--font-dm-sans)" }}>✓ Récompense: +{weeklyChallenge.rewardXP}XP</span>}
+            </div>
+            <p className="text-sm font-black mb-1" style={{ color: weeklyChallenge.completed ? "#4ade80" : "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+              {weeklyChallenge.completed ? "✦ " : ""}{weeklyChallenge.title}
+            </p>
+            <p className="text-xs opacity-50 mb-2" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              {weeklyChallenge.description}
+            </p>
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                <div className="h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.min(100, Math.round(weeklyChallenge.progress / weeklyChallenge.target * 100))}%`, background: weeklyChallenge.completed ? "#4ade80" : "#D4AF37" }} />
+              </div>
+              <span className="text-xs font-bold" style={{ color: weeklyChallenge.completed ? "#4ade80" : "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                {weeklyChallenge.progress}/{weeklyChallenge.target}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Active seasonal event */}
+        {activeEvents.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+            className="rounded-3xl border px-4 py-3 flex items-center gap-3"
+            style={{ background: `${activeEvents[0].color}10`, borderColor: `${activeEvents[0].color}30` }}>
+            <span className="text-2xl">{activeEvents[0].emoji}</span>
+            <div className="flex-1">
+              <p className="text-sm font-black" style={{ color: activeEvents[0].color, fontFamily: "var(--font-bricolage)" }}>
+                {activeEvents[0].name} — bonus actif !
+              </p>
+              <p className="text-[10px] opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                {activeEvents[0].description}
+              </p>
+            </div>
+          </motion.div>
+        )}
+
+        {/* Ère II portal */}
+        <motion.button
+          onClick={() => router.push("/oasis/ere2")}
+          whileTap={{ scale: 0.97 }} transition={springTap}
+          className="rounded-3xl border p-4 flex items-center gap-4 text-left w-full"
+          style={{
+            background: ere2Unlocked ? "rgba(52,211,153,0.06)" : "rgba(255,255,255,0.03)",
+            borderColor: ere2Unlocked ? "rgba(52,211,153,0.3)" : "rgba(255,255,255,0.08)",
+          }}>
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl"
+            style={{ background: ere2Unlocked ? "rgba(52,211,153,0.12)" : "rgba(255,255,255,0.04)" }}>
+            {ere2Unlocked ? "🌙" : "🔒"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-black text-sm"
+              style={{ color: ere2Unlocked ? "#34d399" : "rgba(248,244,236,0.3)", fontFamily: "var(--font-bricolage)" }}>
+              Ère II — L&apos;Aube de l&apos;Islam
+            </p>
+            <p className="text-[10px] opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              {ere2Unlocked
+                ? "5 lieux · Bilal, Aïcha, Salmane, Al-Negus, Sa'd ibn Mu'adh"
+                : `Niv. ${era2Cond.minLevel} + ${era2Cond.minArcsRead} arcs + maîtrise ${era2Cond.minAvgMastery}% · ${level}/${era2Cond.minLevel}`}
+            </p>
+          </div>
+          <span className="text-sm opacity-40" style={{ color: "var(--text)" }}>→</span>
+        </motion.button>
+
+        {/* Ère III portal */}
+        <motion.button onClick={() => router.push("/oasis/ere3")}
+          whileTap={{ scale: 0.97 }} transition={springTap}
+          className="rounded-3xl border p-4 flex items-center gap-4 text-left w-full"
+          style={{ background: ere3Unlocked ? "rgba(96,165,250,0.06)" : "rgba(255,255,255,0.03)", borderColor: ere3Unlocked ? "rgba(96,165,250,0.3)" : "rgba(255,255,255,0.06)" }}>
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl"
+            style={{ background: ere3Unlocked ? "rgba(96,165,250,0.12)" : "rgba(255,255,255,0.04)" }}>
+            {ere3Unlocked ? "✨" : "🔒"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-black text-sm" style={{ color: ere3Unlocked ? "#60a5fa" : "rgba(248,244,236,0.3)", fontFamily: "var(--font-bricolage)" }}>
+              Ère III — L&apos;Âge d&apos;Or
+            </p>
+            <p className="text-[10px] opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              {ere3Unlocked ? "5 lieux · Ibn al-Haytham, Hafez, Omar Khayyam..." : `Niv. ${era3Cond.minLevel} + ${era3Cond.minArcsRead} arcs + maîtrise ${era3Cond.minAvgMastery}%`}
+            </p>
+          </div>
+          <span className="text-sm opacity-40" style={{ color: "var(--text)" }}>→</span>
+        </motion.button>
+
+        {/* Ère IV portal */}
+        <motion.button onClick={() => router.push("/oasis/ere4")}
+          whileTap={{ scale: 0.97 }} transition={springTap}
+          className="rounded-3xl border p-4 flex items-center gap-4 text-left w-full"
+          style={{ background: ere4Unlocked ? "rgba(249,115,22,0.06)" : "rgba(255,255,255,0.02)", borderColor: ere4Unlocked ? "rgba(249,115,22,0.3)" : "rgba(255,255,255,0.05)" }}>
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl"
+            style={{ background: ere4Unlocked ? "rgba(249,115,22,0.12)" : "rgba(255,255,255,0.03)" }}>
+            {ere4Unlocked ? "🏛️" : "🔒"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-black text-sm" style={{ color: ere4Unlocked ? "#f97316" : "rgba(248,244,236,0.25)", fontFamily: "var(--font-bricolage)" }}>
+              Ère IV — Les Empires
+            </p>
+            <p className="text-[10px] opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              {ere4Unlocked ? "5 lieux · Suleiman, Akbar, Mulla Sadra, Askia, Ibn Battuta" : `Niv. ${era4Cond.minLevel} + ${era4Cond.minArcsRead} arcs + maîtrise ${era4Cond.minAvgMastery}%`}
+            </p>
+          </div>
+          <span className="text-sm opacity-30" style={{ color: "var(--text)" }}>→</span>
+        </motion.button>
+
+        {/* Confrérie */}
+        <motion.button onClick={() => router.push("/oasis/confrerie")}
+          whileTap={{ scale: 0.97 }} transition={springTap}
+          className="rounded-3xl border p-4 flex items-center gap-4 text-left w-full"
+          style={{ background: "rgba(167,139,250,0.05)", borderColor: "rgba(167,139,250,0.18)" }}>
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl"
+            style={{ background: "rgba(167,139,250,0.1)" }}>👨‍👩‍👧</div>
+          <div className="flex-1 min-w-0">
+            <p className="font-black text-sm" style={{ color: "#a78bfa", fontFamily: "var(--font-bricolage)" }}>Confrérie du Savoir</p>
+            <p className="text-[10px] opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              Partage ton code famille · progresser ensemble
+            </p>
+          </div>
+          <span className="text-sm opacity-40" style={{ color: "var(--text)" }}>→</span>
+        </motion.button>
+
+        {/* Ère V portal */}
+        <motion.button onClick={() => router.push("/oasis/ere5")}
+          whileTap={{ scale: 0.97 }} transition={springTap}
+          className="rounded-3xl border p-4 flex items-center gap-4 text-left w-full"
+          style={{ background: ere5Unlocked ? "rgba(255,215,0,0.06)" : "rgba(255,255,255,0.02)", borderColor: ere5Unlocked ? "rgba(255,215,0,0.3)" : "rgba(255,255,255,0.05)" }}>
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl"
+            style={{ background: ere5Unlocked ? "rgba(255,215,0,0.12)" : "rgba(255,255,255,0.03)" }}>
+            {ere5Unlocked ? "⭐" : "🔒"}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-black text-sm" style={{ color: ere5Unlocked ? "#FFD700" : "rgba(248,244,236,0.2)", fontFamily: "var(--font-bricolage)" }}>
+              Ère V — La Maîtrise
+            </p>
+            <p className="text-[10px] opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              {ere5Unlocked ? "Al-Azhar · Sarajevo · Kuala Lumpur — Islam contemporain" : `Niv. ${era5Cond.minLevel} + ${era5Cond.minArcsRead} arcs + maîtrise ${era5Cond.minAvgMastery}%`}
+            </p>
+          </div>
+          <span className="text-sm opacity-30" style={{ color: "var(--text)" }}>→</span>
+        </motion.button>
+
+        {/* Prestige portal */}
+        {defeatedCount >= 8 && (
+          <motion.button onClick={() => router.push("/oasis/prestige")}
+            whileTap={{ scale: 0.97 }} transition={springTap}
+            className="rounded-3xl border p-4 flex items-center gap-4 text-left w-full"
+            style={{ background: "rgba(255,215,0,0.08)", borderColor: "rgba(255,215,0,0.35)" }}>
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl"
+              style={{ background: "rgba(255,215,0,0.15)" }}>⭐</div>
+            <div className="flex-1">
+              <p className="font-black text-sm" style={{ color: "#FFD700", fontFamily: "var(--font-bricolage)" }}>Mode Hafiz — Prestige</p>
+              <p className="text-[10px] opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                {liveState.prestigeLevel ? `★ Prestige × ${liveState.prestigeLevel} · ` : ""}Recommence avec questions max-diff
+              </p>
+            </div>
+            <span className="text-sm opacity-40" style={{ color: "var(--text)" }}>→</span>
+          </motion.button>
+        )}
+
+        {/* Classement */}
+        <motion.button onClick={() => router.push("/oasis/classement")}
+          whileTap={{ scale: 0.97 }} transition={springTap}
+          className="rounded-3xl border p-4 flex items-center gap-4 text-left w-full"
+          style={{ background: "rgba(212,175,55,0.04)", borderColor: "rgba(212,175,55,0.15)" }}>
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl"
+            style={{ background: "rgba(212,175,55,0.1)" }}>🏆</div>
+          <div className="flex-1">
+            <p className="font-black text-sm" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>Classement mondial</p>
+            <p className="text-[10px] opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              Top joueurs par XP · Niv. {level}
+            </p>
+          </div>
+          <span className="text-sm opacity-40" style={{ color: "var(--text)" }}>→</span>
+        </motion.button>
+
+        {/* Progression vers la prochaine Ère */}
+        {nextEra && (
+          <div className="rounded-3xl border p-4"
+            style={{ background: "rgba(255,255,255,0.03)", borderColor: `${nextEra.color}30` }}>
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <p className="text-[9px] uppercase tracking-widest opacity-40 mb-0.5"
+                  style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Prochaine ère
+                </p>
+                <p className="text-sm font-black"
+                  style={{ color: nextEra.color, fontFamily: "var(--font-bricolage)" }}>
+                  {nextEra.name} — {nextEra.subtitle}
+                </p>
+              </div>
+              <span className="text-2xl opacity-60">🗺️</span>
+            </div>
+            <div className="flex flex-col gap-2">
+              {[
+                { label: `Niveau ${nextEra.minLevel}`,          done: level >= nextEra.minLevel,          value: `${level}/${nextEra.minLevel}` },
+                { label: `${nextEra.minArcsRead} histoires lues`, done: completedArcs.length >= nextEra.minArcsRead, value: `${completedArcs.length}/${nextEra.minArcsRead}` },
+                { label: `Maîtrise ${nextEra.minAvgMastery}%`,  done: avgMastery >= nextEra.minAvgMastery,done2: true, value: `${avgMastery}/${nextEra.minAvgMastery}%` },
+              ].map(({ label, done, value }) => (
+                <div key={label} className="flex items-center gap-2">
+                  <span className="text-sm">{done ? "✅" : "⬜"}</span>
+                  <span className="flex-1 text-xs" style={{ color: done ? "rgba(74,222,128,0.8)" : "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
+                    {label}
+                  </span>
+                  <span className="text-[10px] font-bold"
+                    style={{ color: done ? "#4ade80" : `${nextEra.color}88`, fontFamily: "var(--font-dm-sans)" }}>
+                    {value}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Maîtrise par catégorie */}
+        <div className="rounded-3xl border p-4"
+          style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(212,175,55,0.12)" }}>
+          <p className="text-[9px] uppercase tracking-widest opacity-40 mb-3"
+            style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            Maîtrise par catégorie
+          </p>
+          {([
+            { id: "religion", label: "Théologie",  icon: "🕌" },
+            { id: "history",  label: "Histoire",   icon: "📜" },
+            { id: "quran",    label: "Coran",       icon: "📖" },
+            { id: "arabic",   label: "Arabe",       icon: "✍️" },
+            { id: "darija",   label: "Darija",      icon: "🗣️" },
+          ] as { id: Category; label: string; icon: string }[]).map(({ id, label, icon }) => {
+            const pct = Math.round(categoryMastery[id] ?? 0);
+            const barColor = pct >= 80 ? "#4ade80" : pct >= 50 ? "#D4AF37" : "#60a5fa";
+            return (
+              <div key={id} className="mb-2.5">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-xs" style={{ color: "rgba(248,244,236,0.6)", fontFamily: "var(--font-dm-sans)" }}>
+                    {icon} {label}
+                  </span>
+                  <span className="text-xs font-bold" style={{ color: barColor, fontFamily: "var(--font-dm-sans)" }}>
+                    {pct}%
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <motion.div className="h-full rounded-full"
+                    animate={{ width: `${pct}%` }}
+                    transition={{ duration: 0.8, ease: "easeOut" }}
+                    style={{ background: barColor }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Manuscrits */}
+        <div className="rounded-3xl border p-4"
+          style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(167,139,250,0.15)" }}>
+          <div className="flex items-center gap-2 mb-3">
+            <BookOpen size={14} style={{ color: "#a78bfa" }} />
+            <p className="text-[9px] uppercase tracking-widest opacity-40"
+              style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              Manuscrits à assembler
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            {MANUSCRIPTS.map(m => {
+              const collected = manuscripts[m.id] ?? 0;
+              const pct       = Math.round((collected / m.pages) * 100);
+              const complete  = collected >= m.pages;
+              return (
+                <div key={m.id}>
+                  <div className="flex items-center justify-between mb-1">
+                    <div>
+                      <span className="text-xs font-semibold"
+                        style={{ color: complete ? m.color : "rgba(248,244,236,0.7)", fontFamily: "var(--font-dm-sans)" }}>
+                        {complete ? "✦ " : ""}{m.title}
+                      </span>
+                      <span className="text-[9px] ml-1.5 opacity-40"
+                        style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                        {m.author}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold"
+                      style={{ color: m.color, fontFamily: "var(--font-dm-sans)" }}>
+                      {collected}/{m.pages}p
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                    <motion.div className="h-full rounded-full"
+                      animate={{ width: `${pct}%` }}
+                      transition={{ duration: 0.8, ease: "easeOut" }}
+                      style={{ background: complete ? `linear-gradient(to right, ${m.color}, #D4AF37)` : m.color }}
+                    />
+                  </div>
+                  {complete && m.unlocks && (
+                    <p className="text-[9px] mt-0.5" style={{ color: m.color, fontFamily: "var(--font-dm-sans)" }}>
+                      ✦ Débloque : {m.unlocks}
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+      </div>
     </div>
   );
 }

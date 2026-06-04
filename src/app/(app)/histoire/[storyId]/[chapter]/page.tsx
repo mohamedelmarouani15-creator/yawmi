@@ -306,13 +306,18 @@ export default function ChapterPage() {
     if (json.rewards) {
       if (json.rewards.xp)    gameStorage.addXP(json.rewards.xp);
       if (json.rewards.coins) gameStorage.addCoins(json.rewards.coins);
-      gameStorage.push(); // sync vers Supabase après récompenses de chapitre
       setRewards(json.rewards);
       // Déclenche le message contextuel du Compagnon
       fetch(`/api/companion/context?hint=story_chapter`, {
         headers: { Authorization: `Bearer ${session.access_token}` },
       }).catch(() => {});
     }
+    // Track daily quest + mark arc completed if last chapter
+    gameStorage.progressQuest("story_chapter", 1);
+    if (chapterN >= totalChapters) {
+      gameStorage.markArcCompleted(storyId);
+    }
+    gameStorage.push(); // sync vers Supabase après récompenses de chapitre
     setPhase("reward");
   }, [data, storyId, chapterN]); // eslint-disable-line
 

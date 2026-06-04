@@ -121,6 +121,166 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "Atteindre La Mecque", descriptionAr: "الوصول إلى مكة المكرمة",
     icon: "🕋", condition: (s) => s.unlockedLocations.includes("la_mecque"),
   },
+
+  // ── Stages & Maîtrise ─────────────────────────────────────────
+  {
+    id: "stage_first",
+    title: "Découvreur", titleAr: "الكاشف",
+    description: "Terminer la Découverte d'un lieu", descriptionAr: "أكمل مرحلة الاستكشاف في مكان",
+    icon: "🌟", condition: (s) => Object.values(s.locationStages ?? {}).some(v => v >= 1),
+  },
+  {
+    id: "stage_trial",
+    title: "Éprouvé", titleAr: "الممتحَن",
+    description: "Terminer l'Épreuve d'un lieu", descriptionAr: "أكمل مرحلة الامتحان في مكان",
+    icon: "⚔️", condition: (s) => Object.values(s.locationStages ?? {}).some(v => v >= 2),
+  },
+  {
+    id: "stage_mastery",
+    title: "Maître d'un lieu", titleAr: "سيّد المكان",
+    description: "Atteindre la Maîtrise dans un lieu", descriptionAr: "بلّغ الإتقان في مكان",
+    icon: "🏆", condition: (s) => Object.values(s.locationStages ?? {}).some(v => v >= 3),
+  },
+  {
+    id: "stage_mastery_5",
+    title: "Grand Maître", titleAr: "الأستاذ الكبير",
+    description: "Maîtriser 5 lieux différents", descriptionAr: "أتقن 5 أماكن مختلفة",
+    icon: "👑", condition: (s) => Object.values(s.locationStages ?? {}).filter(v => v >= 3).length >= 5,
+  },
+  {
+    id: "mastery_50",
+    title: "Mi-chemin", titleAr: "في منتصف الطريق",
+    description: "Atteindre 50% de maîtrise dans une catégorie", descriptionAr: "بلّغ 50% إتقاناً في فئة",
+    icon: "📊", condition: (s) => Object.values(s.categoryMastery ?? {}).some(v => v >= 50),
+  },
+  {
+    id: "mastery_all_50",
+    title: "Savant équilibré", titleAr: "العالم المتوازن",
+    description: "50% de maîtrise dans toutes les catégories", descriptionAr: "50% إتقاناً في جميع الفئات",
+    icon: "⚖️", condition: (s) => Object.values(s.categoryMastery ?? {}).every(v => v >= 50),
+  },
+  {
+    id: "mastery_80",
+    title: "Expert", titleAr: "الخبير",
+    description: "80% de maîtrise dans une catégorie", descriptionAr: "80% إتقاناً في فئة",
+    icon: "💡", condition: (s) => Object.values(s.categoryMastery ?? {}).some(v => v >= 80),
+  },
+
+  // ── Manuscrits ────────────────────────────────────────────────
+  {
+    id: "manuscript_first",
+    title: "Copiste", titleAr: "الناسخ",
+    description: "Commencer à assembler un manuscrit", descriptionAr: "ابدأ في تجميع مخطوطة",
+    icon: "📜", condition: (s) => Object.values(s.manuscripts ?? {}).some(v => v >= 1),
+  },
+  {
+    id: "manuscript_complete",
+    title: "Archiviste", titleAr: "الأرشيفي",
+    description: "Compléter un manuscrit entier", descriptionAr: "أكمل مخطوطة كاملة",
+    icon: "📕", condition: (s) => {
+      const { MANUSCRIPTS } = require("./stages") as typeof import("./stages");
+      return MANUSCRIPTS.some(m => (s.manuscripts?.[m.id] ?? 0) >= m.pages);
+    },
+  },
+  {
+    id: "manuscript_all",
+    title: "Ibn al-Nadim", titleAr: "ابن النديم",
+    description: "Compléter les 5 manuscrits", descriptionAr: "أكمل الخمس المخطوطات",
+    icon: "📚", condition: (s) => {
+      const { MANUSCRIPTS } = require("./stages") as typeof import("./stages");
+      return MANUSCRIPTS.every(m => (s.manuscripts?.[m.id] ?? 0) >= m.pages);
+    },
+  },
+
+  // ── Énergie & Quêtes quotidiennes ─────────────────────────────
+  {
+    id: "quest_first",
+    title: "Première quête", titleAr: "أول مهمة",
+    description: "Compléter ta première quête du jour", descriptionAr: "أكمل أول مهمة يومية",
+    icon: "✅", condition: (s) => (s.dailyQuests ?? []).some(q => q.completed),
+  },
+  {
+    id: "quest_all",
+    title: "Journée parfaite", titleAr: "يوم مثالي",
+    description: "Compléter les 3 quêtes en une journée", descriptionAr: "أكمل المهام الثلاث في يوم واحد",
+    icon: "🌈", condition: (s) => (s.dailyQuests ?? []).filter(q => q.completed).length >= 3,
+  },
+
+  // ── Histoires & Ères ──────────────────────────────────────────
+  {
+    id: "arc_first",
+    title: "Lecteur", titleAr: "القارئ",
+    description: "Terminer un premier arc narratif", descriptionAr: "أكمل أول قصة",
+    icon: "📖", condition: (s) => (s.completedArcs ?? []).length >= 1,
+  },
+  {
+    id: "arc_three",
+    title: "Conteur", titleAr: "الراوي",
+    description: "Terminer 3 arcs narratifs", descriptionAr: "أكمل 3 قصص",
+    icon: "📕", condition: (s) => (s.completedArcs ?? []).length >= 3,
+  },
+  {
+    id: "ere2_unlock",
+    title: "Compagnon du Prophète", titleAr: "رفيق النبي",
+    description: "Débloquer l'Ère II — L'Aube de l'Islam", descriptionAr: "افتح الحقبة الثانية",
+    icon: "🌙", condition: (s) => {
+      const { ERA_CONDITIONS } = require("./stages") as typeof import("./stages");
+      const c = ERA_CONDITIONS.find((e: { eraIndex: number }) => e.eraIndex === 2);
+      if (!c) return false;
+      const avg = Math.round(Object.values(s.categoryMastery ?? {}).reduce((a: number, b: number) => a + b, 0) / 5);
+      return s.level >= c.minLevel && (s.completedArcs ?? []).length >= c.minArcsRead && avg >= c.minAvgMastery;
+    },
+  },
+  {
+    id: "ere2_mastered",
+    title: "Maître de l'Ère II", titleAr: "سيّد الحقبة الثانية",
+    description: "Maîtriser tous les lieux de l'Ère II", descriptionAr: "أتقن جميع أماكن الحقبة الثانية",
+    icon: "🌟", condition: (s) => {
+      const locs = ["abyssinie","jerusalem","taif","medine_hijra","khaybar"];
+      return locs.every(id => (s.locationStages?.[id] ?? 0) >= 3);
+    },
+  },
+
+  // ── Calligraphie & Timeline ───────────────────────────────────
+  {
+    id: "calligraphy_5",
+    title: "Calligraphe", titleAr: "الخطّاط",
+    description: "Réussir 5 exercices de calligraphie", descriptionAr: "أنجح في 5 تمارين الخط",
+    icon: "✍️", condition: (s) => (s.totalCorrectAnswers ?? 0) >= 5 && s.achievements.includes("calligraphy_5"),
+    // Self-referential: triggered by progressQuest
+  },
+  {
+    id: "timeline_master",
+    title: "Chronologiste", titleAr: "المؤرّخ الزمني",
+    description: "Réussir 10 quiz chronologie", descriptionAr: "أنجح في 10 تمارين ترتيب زمني",
+    icon: "⏳", condition: (s) => s.achievements.includes("timeline_master"),
+  },
+
+  // ── Niveau & XP ───────────────────────────────────────────────
+  {
+    id: "level_50",
+    title: "Imam", titleAr: "الإمام",
+    description: "Atteindre le niveau 50", descriptionAr: "بلوغ المستوى 50",
+    icon: "🌕", condition: (s) => s.level >= 50,
+  },
+  {
+    id: "questions_1000",
+    title: "Mil réponses", titleAr: "ألف إجابة",
+    description: "1000 questions répondues", descriptionAr: "1000 سؤال مُجاب",
+    icon: "🔢", condition: (s) => s.totalQuestionsAnswered >= 1000,
+  },
+  {
+    id: "correct_500",
+    title: "Précis", titleAr: "الدقيق",
+    description: "500 réponses correctes", descriptionAr: "500 إجابة صحيحة",
+    icon: "🎯", condition: (s) => s.totalCorrectAnswers >= 500,
+  },
+  {
+    id: "streak_100",
+    title: "Centurion", titleAr: "المئوي",
+    description: "100 jours de suite", descriptionAr: "100 يوم متتالٍ",
+    icon: "🏅", condition: (s) => s.gameStreak >= 100,
+  },
 ];
 
 export function getAchievement(id: string): AchievementDef | undefined {

@@ -1,10 +1,14 @@
-import type { GameState, QuestionHistory, Category, PowerUpType } from "./types";
+import type { GameState, QuestionHistory, Category, PowerUpType, DailyQuest, DailyQuestType, WeeklyChallenge, WeeklyChallengeType } from "./types";
 import { checkNewAchievements } from "./achievements";
 import { supabase } from "@/lib/supabase";
 
 const KEY = "yawmi_game_state_v2";
 
 const DEFAULT_POWERUPS = { joker50: 3, bouclier: 1, double_xp: 2, time_freeze: 1 };
+
+export const ENERGY_MAX    = 30;
+export const ENERGY_COST   = 10;  // per quiz
+const ENERGY_REGEN_MS      = 30 * 60 * 1000; // +1 energy per 30 min
 
 export const DEFAULT_STATE: GameState = {
   xp: 0,
@@ -26,7 +30,82 @@ export const DEFAULT_STATE: GameState = {
   activeTitle: "Voyageur",
   totalQuestionsAnswered: 0,
   totalCorrectAnswers: 0,
+  energy: ENERGY_MAX,
+  lastEnergyUpdate: null,
+  locationStages: {},
+  categoryMastery: { religion: 0, history: 0, arabic: 0, darija: 0, quran: 0 },
+  manuscripts: {},
+  completedArcs: [],
+  dailyQuests: [],
+  lastQuestDate: null,
+  weeklyChallenge: null,
+  prestigeLevel: 0,
 };
+
+// ── Weekly challenge pool ──────────────────────────────────────
+
+const WEEKLY_POOL: Omit<WeeklyChallenge, "progress" | "completed" | "weekStartDate">[] = [
+  { id: "wk1", type: "stages_complete",    title: "Conquérant",          description: "Terminer 3 stages (n'importe quel lieu)",    target: 3,   rewardXP: 200, rewardCoins: 80,  rewardEnergy: 10 },
+  { id: "wk2", type: "perfect_quizzes",    title: "Sans fautes",          description: "Réussir 2 quizzes avec 10/10",               target: 2,   rewardXP: 250, rewardCoins: 100, rewardEnergy: 10 },
+  { id: "wk3", type: "total_correct",      title: "Encyclopédiste",       description: "100 réponses correctes cette semaine",        target: 100, rewardXP: 300, rewardCoins: 120, rewardEnergy: 20 },
+  { id: "wk4", type: "calligraphy_correct","title": "Calligraphe",        description: "Réussir 10 exercices de calligraphie",        target: 10,  rewardXP: 200, rewardCoins: 80,  rewardEnergy: 10 },
+  { id: "wk5", type: "total_correct",      title: "Maître du savoir",     description: "150 réponses correctes cette semaine",        target: 150, rewardXP: 400, rewardCoins: 150, rewardEnergy: 30 },
+  { id: "wk6", type: "arcs_read",          title: "Conteur",              description: "Terminer un arc narratif complet",            target: 1,   rewardXP: 300, rewardCoins: 120, rewardEnergy: 20 },
+  { id: "wk7", type: "timeline_correct",   title: "Chronologiste",        description: "Réussir 5 quiz de chronologie",               target: 5,   rewardXP: 200, rewardCoins: 80,  rewardEnergy: 10 },
+  { id: "wk8", type: "stages_complete",    title: "Grand Voyageur",       description: "Maîtriser (★★★) 2 lieux différents",          target: 2,   rewardXP: 500, rewardCoins: 200, rewardEnergy: 30 },
+];
+
+function getWeekStart(): string {
+  const now = new Date();
+  const day = now.getDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  const monday = new Date(now.getTime() + diff * 86400000);
+  return monday.toISOString().split("T")[0];
+}
+
+function generateWeeklyChallenge(): WeeklyChallenge {
+  const weekStart = getWeekStart();
+  // Deterministic pick based on week number to avoid different challenges per device
+  const weekNum = Math.floor(new Date().getTime() / (7 * 86400000));
+  const picked  = WEEKLY_POOL[weekNum % WEEKLY_POOL.length];
+  return { ...picked, progress: 0, completed: false, weekStartDate: weekStart };
+}
+
+// ── Daily quest pool ───────────────────────────────────────────
+
+const QUEST_POOL: Omit<DailyQuest, "progress" | "completed">[] = [
+  { id: "q1", type: "quiz_win",        title: "Victoire ×1",         description: "Gagne 1 quiz aujourd'hui",          target: 1, rewardXP: 40,  rewardCoins: 15 },
+  { id: "q2", type: "quiz_win",        title: "Triple victoire",      description: "Gagne 3 quizzes aujourd'hui",       target: 3, rewardXP: 100, rewardCoins: 40 },
+  { id: "q3", type: "correct_answers", title: "25 bonnes réponses",   description: "Réponds correctement 25 fois",      target: 25, rewardXP: 60, rewardCoins: 20 },
+  { id: "q4", type: "correct_answers", title: "50 bonnes réponses",   description: "Réponds correctement 50 fois",      target: 50, rewardXP: 120, rewardCoins: 40, rewardEnergy: 10 },
+  { id: "q5", type: "story_chapter",   title: "Lire l'histoire",      description: "Lis un chapitre d'une histoire",    target: 1, rewardXP: 50,  rewardCoins: 20 },
+  { id: "q6", type: "calligraphy",     title: "Calligraphe du jour",  description: "Complète 2 exercices de calligraphie", target: 2, rewardXP: 50, rewardCoins: 15 },
+  { id: "q7", type: "timeline_correct","title": "Historien",          description: "Réussis 2 quizzes chronologie",    target: 2, rewardXP: 60,  rewardCoins: 20 },
+  { id: "q8", type: "correct_answers", title: "Série de 10",          description: "10 bonnes réponses consécutives",   target: 10, rewardXP: 80,  rewardCoins: 30, rewardEnergy: 10 },
+];
+
+function generateDailyQuests(): DailyQuest[] {
+  const shuffled = [...QUEST_POOL].sort(() => Math.random() - 0.5);
+  return shuffled.slice(0, 3).map(q => ({ ...q, progress: 0, completed: false }));
+}
+
+/** Compute actual current energy from stored value + elapsed time. */
+export function computeCurrentEnergy(stored: number, lastUpdate: string | null): number {
+  if (!lastUpdate) return stored;
+  const elapsedMs   = Date.now() - new Date(lastUpdate).getTime();
+  const regenerated = Math.floor(elapsedMs / ENERGY_REGEN_MS);
+  return Math.min(ENERGY_MAX, stored + regenerated);
+}
+
+/** How many ms until 10 energy is available. Returns 0 if already enough. */
+export function msUntilEnergy(stored: number, lastUpdate: string | null, needed = ENERGY_COST): number {
+  const current = computeCurrentEnergy(stored, lastUpdate);
+  if (current >= needed) return 0;
+  const deficit = needed - current;
+  const elapsedMs = lastUpdate ? Date.now() - new Date(lastUpdate).getTime() : 0;
+  const usedMs = elapsedMs % ENERGY_REGEN_MS;
+  return deficit * ENERGY_REGEN_MS - usedMs;
+}
 
 export const gameStorage = {
   get(): GameState {
@@ -34,7 +113,16 @@ export const gameStorage = {
     try {
       const raw = localStorage.getItem(KEY);
       if (!raw) return { ...DEFAULT_STATE };
-      return { ...DEFAULT_STATE, ...JSON.parse(raw) };
+      const saved = JSON.parse(raw) as Partial<GameState>;
+      const base  = { ...DEFAULT_STATE, ...saved };
+      // Recompute energy based on elapsed time
+      const currentEnergy = computeCurrentEnergy(base.energy ?? ENERGY_MAX, base.lastEnergyUpdate);
+      if (currentEnergy !== (base.energy ?? ENERGY_MAX)) {
+        base.energy = currentEnergy;
+        base.lastEnergyUpdate = new Date().toISOString();
+        localStorage.setItem(KEY, JSON.stringify(base));
+      }
+      return base;
     } catch {
       return { ...DEFAULT_STATE };
     }
@@ -152,6 +240,161 @@ export const gameStorage = {
       : 1;
     const updated = { ...state, gameStreak: streak, lastGameDate: today };
     this.save(this._checkAchievements(updated));
+    return updated;
+  },
+
+  // ── Energy ───────────────────────────────────────────────────
+  addEnergy(amount: number): GameState {
+    const state   = this.get();
+    const current = computeCurrentEnergy(state.energy, state.lastEnergyUpdate);
+    const updated = { ...state, energy: Math.min(ENERGY_MAX, current + amount), lastEnergyUpdate: new Date().toISOString() };
+    this.save(updated);
+    return updated;
+  },
+
+  spendEnergy(amount = ENERGY_COST): boolean {
+    const state   = this.get();
+    const current = computeCurrentEnergy(state.energy, state.lastEnergyUpdate);
+    if (current < amount) return false;
+    const updated = { ...state, energy: current - amount, lastEnergyUpdate: new Date().toISOString() };
+    this.save(updated);
+    return true;
+  },
+
+  // ── Category mastery ─────────────────────────────────────────
+  updateCategoryMastery(results: Partial<Record<Category, { correct: number; total: number }>>): GameState {
+    const state = this.get();
+    const mastery = { ...state.categoryMastery } as Record<Category, number>;
+    (Object.entries(results) as [Category, { correct: number; total: number }][]).forEach(([cat, { correct, total }]) => {
+      if (total === 0) return;
+      const accuracy  = correct / total;          // 0–1
+      const delta     = (accuracy - 0.5) * 20;    // ±10 per quiz, centered at 50% accuracy
+      mastery[cat]    = Math.max(0, Math.min(100, (mastery[cat] ?? 0) + delta));
+    });
+    const updated = { ...state, categoryMastery: mastery };
+    this.save(updated);
+    return updated;
+  },
+
+  // ── Manuscripts ───────────────────────────────────────────────
+  addManuscriptPages(categoryId: Category, correctCount: number): GameState {
+    const { MANUSCRIPTS, CORRECT_PER_PAGE } = require("./stages") as typeof import("./stages");
+    const state     = this.get();
+    const manuscripts = { ...state.manuscripts };
+    const pagesEarned = Math.floor(correctCount / CORRECT_PER_PAGE);
+    if (pagesEarned === 0) { this.save(state); return state; }
+    MANUSCRIPTS.filter(m => m.category === categoryId).forEach(m => {
+      const current = manuscripts[m.id] ?? 0;
+      manuscripts[m.id] = Math.min(m.pages, current + pagesEarned);
+    });
+    const updated = { ...state, manuscripts };
+    this.save(updated);
+    return updated;
+  },
+
+  // ── Daily quests ──────────────────────────────────────────────
+  getDailyQuests(): DailyQuest[] {
+    const state = this.get();
+    const today = new Date().toISOString().split("T")[0];
+    if (state.lastQuestDate !== today || state.dailyQuests.length === 0) {
+      const quests = generateDailyQuests();
+      const updated = { ...state, dailyQuests: quests, lastQuestDate: today };
+      this.save(updated);
+      return quests;
+    }
+    return state.dailyQuests;
+  },
+
+  progressQuest(type: DailyQuestType, amount = 1): GameState {
+    const state = this.get();
+    const today = new Date().toISOString().split("T")[0];
+    if (state.lastQuestDate !== today) return state; // quests not generated yet
+    let xpBonus = 0; let coinsBonus = 0; let energyBonus = 0;
+    const quests = (state.dailyQuests ?? []).map(q => {
+      if (q.type !== type || q.completed) return q;
+      const newProgress = Math.min(q.target, q.progress + amount);
+      const justCompleted = newProgress >= q.target && !q.completed;
+      if (justCompleted) {
+        xpBonus     += q.rewardXP;
+        coinsBonus  += q.rewardCoins;
+        energyBonus += q.rewardEnergy ?? 0;
+      }
+      return { ...q, progress: newProgress, completed: newProgress >= q.target };
+    });
+    let updated: GameState = { ...state, dailyQuests: quests };
+    if (xpBonus > 0)     { updated = { ...updated, xp: updated.xp + xpBonus, level: Math.floor((updated.xp + xpBonus) / 200) + 1 }; }
+    if (coinsBonus > 0)  { updated = { ...updated, coins: updated.coins + coinsBonus }; }
+    if (energyBonus > 0) { updated = { ...updated, energy: Math.min(ENERGY_MAX, updated.energy + energyBonus) }; }
+    this.save(updated);
+    return updated;
+  },
+
+  // ── Weekly challenge ─────────────────────────────────────────
+  getWeeklyChallenge(): WeeklyChallenge {
+    const state      = this.get();
+    const weekStart  = getWeekStart();
+    if (state.weeklyChallenge?.weekStartDate === weekStart) return state.weeklyChallenge;
+    const challenge = generateWeeklyChallenge();
+    this.save({ ...state, weeklyChallenge: challenge });
+    return challenge;
+  },
+
+  progressWeekly(type: WeeklyChallengeType, amount = 1): GameState {
+    const state = this.get();
+    const wc    = state.weeklyChallenge;
+    if (!wc || wc.completed || wc.type !== type) return state;
+    const newProg = Math.min(wc.target, wc.progress + amount);
+    const justDone = newProg >= wc.target && !wc.completed;
+    const updated: GameState = {
+      ...state,
+      weeklyChallenge: { ...wc, progress: newProg, completed: newProg >= wc.target },
+      ...(justDone ? {
+        xp:     state.xp + wc.rewardXP,
+        level:  Math.floor((state.xp + wc.rewardXP) / 200) + 1,
+        coins:  state.coins + wc.rewardCoins,
+        energy: Math.min(ENERGY_MAX, state.energy + wc.rewardEnergy),
+      } : {}),
+    };
+    this.save(updated);
+    return updated;
+  },
+
+  // ── Prestige (Mode Hafiz) ─────────────────────────────────────
+  activatePrestige(): GameState {
+    const state = this.get();
+    const ALL_SAGES_COUNT = 20; // 10 Ère I + 5 Ère II + 5 Ère III + ... total
+    if ((state.defeatedSages?.length ?? 0) < 8) return state; // at least Ère I complete
+    const updated: GameState = {
+      ...state,
+      prestigeLevel: (state.prestigeLevel ?? 0) + 1,
+      level: 1,
+      xp: 0,
+      locationStages: {},
+      categoryMastery: { religion: 0, history: 0, arabic: 0, darija: 0, quran: 0 },
+    };
+    this.save(updated);
+    return updated;
+  },
+
+  // ── Completed arcs ────────────────────────────────────────────
+  markArcCompleted(arcId: string): GameState {
+    const state = this.get();
+    if (state.completedArcs?.includes(arcId)) return state;
+    const updated = { ...state, completedArcs: [...(state.completedArcs ?? []), arcId] };
+    this.save(updated);
+    return updated;
+  },
+
+  // ── Location stage progression ────────────────────────────────
+  completeLocationStage(locationId: string): GameState {
+    const state   = this.get();
+    const current = state.locationStages?.[locationId] ?? 0;
+    const next    = Math.min(3, current + 1);
+    const updated = {
+      ...state,
+      locationStages: { ...state.locationStages, [locationId]: next },
+    };
+    this.save(updated);
     return updated;
   },
 

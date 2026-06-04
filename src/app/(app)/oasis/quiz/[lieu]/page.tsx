@@ -23,13 +23,25 @@ import { getQuestionLang } from "@/lib/content-i18n";
 import LevelUpCinematic from "@/components/LevelUpCinematic";
 import { pick } from "@/lib/content-i18n";
 import staticT from "@/lib/static-translations.json";
+import { currentStageIndex, getStageConfig, LOCATION_STORY_ARCS } from "@/lib/game/stages";
 import DragDropGame    from "@/components/minigames/DragDropGame";
 import MemoryGame      from "@/components/minigames/MemoryGame";
 import FillVerseGame   from "@/components/minigames/FillVerseGame";
 import WhoAmIGame      from "@/components/minigames/WhoAmIGame";
 import CalligraphyGame from "@/components/minigames/CalligraphyGame";
+import TimelineGame      from "@/components/minigames/TimelineGame";
+import ScholarsMatchGame from "@/components/minigames/ScholarsMatchGame";
 
 const OPTION_LABELS = ["A", "B", "C", "D"];
+
+const STORY_TITLES: Record<string, string> = {
+  arc_yusuf:   "L'histoire de Yûsuf",
+  arc_ibrahim: "Ibrahim et le Feu",
+  arc_moussa:  "Moussa et Pharaon",
+  arc_maryam:  "Maryam, la choisie",
+  arc_sira:    "La Sîra du Prophète ﷺ",
+  arc_sahaba:  "Les Compagnons du Prophète ﷺ",
+};
 
 // ── Confetti on victory ──────────────────────────────────────────
 function GoldParticles({ show }: { show: boolean }) {
@@ -199,7 +211,7 @@ export default function QuizPage() {
   const { state, refresh } = useGameState();
   const {
     session, startQuiz, selectAnswer, selectAnswerResult, confirmAnswer, usePowerUp,
-    currentQuestion, correctCount, score, QUESTION_TIME,
+    currentQuestion, correctCount, score, QUESTION_TIME, noEnergy, stageIndex, stageConfig,
   } = useQuiz(lieu);
 
   const location = getLocation(lieu);
@@ -235,7 +247,8 @@ export default function QuizPage() {
   useEffect(() => {
     if (!session?.finished || rewardSaved) return;
     setRewardSaved(true);
-    const victory = (score ?? 0) >= (sage?.victoryRequirement ?? 7) / 10;
+    const stageVictoryReq = stageConfig.victoryReq / 10;
+    const victory = (score ?? 0) >= stageVictoryReq;
     const prevAchievements = [...(state?.achievements ?? [])];
     const oldLevel = state?.level ?? 1;
     gameStorage.addXP(session.xpEarned);
@@ -243,14 +256,25 @@ export default function QuizPage() {
     if (afterXP.level > oldLevel) setLevelUpLevel(afterXP.level);
     gameStorage.addCoins(session.coinsEarned);
     gameStorage.updateStreak();
-    if (victory && sage) {
-      gameStorage.addXP(sage.reward.xp);
-      gameStorage.addCoins(sage.reward.coins);
-      gameStorage.defeatSage(sage.id);
-      gameStorage.addChest();
-      const LOCS = ["medine","fes","cordoue","marrakech","damas","bagdad","samarcande","tombouctou","le_caire","la_mecque"];
-      const nextId = LOCS[LOCS.indexOf(lieu) + 1];
-      if (nextId) gameStorage.unlockLocation(nextId);
+    if (victory) {
+      const stagesBefore = gameStorage.get().locationStages?.[lieu] ?? 0;
+      gameStorage.completeLocationStage(lieu);
+      gameStorage.progressWeekly("stages_complete", 1);
+      if (stageIndex === 3 && sage) {
+        // Full sage defeat — only at mastery stage
+        gameStorage.addXP(sage.reward.xp);
+        gameStorage.addCoins(sage.reward.coins);
+        gameStorage.defeatSage(sage.id);
+        gameStorage.addChest();
+        const LOCS = ["medine","fes","cordoue","marrakech","damas","bagdad","samarcande","tombouctou","le_caire","la_mecque"];
+        const nextId = LOCS[LOCS.indexOf(lieu) + 1];
+        if (nextId) gameStorage.unlockLocation(nextId);
+      } else {
+        // Partial rewards for stages 1 & 2
+        gameStorage.addXP(stageConfig.xpReward);
+        gameStorage.addCoins(stageConfig.coinsReward);
+        if (stagesBefore < 1) gameStorage.addChest(); // chest on first clear only
+      }
     }
     const isPerfect = session.answers.every(Boolean);
     if (isPerfect) {
@@ -305,7 +329,7 @@ export default function QuizPage() {
   const handleBattleConfirm = useCallback(() => {
     if (!session?.showResult || !currentQuestion) return;
 
-    const isMini = ["drag_drop","memory","fill_verse","who_am_i","calligraphy"].includes(currentQuestion.type);
+    const isMini = ["drag_drop","memory","fill_verse","who_am_i","calligraphy","timeline","scholars_match"].includes(currentQuestion.type);
     const sel = session.selectedOption;
     const isCorrect = sel !== null && sel >= 0
       ? (isMini ? sel === 0 : (currentQuestion.options[sel]?.correct ?? false))
@@ -345,6 +369,29 @@ export default function QuizPage() {
     );
   }
 
+  // ── No energy ────────────────────────────────────────────────
+  if (noEnergy) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-6 px-6 text-center" style={{ minHeight: "100dvh", background: "#020a05" }}>
+        <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring" }}
+          className="text-5xl">⚡</motion.div>
+        <div>
+          <h2 className="text-xl font-black mb-2" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+            Énergie épuisée
+          </h2>
+          <p className="text-sm opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            +1 énergie toutes les 30 min. Reviens bientôt.
+          </p>
+        </div>
+        <motion.button onClick={() => router.back()} whileTap={{ scale: 0.96 }}
+          className="rounded-full px-8 py-3.5 text-sm font-bold"
+          style={{ background: "rgba(255,255,255,0.06)", color: "var(--text)", border: "1px solid rgba(255,255,255,0.1)", fontFamily: "var(--font-dm-sans)" }}>
+          ← Retour
+        </motion.button>
+      </div>
+    );
+  }
+
   // ── Loading ──────────────────────────────────────────────────
   if (!session || !currentQuestion) {
     return (
@@ -358,7 +405,7 @@ export default function QuizPage() {
     );
   }
 
-  const victory = (score ?? 0) >= (sage?.victoryRequirement ?? 7) / 10;
+  const victory = (score ?? 0) >= stageConfig.victoryReq / 10;
   const total = session.questions.length;
   const finalCorrect = session.answers.filter(Boolean).length;
 
@@ -540,7 +587,7 @@ export default function QuizPage() {
   // ── Bataille active ──────────────────────────────────────────
   const liveState = gameStorage.get();
   const sageHP    = total - correctCount; // remaining HP of sage
-  const isMiniGame = ["drag_drop","memory","fill_verse","who_am_i","calligraphy"].includes(currentQuestion.type);
+  const isMiniGame = ["drag_drop","memory","fill_verse","who_am_i","calligraphy","timeline","scholars_match"].includes(currentQuestion.type);
   const q = getQuestionLang(currentQuestion, lang);
   const timeUrgent = session.timeLeft <= 7;
 
@@ -565,11 +612,17 @@ export default function QuizPage() {
             <ArrowLeft size={15} />
           </motion.button>
 
-          {/* Question counter */}
-          <span className="text-xs font-bold tracking-widest"
-            style={{ color: `${color}99`, fontFamily: "var(--font-dm-sans)" }}>
-            {session.currentIndex + 1} / {total}
-          </span>
+          {/* Stage + question counter */}
+          <div className="flex flex-col items-center gap-0.5">
+            <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full"
+              style={{ background: `${color}22`, color, border: `1px solid ${color}44`, fontFamily: "var(--font-dm-sans)" }}>
+              {"★".repeat(stageIndex)}{"☆".repeat(3 - stageIndex)} {stageConfig.name}
+            </span>
+            <span className="text-[10px] font-bold"
+              style={{ color: `${color}99`, fontFamily: "var(--font-dm-sans)" }}>
+              {session.currentIndex + 1} / {total}
+            </span>
+          </div>
 
           {/* Combo badge */}
           <AnimatePresence>
@@ -657,6 +710,12 @@ export default function QuizPage() {
             style={{ background: `${color}18`, color, border: `1px solid ${color}33`, fontFamily: "var(--font-dm-sans)" }}>
             {currentQuestion.category}
           </span>
+          {currentQuestion.eventId && session.startedStoryIds.includes(currentQuestion.eventId) && STORY_TITLES[currentQuestion.eventId] && (
+            <span className="flex items-center gap-1 text-[10px] font-semibold px-2.5 py-1 rounded-full"
+              style={{ color: "#a78bfa", background: "rgba(167,139,250,0.12)", border: "1px solid rgba(167,139,250,0.3)", fontFamily: "var(--font-dm-sans)" }}>
+              📖 {STORY_TITLES[currentQuestion.eventId]}
+            </span>
+          )}
           {session.bouclierActive && (
             <span className="flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full"
               style={{ color: "#60a5fa", background: "rgba(96,165,250,0.12)", border: "1px solid rgba(96,165,250,0.3)" }}>
@@ -690,6 +749,8 @@ export default function QuizPage() {
             {currentQuestion.type === "fill_verse"   && !session.showResult && <FillVerseGame   question={currentQuestion} color={color} onComplete={selectAnswerResult} />}
             {currentQuestion.type === "who_am_i"     && !session.showResult && <WhoAmIGame      question={currentQuestion} color={color} onComplete={selectAnswerResult} />}
             {currentQuestion.type === "calligraphy"  && !session.showResult && <CalligraphyGame question={currentQuestion} color={color} onComplete={selectAnswerResult} />}
+            {currentQuestion.type === "timeline"        && !session.showResult && <TimelineGame      question={currentQuestion} color={color} onComplete={selectAnswerResult} />}
+            {currentQuestion.type === "scholars_match" && !session.showResult && <ScholarsMatchGame question={currentQuestion} color={color} onComplete={selectAnswerResult} />}
 
             {/* MCQ 2×2 grid */}
             {["mcq","true_false","fill_in","reorder"].includes(currentQuestion.type) && (

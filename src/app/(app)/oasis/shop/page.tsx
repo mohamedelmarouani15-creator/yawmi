@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Scissors, Shield, Zap, Snowflake } from "lucide-react";
 import { useGameState } from "@/hooks/useGameState";
-import { gameStorage } from "@/lib/game/game-storage";
+import { gameStorage, computeCurrentEnergy, ENERGY_MAX } from "@/lib/game/game-storage";
 import { POWERUPS } from "@/lib/game/powerups";
 import { springTap } from "@/lib/motion";
 import type { PowerUpType } from "@/lib/game/types";
@@ -173,6 +173,16 @@ export default function ShopPage() {
   const coins    = state?.coins ?? 0;
   const chests   = state?.chestsAvailable ?? 0;
   const powerups = state?.powerupCounts ?? {};
+  const energy   = computeCurrentEnergy(state?.energy ?? ENERGY_MAX, state?.lastEnergyUpdate ?? null);
+
+  const buyEnergy = useCallback((amount: number, cost: number) => {
+    if (coins < cost) { showToast("Pièces insuffisantes"); return; }
+    const spent = gameStorage.spendCoins(cost);
+    if (!spent) return;
+    gameStorage.addEnergy(amount);
+    refresh?.();
+    showToast(`+${amount} ⚡ énergie !`);
+  }, [coins, refresh]); // eslint-disable-line
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -310,6 +320,43 @@ export default function ShopPage() {
                 }}
               >
                 🪙 {pu.cost}
+              </motion.button>
+            </motion.div>
+          );
+        })}
+      </div>
+
+      {/* Énergie */}
+      <p className="text-xs uppercase tracking-widest mb-3"
+        style={{ color: "rgba(248,244,236,0.35)", fontFamily: "var(--font-dm-sans)" }}>
+        Énergie ⚡ {energy}/{ENERGY_MAX}
+      </p>
+      <div className="flex flex-col gap-3 mb-8">
+        {[
+          { label: "Potion d'énergie",  amount: 10, cost: 20,  desc: "+10 énergie → 1 quiz supplémentaire" },
+          { label: "Énergie complète",   amount: 30, cost: 50,  desc: "Recharge totale — 3 quizzes garantis" },
+        ].map(({ label, amount, cost, desc }) => {
+          const canBuy = coins >= cost;
+          const full   = energy + amount > ENERGY_MAX;
+          return (
+            <motion.div key={label} className="flex items-center gap-4 rounded-2xl border p-4"
+              style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,193,7,0.15)" }}>
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-2xl"
+                style={{ background: "rgba(255,193,7,0.1)" }}>⚡</div>
+              <div className="flex-1 min-w-0">
+                <p className="font-semibold text-sm" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>{label}</p>
+                <p className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{desc}</p>
+              </div>
+              <motion.button onClick={() => buyEnergy(amount, cost)} disabled={!canBuy || full}
+                whileTap={canBuy && !full ? { scale: 0.95 } : {}} transition={springTap}
+                className="flex items-center gap-1.5 rounded-full px-3 py-2 text-xs font-bold shrink-0"
+                style={{
+                  background: canBuy && !full ? "rgba(255,193,7,0.15)" : "rgba(255,255,255,0.04)",
+                  color: canBuy && !full ? "#fbbf24" : "rgba(255,255,255,0.2)",
+                  border: `1px solid ${canBuy && !full ? "rgba(255,193,7,0.35)" : "rgba(255,255,255,0.06)"}`,
+                  fontFamily: "var(--font-dm-sans)",
+                }}>
+                {full ? "Plein" : `🪙 ${cost}`}
               </motion.button>
             </motion.div>
           );

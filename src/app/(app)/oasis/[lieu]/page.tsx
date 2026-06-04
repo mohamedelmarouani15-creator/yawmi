@@ -2,10 +2,12 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Swords, Trophy, Lock, Star, Zap } from "lucide-react";
+import { ArrowLeft, Swords, Trophy, Lock, Star, BookOpen } from "lucide-react";
 import { useGameState } from "@/hooks/useGameState";
 import { getLocation } from "@/lib/game/locations";
 import { getSageForLocation } from "@/lib/game/sages";
+import { computeCurrentEnergy, msUntilEnergy, ENERGY_MAX, ENERGY_COST } from "@/lib/game/game-storage";
+import { currentStageIndex, getStageConfig, stagesDone, LOCATION_STORY_ARCS } from "@/lib/game/stages";
 import { springTap } from "@/lib/motion";
 import { useT } from "@/hooks/useT";
 import { useLang } from "@/hooks/useLang";
@@ -21,11 +23,20 @@ export default function LieuPage() {
   const isRtl    = lang === "ar" || lang === "darija";
   const { state, locationUnlocked } = useGameState();
 
-  const location = getLocation(lieu);
-  const sage     = getSageForLocation(lieu);
-  const unlocked = locationUnlocked(lieu);
-  const defeated = state?.defeatedSages.includes(sage?.id ?? "") ?? false;
-  const color    = location?.color ?? "#D4AF37";
+  const location    = getLocation(lieu);
+  const sage        = getSageForLocation(lieu);
+  const unlocked    = locationUnlocked(lieu);
+  const energy      = computeCurrentEnergy(state?.energy ?? ENERGY_MAX, state?.lastEnergyUpdate ?? null);
+  const hasEnergy   = energy >= ENERGY_COST;
+  const waitMs      = msUntilEnergy(state?.energy ?? ENERGY_MAX, state?.lastEnergyUpdate ?? null);
+  const waitMin     = Math.ceil(waitMs / 60000);
+  const stagesDoneN = stagesDone(state?.locationStages ?? {}, lieu);
+  const stageIdx    = currentStageIndex(state?.locationStages ?? {}, lieu);
+  const stageCfg    = getStageConfig(stageIdx);
+  const mastered    = stagesDoneN >= 3;
+  const defeated    = state?.defeatedSages.includes(sage?.id ?? "") ?? false;
+  const color       = location?.color ?? "#D4AF37";
+  const storyArcs   = LOCATION_STORY_ARCS[lieu] ?? [];
 
   if (!location) return (
     <div className="flex items-center justify-center h-screen" style={{ background: "#020a05" }}>
@@ -249,27 +260,53 @@ export default function LieuPage() {
           </p>
         </motion.div>
 
-        {/* Battle stats */}
-        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-          className="flex gap-3 w-full max-w-xs mb-8">
-          <div className="flex-1 rounded-2xl border px-4 py-3 text-center"
-            style={{ background: `${color}0d`, borderColor: `${color}25` }}>
-            <div className="flex items-center justify-center gap-1 mb-0.5">
-              <Zap size={12} style={{ color }} />
-              <span className="text-lg font-black" style={{ color, fontFamily: "var(--font-bricolage)" }}>+{sage.reward.xp}</span>
+        {/* Stage progress stars */}
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+          className="flex gap-2 mb-4">
+          {[1, 2, 3].map(s => (
+            <div key={s} className="flex flex-col items-center gap-1">
+              <div className="rounded-xl px-3 py-2 text-center"
+                style={{
+                  background: stagesDoneN >= s ? `${color}22` : "rgba(255,255,255,0.04)",
+                  border: `1px solid ${stagesDoneN >= s ? color : "rgba(255,255,255,0.08)"}`,
+                  minWidth: 72,
+                }}>
+                <span className="text-base">{stagesDoneN >= s ? "★" : "☆"}</span>
+                <p className="text-[9px] font-bold mt-0.5 uppercase tracking-wider"
+                  style={{ color: stagesDoneN >= s ? color : "rgba(248,244,236,0.3)", fontFamily: "var(--font-dm-sans)" }}>
+                  {["Découverte","Épreuve","Maîtrise"][s - 1]}
+                </p>
+              </div>
             </div>
-            <p className="text-[9px] uppercase tracking-widest opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-              {tt("lieu.xpWin")}
-            </p>
-          </div>
+          ))}
+        </motion.div>
+
+        {/* Current stage info + battle stats */}
+        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
+          className="flex gap-3 w-full max-w-xs mb-5">
           <div className="flex-1 rounded-2xl border px-4 py-3 text-center"
             style={{ background: `${color}0d`, borderColor: `${color}25` }}>
             <div className="flex items-center justify-center gap-1 mb-0.5">
               <Star size={12} fill={color} style={{ color }} />
-              <span className="text-lg font-black" style={{ color, fontFamily: "var(--font-bricolage)" }}>{sage.victoryRequirement}/10</span>
+              <span className="text-lg font-black" style={{ color, fontFamily: "var(--font-bricolage)" }}>
+                {mastered ? sage.victoryRequirement : stageCfg.victoryReq}/10
+              </span>
             </div>
             <p className="text-[9px] uppercase tracking-widest opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-              {tt("lieu.required")}
+              {mastered ? "Maîtrisé" : stageCfg.name}
+            </p>
+          </div>
+          <div className="flex-1 rounded-2xl border px-4 py-3 text-center"
+            style={{ background: "rgba(255,255,255,0.04)", borderColor: hasEnergy ? "rgba(255,255,255,0.1)" : "rgba(248,113,113,0.3)" }}>
+            <div className="flex items-center justify-center gap-1 mb-0.5">
+              <span className="text-sm">⚡</span>
+              <span className="text-lg font-black"
+                style={{ color: hasEnergy ? "var(--text)" : "#f87171", fontFamily: "var(--font-bricolage)" }}>
+                {energy}/{ENERGY_MAX}
+              </span>
+            </div>
+            <p className="text-[9px] uppercase tracking-widest opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              {hasEnergy ? `−${ENERGY_COST} par quiz` : `${waitMin} min`}
             </p>
           </div>
         </motion.div>
@@ -277,34 +314,74 @@ export default function LieuPage() {
         {/* CTA */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
           className="w-full max-w-xs flex flex-col gap-3">
-          {defeated ? (
+          {mastered ? (
             <>
               <div className="flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold"
                 style={{ background: `${color}15`, color, fontFamily: "var(--font-dm-sans)", border: `1px solid ${color}35` }}>
-                <Trophy size={16} /> {tt("lieu.sageDefeated")}
+                <Trophy size={16} /> Maîtrisé — {sage.name} vaincu
               </div>
-              <motion.button onClick={() => router.push(`/oasis/quiz/${lieu}`)} whileTap={{ scale: 0.96 }} transition={springTap}
-                className="flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-black"
-                style={{ background: "rgba(255,255,255,0.06)", color: "var(--text)", fontFamily: "var(--font-bricolage)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                <Swords size={16} /> {tt("lieu.replay")}
-              </motion.button>
+              {hasEnergy ? (
+                <motion.button onClick={() => router.push(`/oasis/quiz/${lieu}`)} whileTap={{ scale: 0.96 }} transition={springTap}
+                  className="flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-black"
+                  style={{ background: "rgba(255,255,255,0.06)", color: "var(--text)", fontFamily: "var(--font-bricolage)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                  <Swords size={16} /> {tt("lieu.replay")}
+                </motion.button>
+              ) : (
+                <div className="rounded-2xl py-3.5 text-sm text-center opacity-40"
+                  style={{ background: "rgba(255,255,255,0.04)", color: "var(--text)", border: "1px solid rgba(255,255,255,0.06)", fontFamily: "var(--font-dm-sans)" }}>
+                  ⚡ Énergie dans {waitMin} min
+                </div>
+              )}
             </>
-          ) : (
+          ) : hasEnergy ? (
             <motion.button onClick={() => router.push(`/oasis/quiz/${lieu}`)}
               whileTap={{ scale: 0.96 }} transition={springTap}
               className="flex items-center justify-center gap-3 rounded-2xl py-5 text-base font-black relative overflow-hidden"
               style={{ background: `linear-gradient(135deg,${color},#055C3F)`, color: "#0a0f0d",
                 fontFamily: "var(--font-bricolage)", boxShadow: `0 4px 32px ${color}55`, fontSize: 17 }}>
-              {/* Shimmer */}
               <motion.div className="absolute inset-0"
                 style={{ background: "linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.15) 50%,transparent 60%)" }}
                 animate={{ x: ["-100%", "200%"] }}
                 transition={{ duration: 2.5, repeat: Infinity, delay: 1 }}
               />
-              <Swords size={20} /> {tt("lieu.challenge")}
+              <Swords size={20} /> {stageCfg.name} — {tt("lieu.challenge")}
             </motion.button>
+          ) : (
+            <div className="rounded-2xl py-5 text-base text-center"
+              style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.25)", fontFamily: "var(--font-dm-sans)" }}>
+              <p className="text-sm font-black" style={{ color: "#f87171" }}>⚡ Énergie épuisée</p>
+              <p className="text-xs opacity-60 mt-1" style={{ color: "var(--text)" }}>Recharge dans {waitMin} min</p>
+            </div>
           )}
         </motion.div>
+
+        {/* Story arc teasers */}
+        {storyArcs.length > 0 && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65 }}
+            className="w-full max-w-xs mt-4 flex flex-col gap-2">
+            <p className="text-[10px] uppercase tracking-widest opacity-40 text-center mb-1"
+              style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              Histoires liées
+            </p>
+            {storyArcs.map(arc => (
+              <motion.button key={arc.arcId}
+                onClick={() => router.push(`/histoire/${arc.arcId}`)}
+                whileTap={{ scale: 0.97 }} transition={springTap}
+                className="flex items-center gap-3 rounded-2xl px-4 py-3 text-left"
+                style={{ background: `${arc.color}10`, border: `1px solid ${arc.color}30` }}>
+                <BookOpen size={14} style={{ color: arc.color, flexShrink: 0 }} />
+                <div>
+                  <p className="text-xs font-bold" style={{ color: arc.color, fontFamily: "var(--font-dm-sans)" }}>
+                    {arc.title}
+                  </p>
+                  <p className="text-[10px] opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                    Lis pour débloquer des questions secrètes
+                  </p>
+                </div>
+              </motion.button>
+            ))}
+          </motion.div>
+        )}
       </div>
     </div>
   );

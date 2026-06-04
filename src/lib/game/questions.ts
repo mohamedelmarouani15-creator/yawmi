@@ -1102,6 +1102,7 @@ export const QUESTIONS: Question[] = [
     id: "qur_018", category: "quran", type: "mcq", difficulty: 3,
     question: "Dans quelle sourate Dieu s'adresse-t-il directement à Moïse (Moussa) ﷺ dans le Sinaï ?",
     options: [{ text: "Al-Baqara", correct: false }, { text: "Ta-Ha (sourate 20)", correct: true }, { text: "Al-Qasas", correct: false }, { text: "Al-A'raf", correct: false }],
+    eventId: "arc_moussa",
   },
   {
     id: "qur_019", category: "quran", type: "mcq", difficulty: 2,
@@ -1123,6 +1124,7 @@ export const QUESTIONS: Question[] = [
     question: "Dans quelle sourate est narré l'histoire de Yusuf (Joseph) ﷺ dans sa totalité ?",
     options: [{ text: "Al-Anbiya", correct: false }, { text: "Yusuf (sourate 12)", correct: true }, { text: "Ibrahim", correct: false }, { text: "Al-Qasas", correct: false }],
     culturalCapsule: { title: "Sourate Yusuf — la plus belle des histoires", text: "Allah appelle cette sourate 'la plus belle des récits' (احسن القصص). Elle couvre la vie du prophète Yusuf (Joseph): la jalousie de ses frères, l'épreuve de la tentation, la prison, puis son ascension au rang de ministre d'Égypte." },
+    eventId: "arc_yusuf",
   },
   {
     id: "qur_023", category: "quran", type: "mcq", difficulty: 3,
@@ -1145,6 +1147,7 @@ export const QUESTIONS: Question[] = [
     id: "qur_026", category: "quran", type: "mcq", difficulty: 3,
     question: "Quelle sourate contient la prière d'Ibrahim ﷺ pour La Mecque et ses habitants ?",
     options: [{ text: "Ibrahim (sourate 14)", correct: true }, { text: "Al-Baqara", correct: false }, { text: "Al-Hajj", correct: false }, { text: "As-Saffat", correct: false }],
+    eventId: "arc_ibrahim",
   },
   {
     id: "qur_027", category: "quran", type: "mcq", difficulty: 2,
@@ -1732,6 +1735,1553 @@ export const QUESTIONS: Question[] = [
       strokeHints: ["Ba (ب) : trait horizontal avec point", "Sin (س) : trois dents", "Mim (م) : boucle avec queue"],
       passCoverage: 0.38,
     },
+  },
+
+  // ── ÈRE IV — Les Empires ────────────────────────────────────────
+  {
+    id: "ere4_001", category: "history", type: "mcq", difficulty: 3,
+    question: "Quel sultan ottoman conquit Constantinople et à quel âge ?",
+    options: [
+      { text: "Suleiman Ier, 28 ans",    correct: false },
+      { text: "Mehmed II, 21 ans",        correct: true  },
+      { text: "Selim Ier, 35 ans",        correct: false },
+      { text: "Bayezid II, 42 ans",       correct: false },
+    ],
+    explanation: "Mehmed II (El-Fatih / le Conquérant) prit Constantinople à 21 ans en 1453, après 53 jours de siège. Il fit transformer Sainte-Sophie en mosquée et Istanbul devint la nouvelle capitale ottomane.",
+  },
+  {
+    id: "ere4_002", category: "history", type: "mcq", difficulty: 3,
+    question: "Qu'est-ce que le 'Kanun' dans l'empire ottoman de Suleiman Ier ?",
+    options: [
+      { text: "Le titre du chef militaire",              correct: false },
+      { text: "Un code de lois laïques parallèle à la charia", correct: true  },
+      { text: "Le palais principal d'Istanbul",          correct: false },
+      { text: "La langue administrative officielle",     correct: false },
+    ],
+    culturalCapsule: { title: "Suleiman 'al-Qanuni' — le Législateur", text: "Suleiman Ier (1520-1566) fut surnommé Al-Qanuni (le Législateur) pour avoir codifié le droit ottoman. Le Kanun complétait la charia avec des lois administratives, fiscales et pénales. Cette dualité droit religieux/droit laïque est caractéristique de l'empire ottoman à son apogée." },
+  },
+  {
+    id: "ere4_003", category: "history", type: "mcq", difficulty: 4,
+    question: "Qui était Roxelane (Hürrem Sultan) dans l'empire ottoman ?",
+    options: [
+      { text: "La mère de Mehmed II le Conquérant",       correct: false },
+      { text: "L'épouse esclave d'origine ruthène devenue épouse légale de Suleiman Ier", correct: true  },
+      { text: "La première sultane valide (mère régnante)", correct: false },
+      { text: "Une princesse byzantine qui se convertit",  correct: false },
+    ],
+    explanation: "Hürrem Sultan (née Alexandra Lisowska, vers 1502-1558) fut une esclave ukrainienne devenue l'épouse légale de Suleiman Ier — chose inédite. Elle exercea une influence politique considérable et fut détestée par les Janissaires.",
+  },
+  {
+    id: "ere4_004", category: "history", type: "mcq", difficulty: 3,
+    question: "Qu'est-ce que les 'Janissaires' dans l'empire ottoman ?",
+    options: [
+      { text: "Les juges religieux du calife",                             correct: false },
+      { text: "L'infanterie d'élite ottomane composée d'anciens esclaves chrétiens convertis", correct: true  },
+      { text: "Les négociants du Grand Bazar d'Istanbul",                  correct: false },
+      { text: "Les scribes et comptables du trésor impérial",              correct: false },
+    ],
+    explanation: "Les Janissaires (Yeni Çeri — 'nouvelle armée') furent créés au XIVe siècle à partir du Devshirme. Fidèles au sultan, ils constituèrent l'armée la plus disciplinée d'Europe pendant deux siècles. Ils furent finalement massacrés par Mahmud II en 1826 lors de l'Incident Propice.",
+  },
+  {
+    id: "ere4_005", category: "history", type: "mcq", difficulty: 3,
+    question: "Quel empire islamique construisit le Taj Mahal et en quelle année ?",
+    options: [
+      { text: "Les Ottomans, en 1560",      correct: false },
+      { text: "Les Moghols, entre 1632-1653", correct: true  },
+      { text: "Les Safavides, en 1610",      correct: false },
+      { text: "Les Abbassides, en 1200",     correct: false },
+    ],
+    culturalCapsule: { title: "Le Taj Mahal — l'amour en marbre", text: "Shah Jahan (1592-1666) fit construire le Taj Mahal à Agra pour sa femme Mumtaz Mahal, morte en 1631. 20 000 ouvriers travaillèrent 22 ans. Mausolée en marbre blanc incrusté de pierres semi-précieuses, il est classé au patrimoine mondial de l'UNESCO." },
+  },
+  {
+    id: "ere4_006", category: "history", type: "mcq", difficulty: 4,
+    question: "Comment l'empire moghol d'Akbar le Grand se distinguait-il religieusement ?",
+    options: [
+      { text: "Il imposait l'islam à tous ses sujets hindous",        correct: false },
+      { text: "Il prônait la tolérance religieuse et créa le Din-i-Ilahi", correct: true  },
+      { text: "Il interdisait l'hindouisme dans les grandes villes",  correct: false },
+      { text: "Il se convertit lui-même au zoroastrisme",             correct: false },
+    ],
+    explanation: "Akbar (règne 1556-1605) abolit la jizya (taxe sur les non-musulmans), autorisa les mariages mixtes et créa le Din-i-Ilahi — un syncrétisme personnel mêlant islam, hindouisme, zoroastrisme et christianisme. Son empire comptait 75% d'hindous.",
+  },
+  {
+    id: "ere4_007", category: "history", type: "mcq", difficulty: 3,
+    question: "Qu'est-ce que l'empire Songhaï et où se situait-il ?",
+    options: [
+      { text: "Un empire côtier d'Afrique de l'Est",                 correct: false },
+      { text: "Un empire d'Afrique de l'Ouest centré sur le Niger (XVe-XVIe s.)", correct: true  },
+      { text: "Un sultanat d'Arabie méridionale",                    correct: false },
+      { text: "Un empire nomade des steppes d'Asie centrale",        correct: false },
+    ],
+    culturalCapsule: { title: "Songhaï — l'empire oublié", text: "L'empire Songhaï (1464-1591) fut l'un des plus grands d'Afrique, couvrant l'actuel Mali, Niger et Nigeria. Sous Askia Muhammad (règne 1493-1528), il devint un empire islamique avec Tombouctou comme capitale intellectuelle. Détruit par l'invasion marocaine de 1591." },
+  },
+  {
+    id: "ere4_008", category: "history", type: "mcq", difficulty: 4,
+    question: "Qu'est-ce que l'empire safavide et quelle en était la particularité religieuse ?",
+    options: [
+      { text: "Un empire sunnite iranien fondé par Tamerlan",              correct: false },
+      { text: "Un empire chiite iranien (1501-1722) qui fit du chiisme la religion d'État", correct: true  },
+      { text: "Un sultanat kurde qui contrôlait la Perse",                 correct: false },
+      { text: "Un empire mongol reconverti au shiisme",                    correct: false },
+    ],
+    explanation: "Shah Ismail Ier (1501-1524) fonda la dynastie safavide et imposa le chiisme duodécimain comme religion officielle en Iran. Cette décision créa la polarisation sunnite/chiite moderne (Ottomans sunnites vs Safavides chiites). Les grandes batailles : Chaldiran (1514).",
+  },
+  {
+    id: "ere4_009", category: "history", type: "timeline", difficulty: 3,
+    question: "Ordonne ces empires islamiques des XVe-XVIIe siècles",
+    options: [{ text: "timeline", correct: true }],
+    minigameData: {
+      events: [
+        { text: "Chute de Constantinople (Ottomans)",    year: 1453 },
+        { text: "Fondation de l'empire moghol (Babur)",  year: 1526 },
+        { text: "Shah Abbas Ier & Ispahan",              year: 1587 },
+        { text: "Destruction de l'empire Songhaï",       year: 1591 },
+      ],
+    },
+  },
+  {
+    id: "ere4_010", category: "history", type: "scholars_match", difficulty: 4,
+    question: "Associe chaque bâtisseur à son monument",
+    options: [{ text: "scholars_match", correct: true }],
+    minigameData: {
+      matchPairs: [
+        { scholar: "Mehmed II",       work: "Mosquée Fatih — Istanbul" },
+        { scholar: "Suleiman Ier",    work: "Mosquée Süleymaniye" },
+        { scholar: "Shah Jahan",      work: "Taj Mahal — Agra" },
+        { scholar: "Shah Abbas",      work: "Place de l'Imam — Isfahan" },
+      ],
+    },
+  },
+
+  // ── ÉTHIQUE ISLAMIQUE & TASSAWUF ─────────────────────────────────
+  {
+    id: "eth_001", category: "religion", type: "mcq", difficulty: 3,
+    question: "Qu'est-ce que le 'Tassawuf' (soufisme) en islam ?",
+    options: [
+      { text: "Une secte islamique hérétique",                              correct: false },
+      { text: "La dimension spirituelle intérieure de l'islam — la purification du cœur", correct: true  },
+      { text: "Un mouvement politique islamique moderniste",                correct: false },
+      { text: "L'ensemble des règles de jurisprudence malékite",           correct: false },
+    ],
+    explanation: "Le Tassawuf (تصوف) — soufisme — cherche à développer l'ihsan : 'Adorer Allah comme si tu Le voyais.' Ses maîtres (Al-Ghazali, Junayd, Rumi, Ibn Arabi) ont produit une littérature spirituelle immense. Présent dans tous les madhabs, il n'est pas une secte mais une voie intérieure.",
+  },
+  {
+    id: "eth_002", category: "religion", type: "mcq", difficulty: 3,
+    question: "Qui était Al-Ghazali et pourquoi est-il surnommé 'la preuve de l'islam' ?",
+    options: [
+      { text: "Un général qui défendit Bagdad contre les Croisés",                correct: false },
+      { text: "Un théologien qui réconcilia jurisprudence, philosophie et soufisme", correct: true  },
+      { text: "Le fondateur de l'école Ash'arite",                                 correct: false },
+      { text: "Le premier traducteur du Coran en persan",                          correct: false },
+    ],
+    culturalCapsule: { title: "Al-Ghazali — Hujjat al-Islam", text: "Abu Hamid al-Ghazali (1058-1111) vécut une crise spirituelle, abandonna sa chaire à Bagdad et passa 11 ans en retraite. Il écrivit l'Ihya Ulum al-Din — la 'Revivification des sciences religieuses' — synthèse monumentale de fiqh, éthique et spiritualité. Son œuvre réunit les croyants ordinaires et les mystiques." },
+  },
+  {
+    id: "eth_003", category: "religion", type: "mcq", difficulty: 3,
+    question: "Qu'est-ce que l'Ihsan selon le hadith de Jibril ?",
+    options: [
+      { text: "L'ensemble des cinq piliers de l'islam",                         correct: false },
+      { text: "Adorer Allah comme si tu Le voyais — le niveau le plus élevé de foi", correct: true  },
+      { text: "La croyance en les six piliers de l'iman",                        correct: false },
+      { text: "La prière nocturne volontaire (tahajjud)",                        correct: false },
+    ],
+    explanation: "Dans le hadith de Jibril (Muslim), l'islam a 3 degrés : Islam (pratiques extérieures), Iman (croyances intérieures) et Ihsan (excellence spirituelle). L'ihsan = 'Adorer Allah comme si tu Le voyais, et si tu ne Le vois pas, Lui voit.'",
+  },
+  {
+    id: "eth_004", category: "religion", type: "mcq", difficulty: 2,
+    question: "Que signifie 'Sabr' (صبر) dans l'éthique islamique ?",
+    options: [
+      { text: "La générosité envers les pauvres",   correct: false },
+      { text: "La patience et la persévérance face à l'épreuve", correct: true  },
+      { text: "La gratitude envers Allah",          correct: false },
+      { text: "L'humilité devant les savants",     correct: false },
+    ],
+    explanation: "Sabr (patience) est mentionné 90 fois dans le Coran. 'Allah est avec les patients' (2:153). Trois formes : patience face aux épreuves, patience dans l'obéissance, patience pour éviter les péchés. Les savants disent que la moitié de la foi est Sabr et l'autre Shukr (gratitude).",
+  },
+  {
+    id: "eth_005", category: "religion", type: "mcq", difficulty: 3,
+    question: "Qu'est-ce que le 'Maqasid al-Sharia' (objectifs de la loi islamique) ?",
+    options: [
+      { text: "Les 5 prières obligatoires",                                                correct: false },
+      { text: "Les 5 objectifs fondamentaux protégés par l'islam : vie, raison, religion, descendance, richesse", correct: true  },
+      { text: "Les 4 sources du fiqh : Coran, Sunna, Ijma', Qiyas",                       correct: false },
+      { text: "Les 6 piliers de l'iman",                                                  correct: false },
+    ],
+    culturalCapsule: { title: "Maqasid — la finalité de la loi", text: "Al-Ghazali (XIe s.) puis al-Shatibi (XIVe s.) ont formalisé les 5 Maqasid : préserver la Religion (din), la Vie (nafs), la Raison (aql), la Descendance (nasl) et la Richesse (mal). Cette théorie permet d'appliquer les règles islamiques selon leur finalité réelle, pas seulement leur lettre." },
+  },
+  {
+    id: "eth_006", category: "religion", type: "mcq", difficulty: 4,
+    question: "Qu'est-ce que la doctrine des Ash'arites en théologie islamique ?",
+    options: [
+      { text: "Ils affirment que le Coran est créé et que la raison prime sur la révélation",             correct: false },
+      { text: "Ils affirment que le Coran est incréé et équilibrent raison et révélation (vs Mu'tazila)", correct: true  },
+      { text: "Ils rejettent toute interprétation rationnelle du Coran",                                  correct: false },
+      { text: "Ils croient que Allah a une forme physique",                                              correct: false },
+    ],
+    explanation: "Abu al-Hasan al-Ash'ari (873-935) fonda l'école Ash'arite contre les Mu'tazilites (qui faisaient primer la raison). Il affirme que les attributs d'Allah sont réels mais incomparables (bila kayf), et que le Coran (Parole divine) est incréé. L'Ash'arisme est la théologie dominante chez les Shaféites et Malékites.",
+  },
+
+  // ── SCIENCES ISLAMIQUES — Quran avancé ──────────────────────────
+  {
+    id: "sci_001", category: "quran", type: "mcq", difficulty: 4,
+    question: "Combien de mots le Coran contient-il selon les compilateurs classiques ?",
+    options: [
+      { text: "Environ 30 000 mots",   correct: false },
+      { text: "Environ 77 450 mots",   correct: true  },
+      { text: "Environ 50 000 mots",   correct: false },
+      { text: "Environ 100 000 mots",  correct: false },
+    ],
+    explanation: "Le Coran compte 6 236 versets, 114 sourates et environ 77 430-77 500 mots selon les méthodes de comptage. Ces chiffres sont importants pour les sciences du tajwid et de la mémorisation.",
+  },
+  {
+    id: "sci_002", category: "quran", type: "mcq", difficulty: 3,
+    question: "Qu'est-ce que le 'Tajwid' ?",
+    options: [
+      { text: "La mémorisation complète du Coran",                    correct: false },
+      { text: "Les règles de récitation correcte du Coran (prononciation, rythme)", correct: true  },
+      { text: "L'exégèse du Coran par les savants",                   correct: false },
+      { text: "La récitation collective du Coran en groupe",          correct: false },
+    ],
+    explanation: "Tajwid (تجويد — embellissement) est la science des règles de récitation du Coran. Elle couvre la prononciation des lettres (makharij), les règles de nasalisation (ghunna), d'allongement (madd) et d'assimilation (idgham). Sa maîtrise est une obligation pour les Huffaz.",
+  },
+  {
+    id: "sci_003", category: "quran", type: "mcq", difficulty: 4,
+    question: "Qu'est-ce que l'Isnad dans les sciences du hadith ?",
+    options: [
+      { text: "La chaîne de transmission des narrateurs d'un hadith",   correct: true  },
+      { text: "Le contenu textuel du hadith",                           correct: false },
+      { text: "Le degré d'authenticité d'un hadith (sahih/hasan/da'if)",correct: false },
+      { text: "La méthode d'abrogation des hadiths anciens",            correct: false },
+    ],
+    explanation: "L'Isnad (إسناد — chaîne) liste les transmetteurs d'un hadith depuis le Prophète ﷺ. Un hadith = Isnad (chaîne) + Matn (texte). La critique de l'isnad est la grande contribution islamique à la science de l'histoire et de la vérification des sources.",
+  },
+  {
+    id: "sci_004", category: "quran", type: "mcq", difficulty: 4,
+    question: "Que signifie 'Hadith Sahih' (authentique) selon les critères d'Al-Bukhari ?",
+    options: [
+      { text: "Un hadith récité par le Prophète ﷺ lui-même",            correct: false },
+      { text: "Un hadith avec chaîne continue de transmetteurs fiables jusqu'au Prophète ﷺ", correct: true  },
+      { text: "Un hadith approuvé par les 4 khalifes",                  correct: false },
+      { text: "Un hadith mentionné dans le Coran",                      correct: false },
+    ],
+    explanation: "Al-Bukhari (810-870) posa 5 critères : 1) Chaîne ininterrompue (muttasil), 2) Tous les transmetteurs sont fiables (thiqat), 3) Bonne mémoire, 4) Pas d'anomalie (shadhdhudh), 5) Pas de défaut caché (illa). Son Sahih al-Bukhari est le livre le plus authentique après le Coran.",
+  },
+  {
+    id: "sci_005", category: "religion", type: "mcq", difficulty: 4,
+    question: "Qu'est-ce que le 'Waqf' et son rôle dans la civilisation islamique ?",
+    options: [
+      { text: "Une forme d'impôt religieux obligatoire",                       correct: false },
+      { text: "Une fondation caritative perpétuelle (bien dédié à Allah) finançant mosquées, écoles, hôpitaux", correct: true  },
+      { text: "Le droit d'héritage islamique",                                 correct: false },
+      { text: "Un conseil de sages délibérant sur les affaires de la Oumma",  correct: false },
+    ],
+    culturalCapsule: { title: "Le Waqf — l'État-providence islamique", text: "Le Waqf (وقف — immobilisation d'un bien) fut le moteur de la civilisation islamique pendant mille ans. Mosquées, universités (Al-Azhar fondé par Waqf en 972), hôpitaux, bibliothèques, caravansérails — tout était financé par des fondations wakf. L'Ottoman Empire avait 35 000 waqfs à son apogée." },
+  },
+
+  // ── ARABE — Niveau C1 ────────────────────────────────────────────
+  {
+    id: "ara_c1_001", category: "arabic", type: "mcq", difficulty: 4,
+    question: "Quelle est la différence entre 'Fatha' (َ), 'Kasra' (ِ) et 'Damma' (ُ) en arabe ?",
+    options: [
+      { text: "Ce sont trois dialectes arabes différents",                          correct: false },
+      { text: "Ce sont les trois signes vocaliques courts : a, i, u",               correct: true  },
+      { text: "Ce sont les marques de genre masculin, féminin, neutre",             correct: false },
+      { text: "Ce sont les trois conjugaisons du verbe arabe",                      correct: false },
+    ],
+    explanation: "En arabe, les voyelles courtes sont représentées par des signes diacritiques : fatha (َ) = /a/, kasra (ِ) = /i/, damma (ُ) = /u/. Ces signes sont absents dans la plupart des textes modernes et doivent être déduits du contexte — d'où la difficulté de l'arabe pour les apprenants.",
+  },
+  {
+    id: "ara_c1_002", category: "arabic", type: "mcq", difficulty: 3,
+    question: "Dans l'alphabet arabe, combien de lettres n'ont PAS de point ?",
+    options: [
+      { text: "5 lettres",    correct: false },
+      { text: "6 lettres",    correct: false },
+      { text: "14 lettres",   correct: true  },
+      { text: "8 lettres",    correct: false },
+    ],
+    explanation: "Sur 28 lettres, 14 n'ont pas de point : alif, ha', dal, dhal, ra', zay, sin, sad, ta', zain, ayn, ghayn, lam, mim, waw. L'ajout des points diacritiques (i'jam) au VIIe siècle fut une révolution permettant d'éviter les ambiguïtés de lecture.",
+  },
+  {
+    id: "ara_c1_003", category: "arabic", type: "mcq", difficulty: 4,
+    question: "Comment s'appelle la poésie arabe classique en vers de 7 pieds (qasida) ?",
+    options: [
+      { text: "Ghazal",     correct: false },
+      { text: "Qasida",     correct: true  },
+      { text: "Ruba'i",     correct: false },
+      { text: "Muwashshah", correct: false },
+    ],
+    explanation: "La Qasida (قصيدة) est la forme poétique arabe classique longue (30-100 vers). Elle comporte des sections : nasib (introduction amoureuse), rahil (voyage) et madih (panégyrique). Les Mu'allaqat ('poèmes suspendus') préislamiques sont les qasidas les plus célèbres.",
+  },
+  {
+    id: "ara_c1_004", category: "arabic", type: "mcq", difficulty: 3,
+    question: "Que signifie 'Basmala' et combien de fois apparaît-elle dans le Coran ?",
+    options: [
+      { text: "Allahu Akbar — 1 fois seulement au début",    correct: false },
+      { text: "Bismillah ir-Rahman ir-Rahim — 114 fois (une par sourate sauf At-Tawba + 1 extra dans An-Naml)", correct: true  },
+      { text: "Al-Fatiha — exactement 1 fois",              correct: false },
+      { text: "Al-hamdulillah — 33 fois",                  correct: false },
+    ],
+    explanation: "La Basmala (بسملة) apparaît 113 fois au début des sourates + 1 fois au milieu de An-Naml (27:30) = 114 fois. Elle est absente au début de Sourate 9 (At-Tawba), ce qui est sujet d'un débat entre savants (oubli ou délibéré).",
+  },
+
+  // ── SCHOLARS MATCH — Association savants ↔ œuvres ───────────────
+  {
+    id: "sm_001", category: "history", type: "scholars_match", difficulty: 3,
+    question: "Associe chaque savant à son œuvre principale",
+    options: [{ text: "scholars_match", correct: true }],
+    minigameData: {
+      matchPairs: [
+        { scholar: "Al-Khwarizmi",  work: "Kitāb al-Jabr (Algèbre)" },
+        { scholar: "Ibn Sina",       work: "Canon de la Médecine" },
+        { scholar: "Ibn Khaldoun",   work: "La Muqaddima" },
+        { scholar: "Al-Idrisi",      work: "Tabula Rogeriana (carte du monde)" },
+      ],
+    },
+    culturalCapsule: { title: "4 géants, 4 sciences", text: "Al-Khwarizmi (algèbre), Ibn Sina (médecine), Ibn Khaldoun (sociologie) et Al-Idrisi (cartographie) représentent quatre disciplines fondamentales de l'Âge d'Or islamique, chacun ayant révolutionné son domaine." },
+  },
+  {
+    id: "sm_002", category: "history", type: "scholars_match", difficulty: 3,
+    question: "Relie chaque prophète à son épreuve principale",
+    options: [{ text: "scholars_match", correct: true }],
+    minigameData: {
+      matchPairs: [
+        { scholar: "Ibrahim ﷺ",   work: "Le feu de Nimrod" },
+        { scholar: "Yusuf ﷺ",    work: "La prison d'Égypte" },
+        { scholar: "Moussa ﷺ",   work: "La mer Rouge" },
+        { scholar: "Ayyub ﷺ",    work: "La maladie et la patience" },
+      ],
+    },
+  },
+  {
+    id: "sm_003", category: "religion", type: "scholars_match", difficulty: 4,
+    question: "Associe chaque savant à son école juridique (madhab)",
+    options: [{ text: "scholars_match", correct: true }],
+    minigameData: {
+      matchPairs: [
+        { scholar: "Abu Hanifa",         work: "École Hanafite" },
+        { scholar: "Malik ibn Anas",     work: "École Malékite" },
+        { scholar: "Al-Shafi'i",         work: "École Shaféite" },
+        { scholar: "Ahmad ibn Hanbal",   work: "École Hanbalite" },
+      ],
+    },
+  },
+  {
+    id: "sm_004", category: "history", type: "scholars_match", difficulty: 4,
+    question: "Associe chaque empire islamique à sa capitale",
+    options: [{ text: "scholars_match", correct: true }],
+    minigameData: {
+      matchPairs: [
+        { scholar: "Omeyyades",         work: "Damas" },
+        { scholar: "Abbassides",         work: "Bagdad" },
+        { scholar: "Fatimides",          work: "Le Caire" },
+        { scholar: "Ottomans",           work: "Istanbul" },
+      ],
+    },
+  },
+  {
+    id: "sm_005", category: "quran", type: "scholars_match", difficulty: 3,
+    question: "Associe chaque prophète à la sourate qui porte son nom",
+    options: [{ text: "scholars_match", correct: true }],
+    minigameData: {
+      matchPairs: [
+        { scholar: "Yusuf ﷺ",       work: "Sourate 12" },
+        { scholar: "Ibrahim ﷺ",     work: "Sourate 14" },
+        { scholar: "Maryam ﷺ",      work: "Sourate 19" },
+        { scholar: "Moussa/Ta-Ha ﷺ",work: "Sourate 20" },
+      ],
+    },
+    explanation: "Le Coran comporte plusieurs sourates nommées après des prophètes ou figures importantes. Yusuf (12), Ibrahim (14), Maryam (19) et Ta-Ha [Moussa] (20) sont parmi les plus connues.",
+  },
+
+  // ── ÈRE V — Islam contemporain (diff 4-5) ───────────────────────
+  {
+    id: "v_001", category: "religion", type: "mcq", difficulty: 4,
+    question: "Qu'est-ce que la 'Finance islamique' et sur quel principe repose-t-elle ?",
+    options: [
+      { text: "Finance réservée aux États islamiques",                       correct: false },
+      { text: "Finance interdisant le riba (intérêt) et fondée sur le partage du risque", correct: true  },
+      { text: "Finance qui n'utilise que des monnaies d'or et d'argent",     correct: false },
+      { text: "Finance gérant les waqf (fondations pieuses) uniquement",     correct: false },
+    ],
+    culturalCapsule: { title: "Finance islamique — 3 000 milliards $", text: "La finance islamique a atteint 3 000 milliards de dollars en 2023. Elle est basée sur l'interdiction du riba (intérêt), le partage des profits/pertes (musharaka), et les sukuk (obligations islamiques). La Malaisie est le 1er marché mondial, suivie par l'Arabie Saoudite et les Émirats." },
+  },
+  {
+    id: "v_002", category: "history", type: "mcq", difficulty: 3,
+    question: "Combien y a-t-il de musulmans dans le monde en 2024 ?",
+    options: [
+      { text: "500 millions",   correct: false },
+      { text: "1 milliard",     correct: false },
+      { text: "1,8 milliard",   correct: true  },
+      { text: "2,5 milliards",  correct: false },
+    ],
+    explanation: "En 2024, l'islam est la 2e religion mondiale avec environ 1,8 milliard de fidèles (23% de la population mondiale). Projection : il deviendra la 1re religion mondiale vers 2070 selon le Pew Research Center.",
+  },
+  {
+    id: "v_003", category: "history", type: "mcq", difficulty: 3,
+    question: "Quel est le pays avec la plus grande population musulmane au monde ?",
+    options: [
+      { text: "Arabie Saoudite",  correct: false },
+      { text: "Pakistan",         correct: false },
+      { text: "Indonésie",        correct: true  },
+      { text: "Bangladesh",       correct: false },
+    ],
+    explanation: "L'Indonésie compte ~230 millions de musulmans (87% de sa population de 270 millions). Elle est suivie par le Pakistan (~220M), l'Inde (~200M) et le Bangladesh (~153M). L'Arabie Saoudite n'est que 12e.",
+  },
+  {
+    id: "v_004", category: "religion", type: "mcq", difficulty: 4,
+    question: "Qu'est-ce qu'Al-Azhar et quel est son rôle dans l'islam contemporain ?",
+    options: [
+      { text: "Le palais royal d'Égypte",                                           correct: false },
+      { text: "La plus ancienne université du monde (970) et autorité religieuse sunnite mondiale", correct: true  },
+      { text: "Le Parlement des États islamiques",                                   correct: false },
+      { text: "La mosquée la plus grande d'Afrique",                                correct: false },
+    ],
+    explanation: "Al-Azhar (970) fut fondé par les Fatimides chiites, puis récupéré par Saladin pour l'enseignement sunnite. Aujourd'hui, ses fatwas ont un poids mondial. Le Grand Imam actuel, Ahmad Al-Tayyeb, intervient sur tout : terrorisme, Islam modéré, dialogue interreligieux.",
+  },
+  {
+    id: "v_005", category: "history", type: "timeline", difficulty: 4,
+    question: "Ordonne ces événements de l'histoire islamique moderne",
+    options: [{ text: "timeline", correct: true }],
+    minigameData: {
+      events: [
+        { text: "Chute de l'empire ottoman",           year: 1922 },
+        { text: "Création de l'Organisation de la Conférence islamique", year: 1969 },
+        { text: "Siège de Sarajevo (guerre de Bosnie)",  year: 1992 },
+        { text: "Premier sukuk (obligation islamique)",  year: 2001 },
+      ],
+    },
+  },
+
+  // ── RELIGION — Questions difficiles supplémentaires ──────────────
+  {
+    id: "rel_adv_x01", category: "religion", type: "mcq", difficulty: 4,
+    question: "Qu'est-ce que la 'Silsila' (chaîne spirituelle) dans le soufisme ?",
+    options: [
+      { text: "La liste des savants qui ont mémorisé le Coran",                    correct: false },
+      { text: "La chaîne de transmission spirituelle d'un maître soufi à son disciple jusqu'au Prophète ﷺ", correct: true  },
+      { text: "Le catalogue des mosquées historiques",                              correct: false },
+      { text: "La généalogie tribale des Quraysh",                                 correct: false },
+    ],
+    explanation: "La Silsila (سلسلة — chaîne) relie chaque maître soufi (sheikh) à son maître, jusqu'au Prophète ﷺ via Abu Bakr ou Ali. Les grandes Turuq (confréries soufies) : Qadiriyya, Naqshbandiyya, Shadhiliyya, Tijaniyya — chacune avec sa propre silsila.",
+  },
+  {
+    id: "rel_adv_x02", category: "religion", type: "mcq", difficulty: 4,
+    question: "Qu'est-ce que le 'Dhikr' dans la pratique spirituelle islamique ?",
+    options: [
+      { text: "La récitation obligatoire du Coran après chaque prière",              correct: false },
+      { text: "Le rappel / la mention continuelle d'Allah par des formules répétées", correct: true  },
+      { text: "Le jeûne volontaire du lundi et jeudi",                               correct: false },
+      { text: "La retraite spirituelle de 40 jours",                                 correct: false },
+    ],
+    explanation: "Le Dhikr (ذكر — rappel) est la pratique de répéter les noms et attributs d'Allah. 'Certes, c'est par le rappel d'Allah que les cœurs trouvent la quiétude' (13:28). Formes : Subhanallah (33×), Alhamdulillah (33×), Allahu Akbar (34×) après chaque prière.",
+  },
+  {
+    id: "rel_adv_x03", category: "religion", type: "mcq", difficulty: 3,
+    question: "Qu'est-ce que l'Aqiqa dans la tradition islamique ?",
+    options: [
+      { text: "Le rituel de circoncision",                                         correct: false },
+      { text: "Le sacrifice d'un ou deux moutons à la naissance d'un enfant",      correct: true  },
+      { text: "La prière du matin avant le lever du soleil",                       correct: false },
+      { text: "L'offrande du premier repas du Ramadan",                            correct: false },
+    ],
+    explanation: "L'Aqiqa (عقيقة) est le sacrifice accompli au 7e jour de la naissance (ou 14e, 21e) : 2 moutons pour un garçon, 1 pour une fille. La viande est partagée entre la famille et les pauvres. La tête est rasée ce jour et son poids en argent donné en aumône.",
+  },
+  {
+    id: "rel_adv_x04", category: "religion", type: "mcq", difficulty: 3,
+    question: "Combien y a-t-il de versets (ayat) dans le Coran ?",
+    options: [
+      { text: "5 000 versets",   correct: false },
+      { text: "6 236 versets",   correct: true  },
+      { text: "7 777 versets",   correct: false },
+      { text: "8 000 versets",   correct: false },
+    ],
+    explanation: "Le Coran contient 6 236 versets selon la méthode de comptage la plus répandue (riwaya Hafs). D'autres méthodes donnent 6 214 ou 6 219. La différence tient à si certaines basmala sont comptées comme versets distincts.",
+  },
+  {
+    id: "rel_adv_x05", category: "religion", type: "mcq", difficulty: 5,
+    question: "Qu'est-ce que l'école 'Athari' en théologie islamique ?",
+    options: [
+      { text: "Une école qui nie les attributs d'Allah",                               correct: false },
+      { text: "Une école qui accepte les attributs divins textuellement sans interprétation (ta'wil)", correct: true  },
+      { text: "Une école centrée sur le droit comparé des madhabs",                    correct: false },
+      { text: "Une branche moderne du salafisme politique",                             correct: false },
+    ],
+    explanation: "L'école Athariyya (الأثرية) affirme les attributs d'Allah tels qu'ils apparaissent dans le Coran et la Sunna, sans metaphorisation (ta'wil) ni anthropomorphisme (tashbih). Elle est associée à Ahmad ibn Hanbal et Ibn Taymiyya. Différente des Ash'arites qui utilisent le ta'wil et des Mutazilites qui nient les attributs.",
+  },
+
+  // ── CORAN — Questions avancées supplémentaires ──────────────────
+  {
+    id: "qur_adv_x01", category: "quran", type: "mcq", difficulty: 4,
+    question: "Quelle est la sourate qui commence par 7 lettres isolées 'Ha-Mim-Ayn-Sin-Qaf' ?",
+    options: [
+      { text: "Sourate Ya-Sin (36)",             correct: false },
+      { text: "Sourate Ash-Shura (42)",          correct: true  },
+      { text: "Sourate Al-Mu'min (40)",           correct: false },
+      { text: "Sourate Az-Zukhruf (43)",         correct: false },
+    ],
+    explanation: "Sourate Ash-Shura (42) commence par 5 lettres isolées : Ha-Mim (ح م) puis Ayn-Sin-Qaf (ع س ق) — ce sont parmi les combinaisons les plus longues des Muqatta'at.",
+  },
+  {
+    id: "qur_adv_x02", category: "quran", type: "mcq", difficulty: 5,
+    question: "Selon les savants, quelle est la 'Umm al-Suwar' (mère des sourates) et pourquoi ?",
+    options: [
+      { text: "Al-Baqara — la plus longue sourate",                          correct: false },
+      { text: "Al-Fatiha — elle résume toute la religion et s'ouvre sur les 5 thèmes fondamentaux", correct: true  },
+      { text: "Al-Ikhlas — la Tawhid concentrée",                            correct: false },
+      { text: "Ya-Sin — cœur du Coran selon un hadith",                     correct: false },
+    ],
+    explanation: "Al-Fatiha est dite Umm al-Kitab (Mère du Livre) car elle résume : tawhid (Allah Rahman Rahim), jugement (Yawm al-Din), servitude (iyyaka na'budu), guidance (sirat), et distinction bien/mal. Elle est aussi récitée à chaque raka'a — pilier de la prière.",
+  },
+  {
+    id: "qur_adv_x03", category: "quran", type: "mcq", difficulty: 3,
+    question: "Quel prophète est mentionné dans le Coran comme 'Kalimullah' (celui à qui Allah parla directement) ?",
+    options: [
+      { text: "Ibrahim ﷺ",    correct: false },
+      { text: "Moussa ﷺ",     correct: true  },
+      { text: "Muhammad ﷺ",   correct: false },
+      { text: "Issa ﷺ",       correct: false },
+    ],
+    explanation: "Moussa (Moïse) ﷺ est appelé Kalimullah (كليم الله — celui qu'Allah interpella) car Allah lui parla directement dans le buisson ardent au Sinaï, sans intermédiaire. Le Prophète Muhammad ﷺ reçut la révélation via Jibril (sauf les 50 prières lors du Mi'raj).",
+  },
+
+  // ── HISTOIRE — Civilisation islamique profonde ───────────────────
+  {
+    id: "his_adv_x01", category: "history", type: "mcq", difficulty: 4,
+    question: "Qu'est-ce que le 'Barid' dans l'empire islamique médiéval ?",
+    options: [
+      { text: "Le registre des impôts de l'État",                   correct: false },
+      { text: "Le service postal/de renseignement de l'État islamique", correct: true  },
+      { text: "La cour de justice du calife",                       correct: false },
+      { text: "La garde personnelle du calife",                     correct: false },
+    ],
+    explanation: "Le Barid (بريد — courrier/poste) fut le service postal officiel des califats omeyyade et abbasside. Il transportait le courrier officiel mais aussi les rapports de renseignement sur les provinces. Certains califes utilisaient des pigeons voyageurs en complément.",
+  },
+  {
+    id: "his_adv_x02", category: "history", type: "mcq", difficulty: 4,
+    question: "Qui était Ibn al-Haytham et quelle est sa contribution principale ?",
+    options: [
+      { text: "Il découvrit la gravité avant Newton",                        correct: false },
+      { text: "Il révolutionna l'optique en prouvant que l'œil reçoit la lumière (vs Platon qui disait qu'il l'émet)", correct: true  },
+      { text: "Il inventa l'algèbre avec Al-Khwarizmi",                     correct: false },
+      { text: "Il fut le premier à cartographier le ciel nocturne",          correct: false },
+    ],
+    culturalCapsule: { title: "Ibn al-Haytham — père de la méthode scientifique", text: "Ibn al-Haytham (965-1040) réfuta la théorie d'émission de Platon (l'œil envoie des rayons) en prouvant expérimentalement que l'œil reçoit la lumière. Son Kitab al-Manazir (Optique) influença Galilée, Kepler et Newton 600 ans plus tard. Il est aussi considéré le père de la méthode scientifique expérimentale." },
+  },
+  {
+    id: "his_adv_x03", category: "history", type: "mcq", difficulty: 3,
+    question: "Que signifie l'expression 'Pax Islamica' (Paix islamique) dans l'histoire médiévale ?",
+    options: [
+      { text: "L'accord de non-agression entre califats",                       correct: false },
+      { text: "La période de stabilité économique et intellectuelle sous l'islam (VIIe-XIIIe s.)", correct: true  },
+      { text: "Le traité de paix entre chrétiens et musulmans lors des Croisades", correct: false },
+      { text: "La politique de tolérance des Omeyyades en Al-Andalus",          correct: false },
+    ],
+    explanation: "Par analogie avec la 'Pax Romana', la 'Pax Islamica' désigne la période VIIe-XIIIe siècles où les routes commerciales de l'empire islamique (de l'Atlantique à la Chine) permirent une circulation sans précédent de savoirs, marchandises et idées.",
+  },
+
+  // ── SCHOLARS MATCH supplémentaires ──────────────────────────────
+  {
+    id: "sm_006", category: "history", type: "scholars_match", difficulty: 3,
+    question: "Associe chaque savant à sa discipline principale",
+    options: [{ text: "scholars_match", correct: true }],
+    minigameData: {
+      matchPairs: [
+        { scholar: "Al-Biruni",       work: "Géographie & Indologie" },
+        { scholar: "Ibn al-Haytham",  work: "Optique & Physique" },
+        { scholar: "Al-Battani",      work: "Astronomie" },
+        { scholar: "Jabir ibn Hayyan",work: "Chimie & Alchimie" },
+      ],
+    },
+    culturalCapsule: { title: "4 sciences, 4 révolutions", text: "Al-Biruni (géographie/indologie), Ibn al-Haytham (optique), Al-Battani (astronomie — cité par Copernic) et Jabir ibn Hayyan (chimie — origine du mot 'alcool' en arabe) représentent l'Âge d'Or des sciences islamiques naturelles." },
+  },
+  {
+    id: "sm_007", category: "religion", type: "scholars_match", difficulty: 4,
+    question: "Associe chaque courant théologique islamique à son fondateur",
+    options: [{ text: "scholars_match", correct: true }],
+    minigameData: {
+      matchPairs: [
+        { scholar: "Abu al-Hasan al-Ash'ari", work: "Ash'arisme" },
+        { scholar: "Al-Maturidi",             work: "Maturidisme" },
+        { scholar: "Wasil ibn Ata",           work: "Mutazilisme" },
+        { scholar: "Ahmad ibn Hanbal",        work: "Atharisme" },
+      ],
+    },
+  },
+
+  // ── ÈRE II — L'Aube de l'Islam ──────────────────────────────────
+  {
+    id: "ere2_001", category: "religion", type: "mcq", difficulty: 2,
+    question: "Pourquoi le Prophète ﷺ a-t-il envoyé des compagnons en Abyssinie en 615 ?",
+    options: [
+      { text: "Pour faire du commerce avec le roi",                      correct: false },
+      { text: "Pour fuir la persécution des Quraysh",                    correct: true  },
+      { text: "Pour convertir le roi Al-Negus",                          correct: false },
+      { text: "Pour établir une ambassade diplomatique",                  correct: false },
+    ],
+    eventId: "arc_sira",
+    culturalCapsule: { title: "La première Hijra", text: "En 615 EC, le Prophète ﷺ conseilla aux musulmans de se réfugier en Abyssinie chez le roi juste Al-Negus (Ashama ibn Abjar). C'est la première Hijra. 83 hommes et 18 femmes firent le voyage." },
+  },
+  {
+    id: "ere2_002", category: "religion", type: "mcq", difficulty: 2,
+    question: "Quel compagnon récita la Sourate Maryam devant le roi Al-Negus, le faisant pleurer ?",
+    options: [
+      { text: "Abu Bakr al-Siddiq",     correct: false },
+      { text: "Ja'far ibn Abi Talib",    correct: true  },
+      { text: "Omar ibn al-Khattab",     correct: false },
+      { text: "Bilal ibn Rabah",         correct: false },
+    ],
+    eventId: "arc_sira",
+    explanation: "Ja'far ibn Abi Talib récita la Sourate Maryam (19) devant la cour d'Abyssinie. Le roi pleura en entendant les versets sur Issa et Maryam, et dit : 'La différence entre ce que vous dites sur Issa et ce que nous croyons n'est pas plus épaisse que ce bâton.'",
+  },
+  {
+    id: "ere2_003", category: "religion", type: "mcq", difficulty: 1,
+    question: "Qu'est-ce que l'Isra' wal Mi'raj ?",
+    options: [
+      { text: "La migration de La Mecque à Médine",                          correct: false },
+      { text: "Le voyage nocturne de La Mecque à Jérusalem puis l'ascension aux cieux", correct: true  },
+      { text: "La première révélation dans la grotte de Hira",               correct: false },
+      { text: "Le pèlerinage d'adieu du Prophète ﷺ",                        correct: false },
+    ],
+    eventId: "arc_sira",
+    culturalCapsule: { title: "Isra' & Mi'raj — la nuit des nuits", text: "En une seule nuit (27 Rajab selon l'opinion majoritaire), le Prophète ﷺ voyagea de La Mecque à Jérusalem (Isra') puis monta vers les cieux (Mi'raj), rencontrant les prophètes et recevant l'obligation des 5 prières." },
+  },
+  {
+    id: "ere2_004", category: "religion", type: "mcq", difficulty: 2,
+    question: "Combien de prières quotidiennes furent-elles initialement prescrites lors du Mi'raj, avant d'être ramenées à 5 ?",
+    options: [
+      { text: "10 prières",  correct: false },
+      { text: "50 prières",  correct: true  },
+      { text: "20 prières",  correct: false },
+      { text: "7 prières",   correct: false },
+    ],
+    explanation: "Allah prescrivit d'abord 50 prières. Moussa ﷺ conseilla au Prophète ﷺ de demander une réduction — les allers-retours ramenèrent à 5 prières, chacune valant 10 en récompense. Total effectif : 50 récompenses pour 5 prières.",
+  },
+  {
+    id: "ere2_005", category: "religion", type: "mcq", difficulty: 2,
+    question: "Qu'est-ce que l'Hégire (Al-Hijra) de 622 ?",
+    options: [
+      { text: "La première bataille islamique",                     correct: false },
+      { text: "La migration du Prophète ﷺ de La Mecque vers Médine", correct: true  },
+      { text: "La conquête de La Mecque en 630",                    correct: false },
+      { text: "Le décès du Prophète ﷺ",                            correct: false },
+    ],
+    eventId: "arc_sira",
+    explanation: "L'Hégire (622 EC) marque le point de départ du calendrier islamique. Le Prophète ﷺ et Abu Bakr s'y cachèrent 3 jours dans la grotte de Thawr avant de rejoindre Médine. Cette migration fonda la première communauté islamique organisée.",
+  },
+  {
+    id: "ere2_006", category: "religion", type: "mcq", difficulty: 2,
+    question: "Qui était Bilal ibn Rabah et quel était son rôle unique ?",
+    options: [
+      { text: "Un général militaire d'Éthiopie",                        correct: false },
+      { text: "Le premier muezzin — celui qui appelait à la prière",    correct: true  },
+      { text: "Le premier cadi (juge) de Médine",                       correct: false },
+      { text: "Le scribe personnel du Prophète ﷺ",                     correct: false },
+    ],
+    explanation: "Bilal ibn Rabah, esclave abyssinien libéré par Abu Bakr, fut choisi par le Prophète ﷺ comme premier muezzin en raison de sa voix puissante et mélodieuse. Il refusa de monter sur le minaret après la mort du Prophète ﷺ — trop douloureux.",
+  },
+  {
+    id: "ere2_007", category: "religion", type: "mcq", difficulty: 3,
+    question: "Qu'est-ce que la Constitution de Médine (Sahifa al-Madina) ?",
+    options: [
+      { text: "Le premier document écrit du Coran",                                  correct: false },
+      { text: "Un traité entre musulmans, juifs et tribus de Médine établissant une cité-état", correct: true  },
+      { text: "Le traité de paix de Hudaybiyya avec les Quraysh",                    correct: false },
+      { text: "Les règles de la mosquée du Prophète ﷺ",                             correct: false },
+    ],
+    eventId: "arc_sira",
+    culturalCapsule: { title: "La Constitution de Médine — 622 EC", text: "La Sahifa al-Madina est le premier texte constitutionnel de l'histoire islamique. Elle définit les droits et devoirs des muslims, juifs et tribus arabes de Médine sous l'autorité du Prophète ﷺ. Modèle de coexistence plébiscité par les historiens modernes." },
+  },
+  {
+    id: "ere2_008", category: "religion", type: "mcq", difficulty: 2,
+    question: "Quelle est la signification de la bataille de Badr (624 EC) ?",
+    options: [
+      { text: "La première grande victoire militaire des musulmans contre les Quraysh",     correct: true  },
+      { text: "La conquête de La Mecque",                                                   correct: false },
+      { text: "La bataille où le Prophète ﷺ fut blessé",                                   correct: false },
+      { text: "La victoire contre l'empire byzantin",                                       correct: false },
+    ],
+    explanation: "Badr (17 Ramadan 2 AH) : 313 musulmans mal équipés vainquirent ~1000 Quraysh. Le Coran en parle comme d'une victoire divine (3:123). 70 Quraysh tués, 70 prisonniers. Premier test majeur de la communauté médinoise.",
+  },
+  {
+    id: "ere2_009", category: "religion", type: "mcq", difficulty: 3,
+    question: "Pourquoi la bataille d'Uhud (625) fut-elle douloureuse pour les musulmans ?",
+    options: [
+      { text: "L'armée musulmane fut complètement détruite",                           correct: false },
+      { text: "Les archers quittèrent leur poste par souci du butin, causant une contre-attaque", correct: true  },
+      { text: "Le Prophète ﷺ fut capturé par les Quraysh",                            correct: false },
+      { text: "Les alliés juifs de Médine trahirent les musulmans",                    correct: false },
+    ],
+    explanation: "À Uhud, les archers placés en position défensive quittèrent leur poste pensant la victoire acquise. Khalid ibn al-Walid (encore Quraysh) exploita cette brèche. 70 compagnons furent martyrisés dont Hamza, oncle du Prophète ﷺ.",
+  },
+  {
+    id: "ere2_010", category: "religion", type: "mcq", difficulty: 2,
+    question: "Quel fut l'apport de Salmane al-Farisi à la bataille de Khandak (627) ?",
+    options: [
+      { text: "Il négocia la paix avec les tribus adverses",            correct: false },
+      { text: "Il proposa de creuser un fossé défensif — stratégie perse inconnue en Arabie", correct: true  },
+      { text: "Il mena la cavalerie muslimane au combat",               correct: false },
+      { text: "Il convertit les alliés juifs de Médine",                correct: false },
+    ],
+    culturalCapsule: { title: "Le fossé — génie perse en Arabie", text: "Salmane al-Farisi, de culture perse, proposa de creuser un fossé (khandaq) autour de Médine. Inconnue en Arabie, cette tactique défensive stoppa une coalition de 10 000 guerriers pendant 27 jours. 'Salmane est de nous, ahl al-bayt,' dit le Prophète ﷺ." },
+  },
+  {
+    id: "ere2_011", category: "religion", type: "mcq", difficulty: 3,
+    question: "Quel est le traité de Hudaybiyya (628) et pourquoi est-il considéré comme une 'victoire claire' ?",
+    options: [
+      { text: "Un traité militaire imposé après la conquête de La Mecque",                   correct: false },
+      { text: "Un traité de paix 10 ans qui permit la propagation de l'islam sans guerre",    correct: true  },
+      { text: "L'accord de reddition de Khaybar",                                            correct: false },
+      { text: "La trêve avec les Byzantins pour protéger les routes commerciales",            correct: false },
+    ],
+    explanation: "À Hudaybiyya, le Prophète ﷺ accepta des conditions apparemment défavorables (pas d'entrée à La Mecque ce year). Mais la paix de 10 ans permit une expansion massive : 100 000 combattants lors de la conquête de La Mecque vs 1 500 à Hudaybiyya. Le Coran l'appela 'fath mubin' (victoire évidente, 48:1).",
+  },
+  {
+    id: "ere2_012", category: "religion", type: "mcq", difficulty: 2,
+    question: "Qui était Khadija bint Khuwaylid et quel rôle joua-t-elle ?",
+    options: [
+      { text: "La première femme à diriger une tribu mecquoise",                        correct: false },
+      { text: "La première épouse du Prophète ﷺ et première convertie à l'islam",      correct: true  },
+      { text: "La fille du calife Omar ibn al-Khattab",                                 correct: false },
+      { text: "Une savante qui compila les hadiths du Prophète ﷺ",                     correct: false },
+    ],
+    explanation: "Khadija bint Khuwaylid (555-619) fut la première personne à croire en la mission du Prophète ﷺ. Riche marchande, elle l'avait d'abord engagé puis épousé. Elle le soutint financièrement et moralement. Le Prophète ﷺ dit d'elle : 'Nulle femme ne m'a été meilleure.'",
+  },
+
+  // ── ÈRE II QUESTIONS — Timeline ──────────────────────────────────
+  {
+    id: "tl_ere2_001", category: "religion", type: "timeline", difficulty: 3,
+    question: "Ordonne ces événements de la vie du Prophète ﷺ",
+    options: [{ text: "timeline", correct: true }],
+    minigameData: {
+      events: [
+        { text: "Première révélation (Hira)",               year: 610 },
+        { text: "Première Hijra en Abyssinie",               year: 615 },
+        { text: "Isra' wal Mi'raj — voyage nocturne",        year: 621 },
+        { text: "Hégire vers Médine",                        year: 622 },
+      ],
+    },
+    eventId: "arc_sira",
+  },
+  {
+    id: "tl_ere2_002", category: "religion", type: "timeline", difficulty: 3,
+    question: "Ordonne ces grandes batailles de la période médinoise",
+    options: [{ text: "timeline", correct: true }],
+    minigameData: {
+      events: [
+        { text: "Bataille de Badr",       year: 624 },
+        { text: "Bataille d'Uhud",        year: 625 },
+        { text: "Bataille de Khandak",    year: 627 },
+        { text: "Conquête de La Mecque",  year: 630 },
+      ],
+    },
+  },
+
+  // ── TIMELINE — Ordre chronologique ──────────────────────────────
+  {
+    id: "tl_001", category: "history", type: "timeline", difficulty: 2,
+    question: "Remets ces événements dans l'ordre chronologique",
+    options: [{ text: "timeline", correct: true }],
+    minigameData: {
+      events: [
+        { text: "Naissance du Prophète Muhammad ﷺ",   year: 570  },
+        { text: "Première révélation (Hira)",           year: 610  },
+        { text: "Hégire (migration vers Médine)",       year: 622  },
+        { text: "Conquête de La Mecque",                year: 630  },
+      ],
+    },
+    culturalCapsule: { title: "Les 60 ans du Prophète ﷺ", text: "Muhammad ﷺ naquit en 570, reçut la révélation à 40 ans (610), migra à Médine à 52 ans (622), et conquit La Mecque sans violence à 60 ans (630)." },
+  },
+  {
+    id: "tl_002", category: "history", type: "timeline", difficulty: 2,
+    question: "Ordonne les quatre califes dans le temps",
+    options: [{ text: "timeline", correct: true }],
+    minigameData: {
+      events: [
+        { text: "Califat d'Abu Bakr",   year: 632 },
+        { text: "Califat d'Omar",        year: 634 },
+        { text: "Califat d'Othman",      year: 644 },
+        { text: "Califat d'Ali",         year: 656 },
+      ],
+    },
+  },
+  {
+    id: "tl_003", category: "history", type: "timeline", difficulty: 3,
+    question: "Remets ces dynasties islamiques dans l'ordre chronologique",
+    options: [{ text: "timeline", correct: true }],
+    minigameData: {
+      events: [
+        { text: "Omeyyades — Damas",       year: 661  },
+        { text: "Abbassides — Bagdad",      year: 750  },
+        { text: "Fatimides — Le Caire",     year: 909  },
+        { text: "Empire ottoman — Istanbul",year: 1299 },
+      ],
+    },
+    culturalCapsule: { title: "1600 ans de pouvoir islamique", text: "Omeyyades (661-750), Abbassides (750-1258), Fatimides (909-1171) et Ottomans (1299-1922) se succèdent et se chevauchent dans l'histoire islamique mondiale." },
+  },
+  {
+    id: "tl_004", category: "history", type: "timeline", difficulty: 3,
+    question: "Ordonne ces savants du plus ancien au plus récent",
+    options: [{ text: "timeline", correct: true }],
+    minigameData: {
+      events: [
+        { text: "Al-Khwarizmi — mathématiques", year: 780  },
+        { text: "Ibn Sina — médecine",           year: 980  },
+        { text: "Ibn Rushd — philosophie",       year: 1126 },
+        { text: "Ibn Khaldoun — sociologie",     year: 1332 },
+      ],
+    },
+  },
+  {
+    id: "tl_005", category: "religion", type: "timeline", difficulty: 2,
+    question: "Ordonne ces prophètes du plus ancien au plus récent",
+    options: [{ text: "timeline", correct: true }],
+    minigameData: {
+      events: [
+        { text: "Ibrahim ﷺ — père des prophètes", year: -2000, hint: "vers 2000 av. J.-C." },
+        { text: "Moussa ﷺ — la Torah",             year: -1300, hint: "vers 1300 av. J.-C." },
+        { text: "Issa ﷺ — l'Injil",                year: 0,     hint: "vers l'an 0"          },
+        { text: "Muhammad ﷺ — le Coran",           year: 570,   hint: "570 apr. J.-C."       },
+      ],
+    },
+    culturalCapsule: { title: "La chaîne de la prophétie", text: "Les prophètes majeurs s'étalent sur 2500 ans d'histoire. Ibrahim et Muhammad ﷺ sont liés par leur descendance : Muhammad ﷺ est de la lignée d'Ismaïl, fils d'Ibrahim." },
+  },
+  {
+    id: "tl_006", category: "history", type: "timeline", difficulty: 2,
+    question: "Ordonne ces grandes mosquées par date de construction",
+    options: [{ text: "timeline", correct: true }],
+    minigameData: {
+      events: [
+        { text: "Mosquée de Médine",         year: 622  },
+        { text: "Mosquée Al-Aqsa (Jérusalem)", year: 691 },
+        { text: "Mosquée Al-Azhar (Le Caire)",  year: 972 },
+        { text: "Mosquée Süleymaniye (Istanbul)",year: 1557},
+      ],
+    },
+  },
+  {
+    id: "tl_007", category: "quran", type: "timeline", difficulty: 3,
+    question: "Dans quel ordre ces sourates furent-elles révélées ?",
+    options: [{ text: "timeline", correct: true }],
+    minigameData: {
+      events: [
+        { text: "Al-Alaq (\"Lis au nom de ton Seigneur\")", year: 1,  hint: "1re révélée" },
+        { text: "Al-Fatiha",                                  year: 5,  hint: "Mecquoise" },
+        { text: "Al-Baqara",                                  year: 23, hint: "Médinoise" },
+        { text: "Al-Maïda (\"Aujourd'hui, j'ai parachevé\")", year: 27, hint: "Dernière majeure" },
+      ],
+    },
+    culturalCapsule: { title: "23 ans de révélation", text: "Le Coran fut révélé progressivement sur 23 ans (610-632). Al-Alaq fut la 1re sourate ; Al-Maïda contient l'un des derniers versets révélés." },
+  },
+  {
+    id: "tl_008", category: "history", type: "timeline", difficulty: 3,
+    question: "Ordonne ces conquêtes islamiques dans le temps",
+    options: [{ text: "timeline", correct: true }],
+    minigameData: {
+      events: [
+        { text: "Conquête de Jérusalem",          year: 637  },
+        { text: "Conquête de l'Espagne (Al-Andalus)", year: 711 },
+        { text: "Conquête de Constantinople",      year: 1453 },
+        { text: "Prise de Grenade (fin Al-Andalus)", year: 1492 },
+      ],
+    },
+  },
+
+  // ── HADITH COMPLET — MCQ sur hadiths célèbres ────────────────────
+  {
+    id: "had_001", category: "religion", type: "mcq", difficulty: 1,
+    question: "Complète ce hadith : 'Les actions dépendent des...'",
+    options: [
+      { text: "intentions",       correct: true  },
+      { text: "paroles",          correct: false },
+      { text: "circonstances",    correct: false },
+      { text: "compagnons",       correct: false },
+    ],
+    explanation: "Hadith rapporté par Omar ibn al-Khattab : 'Les actions ne valent que par les intentions, et chaque homme n'a que ce qu'il a voulu.' (Al-Bukhari, Muslim)",
+  },
+  {
+    id: "had_002", category: "religion", type: "mcq", difficulty: 1,
+    question: "Complète ce hadith : 'Le musulman est celui dont les musulmans sont à l'abri de sa...'",
+    options: [
+      { text: "langue et de sa main",      correct: true  },
+      { text: "jalousie et de sa colère",  correct: false },
+      { text: "maison et de son argent",   correct: false },
+      { text: "famille et de ses enfants", correct: false },
+    ],
+    explanation: "Hadith de Abdullah ibn Amr : 'Le musulman est celui dont les musulmans sont à l'abri de sa langue et de sa main.' (Al-Bukhari)",
+  },
+  {
+    id: "had_003", category: "religion", type: "mcq", difficulty: 2,
+    question: "Complète ce hadith du Prophète ﷺ : 'Cherchez le savoir, même en...'",
+    options: [
+      { text: "Chine",              correct: true  },
+      { text: "enfer",              correct: false },
+      { text: "exil",               correct: false },
+      { text: "vieillesse",         correct: false },
+    ],
+    explanation: "'Cherchez le savoir, même en Chine.' Ce hadith exprime l'obligation de chercher la connaissance sans limites géographiques ni temporelles.",
+  },
+  {
+    id: "had_004", category: "religion", type: "mcq", difficulty: 2,
+    question: "Complète ce hadith : 'La meilleure des aumônes est celle que donne quelqu'un qui...'",
+    options: [
+      { text: "possède peu",               correct: true  },
+      { text: "est le plus riche",          correct: false },
+      { text: "donne en secret",            correct: false },
+      { text: "n'attend rien en retour",    correct: false },
+    ],
+    explanation: "Hadith d'Abu Huraira : 'La meilleure des aumônes est celle que donne quelqu'un qui possède peu.' (Al-Bukhari) Cela montre que la valeur du don est liée à l'effort, pas à la quantité.",
+  },
+  {
+    id: "had_005", category: "religion", type: "mcq", difficulty: 2,
+    question: "Complète ce hadith : 'Nul d'entre vous n'est croyant tant qu'il n'aime pas pour son frère...'",
+    options: [
+      { text: "ce qu'il aime pour lui-même", correct: true  },
+      { text: "ce qu'il possède",            correct: false },
+      { text: "la réussite et le bonheur",   correct: false },
+      { text: "ce qu'il aime pour sa famille",correct: false },
+    ],
+    culturalCapsule: { title: "La fraternité en islam", text: "Ce hadith d'Anas ibn Malik (Al-Bukhari, Muslim) définit la foi par l'amour fraternel. Il exige une générosité d'âme : vouloir pour autrui ce qu'on désire pour soi-même, et non juste l'absence de jalousie." },
+  },
+  {
+    id: "had_006", category: "religion", type: "mcq", difficulty: 3,
+    question: "Complète ce hadith : 'La pudeur (haya) est une branche de...'",
+    options: [
+      { text: "la foi (iman)",          correct: true  },
+      { text: "la sagesse",              correct: false },
+      { text: "l'adoration",            correct: false },
+      { text: "la prière",              correct: false },
+    ],
+    explanation: "Hadith d'Abu Huraira : 'La foi comporte soixante-dix et quelques branches, et la pudeur est une branche de la foi.' (Al-Bukhari, Muslim) La haya (pudeur/retenue) est une valeur centrale en islam.",
+  },
+
+  // ── CALLIGRAPHIE ARABE (suite) ───────────────────────────────────
+  {
+    id: "cal_009", category: "arabic", type: "calligraphy", difficulty: 1,
+    question: "Trace la lettre : ر (Ra)",
+    options: [{ text: "calligraphy", correct: true }],
+    minigameData: {
+      letter: "ر",
+      letterTranslit: "Ra — prononcé [r]",
+      strokeHints: ["Courbe courte vers le bas", "Commence à droite, incline vers la gauche"],
+      passCoverage: 0.30,
+    },
+    explanation: "Ra (ر) est la 10e lettre. Roulée légèrement, surtout en début de mot.",
+  },
+  {
+    id: "cal_010", category: "arabic", type: "calligraphy", difficulty: 2,
+    question: "Trace la lettre : ت (Ta)",
+    options: [{ text: "calligraphy", correct: true }],
+    minigameData: {
+      letter: "ت",
+      letterTranslit: "Ta — prononcé [t]",
+      strokeHints: ["Trait horizontal légèrement courbé", "Deux points au-dessus"],
+      passCoverage: 0.35,
+    },
+    explanation: "Ta (ت) est la 3e lettre. Presque identique au Ba (ب) mais avec deux points au-dessus.",
+  },
+  {
+    id: "cal_011", category: "arabic", type: "calligraphy", difficulty: 2,
+    question: "Trace la lettre : س (Sin)",
+    options: [{ text: "calligraphy", correct: true }],
+    minigameData: {
+      letter: "س",
+      letterTranslit: "Sin — prononcé [s]",
+      strokeHints: ["Trois dents horizontales", "Queue vers la gauche et le bas"],
+      passCoverage: 0.36,
+    },
+    culturalCapsule: {
+      title: "Sin — lettre de la paix",
+      text: "Sin (س) commence le mot سَلَام (Salâm — paix). Dans le style Thuluth, ses trois dents sont tracées avec une légèreté comparable aux vagues de la mer.",
+    },
+  },
+  {
+    id: "cal_012", category: "arabic", type: "calligraphy", difficulty: 3,
+    question: "Trace la lettre : ع (Ayn)",
+    options: [{ text: "calligraphy", correct: true }],
+    minigameData: {
+      letter: "ع",
+      letterTranslit: "Ayn — prononcé [ʕ] (son guttural)",
+      strokeHints: ["Petite boucle ouverte à droite", "Queue courbée vers le bas puis gauche"],
+      passCoverage: 0.40,
+    },
+    culturalCapsule: {
+      title: "Ayn — l'œil de l'alphabet",
+      text: "Ayn (ع) est l'une des lettres les plus difficiles à prononcer pour les non-arabophones — son son guttural n'existe pas en français. Elle commence le mot عِلْم (ʕilm — science/connaissance).",
+    },
+  },
+  {
+    id: "cal_013", category: "arabic", type: "calligraphy", difficulty: 3,
+    question: "Trace la lettre : ق (Qaf)",
+    options: [{ text: "calligraphy", correct: true }],
+    minigameData: {
+      letter: "ق",
+      letterTranslit: "Qaf — prononcé [q] (profond dans la gorge)",
+      strokeHints: ["Cercle quasi-complet", "Deux points en dessous", "Petite queue vers le bas"],
+      passCoverage: 0.40,
+    },
+    explanation: "Qaf (ق) ouvre la sourate 50 : 'Qâf. Par le Coran glorieux.' Symbole du divin dans la tradition soufie.",
+  },
+  {
+    id: "cal_014", category: "arabic", type: "calligraphy", difficulty: 4,
+    question: "Trace le mot : محمد (Muhammad)",
+    options: [{ text: "calligraphy", correct: true }],
+    minigameData: {
+      letter: "محمد",
+      letterTranslit: "Muḥammad [mou-ħam-mad] — le Très Loué",
+      strokeHints: ["Mim (م) : boucle à gauche", "Ha (ح) : courbe entre deux pattes", "Mim (م) : deuxième boucle", "Dal (د) : courbe finale"],
+      passCoverage: 0.42,
+    },
+    culturalCapsule: {
+      title: "محمد — le nom le plus porté au monde",
+      text: "Le nom Muhammad (محمد) vient de la racine ḥ-m-d (louange). Le Prophète ﷺ est mentionné 4 fois dans le Coran sous ce nom. Des millions de calligraphes ont consacré leur vie à embellir ces quatre lettres.",
+    },
+  },
+  {
+    id: "cal_015", category: "arabic", type: "calligraphy", difficulty: 4,
+    question: "Trace : بسم الله الرحمن الرحيم",
+    options: [{ text: "calligraphy", correct: true }],
+    minigameData: {
+      letter: "بسم الله",
+      letterTranslit: "Bismillāh ir-Raḥmān ir-Raḥīm — Au nom d'Allah, le Très Miséricordieux",
+      strokeHints: ["Ba-Sin-Mim liés en un seul mouvement", "Alif-Lam-Lam-Ha pour Allah", "Détache chaque groupe"],
+      passCoverage: 0.38,
+    },
+    culturalCapsule: {
+      title: "La Basmala — le souffle de toute chose",
+      text: "La Basmala ouvre 113 sourates du Coran (toutes sauf At-Tawba). Elle est récitée avant chaque action importante. En calligraphie, la maîtriser est l'une des premières grandes épreuves de l'apprenti.",
+    },
+  },
+
+  // ── RELIGION — Difficile (diff 3-5) ─────────────────────────────
+  {
+    id: "rel_adv_001", category: "religion", type: "mcq", difficulty: 3,
+    question: "Qu'est-ce que le 'Ijma' en jurisprudence islamique ?",
+    options: [
+      { text: "L'opinion personnelle d'un savant",           correct: false },
+      { text: "Le consensus des savants de la Oumma",        correct: true  },
+      { text: "L'analogie avec un cas existant (Qiyas)",     correct: false },
+      { text: "Le raisonnement par l'intérêt général",       correct: false },
+    ],
+    explanation: "L'Ijma (إجماع) est le consensus des savants musulmans sur une question religieuse. Avec le Coran, la Sunna et le Qiyas, c'est l'une des quatre sources du fiqh selon l'école Hanafite.",
+  },
+  {
+    id: "rel_adv_002", category: "religion", type: "mcq", difficulty: 3,
+    question: "Quels sont les quatre madhabs (écoles juridiques) sunnites ?",
+    options: [
+      { text: "Hanafite, Malékite, Shaféite, Hanbalite",    correct: true  },
+      { text: "Hanafite, Malékite, Jafarite, Zaydite",       correct: false },
+      { text: "Shaféite, Hanbalite, Ibadite, Mutazilite",    correct: false },
+      { text: "Malékite, Hanbalite, Wahhabi, Salafi",        correct: false },
+    ],
+    culturalCapsule: { title: "Les 4 écoles du fiqh", text: "Abu Hanifa (699-767), Malik ibn Anas (711-795), Muhammad al-Shafi'i (767-820) et Ahmad ibn Hanbal (780-855) ont fondé les quatre grandes écoles juridiques. Elles divergent sur des points de détail mais s'accordent sur les fondamentaux." },
+  },
+  {
+    id: "rel_adv_003", category: "religion", type: "mcq", difficulty: 4,
+    question: "Qu'appelle-t-on 'Naskh' dans les sciences du Coran ?",
+    options: [
+      { text: "La mémorisation du Coran",                              correct: false },
+      { text: "L'abrogation d'un verset par un verset ultérieur",      correct: true  },
+      { text: "La calligraphie coufique ancienne",                     correct: false },
+      { text: "La transmission orale du Coran",                        correct: false },
+    ],
+    explanation: "Le Naskh (نسخ — abrogation) est le remplacement d'une règle par une autre plus récente dans le texte coranique. Exemple : l'interdiction progressive de l'alcool. Les savants débattent du nombre exact de versets abrogés.",
+  },
+  {
+    id: "rel_adv_004", category: "religion", type: "mcq", difficulty: 4,
+    question: "Qu'est-ce que la 'Aqida Tahawiyya ?",
+    options: [
+      { text: "Un traité de jurisprudence malékite",             correct: false },
+      { text: "Un exposé de croyance sunnite du IXe siècle",    correct: true  },
+      { text: "Un recueil de hadiths faibles",                   correct: false },
+      { text: "La doctrine des Mutazilites sur le Coran",        correct: false },
+    ],
+    explanation: "La Aqida Tahawiyya est rédigée par Abu Ja'far al-Tahawi (853-933). Ce texte résume la croyance des Ahl al-Sunna wa al-Jama'a et fait encore autorité aujourd'hui dans les institutions traditionnelles.",
+  },
+  {
+    id: "rel_adv_005", category: "religion", type: "mcq", difficulty: 4,
+    question: "Qu'est-ce que le 'Tawassul' et quel est son statut en islam ?",
+    options: [
+      { text: "L'intercession directe des saints — unanimement autorisée",              correct: false },
+      { text: "Le fait de s'approcher d'Allah via des bonnes œuvres ou le Prophète ﷺ — débattu selon les savants", correct: true  },
+      { text: "La prière collective du vendredi",                                        correct: false },
+      { text: "L'utilisation des noms d'Allah dans les invocations (du'a)",              correct: false },
+    ],
+    explanation: "Le Tawassul (intercession) divise les savants. La majorité autorise l'intercession par les actes pieux ou par le Prophète ﷺ en vie. L'intercession par les morts est débattue entre Malékites/Shaféites (permis) et une minorité (interdit).",
+  },
+  {
+    id: "rel_adv_006", category: "religion", type: "mcq", difficulty: 3,
+    question: "Combien de Rukn (piliers) compte la prière islamique selon l'école Shaféite ?",
+    options: [
+      { text: "7 piliers",   correct: false },
+      { text: "14 piliers",  correct: true  },
+      { text: "5 piliers",   correct: false },
+      { text: "17 piliers",  correct: false },
+    ],
+    explanation: "L'école Shaféite compte 14 arkan (piliers) de la salat : l'intention, le takbir d'entrée, la station debout, la Fatiha, l'inclinaison (ruku'), le redressement, les deux prosternations, l'assise finale, le tashahhud, la bénédiction sur le Prophète ﷺ, le salam.",
+  },
+  {
+    id: "rel_adv_007", category: "religion", type: "mcq", difficulty: 3,
+    question: "Quel est le seuil du Nisab (seuil de la Zakat) en or ?",
+    options: [
+      { text: "20 mithqal (environ 85g d'or)",   correct: true  },
+      { text: "40 mithqal (environ 170g d'or)",  correct: false },
+      { text: "10 mithqal (environ 43g d'or)",   correct: false },
+      { text: "100 dirham d'argent uniquement",  correct: false },
+    ],
+    explanation: "Le Nisab or est de 20 mithqal (≈85g d'or pur). Pour l'argent : 200 dirhams (≈595g d'argent). La Zakat est due à 2,5% sur la valeur possédée pendant un an (hawl) au-dessus de ce seuil.",
+  },
+  {
+    id: "rel_adv_008", category: "religion", type: "mcq", difficulty: 4,
+    question: "Qu'est-ce que la 'Sunna Mu'akkada' ?",
+    options: [
+      { text: "Une prière obligatoire ajoutée après la Fardh",            correct: false },
+      { text: "Une sunna que le Prophète ﷺ accomplissait régulièrement et ne quittait que rarement", correct: true  },
+      { text: "Une innovation approuvée par les savants",                  correct: false },
+      { text: "La prière du vendredi en remplacement du Dhuhr",           correct: false },
+    ],
+    explanation: "La Sunna Mu'akkada (sunna confirmée) est celle que le Prophète ﷺ accomplissait systématiquement. Son abandon sans raison est déconseillé (makruh). Exemple : les 2 rakat avant le Fajr, les 2 rakat après le Maghrib.",
+  },
+
+  // ── HISTOIRE ISLAMIQUE — Difficile (diff 3-5) ───────────────────
+  {
+    id: "his_adv_001", category: "history", type: "mcq", difficulty: 3,
+    question: "Qui était Al-Hajjaj ibn Yusuf et quel rôle a-t-il joué sous les Omeyyades ?",
+    options: [
+      { text: "Un poète de cour célèbre pour ses odes au calife",      correct: false },
+      { text: "Un général et gouverneur redouté, maître de l'Irak et l'Iran", correct: true  },
+      { text: "Le fondateur de la ville de Koufa",                     correct: false },
+      { text: "Le premier cadi (juge) de Bagdad",                      correct: false },
+    ],
+    explanation: "Al-Hajjaj (661-714) fut le gouverneur de l'Iraq, connu pour sa rigueur extrême et l'expansion omeyyade vers l'Inde (Muhammad ibn Qasim) et l'Asie centrale. Il fit aussi normaliser l'écriture arabe avec les points diacritiques.",
+  },
+  {
+    id: "his_adv_002", category: "history", type: "mcq", difficulty: 3,
+    question: "Qu'est-ce que la 'Maison de la Sagesse' (Bayt al-Hikma) de Bagdad ?",
+    options: [
+      { text: "Le palais royal des califes abbassides",                 correct: false },
+      { text: "Un centre de traduction et de recherche scientifique fondé au IXe siècle", correct: true  },
+      { text: "La première mosquée construite à Bagdad",                correct: false },
+      { text: "Le trésor public des Abbassides",                       correct: false },
+    ],
+    culturalCapsule: { title: "Bayt al-Hikma — carrefour des savoirs", text: "Fondée sous Haroun al-Rashid et développée par Al-Ma'mun (813-833), la Maison de la Sagesse traduit des œuvres grecques, persanes et indiennes. Euclide, Aristote, Platon, Galien y deviennent accessibles en arabe. Elle brûle lors du sac mongol en 1258." },
+  },
+  {
+    id: "his_adv_003", category: "history", type: "mcq", difficulty: 4,
+    question: "Quelle est la signification de la bataille de Zallaqah (1086) en Al-Andalus ?",
+    options: [
+      { text: "La première défaite des musulmans face aux chrétiens en Espagne",       correct: false },
+      { text: "La victoire des Almoravides sur Alphonse VI qui sauva Al-Andalus",      correct: true  },
+      { text: "La conquête de Tolède par les musulmans",                               correct: false },
+      { text: "La bataille finale de la Reconquista",                                  correct: false },
+    ],
+    explanation: "À Zallaqah (Sagrajas), Yusuf ibn Tashfin des Almoravides écrasa Alphonse VI de Castille. Cette victoire retarda la chute d'Al-Andalus d'un siècle. Ibn Tashfin était ensuite reparti en Afrique, laissant Alphonse affaibli mais vivant.",
+  },
+  {
+    id: "his_adv_004", category: "history", type: "mcq", difficulty: 4,
+    question: "Pourquoi le calife Al-Mu'tasim bil-lah (833-842) est-il historiquement controversé ?",
+    options: [
+      { text: "Il interdit la traduction des textes grecs",             correct: false },
+      { text: "Il introduit les Turcs comme garde prétorienne, affaiblissant le pouvoir abbasside", correct: true  },
+      { text: "Il abandonna Bagdad pour fonder une nouvelle capitale",  correct: false },
+      { text: "Il imposa le Mutazilisme par la force (Mihna)",          correct: false },
+    ],
+    explanation: "Al-Mu'tasim fut le premier calife à recruter massivement des soldats turcs esclaves (ghulam). Si cela renforça l'armée, cela créa une élite turque qui finit par contrôler les califes successifs, inaugurant le déclin du pouvoir abbasside réel.",
+  },
+  {
+    id: "his_adv_005", category: "history", type: "mcq", difficulty: 3,
+    question: "Quel événement mit fin à l'empire abbasside de Bagdad en 1258 ?",
+    options: [
+      { text: "La conquête des Croisés",                        correct: false },
+      { text: "Le sac de Bagdad par Hulagu Khan (Mongols)",     correct: true  },
+      { text: "Une révolution interne des vizirs",              correct: false },
+      { text: "La victoire ottomane sur les Abbassides",        correct: false },
+    ],
+    culturalCapsule: { title: "1258 — La fin d'un monde", text: "Hulagu Khan (petit-fils de Gengis Khan) détruit Bagdad en 7 jours. Le calife Al-Musta'sim est exécuté. Selon les chroniqueurs, les livres de la bibliothèque noircirent le Tigre. C'est la fin de l'Âge d'Or abbasside." },
+  },
+  {
+    id: "his_adv_006", category: "history", type: "mcq", difficulty: 3,
+    question: "Quel sultan ottoman conquit Constantinople en 1453 et quel était son âge ?",
+    options: [
+      { text: "Suleiman le Magnifique, 46 ans",     correct: false },
+      { text: "Mehmed II (El-Fatih), 21 ans",       correct: true  },
+      { text: "Selim Ier, 34 ans",                  correct: false },
+      { text: "Bayezid II, 29 ans",                 correct: false },
+    ],
+    explanation: "Mehmed II, surnommé El-Fatih (le Conquérant), prit Constantinople à 21 ans après un siège de 53 jours. Il fit transformer Sainte-Sophie en mosquée et transforma Istanbul en nouvelle capitale ottomane.",
+  },
+  {
+    id: "his_adv_007", category: "history", type: "mcq", difficulty: 4,
+    question: "Qu'est-ce que le 'Devshirme' dans l'empire ottoman ?",
+    options: [
+      { text: "Le système de collecte de l'impôt dans les provinces",       correct: false },
+      { text: "Le recrutement forcé d'enfants chrétiens convertis pour l'armée et l'État", correct: true  },
+      { text: "La langue administrative de la cour ottomane",               correct: false },
+      { text: "Le titre du grand vizir sous les Ottomans",                  correct: false },
+    ],
+    explanation: "Le Devshirme (« ramassage ») était le système ottoman de recrutement d'enfants de familles chrétiennes, convertis à l'islam et formés pour servir dans les janissaires ou l'administration. Ces hommes pouvaient atteindre les plus hauts postes — Sokollu Mehmed Pacha fut grand vizir 14 ans.",
+  },
+  {
+    id: "his_adv_008", category: "history", type: "mcq", difficulty: 3,
+    question: "Qui était Saladin (Salah ad-Din) avant de reprendre Jérusalem en 1187 ?",
+    options: [
+      { text: "Le sultan seldjoukide de Perse",                           correct: false },
+      { text: "Le vizir fatimide d'Égypte devenu sultan ayyoubide",       correct: true  },
+      { text: "Le chef des Almoravides d'Afrique du Nord",                correct: false },
+      { text: "Le calife abbasside de Bagdad",                           correct: false },
+    ],
+    culturalCapsule: { title: "Saladin — l'unificateur", text: "Salah ad-Din Yusuf ibn Ayyub (1137-1193) fut d'abord vizir du califat fatimide chiite d'Égypte avant d'unifier l'Égypte et la Syrie sous la bannière sunnite. Sa victoire à Hattin (1187) ouvrit la route de Jérusalem. Il est célèbre pour sa clémence envers les Croisés vaincus." },
+  },
+  {
+    id: "his_adv_009", category: "history", type: "mcq", difficulty: 4,
+    question: "Qu'est-ce que la 'Fitna' (la grande discorde) dans l'histoire islamique ?",
+    options: [
+      { text: "Les guerres contre l'empire byzantin",                                correct: false },
+      { text: "Les guerres civiles entre musulmans après l'assassinat d'Othman (656)", correct: true  },
+      { text: "Les persécutions des Croisés contre les musulmans",                   correct: false },
+      { text: "La période d'ignorance (Jahiliyya) avant l'islam",                   correct: false },
+    ],
+    explanation: "La Première Fitna (656-661) éclate après l'assassinat du calife Othman. Batailles de Jamal (656 — Ali vs Aïcha) et Siffin (657 — Ali vs Mu'awiya). Ce conflit creusa le schisme sunnite-chiite dont les échos persistent aujourd'hui.",
+  },
+  {
+    id: "his_adv_010", category: "history", type: "mcq", difficulty: 3,
+    question: "Quelle fut la réforme majeure introduite par Omar ibn al-Khattab ﺭﺿﻲ ﷲ ﻋﻨﻪ ?",
+    options: [
+      { text: "La compilation du Coran en un seul volume",              correct: false },
+      { text: "La création du calendrier hégirien et le Diwan (registre d'État)", correct: true  },
+      { text: "L'introduction de la monnaie islamique frappée",         correct: false },
+      { text: "La fondation des premières écoles coraniques",           correct: false },
+    ],
+    explanation: "Omar ibn al-Khattab instaura le calendrier hégirien (622 = an 1) et créa le Diwan — un registre bureaucratique pour administrer l'État et distribuer les pensions aux soldats et familles. Ces réformes posèrent les bases administratives du premier empire islamique.",
+  },
+
+  // ── CORAN — Difficile (diff 3-5) ────────────────────────────────
+  {
+    id: "qur_adv_001", category: "quran", type: "mcq", difficulty: 3,
+    question: "Qu'est-ce que les 'Muqatta'at' dans le Coran ?",
+    options: [
+      { text: "Les versets révélés à Médine uniquement",                    correct: false },
+      { text: "Les lettres isolées au début de certaines sourates (Alif-Lam-Mim...)", correct: true  },
+      { text: "Les sourates les plus courtes du Coran",                     correct: false },
+      { text: "Les versets sur l'eschatologie (fin des temps)",             correct: false },
+    ],
+    explanation: "Les Muqatta'at (lettres détachées) ouvrent 29 sourates : Alif-Lam-Mim, Ha-Mim, Nun, Qaf, etc. Leur signification exacte reste mystérieuse. Ibn Abbas disait qu'elles font partie des 'secrets d'Allah'. Elles représentent 14 lettres distinctes sur 28.",
+  },
+  {
+    id: "qur_adv_002", category: "quran", type: "mcq", difficulty: 3,
+    question: "Combien de 'Sajda' (prosternations de récitation) le Coran contient-il ?",
+    options: [
+      { text: "7 sajda",   correct: false },
+      { text: "14 sajda",  correct: true  },
+      { text: "21 sajda",  correct: false },
+      { text: "10 sajda",  correct: false },
+    ],
+    explanation: "Le Coran contient 14 sajda al-tilawa selon l'opinion majoritaire (15 selon Shaféites et Hanbalites). Quand on lit ou entend un verset de prosternation, il est recommandé (voire obligatoire selon certains) de se prosterner.",
+  },
+  {
+    id: "qur_adv_003", category: "quran", type: "mcq", difficulty: 4,
+    question: "Qu'est-ce que la 'Qira'at Sab'a' ?",
+    options: [
+      { text: "Les 7 premières sourates révélées à La Mecque",             correct: false },
+      { text: "Les 7 lectures coraniques canoniques transmises par les Imams de récitation", correct: true  },
+      { text: "Les 7 dialectes arabes dans lesquels le Coran fut révélé",  correct: false },
+      { text: "Les 7 copies du Coran d'Othman envoyées aux provinces",     correct: false },
+    ],
+    culturalCapsule: { title: "Les 7 lectures — science vivante", text: "Les Qira'at Sab'a sont les 7 lectures authentiques du Coran, transmises par chaîne ininterrompue (Nafi', Ibn Kathir, Abu Amr, Ibn Amir, Asim, Hamza, Al-Kisa'i). La lecture d'Hafs (transmission d'Asim) est la plus répandue aujourd'hui." },
+  },
+  {
+    id: "qur_adv_004", category: "quran", type: "mcq", difficulty: 4,
+    question: "Quel est le verset considéré comme 'le plus grand du Coran' selon un hadith célèbre ?",
+    options: [
+      { text: "Al-Fatiha (1:1)",           correct: false },
+      { text: "Ayat al-Kursi (2:255)",      correct: true  },
+      { text: "Al-Ikhlas (112:1)",          correct: false },
+      { text: "La Basmala",                 correct: false },
+    ],
+    explanation: "Ubay ibn Ka'b demanda au Prophète ﷺ quel était le plus grand verset — il répondit : Ayat al-Kursi (Verset du Trône, 2:255). Ce verset décrit l'omniscience d'Allah et la Kursi (Chaise) qui englobe les cieux et la terre.",
+  },
+  {
+    id: "qur_adv_005", category: "quran", type: "mcq", difficulty: 3,
+    question: "Comment nomme-t-on la science qui étudie les circonstances de révélation des versets ?",
+    options: [
+      { text: "Tafsir",             correct: false },
+      { text: "Asbab al-Nuzul",     correct: true  },
+      { text: "Nasikh wa Mansukh",  correct: false },
+      { text: "Gharib al-Quran",    correct: false },
+    ],
+    explanation: "Asbab al-Nuzul (أسباب النزول — les causes de la révélation) étudie le contexte historique de chaque verset. C'est une science fondamentale du tafsir : connaître le 'pourquoi' d'un verset éclaire souvent son sens et sa portée.",
+  },
+  {
+    id: "qur_adv_006", category: "quran", type: "mcq", difficulty: 4,
+    question: "Qu'est-ce que le 'I'jaz al-Quran' ?",
+    options: [
+      { text: "La mémorisation complète du Coran",                              correct: false },
+      { text: "L'inimitabilité du Coran — son caractère miraculeux et inégalable", correct: true  },
+      { text: "La codification du Coran sous le calife Othman",                 correct: false },
+      { text: "La récitation du Coran selon les règles du tajwid",             correct: false },
+    ],
+    explanation: "L'I'jaz (إعجاز — impossibilité d'imiter) est le dogme de l'inimitabilité du Coran. Allah lance un défi (tahhaddi) : que les hommes et jinns produisent une seule sourate comparable (2:23). Les savants étudient l'inimitabilité linguistique, structurelle, prophétique et scientifique du texte.",
+  },
+
+  // ── ARABE — Difficile (diff 3-4) ────────────────────────────────
+  {
+    id: "ara_adv_001", category: "arabic", type: "mcq", difficulty: 3,
+    question: "Quelle est la racine trilitère de base du mot 'Kitab' (كتاب — livre) ?",
+    options: [
+      { text: "ك-ت-ب (k-t-b)",    correct: true  },
+      { text: "ك-ت-م (k-t-m)",    correct: false },
+      { text: "ك-ر-م (k-r-m)",    correct: false },
+      { text: "ك-س-ب (k-s-b)",    correct: false },
+    ],
+    explanation: "La racine ك-ت-ب (écrire) donne : كَتَبَ (écrire), كِتَاب (livre), كَاتِب (écrivain), مَكْتَبَة (bibliothèque), مَكْتُوب (lettre/écrit). L'arabe fonctionne par racines trilitères dont dérivent des dizaines de mots.",
+  },
+  {
+    id: "ara_adv_002", category: "arabic", type: "mcq", difficulty: 3,
+    question: "Que signifie le terme 'Barakah' (بَرَكَة) ?",
+    options: [
+      { text: "La prière du soir",          correct: false },
+      { text: "La bénédiction divine abondante", correct: true  },
+      { text: "La gratitude envers Allah",  correct: false },
+      { text: "La protection des anges",   correct: false },
+    ],
+    explanation: "Baraka (بَرَكَة) vient de la racine b-r-k (s'agenouiller, chameau qui s'accroupit = stabilité). Elle désigne une bénédiction divine qui multiplie ce qu'elle touche. 'Tabarak Allah' (تبارك الله) — exaltée soit la Baraka d'Allah.",
+  },
+  {
+    id: "ara_adv_003", category: "arabic", type: "mcq", difficulty: 3,
+    question: "Quel est le pluriel du mot 'Wali' (وَلِيّ — saint / ami d'Allah) ?",
+    options: [
+      { text: "Awlad (أَوْلَاد)",    correct: false },
+      { text: "Awliya (أَوْلِيَاء)", correct: true  },
+      { text: "Waliyun (وَالِيُون)", correct: false },
+      { text: "Wulat (وُلَاة)",      correct: false },
+    ],
+    explanation: "Awliya (أولياء) est le pluriel de Wali (وَلِيّ). Dans le Coran (10:62) : 'Certes, les alliés d'Allah n'ont rien à craindre.' Wulat (gouverneurs) est un autre pluriel de Wali mais dans le sens administratif.",
+  },
+  {
+    id: "ara_adv_004", category: "arabic", type: "mcq", difficulty: 4,
+    question: "Quelle est la différence entre 'Rabb' (رَبّ) et 'Ilah' (إِلَه) en arabe coranique ?",
+    options: [
+      { text: "Rabb = Dieu unique, Ilah = un dieu parmi d'autres",         correct: false },
+      { text: "Rabb = Seigneur/Maître nourricier, Ilah = divinité adorée",  correct: true  },
+      { text: "Ils sont synonymes dans le Coran",                          correct: false },
+      { text: "Rabb = Allah spécifiquement, Ilah = terme générique",       correct: false },
+    ],
+    explanation: "Rabb (ربّ) désigne le Seigneur nourricier, éducateur, maître absolu. Ilah (إله) désigne toute divinité adorée. La Shahada 'La ilaha illa Allah' = 'Nulle divinité digne d'être adorée, sauf Allah.' Le Prophète ﷺ est 'Abd Allah' (serviteur d'Allah) et non 'Abd Rabb Allah'.",
+  },
+  {
+    id: "ara_adv_005", category: "arabic", type: "mcq", difficulty: 3,
+    question: "Que signifie 'Bismillah ir-Rahman ir-Rahim' mot à mot ?",
+    options: [
+      { text: "Au nom d'Allah, l'Omniprésent, l'Omniprésent",           correct: false },
+      { text: "Au nom d'Allah, le Tout Miséricordieux, le Très Miséricordieux", correct: true  },
+      { text: "Par la gloire d'Allah, le Créateur, le Tout-Puissant",   correct: false },
+      { text: "Au nom d'Allah, le Maître, le Garant",                   correct: false },
+    ],
+    explanation: "Rahman (رحمن) désigne la miséricorde universelle d'Allah vers toute Sa création (croyants et non-croyants). Rahim (رحيم) désigne la miséricorde particulière réservée aux croyants dans l'au-delà. Les deux viennent de la racine r-ḥ-m (matrice, affection maternelle).",
+  },
+
+  // ── DARIJA — Questions (diff 2-3) ────────────────────────────────
+  {
+    id: "dar_adv_001", category: "darija", type: "mcq", difficulty: 2,
+    question: "Comment dit-on 'Merci beaucoup' en darija marocaine ?",
+    options: [
+      { text: "Shukran jazilan",     correct: false },
+      { text: "Choukran bezzaf",     correct: true  },
+      { text: "Baraka Laoufik",      correct: false },
+      { text: "Mamnounak bezzaf",    correct: false },
+    ],
+    explanation: "'Bezzaf' (بزاف) signifie 'beaucoup' en darija. 'Choukran bezzaf' (شكرا بزاف) est la formule courante. 'Baraka Laoufik' (بارك الله فيك) est une formule plus formelle et religieuse.",
+  },
+  {
+    id: "dar_adv_002", category: "darija", type: "mcq", difficulty: 2,
+    question: "Comment répondre 'ça va bien, al-hamdulillah' en darija ?",
+    options: [
+      { text: "Labas, al-hamdulillah",  correct: true  },
+      { text: "Mzyan, inchallah",       correct: false },
+      { text: "Wakha, Rabi ychafik",    correct: false },
+      { text: "Safi, al-hamdulillah",   correct: false },
+    ],
+    explanation: "'Labas' (لاباس — ça va / pas de mal) vient de l'espagnol 'no hay mal'. 'Labas, al-hamdulillah' est la réponse standard au salut 'Labas alik ?' (Tu vas bien ?).",
+  },
+  {
+    id: "dar_adv_003", category: "darija", type: "mcq", difficulty: 3,
+    question: "Que signifie 'Nshalh' ou 'Inchallah' dans l'usage quotidien marocain ?",
+    options: [
+      { text: "Uniquement 'si Dieu le veut' pour l'avenir",                     correct: false },
+      { text: "'Si Dieu le veut' — mais aussi parfois une façon polie de dire non ou peut-être", correct: true  },
+      { text: "Une prière obligatoire avant toute action",                       correct: false },
+      { text: "Une formule réservée aux imams et savants",                       correct: false },
+    ],
+    explanation: "Inchallah (إن شاء الله) est théologiquement correct et reconnu dans le Coran (18:23-24). Dans l'usage courant, il peut signifier 'oui probablement', 'peut-être' ou parfois un refus poli selon le contexte et l'intonation. Cette nuance est bien connue dans le monde arabophone.",
+  },
+  {
+    id: "dar_adv_004", category: "darija", type: "mcq", difficulty: 2,
+    question: "Que veut dire 'Mashi mouchkil' en darija ?",
+    options: [
+      { text: "C'est compliqué",      correct: false },
+      { text: "Pas de problème",      correct: true  },
+      { text: "Je ne sais pas",       correct: false },
+      { text: "C'est interdit",       correct: false },
+    ],
+    explanation: "'Machi mouchkil' (ماشي مشكل — pas de problème) est l'équivalent de 'no problem'. 'Machi' (pas) + 'mouchkil' (problème en arabe). Très utilisé dans les conversations informelles marocaines.",
+  },
+  {
+    id: "dar_adv_005", category: "darija", type: "mcq", difficulty: 3,
+    question: "Comment dit-on 'Je cherche la mosquée' en darija ?",
+    options: [
+      { text: "Kancherch al-jami'",    correct: false },
+      { text: "Kanqleb 'la jami'",     correct: true  },
+      { text: "Bghit nmchi l'jami'",   correct: false },
+      { text: "Wach kayn jami' hna ?", correct: false },
+    ],
+    explanation: "'Kanqleb' (كنقلب — je cherche) vient du verbe qelb/qleb. 'Kanqleb 'la jami'' = je cherche la mosquée. 'Bghet' (je veux), 'mchi' (aller) sont aussi corrects mais 'kanqleb' exprime spécifiquement 'chercher'.",
+  },
+
+  // ── QUESTIONS LIÉES AUX HISTOIRES — Ibrahim ──────────────────────
+  {
+    id: "story_ibr_001", category: "religion", type: "mcq", difficulty: 1,
+    question: "Quel tyran a ordonné de jeter Ibrahim ﷺ dans le feu ?",
+    options: [{ text: "Pharaon", correct: false }, { text: "Nimrod (Namroud)", correct: true }, { text: "Haman", correct: false }, { text: "Abu Lahab", correct: false }],
+    eventId: "arc_ibrahim",
+    culturalCapsule: { title: "Nimrod — le roi qui se croyait dieu", text: "Nimrod (نمرود) était un roi mésopotamien qui se réclamait de la divinité. Quand Ibrahim ﷺ brisa les idoles et défia sa logique, Nimrod ordonna de construire un immense bûcher. Selon le Coran, Allah dit au feu : 'Sois fraîcheur et paix pour Ibrahim.'" },
+  },
+  {
+    id: "story_ibr_002", category: "religion", type: "mcq", difficulty: 2,
+    question: "Qu'a fait Ibrahim ﷺ pour montrer que les idoles ne pouvaient se défendre ?",
+    options: [
+      { text: "Il les a jetées dans le fleuve", correct: false },
+      { text: "Il les a toutes brisées sauf la plus grande", correct: true },
+      { text: "Il a fui loin du village", correct: false },
+      { text: "Il a prié devant elles pour montrer qu'elles ne répondaient pas", correct: false },
+    ],
+    eventId: "arc_ibrahim",
+    explanation: "Ibrahim brisa toutes les idoles et laissa la hache sur la plus grande. Quand on l'accusa, il dit : 'C'est la grande qui l'a fait — interrogez-les si elles parlent !' Cet argument logique réduisit ses adversaires au silence.",
+  },
+  {
+    id: "story_ibr_003", category: "religion", type: "mcq", difficulty: 2,
+    question: "Qu'a construit Ibrahim ﷺ avec son fils Ismaïl ﷺ à La Mecque ?",
+    options: [{ text: "La Mosquée Al-Aqsa", correct: false }, { text: "La Ka'ba", correct: true }, { text: "Le puits de Zamzam", correct: false }, { text: "La Mosquée du Prophète", correct: false }],
+    eventId: "arc_ibrahim",
+    culturalCapsule: { title: "La Ka'ba — maison d'Allah", text: "Ibrahim et Ismaïl construisirent la Ka'ba (الكعبة) en élevant chaque pierre en priant : 'Notre Seigneur, accepte de nous.' La pierre noire (Hajr al-Aswad) y fut placée par Ibrahim ﷺ. La Ka'ba reste depuis le centre de la qibla pour plus d'un milliard de musulmans." },
+  },
+  {
+    id: "story_ibr_004", category: "religion", type: "mcq", difficulty: 3,
+    question: "Quel est le lien entre Ibrahim ﷺ et le pèlerinage (Hajj) ?",
+    options: [
+      { text: "Ibrahim a tracé la route entre La Mecque et Médine", correct: false },
+      { text: "Ibrahim a institué les rites du Hajj sur ordre divin", correct: true },
+      { text: "Ibrahim a interdit l'accès à La Mecque aux non-croyants", correct: false },
+      { text: "Ibrahim a planté le palmier sacré de Mina", correct: false },
+    ],
+    eventId: "arc_ibrahim",
+    explanation: "Allah ordonna à Ibrahim d'appeler les gens au pèlerinage (Coran 22:27). Les rites du Hajj — la circumambulation, la sa'y entre Safa et Marwa, le séjour à Mina — commémorent les épreuves d'Ibrahim, Hajar et Ismaïl.",
+  },
+
+  // ── QUESTIONS LIÉES AUX HISTOIRES — Moussa ──────────────────────
+  {
+    id: "story_msa_001", category: "religion", type: "mcq", difficulty: 1,
+    question: "Où fut placé bébé Moussa ﷺ pour le sauver de Pharaon ?",
+    options: [{ text: "Dans une grotte du désert", correct: false }, { text: "Dans un couffin sur le Nil", correct: true }, { text: "Chez des nomades du Sinaï", correct: false }, { text: "Dans un temple d'Osiris", correct: false }],
+    eventId: "arc_moussa",
+    culturalCapsule: { title: "Le berceau sur le Nil", text: "La mère de Moussa, sur inspiration divine, le plaça dans un couffin et le confia au Nil. Le bébé finit par être recueilli par la famille de Pharaon elle-même — un signe de la protection divine." },
+  },
+  {
+    id: "story_msa_002", category: "religion", type: "mcq", difficulty: 2,
+    question: "Quel était le bâton miraculeux de Moussa ﷺ capable de faire ?",
+    options: [
+      { text: "Guérir les malades au toucher", correct: false },
+      { text: "Se transformer en serpent et fendre la mer", correct: true },
+      { text: "Faire pleuvoir sur commande", correct: false },
+      { text: "Écrire les commandements seul", correct: false },
+    ],
+    eventId: "arc_moussa",
+    explanation: "Le bâton de Moussa se transforma en serpent devant les magiciens de Pharaon. C'est aussi lui qui frappa la mer pour la fendre en deux (Coran 20:77).",
+  },
+  {
+    id: "story_msa_003", category: "religion", type: "mcq", difficulty: 2,
+    question: "Qui était le frère de Moussa ﷺ qui l'assista dans sa mission ?",
+    options: [{ text: "Issa", correct: false }, { text: "Haroun (Aaron)", correct: true }, { text: "Dawoud", correct: false }, { text: "Shuayb", correct: false }],
+    eventId: "arc_moussa",
+    explanation: "Moussa demanda à Allah de lui adjoindre son frère Haroun (Coran 20:29-32). Haroun était plus éloquent — un rappel que les prophètes s'entourent de soutiens complémentaires.",
+  },
+  {
+    id: "story_msa_004", category: "religion", type: "mcq", difficulty: 3,
+    question: "Combien de fois est mentionné le nom de Moussa dans le Coran ?",
+    options: [{ text: "72 fois", correct: false }, { text: "136 fois", correct: true }, { text: "98 fois", correct: false }, { text: "25 fois", correct: false }],
+    eventId: "arc_moussa",
+    explanation: "Moussa ﷺ est le prophète le plus mentionné dans le Coran (136 fois), devant Ibrahim (69 fois) et Issa (25 fois).",
+  },
+
+  // ── QUESTIONS LIÉES AUX HISTOIRES — Yusuf ───────────────────────
+  {
+    id: "story_ysf_001", category: "religion", type: "mcq", difficulty: 1,
+    question: "Qui jeta Yusuf ﷺ dans le puits par jalousie ?",
+    options: [{ text: "Son père Yaqoub", correct: false }, { text: "Ses frères", correct: true }, { text: "Les soldats du roi d'Égypte", correct: false }, { text: "Des marchands de caravane", correct: false }],
+    eventId: "arc_yusuf",
+    culturalCapsule: { title: "La jalousie des frères", text: "Les frères de Yusuf, jaloux de l'amour que leur père Yaqoub lui portait, le jetèrent dans un puits. Cette épreuve initiale marque le début d'un long voyage — de l'esclavage au sommet du pouvoir." },
+  },
+  {
+    id: "story_ysf_002", category: "religion", type: "mcq", difficulty: 2,
+    question: "Quel don exceptionnel Allah accorda-t-il à Yusuf ﷺ ?",
+    options: [
+      { text: "La capacité de guérir les malades", correct: false },
+      { text: "L'interprétation des rêves", correct: true },
+      { text: "La force surhumaine", correct: false },
+      { text: "La connaissance des langues", correct: false },
+    ],
+    eventId: "arc_yusuf",
+    explanation: "Yusuf interpréta le rêve du roi d'Égypte : 7 vaches grasses mangées par 7 maigres = 7 ans d'abondance suivis de 7 ans de famine. Cette interprétation le propulsa au rang de ministre.",
+  },
+  {
+    id: "story_ysf_003", category: "religion", type: "mcq", difficulty: 2,
+    question: "Combien d'années Yusuf ﷺ passa-t-il en prison selon le Coran ?",
+    options: [{ text: "3 ans", correct: false }, { text: "7 ans", correct: false }, { text: "Plusieurs années (بِضْعَ سِنِينَ)", correct: true }, { text: "12 ans", correct: false }],
+    eventId: "arc_yusuf",
+    explanation: "Le Coran dit 'bidh'a sinîn' (بِضْعَ سِنِينَ — quelques années), généralement interprété comme 7 à 12 ans. Yusuf refusa la liberté sans preuves de son innocence.",
+  },
+  {
+    id: "story_ysf_004", category: "religion", type: "mcq", difficulty: 3,
+    question: "Que dit Yusuf ﷺ à ses frères quand il se révéla à eux en Égypte ?",
+    options: [
+      { text: "'Vous serez punis pour ce que vous m'avez fait'", correct: false },
+      { text: "'Pas de reproche sur vous aujourd'hui — Allah vous pardonne'", correct: true },
+      { text: "'Retournez chez mon père et revenez avec lui'", correct: false },
+      { text: "'Je suis le ministre du roi, inclinez-vous'", correct: false },
+    ],
+    eventId: "arc_yusuf",
+    culturalCapsule: { title: "Le pardon de Yusuf — modèle de noblesse", text: "Yusuf dit à ses frères : 'Pas de reproche sur vous aujourd'hui. Allah vous pardonne, Il est le Plus Miséricordieux des miséricordieux' (Coran 12:92). Ce pardon spontané, sans conditions, est cité par les savants comme l'un des exemples les plus purs de générosité d'âme dans le Coran." },
+  },
+
+  // ── QUESTIONS LIÉES AUX HISTOIRES — Maryam ──────────────────────
+  {
+    id: "story_mrm_001", category: "religion", type: "mcq", difficulty: 1,
+    question: "Dans quelle sourate du Coran Maryam (Marie) ﷺ est-elle nommée ?",
+    options: [{ text: "Sourate 19 — Maryam", correct: true }, { text: "Sourate 3 — Al-Imran", correct: false }, { text: "Les deux (19 et 3)", correct: false }, { text: "Sourate 2 — Al-Baqara", correct: false }],
+    eventId: "arc_maryam",
+    explanation: "Maryam est mentionnée dans plusieurs sourates, mais la sourate 19 porte son nom. Elle est la seule femme nommée explicitement dans le Coran.",
+  },
+  {
+    id: "story_mrm_002", category: "religion", type: "mcq", difficulty: 2,
+    question: "Quel miracle Issa ﷺ accomplit-il dès sa naissance pour défendre sa mère Maryam ?",
+    options: [
+      { text: "Il fit apparaître de la nourriture pour Maryam", correct: false },
+      { text: "Il parla depuis son berceau pour témoigner de sa pureté", correct: true },
+      { text: "Il guérit les malades qui se pressaient autour d'elle", correct: false },
+      { text: "Il ordonna aux arbres de se plier pour la nourrir", correct: false },
+    ],
+    eventId: "arc_maryam",
+    culturalCapsule: { title: "Issa parle depuis son berceau", text: "Quand son peuple accusa Maryam d'immoralité, Issa parla depuis son berceau : 'Je suis le serviteur d'Allah. Il m'a donné le Livre et fait prophète' (Coran 19:30). Ce miracle unique valida l'innocence de sa mère et sa propre mission." },
+  },
+  {
+    id: "story_mrm_003", category: "religion", type: "mcq", difficulty: 3,
+    question: "Quel rang Maryam ﷺ occupe-t-elle parmi les femmes selon un hadith célèbre ?",
+    options: [
+      { text: "La meilleure femme du monde", correct: false },
+      { text: "L'une des quatre femmes les plus parfaites", correct: true },
+      { text: "La première femme à entrer au paradis", correct: false },
+      { text: "La seule prophétesse de l'islam", correct: false },
+    ],
+    eventId: "arc_maryam",
+    explanation: "Le Prophète ﷺ a dit : 'Parmi les femmes qui ont atteint la perfection : Maryam bint Imran, Asiya, Khadija et Fatima.' (Al-Bukhari). Cette liste honore à la fois la dévotion, la sagesse et la bravoure.",
   },
 ];
 

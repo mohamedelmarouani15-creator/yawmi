@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
-import { Swords, Lock, Flame, Coins, Package, ShoppingCart, Castle } from "lucide-react";
+import { Flame, Coins, Package, ShoppingCart, Castle } from "lucide-react";
 import { useGameState } from "@/hooks/useGameState";
 import { LOCATIONS } from "@/lib/game/locations";
 import { SAGES } from "@/lib/game/sages";
@@ -12,6 +13,18 @@ import { xpProgress, xpInCurrentLevel } from "@/lib/game/game-storage";
 import { EventBanner } from "@/components/EventBanner";
 import { useT } from "@/hooks/useT";
 import { useLang } from "@/hooks/useLang";
+
+const OasisMap3D = dynamic(() => import("@/components/OasisMap3D"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center"
+      style={{ height: "62dvh", background: "#020a05" }}>
+      <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+        className="rounded-full border-2"
+        style={{ width: 36, height: 36, borderColor: "#D4AF37", borderTopColor: "transparent" }} />
+    </div>
+  ),
+});
 
 // ── Isometric constants ────────────────────────────────────────
 const W  = 22;
@@ -564,19 +577,7 @@ export default function OasisPage() {
   const tt = useT();
   const lang = useLang();
   const isAr = lang === "ar" || lang === "darija";
-  const containerRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [didScroll, setDidScroll] = useState(false);
-
-  useEffect(() => {
-    if (!state || didScroll || !containerRef.current) return;
-    const loc = state.currentLocation ?? "medine";
-    const pos = CITY_POS[loc];
-    if (!pos) return;
-    const viewH = window.innerHeight;
-    containerRef.current.scrollTop = Math.max(0, pos.cy - viewH / 2 + 100);
-    setDidScroll(true);
-  }, [state, didScroll]);
 
   useEffect(() => {
     if (!toast) return;
@@ -588,7 +589,7 @@ export default function OasisPage() {
     if (!state) return;
     if (!locationUnlocked(locId)) {
       const loc = LOCATIONS.find(l => l.id === locId);
-      setToast(`⊘ ${isAr ? (loc?.name ?? loc?.nameFr) : loc?.nameFr} — ${loc?.requiredXP} XP requis`);
+      setToast(`⊘ ${isAr ? (loc?.name ?? loc?.nameFr) : loc?.nameFr} — ${loc?.requiredXP} XP`);
       return;
     }
     router.push(`/oasis/${locId}`);
@@ -608,10 +609,7 @@ export default function OasisPage() {
   const unlockedCount = ORDER.filter(id => locationUnlocked(id) || unlocked.includes(id)).length;
 
   return (
-    <div
-      ref={containerRef}
-      style={{ height: "100dvh", overflowY: "scroll", background: "var(--bg)", position: "relative" }}
-    >
+    <div style={{ background: "#020a05", minHeight: "100dvh" }}>
       {/* ── Premium HUD ── */}
       <div
         className="sticky top-0 z-20"
@@ -787,156 +785,23 @@ export default function OasisPage() {
         </motion.button>
       </div>
 
-      {/* ── Isometric SVG map ── */}
-      <svg
-        width={390} height={SVG_H}
-        viewBox={`0 0 390 ${SVG_H}`}
-        style={{ display: "block", margin: "0 auto", overflow: "visible" }}
-      >
-        <defs>
-          <linearGradient id="xpGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stopColor="var(--primary)" />
-            <stop offset="100%" stopColor="var(--gold)" />
-          </linearGradient>
-          {/* Glow filter for active buildings */}
-          <filter id="glow" x="-40%" y="-40%" width="180%" height="180%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          <filter id="glow-lg" x="-60%" y="-60%" width="220%" height="220%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="10" result="blur" />
-            <feMerge>
-              <feMergeNode in="blur" />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-          {/* Radial gradient for La Mecque special glow */}
-          <radialGradient id="mecqueGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="var(--gold)" stopOpacity="0.18" />
-            <stop offset="100%" stopColor="var(--gold)" stopOpacity="0" />
-          </radialGradient>
-          {/* Subtle region gradient */}
-          <radialGradient id="regionGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="var(--primary)" stopOpacity="0.08" />
-            <stop offset="100%" stopColor="var(--primary)" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-
-        {/* Background subtle gradient blobs */}
-        <ellipse cx={195} cy={350} rx={160} ry={120} fill="url(#mecqueGlow)" />
-        <ellipse cx={195} cy={1800} rx={200} ry={300} fill="url(#regionGlow)" />
-        <ellipse cx={195} cy={3050} rx={180} ry={200} fill="url(#regionGlow)" />
-
-        {/* Starfield */}
-        {STARS.map((s, i) => (
-          <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="white" opacity={s.op} />
-        ))}
-        {/* Feature stars */}
-        {FEATURE_STARS.map((s, i) => (
-          <circle key={`f${i}`} cx={s.x} cy={s.y} r={s.r} fill="white" opacity={0.25} />
-        ))}
-
-        {/* ── Path — 4 layers ── */}
-        {/* Outer glow */}
-        <path d={pathD} fill="none" stroke="rgba(212,175,55,0.04)" strokeWidth={60} strokeLinecap="round" />
-        {/* Mid glow */}
-        <path d={pathD} fill="none" stroke="rgba(212,175,55,0.07)" strokeWidth={24} strokeLinecap="round" />
-        {/* Inner glow */}
-        <path d={pathD} fill="none" stroke="rgba(212,175,55,0.13)" strokeWidth={8} strokeLinecap="round" />
-        {/* Dashed center line */}
-        <path d={pathD} fill="none" stroke="rgba(212,175,55,0.55)" strokeWidth={1.5}
-          strokeDasharray="5 9" strokeLinecap="round" />
-
-        {/* Path connection dots */}
-        {ORDER.map(id => {
-          const { cx, cy } = CITY_POS[id];
-          return (
-            <circle key={`dot-${id}`} cx={cx} cy={cy - 100} r={2.5}
-              fill="rgba(212,175,55,0.5)" />
-          );
-        })}
-
-        {/* ── Cities ── */}
-        {ORDER.map(locId => {
-          const loc     = LOCATIONS.find(l => l.id === locId)!;
-          const { cx, cy } = CITY_POS[locId];
-          const isUnlk  = state ? locationUnlocked(locId) : locId === "medine";
-          const isCur   = locId === curLoc;
-          const sage    = SAGES.find(s => s.locationId === locId);
-          const def     = sage ? (state?.defeatedSages ?? []).includes(sage.id) : false;
-          const Building = BUILDINGS[locId];
-          const alpha   = isUnlk ? 1 : 0.38;
-
-          return (
-            <motion.g
-              key={locId}
-              onClick={() => handleTap(locId)}
-              style={{ cursor: isUnlk ? "pointer" : "default" }}
-              whileTap={isUnlk ? { scale: 0.97 } : {}}
-            >
-              {/* Wide ground glow for unlocked */}
-              {isUnlk && (
-                <ellipse cx={cx} cy={cy} rx={70} ry={22}
-                  fill={loc.color} opacity={0.05}
-                />
-              )}
-
-              {/* Current city: animated pulse rings */}
-              {isCur && (
-                <>
-                  <motion.circle cx={cx} cy={cy - 60} r={55} fill="none"
-                    stroke={loc.color} strokeWidth={1.5} opacity={0.4}
-                    animate={{ r: [52, 65, 52], opacity: [0.45, 0.08, 0.45] }}
-                    transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                  <motion.circle cx={cx} cy={cy - 60} r={40} fill="none"
-                    stroke={loc.color} strokeWidth={0.8} opacity={0.25}
-                    animate={{ r: [38, 48, 38], opacity: [0.3, 0.05, 0.3] }}
-                    transition={{ duration: 2.8, delay: 0.4, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                </>
-              )}
-
-              {/* La Mecque special glow */}
-              {locId === "la_mecque" && isUnlk && (
-                <ellipse cx={cx} cy={cy - 80} rx={80} ry={40}
-                  fill="url(#mecqueGlow)" />
-              )}
-
-              {/* Building with scale */}
-              {Building && (
-                <g
-                  transform={`translate(${cx},${cy}) scale(${BUILDING_SCALE})`}
-                  filter={isUnlk && isCur ? "url(#glow)" : undefined}
-                >
-                  <Building a={alpha} />
-                </g>
-              )}
-
-              {/* Glass city card — BELOW the building */}
-              <g transform={`translate(${cx}, ${cy})`}>
-                <CityCard
-                  locId={locId}
-                  location={loc}
-                  unlocked={isUnlk}
-                  defeated={def}
-                  isCurrent={isCur}
-                  sage={sage}
-                />
-              </g>
-            </motion.g>
-          );
-        })}
-
-        {/* ── Avatar marocain — se positionne sur la ville actuelle ── */}
-        <AvatarMarocain
-          cx={CITY_POS[curLoc]?.cx ?? 195}
-          cy={(CITY_POS[curLoc]?.cy ?? 3050) - 185}
+      {/* ── 3D Oasis Map ── */}
+      <div style={{ height: "62dvh", position: "relative" }}>
+        <OasisMap3D
+          locations={LOCATIONS}
+          unlockedIds={state?.unlockedLocations ?? ["medine"]}
+          defeatedIds={state?.defeatedSages ?? []}
+          currentLocation={state?.currentLocation ?? "medine"}
+          onLocClick={handleTap}
         />
-      </svg>
+        {/* Hint */}
+        <div className="absolute bottom-3 left-0 right-0 flex justify-center pointer-events-none">
+          <span className="text-[9px] tracking-widest opacity-30 uppercase"
+            style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            Glisse pour tourner · Touche une ville
+          </span>
+        </div>
+      </div>
 
       <Toast msg={toast ?? ""} show={!!toast} />
     </div>

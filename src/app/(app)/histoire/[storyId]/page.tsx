@@ -6,10 +6,13 @@ import { motion } from "framer-motion";
 import { ArrowLeft, CheckCircle2, Lock, BookOpen } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { springTap, pageVariants, itemVariants } from "@/lib/motion";
+import { useSettings } from "@/hooks/useSettings";
+import { useT } from "@/hooks/useT";
 
 interface ChapterMeta {
   chapter_number: number;
   title: string;
+  title_ar: string | null;
 }
 
 interface StoryProgress {
@@ -20,6 +23,9 @@ interface StoryProgress {
 export default function StoryChaptersPage() {
   const { storyId } = useParams() as { storyId: string };
   const router = useRouter();
+  const tt = useT();
+  const { settings } = useSettings();
+  const isAr = settings.motherTongue === "arabe" || settings.motherTongue === "darija";
 
   const [chapters,  setChapters]  = useState<ChapterMeta[]>([]);
   const [progress,  setProgress]  = useState<StoryProgress | null>(null);
@@ -33,7 +39,7 @@ export default function StoryChaptersPage() {
       const [{ data: chaps }, { data: prog }] = await Promise.all([
         supabase
           .from("story_chapters")
-          .select("chapter_number, title")
+          .select("chapter_number, title, title_ar")
           .eq("story_id", storyId)
           .order("chapter_number"),
         supabase
@@ -44,7 +50,7 @@ export default function StoryChaptersPage() {
           .single(),
       ]);
 
-      setChapters(chaps ?? []);
+      setChapters((chaps ?? []) as unknown as ChapterMeta[]);
       setProgress(prog);
       setLoading(false);
     }
@@ -54,18 +60,19 @@ export default function StoryChaptersPage() {
   const current   = progress?.current_chapter ?? 1;
   const completed = progress?.completed_chapters ?? [];
 
-  const TITLES: Record<string, string> = {
-    arc_yusuf:      "L'histoire de Yûsuf",
-    arc_ibrahim:    "Ibrahim et le Feu",
-    arc_moussa:     "Moussa et Pharaon",
-    arc_maryam:     "Maryam, la choisie",
-    arc_sira:       "La Sîra — La vie du Prophète ﷺ",
-    arc_sahaba:     "Les Compagnons du Prophète ﷺ",
-    arc_hijra:      "La Hijra — La Grande Migration",
-    arc_ismail:     "Ismaïl et le Sacrifice",
-    arc_isra_miraj: "Al-Isrâ wal-Miraj",
-    arc_souleimane: "Souleimane, le Roi Sage",
+  const TITLES: Record<string, { fr: string; ar: string }> = {
+    arc_yusuf:      { fr: "L'histoire de Yûsuf",                ar: "قِصَّةُ يُوسُفَ" },
+    arc_ibrahim:    { fr: "Ibrahim et le Feu",                   ar: "إِبْرَاهِيمُ وَالنَّارُ" },
+    arc_moussa:     { fr: "Moussa et Pharaon",                   ar: "مُوسَى وَفِرْعَوْنُ" },
+    arc_maryam:     { fr: "Maryam, la choisie",                  ar: "مَرْيَمُ الصِّدِّيقَةُ" },
+    arc_sira:       { fr: "La Sîra — La vie du Prophète ﷺ",     ar: "السِّيرَةُ النَّبَوِيَّةُ" },
+    arc_sahaba:     { fr: "Les Compagnons du Prophète ﷺ",        ar: "الصَّحَابَةُ الْكِرَامُ" },
+    arc_hijra:      { fr: "La Hijra — La Grande Migration",      ar: "الْهِجْرَةُ الْمُبَارَكَةُ" },
+    arc_ismail:     { fr: "Ismaïl et le Sacrifice",              ar: "إِسْمَاعِيلُ وَالذَّبْحُ" },
+    arc_isra_miraj: { fr: "Al-Isrâ wal-Miraj",                   ar: "الْإِسْرَاءُ وَالْمِعْرَاجُ" },
+    arc_souleimane: { fr: "Souleimane, le Roi Sage",             ar: "سُلَيْمَانُ الْحَكِيمُ" },
   };
+  const arcTitle = TITLES[storyId] ?? { fr: "Histoire", ar: "قصة" };
 
   return (
     <motion.main
@@ -83,11 +90,11 @@ export default function StoryChaptersPage() {
         <div>
           <h1 className="text-lg font-bold"
             style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-            {TITLES[storyId] ?? "Histoire"}
+            {isAr ? arcTitle.ar : arcTitle.fr}
           </h1>
           <p className="text-xs opacity-40"
             style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            {completed.length}/{chapters.length} chapitres lus
+            {completed.length}/{chapters.length} {tt("histoire.chapters")} {isAr ? "مقروءة" : "lus"}
           </p>
         </div>
       </div>
@@ -106,7 +113,7 @@ export default function StoryChaptersPage() {
           </div>
           <p className="text-xs mt-1 opacity-35"
             style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            {Math.round((completed.length / chapters.length) * 100)}% terminé
+            {Math.round((completed.length / chapters.length) * 100)}% {isAr ? "مكتمل" : "terminé"}
           </p>
         </motion.div>
       )}
@@ -178,14 +185,15 @@ export default function StoryChaptersPage() {
                 <div className="flex-1 min-w-0">
                   <p className="text-xs opacity-40 mb-0.5"
                     style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                    Chapitre {ch.chapter_number}
+                    {tt("chapter.label")} {ch.chapter_number}
                   </p>
                   <p className="text-sm font-semibold truncate"
                     style={{
                       color: isDone ? "#4ade80" : isCurrent ? "var(--gold)" : "var(--text)",
-                      fontFamily: "var(--font-bricolage)",
+                      fontFamily: isAr ? "var(--font-amiri)" : "var(--font-bricolage)",
+                      direction: isAr ? "rtl" : "ltr",
                     }}>
-                    {ch.title}
+                    {isAr ? (ch.title_ar ?? ch.title) : ch.title}
                   </p>
                 </div>
 
@@ -197,7 +205,7 @@ export default function StoryChaptersPage() {
                       border: "1px solid rgba(212,175,55,0.3)",
                       fontFamily: "var(--font-dm-sans)",
                     }}>
-                    Lire
+                    {isAr ? "اقرأ" : "Lire"}
                   </span>
                 )}
               </motion.button>

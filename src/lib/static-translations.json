@@ -1,0 +1,794 @@
+{
+  "achievements": {
+    "first_correct": {
+      "en": {
+        "title": "",
+        "description": "Answer your first question correctly"
+      },
+      "es": {
+        "title": "Primera luz",
+        "description": "Responde correctamente a tu primera pregunta"
+      },
+      "tr": {
+        "title": "İlk ışık",
+        "description": "İlk sorunuza doğru cevap verin"
+      },
+      "darija": {
+        "title": "Første lys",
+        "description": "Besvar dit første spørgsmål rigtigt"
+      }
+    },
+    "sage_1": {
+      "en": {
+        "title": "Apprentice cartographer",
+        "description": "Defeat your first sage"
+      },
+      "es": {
+        "title": "Aprendiz de cartógrafo",
+        "description": "Derrota a tu primer sabio"
+      },
+      "tr": {
+        "title": "Çırak haritacı",
+        "description": "İlk bilgeni yen"
+      },
+      "darija": {
+        "title": "Kartograflærling",
+        "description": "Besejr din første vismand"
+      }
+    },
+    "sage_3": {
+      "en": {
+        "title": "Budding scholar",
+        "description": "Defeat 3 sages"
+      },
+      "es": {
+        "title": "Erudito en ciernes",
+        "description": "Derrota a 3 sabios"
+      },
+      "tr": {
+        "title": "Yetişen bilim adamı",
+        "description": "3 bilgeyi yen"
+      },
+      "darija": {
+        "title": "spirende lærd",
+        "description": "Besejr 3 vismænd"
+      }
+    },
+    "sage_all": {
+      "en": {
+        "title": "Master of Wisdom",
+        "description": "Defeat all the sages"
+      },
+      "es": {
+        "title": "Maestro de la Sabiduría",
+        "description": "Derrota a todos los sabios."
+      },
+      "tr": {
+        "title": "Bilgeliğin Efendisi",
+        "description": "Bütün bilgeleri yen"
+      },
+      "darija": {
+        "title": "Visdommens mester",
+        "description": "Besejr alle vismændene"
+      }
+    },
+    "streak_3": {
+      "en": {
+        "title": "Diligent",
+        "description": "3 days in a row"
+      },
+      "es": {
+        "title": "Diligente",
+        "description": "3 días seguidos"
+      },
+      "tr": {
+        "title": "Gayretli",
+        "description": "3 gün üst üste"
+      },
+      "darija": {
+        "title": "Flittig",
+        "description": "3 dage i træk"
+      }
+    },
+    "streak_7": {
+      "en": {
+        "title": "Faithful",
+        "description": "7 days in a row"
+      },
+      "es": {
+        "title": "Fiel",
+        "description": "7 días seguidos"
+      },
+      "tr": {
+        "title": "Sadık",
+        "description": "7 gün üst üste"
+      },
+      "darija": {
+        "title": "Trofast",
+        "description": "7 dage i træk"
+      }
+    },
+    "streak_30": {
+      "en": {
+        "title": "Patient Pilgrim",
+        "description": "30 days in a row"
+      },
+      "es": {
+        "title": "Peregrino paciente",
+        "description": "30 días seguidos"
+      },
+      "tr": {
+        "title": "Hasta Hacı",
+        "description": "30 gün üst üste"
+      },
+      "darija": {
+        "title": "Tålmodig Pilgrim",
+        "description": "30 dage i træk"
+      }
+    },
+    "questions_50": {
+      "en": {
+        "title": "Curious",
+        "description": "50 questions answered"
+      },
+      "es": {
+        "title": "Curioso",
+        "description": "50 preguntas respondidas"
+      },
+      "tr": {
+        "title": "Meraklı",
+        "description": "50 soru cevaplandı"
+      },
+      "darija": {
+        "title": "Nysgerrig",
+        "description": "50 spørgsmål besvaret"
+      }
+    },
+    "questions_100": {
+      "en": {
+        "title": "A hundred wisdoms",
+        "description": "100 questions answered"
+      },
+      "es": {
+        "title": "cien sabidurías",
+        "description": "100 preguntas respondidas"
+      },
+      "tr": {
+        "title": "Yüzlerce bilgelik",
+        "description": "100 soru cevaplandı"
+      },
+      "darija": {
+        "title": "Hundrede visdom",
+        "description": "100 spørgsmål besvaret"
+      }
+    },
+    "questions_500": {
+      "en": {
+        "title": "Encyclopedist",
+        "description": "500 questions answered"
+      },
+      "es": {
+        "title": "Enciclopedista",
+        "description": "500 preguntas respondidas"
+      },
+      "tr": {
+        "title": "Ansiklopedi yazarı",
+        "description": "500 soru cevaplandı"
+      },
+      "darija": {
+        "title": "Encyklopædist",
+        "description": "500 spørgsmål besvaret"
+      }
+    },
+    "perfect_game": {
+      "en": {
+        "title": "Perfect",
+        "description": "10/10 to a challenge"
+      },
+      "es": {
+        "title": "Perfecto",
+        "description": "10/10 a un desafío"
+      },
+      "tr": {
+        "title": "Mükemmel",
+        "description": "Bir meydan okumaya 10/10"
+      },
+      "darija": {
+        "title": "Perfektionere",
+        "description": "10/10 til en udfordring"
+      }
+    },
+    "level_10": {
+      "en": {
+        "title": "Scholar",
+        "description": "Reach level 10"
+      },
+      "es": {
+        "title": "Erudito",
+        "description": "Alcanza el nivel 10"
+      },
+      "tr": {
+        "title": "Akademik",
+        "description": "10. seviyeye ulaş"
+      },
+      "darija": {
+        "title": "Lærd",
+        "description": "Nå niveau 10"
+      }
+    },
+    "level_25": {
+      "en": {
+        "title": "Wise",
+        "description": "Reach level 25"
+      },
+      "es": {
+        "title": "Inteligente",
+        "description": "Alcanza el nivel 25"
+      },
+      "tr": {
+        "title": "Bilge",
+        "description": "25. seviyeye ulaş"
+      },
+      "darija": {
+        "title": "Klog",
+        "description": "Nå niveau 25"
+      }
+    },
+    "level_50": {
+      "en": {
+        "title": "Grandmaster",
+        "description": "Reach level 50"
+      },
+      "es": {
+        "title": "gran maestro",
+        "description": "Alcanza el nivel 50"
+      },
+      "tr": {
+        "title": "Büyük usta",
+        "description": "50. seviyeye ulaş"
+      },
+      "darija": {
+        "title": "Stormester",
+        "description": "Nå niveau 50"
+      }
+    },
+    "coins_100": {
+      "en": {
+        "title": "Little treasure",
+        "description": "Accumulate 100 gold coins"
+      },
+      "es": {
+        "title": "pequeño tesoro",
+        "description": "Acumula 100 monedas de oro."
+      },
+      "tr": {
+        "title": "Küçük hazine",
+        "description": "100 altın biriktirin"
+      },
+      "darija": {
+        "title": "Lille skat",
+        "description": "Saml 100 guldmønter"
+      }
+    },
+    "mosque_1": {
+      "en": {
+        "title": "Builder",
+        "description": "Add a first object to your mosque"
+      },
+      "es": {
+        "title": "Constructor",
+        "description": "Añade un primer objeto a tu mezquita"
+      },
+      "tr": {
+        "title": "İnşaatçı",
+        "description": "Caminize ilk nesneyi ekleyin"
+      },
+      "darija": {
+        "title": "Bygmester",
+        "description": "Tilføj et første objekt til din moske"
+      }
+    },
+    "category_quran": {
+      "en": {
+        "title": "Memorizer",
+        "description": "Reach level 5 in Quran"
+      },
+      "es": {
+        "title": "Memorizador",
+        "description": "Alcanza el nivel 5 en el Corán."
+      },
+      "tr": {
+        "title": "Ezberleyici",
+        "description": "Kuran'da 5. seviyeye ulaş"
+      },
+      "darija": {
+        "title": "Memorizer",
+        "description": "Nå niveau 5 i Koranen"
+      }
+    },
+    "category_arabic": {
+      "en": {
+        "title": "Linguist",
+        "description": "Reach level 5 in Arabic"
+      },
+      "es": {
+        "title": "Lingüista",
+        "description": "Alcanza el nivel 5 en árabe."
+      },
+      "tr": {
+        "title": "Dilbilimci",
+        "description": "Arapçada 5. seviyeye ulaş"
+      },
+      "darija": {
+        "title": "Lingvist",
+        "description": "Nå niveau 5 på arabisk"
+      }
+    },
+    "sage_card_all": {
+      "en": {
+        "title": "Librarian",
+        "description": "Collect all wise cards"
+      },
+      "es": {
+        "title": "Bibliotecario",
+        "description": "Recoge todas las cartas sabias"
+      },
+      "tr": {
+        "title": "Kütüphaneci",
+        "description": "Tüm bilge kartları topla"
+      },
+      "darija": {
+        "title": "Bibliotekar",
+        "description": "Saml alle kloge kort"
+      }
+    },
+    "la_mecque": {
+      "en": {
+        "title": "The pilgrim",
+        "description": "Reaching Mecca"
+      },
+      "es": {
+        "title": "el peregrino",
+        "description": "Llegar a La Meca"
+      },
+      "tr": {
+        "title": "Hacı",
+        "description": "Mekke'ye Ulaşmak"
+      },
+      "darija": {
+        "title": "Pilgrimmen",
+        "description": "At nå Mekka"
+      }
+    }
+  },
+  "sages": {
+    "al_idrissi": {
+      "en": {
+        "title": "World cartographer",
+        "dialogueIntro": "Ah, a traveler looking for his way! I am Al-Idrissi, and I mapped the entire world on a silver disk for King Roger II of Sicily. Before entering my madrassah, prove to me that you deserve to sail in the waters of knowledge...",
+        "dialogueSuccess": "Excellent ! You have the compass of the heart and the map of the mind. The Mediterranean no longer holds you back - head towards Cordoba, where the wise Ibn Rushd awaits you.",
+        "dialogueFailure": "The stars do not yet guide you well enough, fellow traveler. Go back to study, and come back. Knowledge is not a destination — it is a path."
+      },
+      "es": {
+        "title": "cartógrafo mundial",
+        "dialogueIntro": "¡Ah, viajero que busca su camino! Soy Al-Idrissi y tracé un mapa del mundo entero en un disco de plata para el rey Roger II de Sicilia. Antes de entrar en mi madraza, demuéstrame que mereces navegar en las aguas del conocimiento...",
+        "dialogueSuccess": "Excelente ! Tienes la brújula del corazón y el mapa de la mente. El Mediterráneo ya no te detiene: dirígete hacia Córdoba, donde te espera el sabio Ibn Rushd.",
+        "dialogueFailure": "Las estrellas todavía no te guían lo suficientemente bien, compañero de viaje. Vuelve a estudiar y vuelve. El conocimiento no es un destino, es un camino."
+      },
+      "tr": {
+        "title": "Dünya haritacısı",
+        "dialogueIntro": "Ah, yolunu arayan bir gezgin! Ben Al-Idrissi'yim ve Sicilya Kralı II. Roger için tüm dünyanın haritasını gümüş bir diske çizdim. Medreseme girmeden önce ilmin sularında yelken açmayı hak ettiğini bana kanıtla...",
+        "dialogueSuccess": "Harika ! Kalbin pusulasına ve zihnin haritasına sahipsiniz. Akdeniz artık sizi alıkoymuyor; bilge İbn Rüşd'ün sizi beklediği Kurtuba'ya doğru ilerleyin.",
+        "dialogueFailure": "Yıldızlar henüz seni yeterince iyi yönlendirmiyor yoldaş. Ders çalışmaya geri dön ve geri dön. Bilgi bir varış noktası değil, bir yoldur."
+      },
+      "darija": {
+        "title": "Verdenskartograf",
+        "dialogueIntro": "Åh, en rejsende, der leder efter sin vej! Jeg er Al-Idrissi, og jeg kortlagde hele verden på en sølvskive til kong Roger II af Sicilien. Før du går ind i min madrassah, så bevis for mig, at du fortjener at sejle i videns vande...",
+        "dialogueSuccess": "Fremragende! Du har hjertets kompas og sindets kort. Middelhavet holder dig ikke længere tilbage – tag mod Cordoba, hvor den kloge Ibn Rushd venter på dig.",
+        "dialogueFailure": "Stjernerne vejleder dig endnu ikke godt nok, medrejsende. Gå tilbage for at studere, og kom tilbage. Viden er ikke en destination - det er en vej."
+      }
+    },
+    "ibn_rushd": {
+      "en": {
+        "title": "Philosopher of Andalusia",
+        "dialogueIntro": "Aristotle was forgotten in Europe — it was thanks to my Arabic translations that he survived. I am Ibn Rushd. Reason and faith are not opposed: they enlighten each other.",
+        "dialogueSuccess": "You reason with the clarity of a philosopher! Heading for Marrakech.",
+        "dialogueFailure": "Reason needs exercise, like muscle. Come back after studying."
+      },
+      "es": {
+        "title": "Filósofo de Andalucía",
+        "dialogueIntro": "Aristóteles fue olvidado en Europa; sobrevivió gracias a mis traducciones al árabe. Soy Ibn Rushd. La razón y la fe no se oponen: se iluminan mutuamente.",
+        "dialogueSuccess": "¡Razonas con la claridad de un filósofo! Rumbo a Marrakech.",
+        "dialogueFailure": "La razón necesita ejercicio, como el músculo. Vuelve después de estudiar."
+      },
+      "tr": {
+        "title": "Endülüs Filozofu",
+        "dialogueIntro": "Aristoteles Avrupa'da unutuldu; benim Arapça çevirilerim sayesinde hayatta kaldı. Ben İbn Rüşd'üm. Akıl ve inanç karşıt değildir; birbirlerini aydınlatırlar.",
+        "dialogueSuccess": "Bir filozofun berraklığıyla akıl yürütüyorsun! Marakeş'e doğru yola çıkıyoruz.",
+        "dialogueFailure": "Aklın da kaslar gibi egzersize ihtiyacı vardır. Ders çalıştıktan sonra geri gelin."
+      },
+      "darija": {
+        "title": "Filosof af Andalusien",
+        "dialogueIntro": "Aristoteles blev glemt i Europa - det var takket være mine arabiske oversættelser, at han overlevede. Jeg er Ibn Rushd. Fornuft og tro modsættes ikke: de oplyser hinanden.",
+        "dialogueSuccess": "Du ræsonnerer med en filosofs klarhed! På vej mod Marrakech.",
+        "dialogueFailure": "Fornuften har brug for motion, som muskler. Kom tilbage efter at have studeret."
+      }
+    },
+    "ibn_toumert": {
+      "en": {
+        "title": "Founder of the Almohads",
+        "dialogueIntro": "I crossed the desert to bring the truth to my people. I am Ibn Toumert. Show me the strength of your knowledge.",
+        "dialogueSuccess": "You have the firmness of the High Atlas! Damascus is next.",
+        "dialogueFailure": "Even the mountains have been shaped by time. Persevere."
+      },
+      "es": {
+        "title": "Fundador de los almohades",
+        "dialogueIntro": "Crucé el desierto para llevar la verdad a mi pueblo. Soy Ibn Toumert. Muéstrame la fuerza de tu conocimiento.",
+        "dialogueSuccess": "¡Tienes la firmeza del Alto Atlas! Damasco es el siguiente.",
+        "dialogueFailure": "Incluso las montañas han sido moldeadas por el tiempo. Perseverar."
+      },
+      "tr": {
+        "title": "Muvahhidlerin kurucusu",
+        "dialogueIntro": "Halkıma gerçeği getirmek için çölü geçtim. Ben İbn Tourert'im. Bilginin gücünü bana göster.",
+        "dialogueSuccess": "Yüksek Atlas'ın sertliğine sahipsiniz! Sırada Şam var.",
+        "dialogueFailure": "Dağlar bile zamanla şekillenmiştir. Azimle."
+      },
+      "darija": {
+        "title": "Grundlægger af almohaderne",
+        "dialogueIntro": "Jeg krydsede ørkenen for at bringe sandheden til mit folk. Jeg er Ibn Toumert. Vis mig styrken af ​​din viden.",
+        "dialogueSuccess": "Du har det høje atlas fasthed! Damaskus er det næste.",
+        "dialogueFailure": "Selv bjergene er blevet formet af tiden. Hold ud."
+      }
+    },
+    "ibn_asaker": {
+      "en": {
+        "title": "Historian of Damascus",
+        "dialogueIntro": "I have dedicated my life to forgetting nothing: I have compiled 1300 biographies. I am Ibn Asaker. Memory is the treasure of nations.",
+        "dialogueSuccess": "Your memory is precious like a rare manuscript! Baghdad is waiting for you.",
+        "dialogueFailure": "Even my 80-volume encyclopedia took 60 years. Patience is the first virtue of the historian."
+      },
+      "es": {
+        "title": "Historiador de Damasco",
+        "dialogueIntro": "He dedicado mi vida a no olvidar nada: he recopilado 1300 biografías. Soy Ibn Asaker. La memoria es el tesoro de las naciones.",
+        "dialogueSuccess": "¡Tu memoria es preciosa como un manuscrito raro! Bagdad te está esperando.",
+        "dialogueFailure": "Incluso mi enciclopedia de 80 volúmenes tardó 60 años. La paciencia es la primera virtud del historiador."
+      },
+      "tr": {
+        "title": "Şam tarihçisi",
+        "dialogueIntro": "Hayatımı hiçbir şeyi unutmamaya adadım: 1300 biyografi derledim. Ben İbn Asaker'im. Hafıza milletlerin hazinesidir.",
+        "dialogueSuccess": "Hafızanız nadir bir el yazması kadar değerlidir! Bağdat seni bekliyor.",
+        "dialogueFailure": "80 ciltlik ansiklopedim bile 60 yılımı aldı. Sabır tarihçinin ilk erdemidir."
+      },
+      "darija": {
+        "title": "Historiker fra Damaskus",
+        "dialogueIntro": "Jeg har viet mit liv til at glemme ingenting: Jeg har samlet 1300 biografier. Jeg er Ibn Asaker. Hukommelse er nationernes skat.",
+        "dialogueSuccess": "Din hukommelse er dyrebar som et sjældent manuskript! Bagdad venter på dig.",
+        "dialogueFailure": "Selv mit 80-binds encyklopædi tog 60 år. Tålmodighed er historikerens første dyd."
+      }
+    },
+    "al_khwarizmi": {
+      "en": {
+        "title": "Father of Algebra",
+        "dialogueIntro": "My name gave 'algorithm' and my treatise 'algebra'. I am Al-Khwarizmi. Numbers have an implacable logic.",
+        "dialogueSuccess": "Perfect ! You calculate like an astronomer from Baghdad. Samarkand is waiting for you.",
+        "dialogueFailure": "The equation is simple: knowledge = effort × time. Come back!"
+      },
+      "es": {
+        "title": "Padre del álgebra",
+        "dialogueIntro": "Mi nombre fue \"algoritmo\" y mi tratado \"álgebra\". Soy Al-Khwarizmi. Los números tienen una lógica implacable.",
+        "dialogueSuccess": "Perfecto ! Calculas como un astrónomo de Bagdad. Samarcanda te está esperando.",
+        "dialogueFailure": "La ecuación es simple: conocimiento = esfuerzo × tiempo. ¡Regresar!"
+      },
+      "tr": {
+        "title": "Cebirin Babası",
+        "dialogueIntro": "Adım 'algoritma'yı, tezim ise 'cebir'i verdi. Ben El-Harezmi'yim. Sayıların değişmez bir mantığı vardır.",
+        "dialogueSuccess": "Mükemmel ! Bağdatlı bir gökbilimci gibi hesap yapıyorsunuz. Semerkand seni bekliyor.",
+        "dialogueFailure": "Denklem basit: bilgi = çaba × zaman. Geri gelmek!"
+      },
+      "darija": {
+        "title": "Algebras far",
+        "dialogueIntro": "Mit navn gav 'algoritme' og min afhandling 'algebra'. Jeg er Al-Khwarizmi. Tal har en uforsonlig logik.",
+        "dialogueSuccess": "Perfekt! Du regner som en astronom fra Bagdad. Samarkand venter på dig.",
+        "dialogueFailure": "Ligningen er enkel: viden = indsats × tid. Kom tilbage!"
+      }
+    },
+    "ibn_sina": {
+      "en": {
+        "title": "Prince of doctors",
+        "dialogueIntro": "I wrote the Canon of Medicine at 21. In Samarkand, I invite you to measure the extent of your knowledge.",
+        "dialogueSuccess": "Your mind is healthy and your knowledge is flourishing! Timbuktu is waiting for you.",
+        "dialogueFailure": "A doctor who does not know his limits is dangerous. Study, then come back."
+      },
+      "es": {
+        "title": "Príncipe de los doctores",
+        "dialogueIntro": "Escribí el Canon de la Medicina a los 21 años. En Samarcanda, os invito a medir el alcance de vuestros conocimientos.",
+        "dialogueSuccess": "¡Tu mente está sana y tu conocimiento está floreciendo! Tombuctú te está esperando.",
+        "dialogueFailure": "Un médico que no conoce sus límites es peligroso. Estudia y luego regresa."
+      },
+      "tr": {
+        "title": "Doktorların prensi",
+        "dialogueIntro": "Tıp Kanunu'nu 21 yaşında yazdım. Sizi Semerkant'ta bilginizin kapsamını ölçmeye davet ediyorum.",
+        "dialogueSuccess": "Zihniniz sağlıklı ve bilginiz gelişiyor! Timbuktu seni bekliyor.",
+        "dialogueFailure": "Sınırlarını bilmeyen doktor tehlikelidir. Çalış, sonra geri gel."
+      },
+      "darija": {
+        "title": "Prinsen af ​​læger",
+        "dialogueIntro": "Jeg skrev medicinkanonen som 21-årig. I Samarkand inviterer jeg dig til at måle omfanget af din viden.",
+        "dialogueSuccess": "Dit sind er sundt, og din viden blomstrer! Timbuktu venter på dig.",
+        "dialogueFailure": "En læge, der ikke kender sine grænser, er farlig. Studer, og kom så tilbage."
+      }
+    },
+    "ahmad_baba": {
+      "en": {
+        "title": "Guardian of the manuscripts",
+        "dialogueIntro": "Timbuktu is not the end of the world — it is its center! I have collected 700,000 manuscripts here. I am Ahmad Baba.",
+        "dialogueSuccess": "Gorgeous ! You carry the light of Timbuktu within you. Cairo is waiting for you.",
+        "dialogueFailure": "The manuscripts of Timbuktu survived the invasions. Come back!"
+      },
+      "es": {
+        "title": "Guardián de los manuscritos",
+        "dialogueIntro": "Tombuctú no es el fin del mundo: ¡es su centro! He recopilado 700.000 manuscritos aquí. Soy Ahmad Baba.",
+        "dialogueSuccess": "Espléndido ! Llevas la luz de Tombuctú dentro de ti. El Cairo te está esperando.",
+        "dialogueFailure": "Los manuscritos de Tombuctú sobrevivieron a las invasiones. ¡Regresar!"
+      },
+      "tr": {
+        "title": "El yazmalarının koruyucusu",
+        "dialogueIntro": "Timbuktu dünyanın sonu değil, onun merkezidir! Burada 700.000 el yazması topladım. Ben Ahmed Baba'yım.",
+        "dialogueSuccess": "Muhteşem ! Timbuktu'nun ışığını içinizde taşıyorsunuz. Kahire seni bekliyor.",
+        "dialogueFailure": "Timbuktu'nun el yazmaları istilalardan sağ kurtuldu. Geri gelmek!"
+      },
+      "darija": {
+        "title": "Manuskripternes vogter",
+        "dialogueIntro": "Timbuktu er ikke verdens undergang - det er dens centrum! Jeg har samlet 700.000 manuskripter her. Jeg er Ahmad Baba.",
+        "dialogueSuccess": "Pragtfuldt! Du bærer Timbuktus lys i dig. Kairo venter på dig.",
+        "dialogueFailure": "Timbuktus manuskripter overlevede invasionerne. Kom tilbage!"
+      }
+    },
+    "ibn_khaldoun": {
+      "en": {
+        "title": "Father of sociology",
+        "dialogueIntro": "I understood before anyone else that societies are born, prosper and decline according to precise laws. I am Ibn Khaldun.",
+        "dialogueSuccess": "You have the eye of a sociologist and the soul of a historian! Mecca is within reach.",
+        "dialogueFailure": "Every civilization has its ups and downs. Come back when your knowledge is at its zenith."
+      },
+      "es": {
+        "title": "padre de la sociología",
+        "dialogueIntro": "Comprendí antes que nadie que las sociedades nacen, prosperan y declinan según leyes precisas. Soy Ibn Jaldún.",
+        "dialogueSuccess": "¡Tienes ojos de sociólogo y alma de historiador! La Meca está a nuestro alcance.",
+        "dialogueFailure": "Cada civilización tiene sus altibajos. Vuelve cuando tus conocimientos estén en su cenit."
+      },
+      "tr": {
+        "title": "Sosyolojinin babası",
+        "dialogueIntro": "Toplumların belli kanunlara göre doğduğunu, geliştiğini ve gerilediğini herkesten önce anladım. Ben İbn Haldun'um.",
+        "dialogueSuccess": "Bir sosyoloğun gözüne ve bir tarihçinin ruhuna sahipsiniz! Mekke ulaşılabilir durumda.",
+        "dialogueFailure": "Her medeniyetin inişleri ve çıkışları vardır. Bilginiz doruğa ulaştığında geri gelin."
+      },
+      "darija": {
+        "title": "Fader til sociologi",
+        "dialogueIntro": "Jeg forstod før nogen anden, at samfund fødes, trives og forfalder i henhold til præcise love. Jeg er Ibn Khaldun.",
+        "dialogueSuccess": "Du har en sociologs øje og en historikers sjæl! Mekka er inden for rækkevidde.",
+        "dialogueFailure": "Enhver civilisation har sine op- og nedture. Kom tilbage, når din viden er på sit højeste."
+      }
+    }
+  },
+  "locations": {
+    "medine": {
+      "en": {
+        "description": "The city of the Prophet ﷺ. Your starting point towards wisdom.",
+        "country": "Saudi Arabia"
+      },
+      "es": {
+        "description": "La ciudad del Profeta ﷺ. Tu punto de partida hacia la sabiduría.",
+        "country": "Arabia Saudita"
+      },
+      "tr": {
+        "description": "Peygamber Efendimiz'in şehri. Bilgeliğe doğru başlangıç ​​noktanız.",
+        "country": "Suudi Arabistan"
+      },
+      "darija": {
+        "description": "Profetens by ﷺ. Dit udgangspunkt for visdom.",
+        "country": "Saudi-Arabien"
+      }
+    },
+    "fes": {
+      "en": {
+        "description": "City of scholars and madrassahs. Al-Idrissi mapped the world there.",
+        "country": "Morocco"
+      },
+      "es": {
+        "description": "Ciudad de eruditos y madrazas. Al-Idrissi trazó un mapa del mundo allí.",
+        "country": "Marruecos"
+      },
+      "tr": {
+        "description": "Alimlerin ve medreselerin şehri. Al-Idrissi orada dünyanın haritasını çıkardı.",
+        "country": "Fas"
+      },
+      "darija": {
+        "description": "Byen af ​​lærde og madrassahs. Al-Idrissi mapped the world there.",
+        "country": "Marokko"
+      }
+    },
+    "cordoue": {
+      "en": {
+        "description": "The pearl of the Islamic West. Averroes reconciled reason and faith there.",
+        "country": "Spain (Andalusia)"
+      },
+      "es": {
+        "description": "La perla del Occidente islámico. Averroes concilió allí la razón y la fe.",
+        "country": "España (Andalucía)"
+      },
+      "tr": {
+        "description": "İslam Batısının incisi. İbn Rüşd burada akıl ile imanı uzlaştırdı.",
+        "country": "İspanya (Endülüs)"
+      },
+      "darija": {
+        "description": "Det islamiske vestens perle. Averroes forenede fornuft og tro der.",
+        "country": "Spanien (Andalusien)"
+      }
+    },
+    "marrakech": {
+      "en": {
+        "description": "The ocher city, cradle of the Almohads and Koutoubia.",
+        "country": "Morocco"
+      },
+      "es": {
+        "description": "La ciudad ocre, cuna de los almohades y la Koutoubia.",
+        "country": "Marruecos"
+      },
+      "tr": {
+        "description": "Koyu sarı şehir, Muvahhidlerin ve Koutoubia'nın beşiği.",
+        "country": "Fas"
+      },
+      "darija": {
+        "description": "Okkerbyen, Almohadernes og Koutoubias vugge.",
+        "country": "Marokko"
+      }
+    },
+    "damas": {
+      "en": {
+        "description": "The oldest Islamic capital. Ibn Asaker preserved 1300 biographies there.",
+        "country": "Syria"
+      },
+      "es": {
+        "description": "La capital islámica más antigua. Ibn Asaker conservó allí 1.300 biografías.",
+        "country": "Siria"
+      },
+      "tr": {
+        "description": "En eski İslam başkenti. İbn Asaker burada 1300 biyografiyi muhafaza etti.",
+        "country": "Suriye"
+      },
+      "darija": {
+        "description": "Den ældste islamiske hovedstad. Ibn Asaker bevarede 1300 biografier der.",
+        "country": "Syrien"
+      }
+    },
+    "bagdad": {
+      "en": {
+        "description": "The House of Wisdom. Al-Khwarizmi invented algebra there.",
+        "country": "Iraq"
+      },
+      "es": {
+        "description": "La Casa de la Sabiduría. Al-Khwarizmi inventó allí el álgebra.",
+        "country": "Irak"
+      },
+      "tr": {
+        "description": "Bilgelik Evi. El-Harizmi cebiri orada icat etti.",
+        "country": "Irak"
+      },
+      "darija": {
+        "description": "Visdommens Hus. Al-Khwarizmi opfandt algebra der.",
+        "country": "Irak"
+      }
+    },
+    "samarcande": {
+      "en": {
+        "description": "Crossroads of the Silk Roads. Ibn Sina wrote the Canon of Medicine there.",
+        "country": "Uzbekistan"
+      },
+      "es": {
+        "description": "Encrucijada de las Rutas de la Seda. Allí Ibn Sina escribió el Canon de la Medicina.",
+        "country": "Uzbekistán"
+      },
+      "tr": {
+        "description": "İpek Yollarının Kavşağı. İbn Sina Tıbbın Kanonunu orada yazdı.",
+        "country": "Özbekistan"
+      },
+      "darija": {
+        "description": "Silkevejenes kryds. Ibn Sina skrev medicinkanonen der.",
+        "country": "Usbekistan"
+      }
+    },
+    "tombouctou": {
+      "en": {
+        "description": "The city of 333 saints. Ahmad Baba collected 700,000 manuscripts there.",
+        "country": "Mali"
+      },
+      "es": {
+        "description": "La ciudad de los 333 santos. Ahmad Baba recopiló allí 700.000 manuscritos.",
+        "country": "Malí"
+      },
+      "tr": {
+        "description": "333 azizin şehri. Ahmed Baba burada 700.000 el yazması topladı.",
+        "country": "Mali"
+      },
+      "darija": {
+        "description": "Byen med 333 helgener. Ahmad Baba samlede 700.000 manuskripter der.",
+        "country": "Mali"
+      }
+    },
+    "le_caire": {
+      "en": {
+        "description": "Siege of Al-Azhar. Ibn Khaldoun founded modern sociology there.",
+        "country": "Egypt"
+      },
+      "es": {
+        "description": "Asedio de Al-Azhar. Ibn Khaldoun fundó allí la sociología moderna.",
+        "country": "Egipto"
+      },
+      "tr": {
+        "description": "El-Ezher kuşatması. İbn Haldun burada modern sosyolojiyi kurdu.",
+        "country": "Mısır"
+      },
+      "darija": {
+        "description": "Belejring af Al-Azhar. Ibn Khaldoun grundlagde moderne sociologi der.",
+        "country": "Egypten"
+      }
+    },
+    "la_mecque": {
+      "en": {
+        "description": "The peak of the journey. May your quest for wisdom be accepted.",
+        "country": "Saudi Arabia"
+      },
+      "es": {
+        "description": "La cima del viaje. Que tu búsqueda de sabiduría sea aceptada.",
+        "country": "Arabia Saudita"
+      },
+      "tr": {
+        "description": "Yolculuğun zirvesi. Bilgelik arayışınız kabul olsun.",
+        "country": "Suudi Arabistan"
+      },
+      "darija": {
+        "description": "Rejsens højdepunkt. Må din søgen efter visdom blive accepteret.",
+        "country": "Saudi-Arabien"
+      }
+    }
+  },
+  "escape_rooms": {
+    "room_medersa_1": {
+      "en": {
+        "name": "The Secret Madrasa",
+        "description": "A room in the Al-Qarawiyyin Madrasa in Fez. Four padlocks keep the knowledge."
+      },
+      "es": {
+        "name": "La madraza secreta",
+        "description": "Una habitación en la madraza Al-Qarawiyyin de Fez. Cuatro candados guardan el conocimiento."
+      },
+      "tr": {
+        "name": "Gizli Medrese",
+        "description": "Fez'deki Karaviyyin Medresesi'nde bir oda. Dört asma kilit bilgiyi saklıyor."
+      },
+      "darija": {
+        "name": "Den hemmelige madrasa",
+        "description": "Et værelse i Al-Qarawiyyin Madrasa i Fez. Fire hængelåse holder viden."
+      }
+    },
+    "room_bibliotheque_1": {
+      "en": {
+        "name": "The Library of Timbuktu",
+        "description": "Among 700,000 manuscripts, Ahmad Baba hid the ultimate secret. Solve the 4 puzzles."
+      },
+      "es": {
+        "name": "La biblioteca de Tombuctú",
+        "description": "Entre 700.000 manuscritos, Ahmad Baba escondió el último secreto. Resuelve los 4 acertijos."
+      },
+      "tr": {
+        "name": "Timbuktu Kütüphanesi",
+        "description": "Ahmed Baba 700.000 el yazması arasında en büyük sırrı sakladı. 4 bulmacayı çözün."
+      },
+      "darija": {
+        "name": "Biblioteket i Timbuktu",
+        "description": "Blandt 700.000 manuskripter gemte Ahmad Baba den ultimative hemmelighed. Løs de 4 gåder."
+      }
+    }
+  }
+}

@@ -10,6 +10,7 @@ import { pageVariants, itemVariants, springTap } from "@/lib/motion";
 import { useT } from "@/hooks/useT";
 import { useLang } from "@/hooks/useLang";
 import { pick } from "@/lib/content-i18n";
+import staticT from "@/lib/static-translations.json";
 
 
 // ── Sage portrait SVG — noble illustration, chaque sage a un objet symbolique ──
@@ -268,7 +269,7 @@ export default function LieuPage() {
       {/* City header */}
       <motion.div variants={itemVariants} className="mb-6">
         <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          {pick(location.t, lang, "country", location.countryAr && lang === "ar" ? location.countryAr : location.country)}
+          {pick((staticT.locations as Record<string, Record<string, Record<string,string>>>)[location.id], lang, "country", lang === "ar" ? (location.countryAr ?? location.country) : location.country)}
         </p>
         <h1 className="mt-1 text-3xl font-bold" style={{ color: "var(--text)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-bricolage)", direction: isRtl ? "rtl" : "ltr" }}>
           {isRtl ? location.name : location.nameFr}
@@ -279,7 +280,7 @@ export default function LieuPage() {
           </p>
         )}
         <p className="mt-2 text-sm opacity-60 leading-relaxed" style={{ color: "var(--text)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-dm-sans)", direction: isRtl ? "rtl" : "ltr" }}>
-          {pick(location.t, lang, "description", location.descriptionAr && lang === "ar" ? location.descriptionAr : location.description)}
+          {pick((staticT.locations as Record<string, Record<string, Record<string,string>>>)[location.id], lang, "description", lang === "ar" ? (location.descriptionAr ?? location.description) : location.description)}
         </p>
       </motion.div>
 
@@ -344,15 +345,15 @@ export default function LieuPage() {
                   {sage.name}
                 </p>
                 <p className="text-xs opacity-60" style={{ color: "var(--text)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-dm-sans)" }}>
-                  {pick(sage.t, lang, "title", sage.titleAr && lang === "ar" ? sage.titleAr : sage.title)}
+                  {pick((staticT.sages as Record<string, Record<string, Record<string,string>>>)[sage.id], lang, "title", lang === "ar" ? (sage.titleAr ?? sage.title) : sage.title)}
                 </p>
               </div>
 
               <p className="text-sm leading-relaxed opacity-80 mt-1"
                 style={{ color: "var(--text)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-dm-sans)", direction: isRtl ? "rtl" : "ltr" }}>
                 &ldquo;{defeated
-                  ? pick(sage.t, lang, "dialogueSuccess", sage.dialogueSuccessAr && lang === "ar" ? sage.dialogueSuccessAr : sage.dialogueSuccess)
-                  : pick(sage.t, lang, "dialogueIntro",   sage.dialogueIntroAr   && lang === "ar" ? sage.dialogueIntroAr   : sage.dialogueIntro)
+                  ? pick((staticT.sages as Record<string, Record<string, Record<string,string>>>)[sage.id], lang, "dialogueSuccess", lang === "ar" ? (sage.dialogueSuccessAr ?? sage.dialogueSuccess) : sage.dialogueSuccess)
+                  : pick((staticT.sages as Record<string, Record<string, Record<string,string>>>)[sage.id], lang, "dialogueIntro",   lang === "ar" ? (sage.dialogueIntroAr   ?? sage.dialogueIntro)   : sage.dialogueIntro)
                 }&rdquo;
               </p>
             </div>

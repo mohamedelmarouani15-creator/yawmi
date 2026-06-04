@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useT } from "@/hooks/useT";
 import { useLang } from "@/hooks/useLang";
 import { pick } from "@/lib/content-i18n";
+import staticT from "@/lib/static-translations.json";
 
 const CATEGORY_FILTERS = ["Tous", "Sages", "Streak", "Questions", "Niveau", "Mosquée"] as const;
 type Filter = typeof CATEGORY_FILTERS[number];
@@ -130,11 +131,11 @@ export default function TropheesPage() {
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm truncate"
                     style={{ color: unlocked ? "var(--gold)" : "rgba(248,244,236,0.4)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-bricolage)" }}>
-                    {pick(ach.t, lang, "title", ach.titleAr && lang === "ar" ? ach.titleAr : ach.title)}
+                    {pick((staticT.achievements as Record<string, Record<string, Record<string,string>>>)[ach.id], lang, "title", lang === "ar" ? (ach.titleAr ?? ach.title) : ach.title)}
                   </p>
                   <p className="text-xs truncate"
                     style={{ color: "rgba(248,244,236,0.35)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-dm-sans)" }}>
-                    {pick(ach.t, lang, "description", ach.descriptionAr && lang === "ar" ? ach.descriptionAr : ach.description)}
+                    {pick((staticT.achievements as Record<string, Record<string, Record<string,string>>>)[ach.id], lang, "description", lang === "ar" ? (ach.descriptionAr ?? ach.description) : ach.description)}
                   </p>
                 </div>
 
@@ -180,7 +181,7 @@ export default function TropheesPage() {
                 {tt("quiz.achievement")}
               </p>
               <p className="text-xs" style={{ color: "rgba(248,244,236,0.6)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-dm-sans)" }}>
-                {(() => { const a = ACHIEVEMENTS.find(x => x.id === lastUnlocked); return a ? pick(a.t, lang, "title", a.titleAr && lang === "ar" ? a.titleAr : a.title ?? "") : ""; })()}
+                {(() => { const a = ACHIEVEMENTS.find(x => x.id === lastUnlocked); if (!a) return ""; return pick((staticT.achievements as Record<string, Record<string, Record<string,string>>>)[a.id], lang, "title", lang === "ar" ? (a.titleAr ?? a.title) : a.title); })()}
               </p>
             </div>
           </motion.div>

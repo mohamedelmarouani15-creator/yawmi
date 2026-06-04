@@ -15,6 +15,7 @@ import EscapeLobby, { generateSessionCode } from "@/components/escape3d/EscapeLo
 import { useAuth } from "@/hooks/useAuth";
 import { useLang } from "@/hooks/useLang";
 import { pick } from "@/lib/content-i18n";
+import staticT from "@/lib/static-translations.json";
 
 
 // Three.js ne tourne pas en SSR
@@ -590,7 +591,7 @@ export default function EscapeRoomPage() {
         </motion.button>
         <div className="flex-1">
           <h1 className="text-base font-bold leading-tight" style={{ color: "var(--text)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-bricolage)" }}>
-            {pick(room.t as Record<string, Record<string,string>> | undefined, lang, "name", isRtl ? (room.nameAr ?? room.name) : room.name)}
+            {pick((staticT.escape_rooms as Record<string, Record<string, Record<string,string>>>)[room.id], lang, "name", isRtl ? (room.nameAr ?? room.name) : room.name)}
           </h1>
           <p className="text-xs opacity-45" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             {solvedLocks.length}/4 {isRtl ? "أقفال مفتوحة" : "cadenas ouverts"}
@@ -616,7 +617,7 @@ export default function EscapeRoomPage() {
       {/* Room description */}
       <p className="px-5 mb-4 text-xs leading-relaxed"
         style={{ color: "rgba(248,244,236,0.45)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-dm-sans)", direction: isRtl ? "rtl" : "ltr" }}>
-        {pick(room.t as Record<string, Record<string,string>> | undefined, lang, "description", isRtl ? (room.descriptionAr ?? room.description) : room.description)}
+        {pick((staticT.escape_rooms as Record<string, Record<string, Record<string,string>>>)[room.id], lang, "description", isRtl ? (room.descriptionAr ?? room.description) : room.description)}
       </p>
 
       {/* Isometric room */}

@@ -10,6 +10,7 @@ import { LOCATIONS } from "@/lib/game/locations";
 import { SAGES } from "@/lib/game/sages";
 import { xpProgress, xpInCurrentLevel } from "@/lib/game/game-storage";
 import { EventBanner } from "@/components/EventBanner";
+import { useT } from "@/hooks/useT";
 
 // ── Isometric constants ────────────────────────────────────────
 const W  = 22;
@@ -436,6 +437,7 @@ function CityCard({
   unlocked: boolean; defeated: boolean; isCurrent: boolean;
   sage: { name: string } | undefined;
 }) {
+  const tt = useT();
   const W_CARD = 148, H_CARD = 72, RX = 15;
   const x = -W_CARD / 2;
   const y = 18; // below front vertex
@@ -459,12 +461,12 @@ function CityCard({
     ? `${location.color}28`
     : "rgba(255,255,255,0.05)";
   const badgeText = defeated
-    ? "✓  SAGE VAINCU"
+    ? tt("oasis.badge.defeated")
     : unlocked && sage
-    ? "⚔  DÉFI DISPONIBLE"
+    ? tt("oasis.badge.available")
     : !unlocked
-    ? `⊘  ${location.requiredXP} XP`
-    : "✦  POINT DE DÉPART";
+    ? `⊘  ${location.requiredXP} ${tt("oasis.badge.locked").replace("⊘ ", "")}`
+    : tt("oasis.badge.start");
   const badgeColor = defeated
     ? "var(--gold)"
     : unlocked && sage
@@ -554,6 +556,7 @@ function Toast({ msg, show }: { msg: string; show: boolean }) {
 export default function OasisPage() {
   const router = useRouter();
   const { state, locationUnlocked } = useGameState();
+  const tt = useT();
   const containerRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [didScroll, setDidScroll] = useState(false);
@@ -706,7 +709,7 @@ export default function OasisPage() {
       <div className="text-center py-4">
         <p className="text-[26px] leading-none" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)" }}>الواحة</p>
         <p className="text-[9px] tracking-[0.25em] uppercase mt-0.5" style={{ color: "var(--text-dim)", fontFamily: "var(--font-dm-sans)" }}>
-          L&apos;Oasis du Savoir
+          {tt("oasis.title")}
         </p>
       </div>
 
@@ -737,10 +740,10 @@ export default function OasisPage() {
               </span>
             </div>
             <p className="text-sm font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-              Le Riad des Secrets
+              {tt("oasis.escape")}
             </p>
             <p className="text-[11px] mt-0.5" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
-              5 énigmes · 45 min · +350 XP
+              {tt("oasis.escapeSub")}
             </p>
           </div>
           <span style={{ color: "#05C36F", fontSize: 18, flexShrink: 0 }}>→</span>
@@ -764,13 +767,13 @@ export default function OasisPage() {
           <div className="flex-1 min-w-0">
             <span className="text-[9px] font-semibold tracking-widest uppercase"
               style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
-              Bibliothèque
+              {tt("oasis.library")}
             </span>
             <p className="text-sm font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-              Capsules culturelles
+              {tt("oasis.librarySub")}
             </p>
             <p className="text-[11px] mt-0.5" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
-              Savoirs islamiques · Science · Histoire
+              {tt("oasis.libraryDesc")}
             </p>
           </div>
           <span style={{ color: "var(--gold)", fontSize: 18, flexShrink: 0 }}>→</span>

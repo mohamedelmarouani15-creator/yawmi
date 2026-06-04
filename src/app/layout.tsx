@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, DM_Sans, Amiri } from "next/font/google";
+import { cookies } from "next/headers";
 import RegisterSW from "@/components/RegisterSW";
 import "./globals.css";
 
@@ -40,14 +41,16 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const cookieStore = await cookies();
+  const lang = cookieStore.get("yawmi_lang")?.value ?? "fr";
   return (
     <html
-      lang="fr"
+      lang={lang}
       suppressHydrationWarning
       className={`${bricolage.variable} ${dmSans.variable} ${amiri.variable} h-full antialiased`}
     >

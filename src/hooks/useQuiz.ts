@@ -7,7 +7,7 @@ import { gameStorage } from "@/lib/game/game-storage";
 import { getJoker50Eliminations } from "@/lib/game/powerups";
 import { getActiveGameEvent } from "@/lib/game/game-events";
 import { storage } from "@/lib/storage";
-import type { Question, QuizSession, PowerUpType } from "@/lib/game/types";
+import type { Question, QuizSession, PowerUpType, Category } from "@/lib/game/types";
 
 const XP_PER_CORRECT    = 10;
 const COINS_PER_CORRECT = 2;
@@ -134,6 +134,16 @@ export function useQuiz(locationId: string) {
         totalXP    += PERFECT_BONUS_XP;
         totalCoins += PERFECT_BONUS_COINS;
       }
+      const catXP: Partial<Record<Category, number>> = {};
+      newAnswers.forEach((correct, i) => {
+        if (correct) {
+          const cat = session.questions[i].category;
+          catXP[cat] = (catXP[cat] ?? 0) + XP_PER_CORRECT;
+        }
+      });
+      (Object.entries(catXP) as [Category, number][]).forEach(([cat, xp]) => {
+        gameStorage.updateCategoryLevel(cat, xp);
+      });
     }
 
     setSession(s => s ? {

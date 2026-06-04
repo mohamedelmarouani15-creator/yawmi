@@ -439,10 +439,10 @@ export default function AccueilPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
-                    Azkar du matin
+                    {tt("accueil.azkarMorning")}
                   </p>
                   <p className="text-xs opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                    {azkarStatus.matinDone ? "Complétés — بارك الله فيك ✦" : "Après Fajr · 12 invocations"}
+                    {azkarStatus.matinDone ? tt("accueil.azkarDone") : tt("accueil.azkarMorningPending")}
                   </p>
                 </div>
                 {azkarStatus.matinDone
@@ -466,10 +466,10 @@ export default function AccueilPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
-                    Azkar du soir
+                    {tt("accueil.azkarEvening")}
                   </p>
                   <p className="text-xs opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                    {azkarStatus.soirDone ? "Complétés — بارك الله فيك ✦" : "Après Asr · 11 invocations"}
+                    {azkarStatus.soirDone ? tt("accueil.azkarDone") : tt("accueil.azkarEveningPending")}
                   </p>
                 </div>
                 {azkarStatus.soirDone
@@ -663,8 +663,8 @@ export default function AccueilPage() {
       {isPratiquant && ageMode !== "elder" && ageMode !== "kids" && (
         <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
           {[
-            { value: stats.totalDhikr, label: "Dhikrs aujourd'hui" },
-            { value: `${stats.tasksDone}/${stats.tasksTotal}`, label: "Tâches famille" },
+            { value: stats.totalDhikr, label: tt("accueil.dhikrsToday") },
+            { value: `${stats.tasksDone}/${stats.tasksTotal}`, label: tt("accueil.familyTasks") },
           ].map(({ value, label }) => (
             <div key={label} className="rounded-xl border p-4" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}>
               <p className="text-2xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>{value}</p>
@@ -742,8 +742,8 @@ export default function AccueilPage() {
       {!isPratiquant && ageMode !== "elder" && ageMode !== "kids" && (
         <motion.div variants={itemVariants} className="grid grid-cols-2 gap-3">
           {[
-            { value: stats.totalDhikr, label: "Dhikrs aujourd'hui" },
-            { value: `${stats.tasksDone}/${stats.tasksTotal}`, label: "Tâches famille" },
+            { value: stats.totalDhikr, label: tt("accueil.dhikrsToday") },
+            { value: `${stats.tasksDone}/${stats.tasksTotal}`, label: tt("accueil.familyTasks") },
           ].map(({ value, label }) => (
             <div key={label} className="rounded-xl border p-4" style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(212,175,55,0.1)" }}>
               <p className="text-2xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>{value}</p>

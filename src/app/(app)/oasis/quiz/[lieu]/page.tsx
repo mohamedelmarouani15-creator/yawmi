@@ -18,6 +18,7 @@ import { supabase }       from "@/lib/supabase";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 import StoryPrologue      from "@/components/StoryPrologue";
 import type { PowerUpType } from "@/lib/game/types";
+import { useT } from "@/hooks/useT";
 
 // Couleur d'accent par lieu (remplace les emojis pour cohérence visuelle)
 const CITY_COLOR: Record<string, string> = {
@@ -190,6 +191,7 @@ function PowerUpBtn({
 export default function QuizPage() {
   const { lieu } = useParams() as { lieu: string };
   const router = useRouter();
+  const tt = useT();
   const { state, addReward, defeatSage, unlockLocation, refresh } = useGameState();
   const {
     session, startQuiz, selectAnswer, selectAnswerResult, confirmAnswer, usePowerUp,
@@ -387,14 +389,14 @@ export default function QuizPage() {
             <span className="text-4xl font-bold" style={{ color: victory ? "var(--gold)" : "var(--text)", fontFamily: "var(--font-bricolage)" }}>
               {finalCorrect}/{total}
             </span>
-            <span className="text-xs opacity-45" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>bonnes réponses</span>
+            <span className="text-xs opacity-45" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{tt("quiz.correct.count")}</span>
           </div>
         </div>
 
         {/* Message */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mb-6">
           <p className="text-2xl font-bold mb-2" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-            {victory ? "Victoire !" : "Pas encore…"}
+            {victory ? tt("quiz.victory") : tt("quiz.defeat")}
           </p>
           {sage && (
             <p className="text-sm opacity-55 leading-relaxed max-w-xs"
@@ -453,7 +455,7 @@ export default function QuizPage() {
               </motion.button>
             ) : (
               <p className="text-sm font-semibold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
-                ✦ Trésor découvert !
+                {tt("quiz.treasure")}
               </p>
             )}
           </motion.div>
@@ -470,7 +472,7 @@ export default function QuizPage() {
             >
               <Trophy size={20} style={{ color: "var(--gold)", flexShrink: 0 }} />
               <div className="text-left">
-                <p className="text-xs font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>Succès débloqué !</p>
+                <p className="text-xs font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>{tt("quiz.achievement")}</p>
                 <p className="text-xs opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{id.replace(/_/g, " ")}</p>
               </div>
             </motion.div>
@@ -484,7 +486,7 @@ export default function QuizPage() {
             className="rounded-full py-3.5 text-sm font-bold"
             style={{ background: `linear-gradient(135deg,${color},#055C3F)`, color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
           >
-            Retour à l&apos;Oasis
+            {tt("quiz.returnOasis")}
           </motion.button>
           {!victory && (
             <motion.button
@@ -493,7 +495,7 @@ export default function QuizPage() {
               className="rounded-full py-3.5 text-sm font-semibold border"
               style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(248,244,236,0.65)", fontFamily: "var(--font-dm-sans)" }}
             >
-              Réessayer
+              {tt("quiz.retry")}
             </motion.button>
           )}
         </div>
@@ -681,7 +683,7 @@ export default function QuizPage() {
                 className="mt-5 w-full rounded-full py-3.5 text-sm font-semibold"
                 style={{ background: `linear-gradient(135deg,${color},#055C3F)`, color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
               >
-                {session.currentIndex < total - 1 ? "Question suivante →" : "Voir les résultats"}
+                {session.currentIndex < total - 1 ? tt("quiz.next") : tt("quiz.seeResults")}
               </motion.button>
             )}
           </AnimatePresence>
@@ -715,7 +717,7 @@ export default function QuizPage() {
                   <div>
                     <p className="text-[10px] uppercase tracking-widest mb-0.5"
                       style={{ color: "rgba(212,175,55,0.55)", fontFamily: "var(--font-dm-sans)" }}>
-                      Capsule culturelle
+                      {tt("quiz.cultural")}
                     </p>
                     <p className="text-sm font-bold leading-tight"
                       style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>

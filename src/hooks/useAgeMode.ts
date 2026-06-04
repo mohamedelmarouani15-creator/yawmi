@@ -16,10 +16,15 @@ export function ageGroupToMode(group: string | null | undefined): AgeMode {
   }
 }
 
+const TONGUE_TO_LANG: Record<string, string> = {
+  arabe: "ar", darija: "ar", anglais: "en", espagnol: "es", turc: "tr",
+};
+
 export function useAgeMode(): AgeMode {
   const { settings } = useSettings();
   const mode = ageGroupToMode(settings.ageGroup);
   const isRTL = settings.motherTongue === "arabe" || settings.motherTongue === "darija";
+  const htmlLang = TONGUE_TO_LANG[settings.motherTongue ?? ""] ?? "fr";
 
   useEffect(() => {
     const root = document.documentElement;
@@ -27,9 +32,11 @@ export function useAgeMode(): AgeMode {
     root.classList.remove("age-kids", "age-teen", "age-adult", "age-parent", "age-elder");
     if (mode) root.classList.add(`age-${mode}`);
 
-    root.lang = isRTL ? "ar" : "fr";
+    root.lang = htmlLang;
     root.dir  = isRTL ? "rtl" : "ltr";
-  }, [mode, isRTL]);
+
+    document.cookie = `yawmi_lang=${htmlLang}; path=/; max-age=31536000; SameSite=Lax`;
+  }, [mode, isRTL, htmlLang]);
 
   return mode;
 }

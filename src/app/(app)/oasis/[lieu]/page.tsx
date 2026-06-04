@@ -7,6 +7,7 @@ import { useGameState } from "@/hooks/useGameState";
 import { getLocation } from "@/lib/game/locations";
 import { getSageForLocation } from "@/lib/game/sages";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
+import { useT } from "@/hooks/useT";
 
 // ── Sage portrait SVG — noble illustration, chaque sage a un objet symbolique ──
 function Face({ cx = 50, cy = 92, skin = "#C8956A" }: { cx?: number; cy?: number; skin?: string }) {
@@ -223,6 +224,7 @@ function SagePortrait({ sageId, color }: { sageId: string; color: string }) {
 export default function LieuPage() {
   const { lieu } = useParams() as { lieu: string };
   const router = useRouter();
+  const tt = useT();
   const { state, locationUnlocked } = useGameState();
 
   const location = getLocation(lieu);
@@ -255,7 +257,7 @@ export default function LieuPage() {
         className="flex items-center gap-2 mb-6 text-sm opacity-50 hover:opacity-80"
         style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
       >
-        <ArrowLeft size={16} /> Retour à l'Oasis
+        <ArrowLeft size={16} /> {tt("lieu.backOasis")}
       </motion.button>
 
       {/* City header */}
@@ -284,7 +286,7 @@ export default function LieuPage() {
           <Lock size={32} style={{ color: "var(--text-dim)" }} />
           <div>
             <p className="font-semibold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-              Lieu verrouillé
+              {tt("lieu.locked")}
             </p>
             <p className="mt-1 text-sm opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               Il te faut {location.requiredXP} XP pour accéder à {location.nameFr}
@@ -297,7 +299,7 @@ export default function LieuPage() {
             className="rounded-full px-6 py-2.5 text-sm font-semibold"
             style={{ background: "var(--gradient-primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
           >
-            Continuer à jouer
+            {tt("lieu.continuePlay")}
           </motion.button>
         </motion.div>
       )}
@@ -352,7 +354,7 @@ export default function LieuPage() {
                 +{sage.reward.xp}
               </p>
               <p className="text-xs opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                XP si victoire
+                {tt("lieu.xpWin")}
               </p>
             </div>
             <div className="flex-1 rounded-xl border px-4 py-3 text-center"
@@ -361,7 +363,7 @@ export default function LieuPage() {
                 {sage.victoryRequirement}/10
               </p>
               <p className="text-xs opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                Bonnes réponses requises
+                {tt("lieu.required")}
               </p>
             </div>
           </motion.div>
@@ -371,7 +373,7 @@ export default function LieuPage() {
             <motion.div variants={itemVariants} className="flex flex-col gap-3">
               <div className="flex items-center justify-center gap-2 rounded-full py-3.5 text-sm font-semibold"
                 style={{ background: "rgba(212,175,55,0.15)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)", border: "1px solid rgba(212,175,55,0.3)" }}>
-                <Trophy size={16} /> Sage vaincu — Compagnon acquis !
+                <Trophy size={16} /> {tt("lieu.sageDefeated")}
               </div>
               <motion.button
                 onClick={() => router.push(`/oasis/quiz/${lieu}`)}
@@ -380,7 +382,7 @@ export default function LieuPage() {
                 className="flex items-center justify-center gap-2 rounded-full py-3.5 text-sm font-semibold"
                 style={{ background: "var(--border-primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)", border: "1px solid rgba(5,92,63,0.5)" }}
               >
-                <Swords size={16} /> Rejouer
+                <Swords size={16} /> {tt("lieu.replay")}
               </motion.button>
             </motion.div>
           ) : (
@@ -397,7 +399,7 @@ export default function LieuPage() {
                 boxShadow: `0 0 32px ${location.color}44`,
               }}
             >
-              <Swords size={18} /> Relever le défi du sage
+              <Swords size={18} /> {tt("lieu.challenge")}
             </motion.button>
           )}
         </>
@@ -429,7 +431,7 @@ export default function LieuPage() {
                 boxShadow: "var(--shadow-primary)",
               }}
             >
-              <Swords size={18} /> Commencer le quiz
+              <Swords size={18} /> {tt("lieu.start")}
             </motion.button>
           )}
 
@@ -440,7 +442,7 @@ export default function LieuPage() {
             className="rounded-full px-6 py-2.5 text-sm"
             style={{ color: "var(--text-muted)", fontFamily: "var(--font-dm-sans)" }}
           >
-            ← Retour à la carte
+            {tt("lieu.backMap")}
           </motion.button>
         </motion.div>
       )}

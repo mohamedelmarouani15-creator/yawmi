@@ -143,9 +143,9 @@ export default function ProfilPage() {
       {/* Stats */}
       <motion.div variants={itemVariants} className="grid grid-cols-3 gap-3">
         {[
-          { value: stats.streak,       label: "Jours\nconsécutifs" },
-          { value: stats.totalDhikrAll, label: "Total\ndhikrs" },
-          { value: `${stats.doneTasks}/${stats.totalTasks}`, label: "Tâches\nterminées" },
+          { value: stats.streak,       label: tt("profil.statsStreak") },
+          { value: stats.totalDhikrAll, label: tt("profil.statsDhikr") },
+          { value: `${stats.doneTasks}/${stats.totalTasks}`, label: tt("profil.statsTasks") },
         ].map(({ value, label }) => (
           <Card key={label} variant="gold" padding="none" className="flex flex-col items-center py-4">
             <p className="text-xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>

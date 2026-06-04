@@ -13,6 +13,7 @@ import { MosqueIcon, CrescentStar } from "@/components/IslamicIcons";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
 import { Button, Card } from "@/components/ui";
+import { useT } from "@/hooks/useT";
 
 const RECITERS = [
   { id: "alafasy",    name: "Mishary Alafasy",      src: "/audio/adhan-alafasy.mp3"    },
@@ -39,6 +40,7 @@ function getQibla(lat: number, lng: number) {
 export default function PrieresPage() {
   const { times, nextPrayer, countdown } = usePrayerTimes();
   const { settings, save } = useSettings();
+  const tt = useT();
   const ageMode = ageGroupToMode(settings.ageGroup);
   const { bearing, dist } = getQibla(settings.lat, settings.lng);
   const [showReciters, setShowReciters] = useState(false);
@@ -98,22 +100,22 @@ export default function PrieresPage() {
         <motion.div variants={itemVariants} className="flex flex-col items-center gap-2 py-1">
           <MosqueIcon size={44} style={{ color: "var(--gold)" }} />
           <h1 className="text-xl font-bold text-center" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
-            Mes Prières du jour
+            {tt("prieres.kids.title")}
           </h1>
           <p className="text-xs opacity-50 text-center" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            {settings.cityName} · {prayerStreak > 0 ? `${prayerStreak} jour${prayerStreak > 1 ? "s" : ""} de suite !` : "Coche chaque prière"}
+            {settings.cityName} · {prayerStreak > 0 ? `${prayerStreak} jour${prayerStreak > 1 ? "s" : ""} de suite !` : tt("prieres.kids.check")}
           </p>
         </motion.div>
       ) : (
         <motion.div variants={itemVariants} className="flex items-start justify-between">
           <div>
             <p className="text-xs tracking-widest uppercase opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-              Horaires du jour
+              {tt("prieres.label")}
             </p>
             <div className="flex items-center gap-2 mt-1">
               <MosqueIcon size={22} style={{ color: "var(--gold)" }} />
               <h1 className="text-2xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-                Prières
+                {tt("prieres.title")}
               </h1>
             </div>
           </div>
@@ -136,7 +138,7 @@ export default function PrieresPage() {
               <CrescentStar size={56} style={{ color: "var(--gold)" }} />
             </div>
             <p className="text-xs tracking-widest uppercase opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-              Prochaine prière
+              {tt("prieres.nextPrayer")}
             </p>
             {ageMode === "kids" && (() => { const Icon = PRAYER_ICON[nextPrayer]; return Icon ? <Icon size={32} className="mt-1" style={{ color: "var(--gold)" }} /> : null; })()}
             <p className="mt-1 text-4xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
@@ -210,7 +212,7 @@ export default function PrieresPage() {
       <motion.div variants={itemVariants}>
         <div className="mb-2 flex items-center justify-between">
           <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            {ageMode === "kids" ? "Coche tes prières ✓" : "Horaires du jour"}
+            {ageMode === "kids" ? tt("prieres.kids.check") : tt("prieres.label")}
           </p>
           {prayerStreak > 0 && ageMode !== "kids" && (
             <span className="text-xs font-semibold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
@@ -374,7 +376,7 @@ export default function PrieresPage() {
             style={{ background: "radial-gradient(circle, var(--gold), transparent)" }} />
           <div className="flex flex-col gap-1">
             <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-              {ageMode === "kids" ? "Direction La Mecque 🕋" : "Qibla · القبلة"}
+              {ageMode === "kids" ? tt("prieres.qiblaKids") : tt("prieres.qibla")}
             </p>
             <p className="text-3xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
               {bearing}°

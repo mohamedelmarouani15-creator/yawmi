@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { Lock, Star, Flame, Waves, Leaf, Moon, Shield, Route, Heart, Sparkles, Crown, type LucideIcon } from "lucide-react";
 import { pageVariants, itemVariants } from "@/lib/motion";
 import { supabase } from "@/lib/supabase";
+import { useT } from "@/hooks/useT";
 
 const ARCS = [
   // ── Disponible ──────────────────────────────────────────────
@@ -157,6 +158,7 @@ function TapisVoyageur() {
 
 export default function HistoirePage() {
   const router = useRouter();
+  const tt = useT();
   // Statuts lus depuis Supabase — écrase les valeurs hardcodées de ARCS
   const [arcStatuses, setArcStatuses] = useState<Record<string, "published" | "draft">>({});
 
@@ -184,16 +186,15 @@ export default function HistoirePage() {
       <motion.div variants={itemVariants} className="mb-8">
         <p className="text-xs tracking-widest uppercase opacity-50 mb-1"
           style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          La Grande Histoire
+          {tt("histoire.subtitle")}
         </p>
         <h1 className="text-2xl font-bold mb-1"
           style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-          Le Tapis Voyageur
+          {tt("histoire.title")}
         </h1>
         <p className="text-xs leading-relaxed opacity-45"
           style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          Voyage à travers les histoires de l&apos;islam.
-          Un chapitre par jour, une leçon pour la vie.
+          {tt("histoire.desc")}
         </p>
       </motion.div>
 
@@ -238,7 +239,7 @@ export default function HistoirePage() {
                 <div className="absolute top-3 right-3 flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"
                   style={{ background: "rgba(255,255,255,0.06)", color: "rgba(248,244,236,0.35)", fontFamily: "var(--font-dm-sans)" }}>
                   <Lock size={10} />
-                  Bientôt disponible
+                  {tt("histoire.locked")}
                 </div>
               )}
               <div className="flex items-start gap-3 mb-3">
@@ -265,7 +266,7 @@ export default function HistoirePage() {
               <div className="flex items-center justify-between">
                 <span className="text-xs"
                   style={{ color: "rgba(248,244,236,0.35)", fontFamily: "var(--font-dm-sans)" }}>
-                  {arc.chapters} chapitres
+                  {arc.chapters} {tt("histoire.chapters")}
                 </span>
                 {available && (
                   <span className="rounded-full px-3 py-1 text-xs font-semibold"
@@ -275,7 +276,7 @@ export default function HistoirePage() {
                       border: `1px solid ${arc.color}40`,
                       fontFamily: "var(--font-dm-sans)",
                     }}>
-                    Commencer →
+                    {tt("histoire.start")}
                   </span>
                 )}
               </div>
@@ -289,8 +290,7 @@ export default function HistoirePage() {
         style={{ borderColor: "var(--gold-faint)", background: "rgba(212,175,55,0.04)" }}>
         <p className="text-xs leading-relaxed opacity-50 text-center"
           style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          ✦ Sources : Coran & Sîra fiable. Aucun dialogue inventé dans la bouche des prophètes.
-          Ce contenu est en cours de validation religieuse avant diffusion publique.
+          {tt("histoire.validation")}
         </p>
       </motion.div>
     </motion.main>

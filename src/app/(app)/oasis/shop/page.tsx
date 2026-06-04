@@ -9,6 +9,7 @@ import { gameStorage } from "@/lib/game/game-storage";
 import { POWERUPS } from "@/lib/game/powerups";
 import { springTap } from "@/lib/motion";
 import type { PowerUpType } from "@/lib/game/types";
+import { useT } from "@/hooks/useT";
 
 const ICON_MAP: Record<string, React.ReactNode> = {
   Scissors: <Scissors size={22} />,
@@ -22,6 +23,7 @@ function ChestModal({ onClose, reward }: {
   onClose: () => void;
   reward: { coins: number; powerup: PowerUpType | null; object: string | null } | null;
 }) {
+  const tt = useT();
   const [opened, setOpened] = useState(false);
 
   return (
@@ -94,7 +96,7 @@ function ChestModal({ onClose, reward }: {
               className="flex flex-col items-center gap-3 w-full"
             >
               <p className="text-lg font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
-                Vous avez obtenu !
+                {tt("shop.found")}
               </p>
               <div className="flex flex-col gap-2 w-full">
                 <div className="flex items-center gap-3 rounded-2xl border p-3"
@@ -127,7 +129,7 @@ function ChestModal({ onClose, reward }: {
                 onClick={onClose} whileTap={{ scale: 0.96 }} transition={springTap}
                 className="w-full rounded-full py-3.5 text-sm font-semibold mt-2"
                 style={{ background: "linear-gradient(135deg,#D4AF37,#8B6914)", color: "#0A1A0E", fontFamily: "var(--font-dm-sans)" }}>
-                Parfait !
+                {tt("shop.confirm")}
               </motion.button>
             </motion.div>
           )}
@@ -163,6 +165,7 @@ function GoldParticles({ show }: { show: boolean }) {
 export default function ShopPage() {
   const router = useRouter();
   const { state, refresh } = useGameState();
+  const tt = useT();
   const [toast,   setToast]   = useState<string | null>(null);
   const [chest,   setChest]   = useState<{ coins: number; powerup: PowerUpType | null; object: string | null } | null>(null);
   const [showParticles, setShowParticles] = useState(false);
@@ -177,14 +180,14 @@ export default function ShopPage() {
   };
 
   const buyPowerUp = useCallback((id: PowerUpType, cost: number) => {
-    if (coins < cost) { showToast("Pas assez de pièces d'or !"); return; }
+    if (coins < cost) { showToast(tt("shop.notEnough")); return; }
     const spent = gameStorage.spendCoins(cost);
     if (!spent) { showToast("Impossible d'acheter"); return; }
     gameStorage.addPowerUp(id);
     gameStorage.push(); // sync vers Supabase après achat
     refresh?.();
-    showToast("Power-up ajouté !");
-  }, [coins, refresh]);
+    showToast(tt("shop.success"));
+  }, [coins, refresh, tt]); // eslint-disable-line
 
   const openChest = useCallback(() => {
     const reward = gameStorage.openChest();
@@ -213,7 +216,7 @@ export default function ShopPage() {
         </motion.button>
         <div className="flex-1">
           <h1 className="text-lg font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-            Boutique
+            {tt("shop.title")}
           </h1>
         </div>
         {/* Coins */}
@@ -248,14 +251,14 @@ export default function ShopPage() {
               {chests} Coffre{chests > 1 ? "s" : ""} disponible{chests > 1 ? "s" : ""}
             </p>
             <p className="text-xs" style={{ color: "var(--text-muted)", fontFamily: "var(--font-dm-sans)" }}>
-              Pièces, power-ups, objets mosquée…
+              {tt("shop.chestsDesc")}
             </p>
           </div>
           <motion.button
             onClick={openChest} whileTap={{ scale: 0.95 }} transition={springTap}
             className="rounded-full px-4 py-2 text-xs font-bold"
             style={{ background: "linear-gradient(135deg,#D4AF37,#8B6914)", color: "#0A1A0E", fontFamily: "var(--font-dm-sans)" }}>
-            Ouvrir
+            {tt("shop.open")}
           </motion.button>
         </motion.div>
       )}
@@ -263,7 +266,7 @@ export default function ShopPage() {
       {/* Power-ups shop */}
       <p className="text-xs uppercase tracking-widest mb-3"
         style={{ color: "rgba(248,244,236,0.35)", fontFamily: "var(--font-dm-sans)" }}>
-        Power-ups
+        {tt("shop.powerups")}
       </p>
       <div className="flex flex-col gap-3 mb-8">
         {POWERUPS.map(pu => {
@@ -317,13 +320,13 @@ export default function ShopPage() {
       <div className="rounded-2xl border p-4"
         style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}>
         <p className="text-xs font-semibold mb-1" style={{ color: "var(--text-muted)", fontFamily: "var(--font-dm-sans)" }}>
-          Comment obtenir des coffres ?
+          {tt("shop.howGet")}
         </p>
         <ul className="text-xs flex flex-col gap-1" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
-          <li>• Vaincre un sage → 1 coffre</li>
-          <li>• 10/10 à un défi → 1 coffre</li>
-          <li>• Streak de 7 jours → 1 coffre</li>
-          <li>• Compléter un escape game → 2 coffres</li>
+          <li>{tt("shop.howGet1")}</li>
+          <li>{tt("shop.howGet2")}</li>
+          <li>{tt("shop.howGet3")}</li>
+          <li>{tt("shop.howGet4")}</li>
         </ul>
       </div>
 

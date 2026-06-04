@@ -13,6 +13,7 @@ import { useSettings }     from "@/hooks/useSettings";
 import { ageGroupToMode }  from "@/hooks/useAgeMode";
 import StoryPrologue       from "@/components/StoryPrologue";
 import type { AgeMode }    from "@/hooks/useAgeMode";
+import { useT }            from "@/hooks/useT";
 
 // ── Types ──────────────────────────────────────────────────────
 interface Vocabulary {
@@ -44,13 +45,7 @@ interface Chapter {
 
 type Phase = "prologue" | "reading" | "vocab" | "questions" | "reward";
 
-// ── Labels des types de questions ─────────────────────────────
-const TYPE_LABEL: Record<string, string> = {
-  comprehension:     "Compréhension",
-  vocabulary:        "Vocabulaire",
-  reflection:        "Réflexion",
-  spaced_repetition: "Mémorisation",
-};
+// ── Labels des types de questions (définis dans QuestionCard via tt) ─────
 
 const TYPE_COLOR: Record<string, string> = {
   comprehension:     "#60a5fa",
@@ -70,6 +65,13 @@ function QuestionCard({
   color:         string;
   ageMode:       AgeMode;
 }) {
+  const tt = useT();
+  const TYPE_LABEL: Record<string, string> = {
+    comprehension:     tt("chapter.comprehension"),
+    vocabulary:        tt("chapter.vocabulary"),
+    reflection:        tt("chapter.reflection"),
+    spaced_repetition: tt("chapter.memory"),
+  };
   const [selected, setSelected] = useState<number | null>(null);
   const [revealed, setRevealed] = useState(false);
   const [reflText, setReflText] = useState("");
@@ -101,9 +103,7 @@ function QuestionCard({
       <div className="flex items-center justify-between">
         <span className="rounded-full px-3 py-1 text-xs font-semibold"
           style={{ background: `${qColor}15`, color: qColor, border: `1px solid ${qColor}35`, fontFamily: "var(--font-dm-sans)" }}>
-          {isKids ? (
-            { comprehension: "📖 Compréhension", vocabulary: "📚 Vocabulaire", reflection: "💭 Réflexion", spaced_repetition: "🧠 Mémorisation" }[question.type] ?? TYPE_LABEL[question.type]
-          ) : TYPE_LABEL[question.type]}
+          {TYPE_LABEL[question.type] ?? question.type}
         </span>
         <span className="text-xs opacity-35" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           {questionIndex + 1}/{total}
@@ -130,7 +130,7 @@ function QuestionCard({
             <textarea
               value={reflText}
               onChange={e => setReflText(e.target.value)}
-              placeholder="Écris ta réflexion ici… ou passe si tu préfères."
+              placeholder={tt("chapter.reflectionPlaceholder")}
               className="rounded-xl border px-3 py-2.5 text-sm resize-none"
               rows={3}
               style={{ background: "rgba(255,255,255,0.04)", borderColor: "rgba(255,255,255,0.1)", color: "var(--text)", fontFamily: "var(--font-dm-sans)", outline: "none" }}
@@ -230,7 +230,7 @@ function QuestionCard({
             fontFamily: "var(--font-dm-sans)",
             fontSize:   isElder ? 16 : 14,
           }}>
-          {isReflection ? (reflText ? "Valider ma réflexion" : (isKids ? "Passer ➜" : "Passer")) : (isKids ? "Valider ✓" : "Valider")}
+          {isReflection ? (reflText ? tt("chapter.validate") : tt("chapter.skip")) : tt("chapter.submit")}
         </motion.button>
       )}
     </motion.div>
@@ -243,6 +243,7 @@ export default function ChapterPage() {
   const chapterN = parseInt(chapter, 10);
   const router   = useRouter();
   const { settings } = useSettings();
+  const tt           = useT();
   const ageMode      = ageGroupToMode(settings.ageGroup);
   const isKids       = ageMode === "kids";
   const isElder      = ageMode === "elder";
@@ -363,7 +364,7 @@ export default function ChapterPage() {
                 transition={{ delay: 0.5 }}
                 className="text-lg font-bold mt-2"
                 style={{ color: color, fontFamily: "var(--font-bricolage)" }}>
-                {isLast ? "Incroyable ! Tu as fini l'histoire !" : "Bravo ! Chapitre terminé !"}
+                {isLast ? tt("chapter.finished") : tt("chapter.donekids")}
               </motion.p>
             </div>
           ) : (
@@ -374,17 +375,17 @@ export default function ChapterPage() {
         {!isKids && (
           <div className="text-center">
             <p className="text-xl font-bold mb-2" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-              {isLast ? "Histoire terminée !" : "Chapitre terminé !"}
+              {isLast ? tt("chapter.finished") : tt("chapter.done")}
             </p>
             <p className="text-sm opacity-55 mb-4" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-              {correctCount}/{data.questions.length} bonnes réponses
+              {correctCount}/{data.questions.length} {tt("chapter.answers")}
             </p>
           </div>
         )}
 
         {isKids && (
           <p className="text-sm opacity-60 text-center" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            {correctCount}/{data.questions.length} bonnes réponses 🎯
+            {correctCount}/{data.questions.length} {tt("chapter.answers")} 🎯
           </p>
         )}
 
@@ -414,7 +415,7 @@ export default function ChapterPage() {
               whileTap={{ scale: 0.97 }} transition={springTap}
               className="w-full rounded-full py-4 text-sm font-semibold"
               style={{ background: `linear-gradient(135deg,${color},#8B6914)`, color: "#0A1A0E", fontFamily: "var(--font-dm-sans)", fontSize: isElder ? 16 : 14 }}>
-              {isKids ? "Chapitre suivant → 🌟" : "Chapitre suivant →"}
+              {isKids ? tt("chapter.next") : tt("chapter.next").replace(" 🌟", "")}
             </motion.button>
           )}
           <motion.button
@@ -422,7 +423,7 @@ export default function ChapterPage() {
             whileTap={{ scale: 0.97 }} transition={springTap}
             className="w-full rounded-full py-3 text-sm font-semibold"
             style={{ background: "rgba(255,255,255,0.06)", color: "rgba(248,244,236,0.6)", fontFamily: "var(--font-dm-sans)" }}>
-            Retour aux chapitres
+            {tt("chapter.backChapters")}
           </motion.button>
         </div>
       </div>
@@ -478,7 +479,7 @@ export default function ChapterPage() {
                   🎧 {ARC_AMBIENT_LABEL[storyId] ?? "Ambiance"}
                 </p>
                 <p className="text-xs opacity-40 truncate" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                  {narrator.isLoading ? "Génération en cours…" : narrator.isPlaying ? "Narration en cours…" : narrator.isPaused ? "En pause" : "Écouter l'histoire"}
+                  {narrator.isLoading ? tt("chapter.generating") : narrator.isPlaying ? tt("chapter.narrating") : narrator.isPaused ? tt("chapter.paused") : tt("chapter.narrate")}
                 </p>
               </div>
               <div className="flex items-center gap-2 shrink-0">
@@ -556,7 +557,7 @@ export default function ChapterPage() {
             <div className="text-center">
               <p className="text-xs uppercase tracking-widest mb-3 opacity-45"
                 style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                Le mot de ce chapitre
+                {tt("chapter.vocab")}
               </p>
               <motion.div
                 animate={{ scale: [1, 1.04, 1] }}
@@ -570,7 +571,7 @@ export default function ChapterPage() {
                   className="flex items-center gap-2 rounded-full px-3 py-1.5"
                   style={{ background: "rgba(212,175,55,0.1)", border: "1px solid rgba(212,175,55,0.25)" }}>
                   <Volume2 size={13} style={{ color }} />
-                  <span className="text-xs" style={{ color, fontFamily: "var(--font-dm-sans)" }}>Écouter</span>
+                  <span className="text-xs" style={{ color, fontFamily: "var(--font-dm-sans)" }}>{tt("chapter.listen")}</span>
                 </button>
                 <p style={{ fontSize: isElder ? 20 : 18, fontWeight: 600, color: "rgba(248,244,236,0.55)", fontFamily: "var(--font-dm-sans)" }}>
                   {vocab.translit}
@@ -590,7 +591,7 @@ export default function ChapterPage() {
               whileTap={{ scale: 0.97 }} transition={springTap}
               className="w-full rounded-full py-4 text-sm font-semibold flex items-center justify-center gap-2"
               style={{ background: `linear-gradient(135deg,${color},#8B6914)`, color: "#0A1A0E", fontFamily: "var(--font-dm-sans)", fontSize: isElder ? 16 : 14, minHeight: isElder ? 60 : undefined }}>
-              Répondre aux questions <ChevronRight size={16} />
+              {tt("chapter.vocabContinue")} <ChevronRight size={16} />
             </motion.button>
           </motion.div>
         )}

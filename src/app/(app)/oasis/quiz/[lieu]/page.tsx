@@ -20,6 +20,7 @@ import type { PowerUpType } from "@/lib/game/types";
 import { useT } from "@/hooks/useT";
 import { useLang } from "@/hooks/useLang";
 import { getQuestionLang } from "@/lib/content-i18n";
+import LevelUpCinematic from "@/components/LevelUpCinematic";
 import { pick } from "@/lib/content-i18n";
 import staticT from "@/lib/static-translations.json";
 import DragDropGame    from "@/components/minigames/DragDropGame";
@@ -211,6 +212,7 @@ export default function QuizPage() {
   const [showParticles, setShowParticles] = useState(false);
   const [newAchievements, setNewAchievements] = useState<string[]>([]);
   const [prologueDone,  setPrologueDone]  = useState<boolean | null>(null);
+  const [levelUpLevel,  setLevelUpLevel]  = useState<number | null>(null);
 
   // Battle effects
   const [screenFlash, setScreenFlash] = useState<"hit" | "miss" | null>(null);
@@ -235,7 +237,10 @@ export default function QuizPage() {
     setRewardSaved(true);
     const victory = (score ?? 0) >= (sage?.victoryRequirement ?? 7) / 10;
     const prevAchievements = [...(state?.achievements ?? [])];
+    const oldLevel = state?.level ?? 1;
     gameStorage.addXP(session.xpEarned);
+    const afterXP = gameStorage.get();
+    if (afterXP.level > oldLevel) setLevelUpLevel(afterXP.level);
     gameStorage.addCoins(session.coinsEarned);
     gameStorage.updateStreak();
     if (victory && sage) {
@@ -356,6 +361,16 @@ export default function QuizPage() {
   const victory = (score ?? 0) >= (sage?.victoryRequirement ?? 7) / 10;
   const total = session.questions.length;
   const finalCorrect = session.answers.filter(Boolean).length;
+
+  // ── Level-up cinématique (avant résultat) ────────────────────
+  if (levelUpLevel !== null) {
+    return (
+      <LevelUpCinematic
+        level={levelUpLevel}
+        onDismiss={() => setLevelUpLevel(null)}
+      />
+    );
+  }
 
   // ── Résultat ─────────────────────────────────────────────────
   if (session.finished && showResult) {

@@ -137,7 +137,9 @@ export interface QuizSession {
 export interface AchievementDef {
   id: string;
   title: string;
+  titleAr?: string;
   description: string;
+  descriptionAr?: string;
   icon: string;
   condition: (state: GameState) => boolean;
 }

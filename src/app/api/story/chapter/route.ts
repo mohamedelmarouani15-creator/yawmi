@@ -48,14 +48,24 @@ export async function GET(req: NextRequest) {
     .eq("story_id", storyId)
     .single();
 
-  // Apply language overlay (AR fields override FR when lang=ar and translation exists)
-  const localizedChapter = lang === "ar"
-    ? {
+  // Apply language overlay — AR uses dedicated columns, others use translations JSONB
+  let localizedChapter = chapter;
+  if (lang === "ar") {
+    localizedChapter = {
+      ...chapter,
+      title:     chapter.title_ar     ?? chapter.title,
+      narrative: chapter.narrative_ar ?? chapter.narrative,
+    };
+  } else if (lang !== "fr") {
+    const t = (chapter.translations as Record<string, { title?: string; narrative?: string }> | null)?.[lang];
+    if (t) {
+      localizedChapter = {
         ...chapter,
-        title:     chapter.title_ar     ?? chapter.title,
-        narrative: chapter.narrative_ar ?? chapter.narrative,
-      }
-    : chapter;
+        title:     t.title     ?? chapter.title,
+        narrative: t.narrative ?? chapter.narrative,
+      };
+    }
+  }
 
   return NextResponse.json({ chapter: localizedChapter, progress, totalChapters: story?.total_chapters ?? null });
 }

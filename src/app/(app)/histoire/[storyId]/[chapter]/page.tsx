@@ -270,7 +270,8 @@ export default function ChapterPage() {
     async function load() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
-      const lang = (settings.motherTongue === "arabe" || settings.motherTongue === "darija") ? "ar" : "fr";
+      const { langFromTongue } = await import("@/lib/i18n");
+      const lang = langFromTongue(settings.motherTongue ?? null);
       const res = await fetch(`/api/story/chapter?storyId=${storyId}&chapter=${chapterN}&lang=${lang}`, {
         headers: { Authorization: `Bearer ${session.access_token}` },
       });

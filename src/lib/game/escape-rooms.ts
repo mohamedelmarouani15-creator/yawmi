@@ -1,3 +1,5 @@
+import type { EscapeRoomTranslation, EscapeLockTranslation } from "@/lib/game/types";
+
 export interface EscapeLock {
   id: number;
   type: "arabic" | "religion" | "calligraphy" | "darija";
@@ -11,6 +13,7 @@ export interface EscapeLock {
   optionsAr?: { text: string; correct: boolean }[];
   hint: string;
   hintAr?: string;
+  t?: Partial<Record<string, EscapeLockTranslation>>;
 }
 
 export interface EscapeRoom {
@@ -26,6 +29,7 @@ export interface EscapeRoom {
   floorColor: string;
   wallColor: string;
   accentColor: string;
+  t?: Partial<Record<string, EscapeRoomTranslation>>;
 }
 
 export const ESCAPE_ROOMS: EscapeRoom[] = [

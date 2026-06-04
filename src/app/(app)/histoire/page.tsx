@@ -7,7 +7,7 @@ import { Lock, Star, Flame, Waves, Leaf, Moon, Shield, Route, Heart, Sparkles, C
 import { pageVariants, itemVariants } from "@/lib/motion";
 import { supabase } from "@/lib/supabase";
 import { useT } from "@/hooks/useT";
-import { useSettings } from "@/hooks/useSettings";
+import { useLang } from "@/hooks/useLang";
 
 const ARCS = [
   // ── Disponible ──────────────────────────────────────────────
@@ -160,8 +160,8 @@ function TapisVoyageur() {
 export default function HistoirePage() {
   const router = useRouter();
   const tt = useT();
-  const { settings } = useSettings();
-  const isAr = settings.motherTongue === "arabe" || settings.motherTongue === "darija";
+  const lang = useLang();
+  const isAr = lang === "ar" || lang === "darija";
   // Statuts lus depuis Supabase — écrase les valeurs hardcodées de ARCS
   const [arcStatuses, setArcStatuses] = useState<Record<string, "published" | "draft">>({});
 

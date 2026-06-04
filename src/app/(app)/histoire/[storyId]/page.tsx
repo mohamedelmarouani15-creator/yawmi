@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, CheckCircle2, Lock, BookOpen } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { springTap, pageVariants, itemVariants } from "@/lib/motion";
-import { useSettings } from "@/hooks/useSettings";
+import { useLang } from "@/hooks/useLang";
 import { useT } from "@/hooks/useT";
 
 interface ChapterMeta {
@@ -24,8 +24,8 @@ export default function StoryChaptersPage() {
   const { storyId } = useParams() as { storyId: string };
   const router = useRouter();
   const tt = useT();
-  const { settings } = useSettings();
-  const isAr = settings.motherTongue === "arabe" || settings.motherTongue === "darija";
+  const lang = useLang();
+  const isAr = lang === "ar" || lang === "darija";
 
   const [chapters,  setChapters]  = useState<ChapterMeta[]>([]);
   const [progress,  setProgress]  = useState<StoryProgress | null>(null);

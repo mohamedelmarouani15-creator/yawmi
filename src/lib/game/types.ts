@@ -27,6 +27,12 @@ export interface MinigameData {
   passCoverage?: number;
 }
 
+export interface QuestionTranslation {
+  question?: string;
+  options?: QuestionOption[];
+  explanation?: string;
+}
+
 export interface Question {
   id: string;
   category: Category;
@@ -39,12 +45,11 @@ export interface Question {
   options_ar?: QuestionOption[];
   explanation?: string;
   explanation_ar?: string;
+  translations?: Partial<Record<string, QuestionTranslation>>; // en/es/tr/darija
   culturalCapsule?: { title: string; text: string };
   locationId?: string;
   eventId?: string;
   minigameData?: MinigameData;
-  // Minimum Arabic level to include in quiz pool
-  // "none" = always shown, "beginner"/"intermediate"/"advanced" = requires that level
   arabicRequired?: "none" | "beginner" | "intermediate" | "advanced";
 }
 
@@ -82,6 +87,12 @@ export interface GameState {
   totalCorrectAnswers: number;
 }
 
+export interface LocationTranslation { description?: string; country?: string; }
+export interface SageTranslation { title?: string; dialogueIntro?: string; dialogueSuccess?: string; dialogueFailure?: string; }
+export interface AchievementTranslation { title?: string; description?: string; }
+export interface EscapeRoomTranslation { name?: string; description?: string; }
+export interface EscapeLockTranslation { question?: string; options?: { text: string; correct: boolean }[]; hint?: string; }
+
 export interface LocationDef {
   id: string;
   name: string;
@@ -93,6 +104,7 @@ export interface LocationDef {
   description: string;
   descriptionAr?: string;
   color: string;
+  t?: Partial<Record<string, LocationTranslation>>;
 }
 
 export interface SageDef {
@@ -112,6 +124,7 @@ export interface SageDef {
   dialogueFailureAr?: string;
   reward: { xp: number; coins: number };
   victoryRequirement: number;
+  t?: Partial<Record<string, SageTranslation>>;
 }
 
 export interface QuizSession {
@@ -142,6 +155,7 @@ export interface AchievementDef {
   descriptionAr?: string;
   icon: string;
   condition: (state: GameState) => boolean;
+  t?: Partial<Record<string, AchievementTranslation>>;
 }
 
 export interface DuelSession {

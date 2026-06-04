@@ -27,6 +27,7 @@ function rowToQuestion(row: Record<string, unknown>): Question {
     options_ar:      (row.options_ar as QuestionOption[] | null) ?? undefined,
     explanation:     (row.explanation as string | null) ?? undefined,
     explanation_ar:  (row.explanation_ar as string | null) ?? undefined,
+    translations:    (row.translations as Partial<Record<string, import("@/lib/game/types").QuestionTranslation>> | null) ?? undefined,
     culturalCapsule: (row.cultural_capsule as { title: string; text: string } | null) ?? undefined,
     locationId:      (row.location_id as string | null) ?? undefined,
     eventId:         (row.event_id  as string | null) ?? undefined,
@@ -88,7 +89,7 @@ async function fetchFromSupabase(): Promise<Question[] | null> {
   try {
     const { data, error } = await supabase
       .from("questions")
-      .select("id,category,type,difficulty,question,question_ar,transliteration,options,options_ar,explanation,explanation_ar,cultural_capsule,location_id,event_id,arabic_required,minigame_data")
+      .select("id,category,type,difficulty,question,question_ar,transliteration,options,options_ar,explanation,explanation_ar,translations,cultural_capsule,location_id,event_id,arabic_required,minigame_data")
       .eq("is_active", true)
       .limit(500);
 

@@ -19,7 +19,8 @@ import { ageGroupToMode } from "@/hooks/useAgeMode";
 import StoryPrologue      from "@/components/StoryPrologue";
 import type { PowerUpType } from "@/lib/game/types";
 import { useT } from "@/hooks/useT";
-import { useSettings } from "@/hooks/useSettings";
+import { useLang } from "@/hooks/useLang";
+import { getQuestionLang } from "@/lib/content-i18n";
 
 // Couleur d'accent par lieu (remplace les emojis pour cohérence visuelle)
 const CITY_COLOR: Record<string, string> = {
@@ -193,8 +194,8 @@ export default function QuizPage() {
   const { lieu } = useParams() as { lieu: string };
   const router = useRouter();
   const tt = useT();
-  const { settings } = useSettings();
-  const isAr = settings.motherTongue === "arabe" || settings.motherTongue === "darija";
+  const lang = useLang();
+  const isRtl = lang === "ar" || lang === "darija";
   const { state, addReward, defeatSage, unlockLocation, refresh } = useGameState();
   const {
     session, startQuiz, selectAnswer, selectAnswerResult, confirmAnswer, usePowerUp,
@@ -573,8 +574,8 @@ export default function QuizPage() {
           {!["drag_drop","memory","fill_verse","who_am_i","calligraphy"].includes(currentQuestion.type) && (
             <div className="mb-7">
               <p className="text-[19px] font-bold leading-snug"
-                style={{ color: "var(--text)", fontFamily: isAr ? "var(--font-amiri)" : "var(--font-bricolage)", direction: isAr ? "rtl" : "ltr" }}>
-                {isAr ? (currentQuestion.question_ar ?? currentQuestion.question) : currentQuestion.question}
+                style={{ color: "var(--text)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-bricolage)", direction: isRtl ? "rtl" : "ltr" }}>
+                {getQuestionLang(currentQuestion, lang).question}
               </p>
               {/* Translittération si question en arabe */}
               {currentQuestion.transliteration && (
@@ -606,7 +607,7 @@ export default function QuizPage() {
           {/* ── MCQ / true_false options ── */}
           {["mcq","true_false","fill_in","reorder"].includes(currentQuestion.type) && (
           <div className="flex flex-col gap-2.5">
-            {(isAr && currentQuestion.options_ar ? currentQuestion.options_ar : currentQuestion.options).map((option, idx) => {
+            {getQuestionLang(currentQuestion, lang).options.map((option, idx) => {
               const hidden = session.hiddenOptions.includes(idx);
               const isSelected = session.selectedOption === idx;
               const isTimedOut  = session.selectedOption === -1;
@@ -754,7 +755,7 @@ export default function QuizPage() {
               >
                 <p className="text-xs leading-relaxed opacity-55"
                   style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                  {isAr ? (currentQuestion.explanation_ar ?? currentQuestion.explanation) : currentQuestion.explanation}
+                  {getQuestionLang(currentQuestion, lang).explanation}
                 </p>
               </motion.div>
             )}

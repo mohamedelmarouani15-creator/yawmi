@@ -7,8 +7,9 @@ import { useGameState } from "@/hooks/useGameState";
 import { ACHIEVEMENTS } from "@/lib/game/achievements";
 import { springTap } from "@/lib/motion";
 import { useState } from "react";
-import { useSettings } from "@/hooks/useSettings";
 import { useT } from "@/hooks/useT";
+import { useLang } from "@/hooks/useLang";
+import { pick } from "@/lib/content-i18n";
 
 const CATEGORY_FILTERS = ["Tous", "Sages", "Streak", "Questions", "Niveau", "Mosquée"] as const;
 type Filter = typeof CATEGORY_FILTERS[number];
@@ -26,8 +27,8 @@ export default function TropheesPage() {
   const router = useRouter();
   const { state } = useGameState();
   const tt = useT();
-  const { settings } = useSettings();
-  const isAr = settings.motherTongue === "arabe" || settings.motherTongue === "darija";
+  const lang = useLang();
+  const isRtl = lang === "ar" || lang === "darija";
   const [filter, setFilter] = useState<Filter>("Tous");
   const [lastUnlocked, setLastUnlocked] = useState<string | null>(null);
 
@@ -57,7 +58,7 @@ export default function TropheesPage() {
             {tt("profil.trophies")}
           </h1>
           <p className="text-xs" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
-            {totalUnlocked}/{totalAch} {isAr ? "مفتوحة" : "débloqués"}
+            {totalUnlocked}/{totalAch} {tt("profil.trophiesSub").split(" ")[0]}
           </p>
         </div>
       </div>
@@ -128,12 +129,12 @@ export default function TropheesPage() {
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-sm truncate"
-                    style={{ color: unlocked ? "var(--gold)" : "rgba(248,244,236,0.4)", fontFamily: isAr ? "var(--font-amiri)" : "var(--font-bricolage)" }}>
-                    {isAr ? (ach.titleAr ?? ach.title) : ach.title}
+                    style={{ color: unlocked ? "var(--gold)" : "rgba(248,244,236,0.4)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-bricolage)" }}>
+                    {pick(ach.t, lang, "title", ach.titleAr && lang === "ar" ? ach.titleAr : ach.title)}
                   </p>
                   <p className="text-xs truncate"
-                    style={{ color: "rgba(248,244,236,0.35)", fontFamily: isAr ? "var(--font-amiri)" : "var(--font-dm-sans)" }}>
-                    {isAr ? (ach.descriptionAr ?? ach.description) : ach.description}
+                    style={{ color: "rgba(248,244,236,0.35)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-dm-sans)" }}>
+                    {pick(ach.t, lang, "description", ach.descriptionAr && lang === "ar" ? ach.descriptionAr : ach.description)}
                   </p>
                 </div>
 
@@ -161,7 +162,7 @@ export default function TropheesPage() {
         <div className="text-center py-12">
           <Trophy size={40} className="mb-3 mx-auto" style={{ color: "rgba(212,175,55,0.4)" }} />
           <p className="text-sm" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
-            {isAr ? "لا توجد جوائز في هذه الفئة" : "Aucun trophée dans cette catégorie"}
+            {tt("profil.trophiesSub")}
           </p>
         </div>
       )}
@@ -176,10 +177,10 @@ export default function TropheesPage() {
             <Trophy size={20} style={{ color: "var(--gold)" }} />
             <div>
               <p className="text-xs font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
-                {isAr ? "جائزة مفتوحة !" : "Trophée débloqué !"}
+                {tt("quiz.achievement")}
               </p>
-              <p className="text-xs" style={{ color: "rgba(248,244,236,0.6)", fontFamily: isAr ? "var(--font-amiri)" : "var(--font-dm-sans)" }}>
-                {(() => { const a = ACHIEVEMENTS.find(x => x.id === lastUnlocked); return isAr ? (a?.titleAr ?? a?.title) : a?.title; })()}
+              <p className="text-xs" style={{ color: "rgba(248,244,236,0.6)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-dm-sans)" }}>
+                {(() => { const a = ACHIEVEMENTS.find(x => x.id === lastUnlocked); return a ? pick(a.t, lang, "title", a.titleAr && lang === "ar" ? a.titleAr : a.title ?? "") : ""; })()}
               </p>
             </div>
           </motion.div>

@@ -13,7 +13,9 @@ import type { EscapeLock } from "@/lib/game/escape-rooms";
 import EscapeLoadingScreen from "@/components/escape3d/EscapeLoadingScreen";
 import EscapeLobby, { generateSessionCode } from "@/components/escape3d/EscapeLobby";
 import { useAuth } from "@/hooks/useAuth";
-import { useSettings } from "@/hooks/useSettings";
+import { useLang } from "@/hooks/useLang";
+import { pick } from "@/lib/content-i18n";
+
 
 // Three.js ne tourne pas en SSR
 const TapisScene = dynamic(
@@ -405,18 +407,19 @@ function IsometricRoom({ theme, accentColor, wallColor, floorColor, solvedLocks 
 }
 
 // ── Lock puzzle modal ──────────────────────────────────────────
-function LockModal({ lock, onSolve, onClose, color, isAr }: {
+function LockModal({ lock, onSolve, onClose, color, lang }: {
   lock: EscapeLock;
   onSolve: (lockId: number) => void;
   onClose: () => void;
   color: string;
-  isAr: boolean;
+  lang: string;
 }) {
+  const isRtl = lang === "ar" || lang === "darija";
   const [selected, setSelected]   = useState<number | null>(null);
   const [revealed, setRevealed]   = useState(false);
   const [hintUsed, setHintUsed]   = useState(false);
 
-  const displayOptions = isAr && lock.optionsAr ? lock.optionsAr : lock.options;
+  const displayOptions = (lang !== "fr" && lock.t?.[lang]?.options) ? lock.t[lang]!.options! : (isRtl && lock.optionsAr ? lock.optionsAr : lock.options);
   const isCorrect = selected !== null && displayOptions[selected]?.correct;
 
   const submit = useCallback(() => {
@@ -449,10 +452,10 @@ function LockModal({ lock, onSolve, onClose, color, isAr }: {
           <div>
             <p className="text-xs uppercase tracking-widest mb-0.5"
               style={{ color: `${color}80`, fontFamily: "var(--font-dm-sans)" }}>
-              {isAr ? `قفل ${lock.id + 1}/4` : `Cadenas ${lock.id + 1}/4`}
+              {isRtl ? `قفل ${lock.id + 1}/4` : `Cadenas ${lock.id + 1}/4`}
             </p>
-            <p className="text-sm font-bold" style={{ color: "var(--text)", fontFamily: isAr ? "var(--font-amiri)" : "var(--font-bricolage)" }}>
-              {isAr ? lock.labelAr : lock.label}
+            <p className="text-sm font-bold" style={{ color: "var(--text)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-bricolage)" }}>
+              {isRtl ? lock.labelAr : lock.label}
             </p>
           </div>
           <button onClick={onClose} className="ml-auto opacity-40 hover:opacity-70"
@@ -461,8 +464,8 @@ function LockModal({ lock, onSolve, onClose, color, isAr }: {
 
         {/* Question */}
         <p className="text-base font-semibold leading-snug mb-5"
-          style={{ color: "var(--text)", fontFamily: isAr ? "var(--font-amiri)" : "var(--font-bricolage)", direction: isAr ? "rtl" : "ltr" }}>
-          {isAr ? (lock.questionAr ?? lock.question) : lock.question}
+          style={{ color: "var(--text)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-bricolage)", direction: isRtl ? "rtl" : "ltr" }}>
+          {pick(lock.t as Record<string, Record<string,string>> | undefined, lang, "question", isRtl ? (lock.questionAr ?? lock.question) : lock.question)}
         </p>
 
         {/* Options */}
@@ -488,7 +491,7 @@ function LockModal({ lock, onSolve, onClose, color, isAr }: {
                   style={{ background: "rgba(255,255,255,0.05)", color: textC, fontFamily: "var(--font-dm-sans)" }}>
                   {String.fromCharCode(65 + idx)}
                 </span>
-                <span className="text-sm" style={{ color: textC, fontFamily: isAr ? "var(--font-amiri)" : "var(--font-dm-sans)", direction: isAr ? "rtl" : "ltr" }}>
+                <span className="text-sm" style={{ color: textC, fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-dm-sans)", direction: isRtl ? "rtl" : "ltr" }}>
                   {opt.text}
                 </span>
               </motion.button>
@@ -502,13 +505,13 @@ function LockModal({ lock, onSolve, onClose, color, isAr }: {
             className="w-full rounded-xl py-2.5 text-xs font-semibold mb-3"
             style={{ background: "rgba(255,255,255,0.03)", color: "rgba(248,244,236,0.4)",
               border: "1px solid rgba(255,255,255,0.06)", fontFamily: "var(--font-dm-sans)" }}>
-            {isAr ? "💡 اعرض التلميح (-5 قطع)" : "💡 Voir l'indice (-5 pièces)"}
+            {isRtl ? "💡 اعرض التلميح (-5 قطع)" : "💡 Voir l'indice (-5 pièces)"}
           </motion.button>
         ) : (
           <p className="text-xs mb-3 px-3 py-2 rounded-xl"
             style={{ background: `${color}0d`, color: `${color}cc`, borderColor: `${color}25`,
-              border: "1px solid", fontFamily: isAr ? "var(--font-amiri)" : "var(--font-dm-sans)", direction: isAr ? "rtl" : "ltr" }}>
-            💡 {isAr ? (lock.hintAr ?? lock.hint) : lock.hint}
+              border: "1px solid", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-dm-sans)", direction: isRtl ? "rtl" : "ltr" }}>
+            💡 {pick(lock.t as Record<string, Record<string,string>> | undefined, lang, "hint", isRtl ? (lock.hintAr ?? lock.hint) : lock.hint)}
           </p>
         )}
 
@@ -537,8 +540,8 @@ function LockModal({ lock, onSolve, onClose, color, isAr }: {
 export default function EscapeRoomPage() {
   const { room: roomId } = useParams() as { room: string };
   const router = useRouter();
-  const { settings } = useSettings();
-  const isAr = settings.motherTongue === "arabe" || settings.motherTongue === "darija";
+  const lang = useLang();
+  const isRtl = lang === "ar" || lang === "darija";
 
   const room = roomId === "current" ? getCurrentEscapeRoom() : getEscapeRoom(roomId);
 
@@ -586,11 +589,11 @@ export default function EscapeRoomPage() {
           <ArrowLeft size={15} />
         </motion.button>
         <div className="flex-1">
-          <h1 className="text-base font-bold leading-tight" style={{ color: "var(--text)", fontFamily: isAr ? "var(--font-amiri)" : "var(--font-bricolage)" }}>
-            {isAr ? (room.nameAr ?? room.name) : room.name}
+          <h1 className="text-base font-bold leading-tight" style={{ color: "var(--text)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-bricolage)" }}>
+            {pick(room.t as Record<string, Record<string,string>> | undefined, lang, "name", isRtl ? (room.nameAr ?? room.name) : room.name)}
           </h1>
           <p className="text-xs opacity-45" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            {solvedLocks.length}/4 {isAr ? "أقفال مفتوحة" : "cadenas ouverts"}
+            {solvedLocks.length}/4 {isRtl ? "أقفال مفتوحة" : "cadenas ouverts"}
           </p>
         </div>
         {/* Progress locks */}
@@ -612,8 +615,8 @@ export default function EscapeRoomPage() {
 
       {/* Room description */}
       <p className="px-5 mb-4 text-xs leading-relaxed"
-        style={{ color: "rgba(248,244,236,0.45)", fontFamily: isAr ? "var(--font-amiri)" : "var(--font-dm-sans)", direction: isAr ? "rtl" : "ltr" }}>
-        {isAr ? (room.descriptionAr ?? room.description) : room.description}
+        style={{ color: "rgba(248,244,236,0.45)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-dm-sans)", direction: isRtl ? "rtl" : "ltr" }}>
+        {pick(room.t as Record<string, Record<string,string>> | undefined, lang, "description", isRtl ? (room.descriptionAr ?? room.description) : room.description)}
       </p>
 
       {/* Isometric room */}
@@ -691,7 +694,7 @@ export default function EscapeRoomPage() {
             color={room.accentColor}
             onSolve={solveLock}
             onClose={() => setActiveLock(null)}
-            isAr={isAr}
+            lang={lang}
           />
         )}
       </AnimatePresence>

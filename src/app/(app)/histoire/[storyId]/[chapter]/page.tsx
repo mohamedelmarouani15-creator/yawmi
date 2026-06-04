@@ -281,7 +281,7 @@ export default function ChapterPage() {
       setLoading(false);
     }
     load();
-  }, [storyId, chapterN, router]);
+  }, [storyId, chapterN, router, settings.motherTongue]);
 
   const handleAnswer = useCallback((isCorrect: boolean) => {
     if (isCorrect) setCorrectCount(c => c + 1);

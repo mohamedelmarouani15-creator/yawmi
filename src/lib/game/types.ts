@@ -87,9 +87,11 @@ export interface LocationDef {
   name: string;
   nameFr: string;
   country: string;
+  countryAr?: string;
   requiredXP: number;
   sageId: string | null;
   description: string;
+  descriptionAr?: string;
   color: string;
 }
 
@@ -97,13 +99,17 @@ export interface SageDef {
   id: string;
   name: string;
   title: string;
+  titleAr?: string;
   locationId: string;
   specialty: string;
   personality: string;
   portrait: string;
   dialogueIntro: string;
+  dialogueIntroAr?: string;
   dialogueSuccess: string;
+  dialogueSuccessAr?: string;
   dialogueFailure: string;
+  dialogueFailureAr?: string;
   reward: { xp: number; coins: number };
   victoryRequirement: number;
 }

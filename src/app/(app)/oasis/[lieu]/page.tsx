@@ -8,6 +8,7 @@ import { getLocation } from "@/lib/game/locations";
 import { getSageForLocation } from "@/lib/game/sages";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
 import { useT } from "@/hooks/useT";
+import { useSettings } from "@/hooks/useSettings";
 
 // ── Sage portrait SVG — noble illustration, chaque sage a un objet symbolique ──
 function Face({ cx = 50, cy = 92, skin = "#C8956A" }: { cx?: number; cy?: number; skin?: string }) {
@@ -225,6 +226,8 @@ export default function LieuPage() {
   const { lieu } = useParams() as { lieu: string };
   const router = useRouter();
   const tt = useT();
+  const { settings } = useSettings();
+  const isAr = settings.motherTongue === "arabe" || settings.motherTongue === "darija";
   const { state, locationUnlocked } = useGameState();
 
   const location = getLocation(lieu);
@@ -263,16 +266,18 @@ export default function LieuPage() {
       {/* City header */}
       <motion.div variants={itemVariants} className="mb-6">
         <p className="text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          {location.country}
+          {isAr ? (location.countryAr ?? location.country) : location.country}
         </p>
-        <h1 className="mt-1 text-3xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-          {location.nameFr}
+        <h1 className="mt-1 text-3xl font-bold" style={{ color: "var(--text)", fontFamily: isAr ? "var(--font-amiri)" : "var(--font-bricolage)", direction: isAr ? "rtl" : "ltr" }}>
+          {isAr ? location.name : location.nameFr}
         </h1>
-        <p className="mt-1 text-xl" style={{ color: location.color, fontFamily: "var(--font-amiri)" }}>
-          {location.name}
-        </p>
-        <p className="mt-2 text-sm opacity-60 leading-relaxed" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          {location.description}
+        {!isAr && (
+          <p className="mt-1 text-xl" style={{ color: location.color, fontFamily: "var(--font-amiri)" }}>
+            {location.name}
+          </p>
+        )}
+        <p className="mt-2 text-sm opacity-60 leading-relaxed" style={{ color: "var(--text)", fontFamily: isAr ? "var(--font-amiri)" : "var(--font-dm-sans)", direction: isAr ? "rtl" : "ltr" }}>
+          {isAr ? (location.descriptionAr ?? location.description) : location.description}
         </p>
       </motion.div>
 
@@ -289,7 +294,9 @@ export default function LieuPage() {
               {tt("lieu.locked")}
             </p>
             <p className="mt-1 text-sm opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-              Il te faut {location.requiredXP} XP pour accéder à {location.nameFr}
+              {isAr
+                ? `تحتاج ${location.requiredXP} نقطة خبرة للوصول إلى ${location.name}`
+                : `Il te faut ${location.requiredXP} XP pour accéder à ${location.nameFr}`}
             </p>
           </div>
           <motion.button
@@ -334,14 +341,17 @@ export default function LieuPage() {
                 <p className="font-bold text-base" style={{ color: location.color, fontFamily: "var(--font-bricolage)" }}>
                   {sage.name}
                 </p>
-                <p className="text-xs opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                  {sage.title}
+                <p className="text-xs opacity-60" style={{ color: "var(--text)", fontFamily: isAr ? "var(--font-amiri)" : "var(--font-dm-sans)" }}>
+                  {isAr ? (sage.titleAr ?? sage.title) : sage.title}
                 </p>
               </div>
 
               <p className="text-sm leading-relaxed opacity-80 mt-1"
-                style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                &ldquo;{defeated ? sage.dialogueSuccess : sage.dialogueIntro}&rdquo;
+                style={{ color: "var(--text)", fontFamily: isAr ? "var(--font-amiri)" : "var(--font-dm-sans)", direction: isAr ? "rtl" : "ltr" }}>
+                &ldquo;{defeated
+                  ? (isAr ? (sage.dialogueSuccessAr ?? sage.dialogueSuccess) : sage.dialogueSuccess)
+                  : (isAr ? (sage.dialogueIntroAr   ?? sage.dialogueIntro)   : sage.dialogueIntro)
+                }&rdquo;
               </p>
             </div>
           </motion.div>

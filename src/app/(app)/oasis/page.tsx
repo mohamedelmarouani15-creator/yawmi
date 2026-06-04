@@ -11,6 +11,7 @@ import { SAGES } from "@/lib/game/sages";
 import { xpProgress, xpInCurrentLevel } from "@/lib/game/game-storage";
 import { EventBanner } from "@/components/EventBanner";
 import { useT } from "@/hooks/useT";
+import { useSettings } from "@/hooks/useSettings";
 
 // ── Isometric constants ────────────────────────────────────────
 const W  = 22;
@@ -438,6 +439,8 @@ function CityCard({
   sage: { name: string } | undefined;
 }) {
   const tt = useT();
+  const { settings } = useSettings();
+  const isAr = settings.motherTongue === "arabe" || settings.motherTongue === "darija";
   const W_CARD = 148, H_CARD = 72, RX = 15;
   const x = -W_CARD / 2;
   const y = 18; // below front vertex
@@ -500,14 +503,16 @@ function CityCard({
         {location.name}
       </text>
 
-      {/* French name */}
-      <text x={x + W_CARD / 2} y={y + 38}
-        textAnchor="middle" fontSize={8}
-        fontFamily="var(--font-dm-sans)"
-        fill={unlocked ? "rgba(248,244,236,0.48)" : "rgba(248,244,236,0.28)"}
-        letterSpacing="1.8">
-        {location.nameFr.toUpperCase()}
-      </text>
+      {/* French/transliteration name — hidden in AR mode */}
+      {!isAr && (
+        <text x={x + W_CARD / 2} y={y + 38}
+          textAnchor="middle" fontSize={8}
+          fontFamily="var(--font-dm-sans)"
+          fill={unlocked ? "rgba(248,244,236,0.48)" : "rgba(248,244,236,0.28)"}
+          letterSpacing="1.8">
+          {location.nameFr.toUpperCase()}
+        </text>
+      )}
 
       {/* Status badge */}
       <rect x={-badgeW / 2} y={badgeY} width={badgeW} height={badgeH} rx={badgeR}
@@ -557,6 +562,8 @@ export default function OasisPage() {
   const router = useRouter();
   const { state, locationUnlocked } = useGameState();
   const tt = useT();
+  const { settings } = useSettings();
+  const isAr = settings.motherTongue === "arabe" || settings.motherTongue === "darija";
   const containerRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [didScroll, setDidScroll] = useState(false);
@@ -581,7 +588,7 @@ export default function OasisPage() {
     if (!state) return;
     if (!locationUnlocked(locId)) {
       const loc = LOCATIONS.find(l => l.id === locId);
-      setToast(`⊘ ${loc?.nameFr} — ${loc?.requiredXP} XP requis`);
+      setToast(`⊘ ${isAr ? (loc?.name ?? loc?.nameFr) : loc?.nameFr} — ${loc?.requiredXP} XP requis`);
       return;
     }
     router.push(`/oasis/${locId}`);

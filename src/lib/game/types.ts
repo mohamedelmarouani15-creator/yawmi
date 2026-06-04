@@ -33,9 +33,12 @@ export interface Question {
   type: QuestionType;
   difficulty: Difficulty;
   question: string;
+  question_ar?: string;
   transliteration?: string; // phonetic for Arabic question text
   options: QuestionOption[];
+  options_ar?: QuestionOption[];
   explanation?: string;
+  explanation_ar?: string;
   culturalCapsule?: { title: string; text: string };
   locationId?: string;
   eventId?: string;

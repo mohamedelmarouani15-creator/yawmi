@@ -12,6 +12,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const storyId  = searchParams.get("storyId");
   const chapterN = parseInt(searchParams.get("chapter") ?? "1", 10);
+  const lang     = searchParams.get("lang") ?? "fr";
 
   if (!storyId) return NextResponse.json({ error: "storyId required" }, { status: 400 });
 
@@ -47,5 +48,14 @@ export async function GET(req: NextRequest) {
     .eq("story_id", storyId)
     .single();
 
-  return NextResponse.json({ chapter, progress, totalChapters: story?.total_chapters ?? null });
+  // Apply language overlay (AR fields override FR when lang=ar and translation exists)
+  const localizedChapter = lang === "ar"
+    ? {
+        ...chapter,
+        title:     chapter.title_ar     ?? chapter.title,
+        narrative: chapter.narrative_ar ?? chapter.narrative,
+      }
+    : chapter;
+
+  return NextResponse.json({ chapter: localizedChapter, progress, totalChapters: story?.total_chapters ?? null });
 }

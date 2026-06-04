@@ -7,6 +7,18 @@ import { ArrowLeft, Lock, Clock, Users, Boxes } from "lucide-react";
 // ── Données des jeux ──────────────────────────────────────────────────
 const GAMES = [
   {
+    id: "room_medersa_1",
+    name: "Le Riad des Secrets",
+    subtitle: "Fès · Médersa Al-Qarawiyyin",
+    level: "Facile" as const,
+    players: "1–4 joueurs",
+    duration: "20 min",
+    locked: false,
+    description: "Quatre cadenas gardent le savoir de la médersa. Résous les énigmes de calligraphie, de religion et de langue pour ouvrir la porte secrète.",
+    accentColor: "#C9A84C",
+    gradient: "linear-gradient(135deg, #0A0802 0%, #2A1A00 40%, #080600 100%)",
+  },
+  {
     id: "room_bibliotheque_1",
     name: "La Bibliothèque de Tombouctou",
     subtitle: "Mali · XIVème siècle",
@@ -68,6 +80,32 @@ const LEVEL_BG: Record<string, string> = {
 };
 
 // ── Décoration d'ambiance SVG pour chaque carte ───────────────────────
+function RiadAmbiance() {
+  return (
+    <svg viewBox="0 0 360 180" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.45 }}>
+      {/* Arche marocaine */}
+      <path d="M 130,170 L 130,80 Q 130,40 180,40 Q 230,40 230,80 L 230,170 Z" fill="none" stroke="#C9A84C" strokeWidth="2" opacity="0.6" />
+      <path d="M 140,170 L 140,84 Q 140,52 180,52 Q 220,52 220,84 L 220,170 Z" fill="rgba(201,168,76,0.08)" />
+      {/* Zellige géométrique */}
+      {[0,1,2,3].map(i => (
+        <g key={i}>
+          <rect x={20 + i*18} y={60} width={10} height={10} fill="#C9A84C" opacity={0.25} transform={`rotate(45,${25+i*18},65)`} />
+          <rect x={290 - i*18} y={60} width={10} height={10} fill="#C9A84C" opacity={0.25} transform={`rotate(45,${295-i*18},65)`} />
+        </g>
+      ))}
+      {/* Cadenas symboliques */}
+      {[60, 120, 240, 300].map((x, i) => (
+        <g key={i}>
+          <rect x={x-8} y={110} width={16} height={14} rx={3} fill="none" stroke="#C9A84C" strokeWidth="1.5" opacity="0.4" />
+          <path d={`M ${x-5},110 Q ${x-5},102 ${x},102 Q ${x+5},102 ${x+5},110`} fill="none" stroke="#C9A84C" strokeWidth="1.5" opacity="0.4" />
+        </g>
+      ))}
+      {/* Lueur centrale */}
+      <circle cx={180} cy={105} r={40} fill="#C9A84C" opacity={0.04} />
+    </svg>
+  );
+}
+
 function TombouktouAmbiance() {
   return (
     <svg viewBox="0 0 360 180" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", opacity: 0.45 }}>
@@ -146,7 +184,7 @@ function GameCard({ game, index }: { game: typeof GAMES[number]; index: number }
       onClick={() => !game.locked && router.push(`/oasis/escape/${game.id}`)}
     >
       {/* Ambiance visuelle */}
-      {game.id === "room_bibliotheque_1" ? <TombouktouAmbiance /> : <LockedAmbiance color={game.accentColor} />}
+      {game.id === "room_bibliotheque_1" ? <TombouktouAmbiance /> : game.id === "room_medersa_1" ? <RiadAmbiance /> : <LockedAmbiance color={game.accentColor} />}
 
       {/* Overlay sombre bas → haut */}
       <div style={{

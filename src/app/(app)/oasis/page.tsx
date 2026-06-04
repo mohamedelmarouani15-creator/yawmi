@@ -727,7 +727,7 @@ export default function OasisPage() {
       <div className="px-4 mb-2">
         <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={() => router.push("/escape3d")}
+          onClick={() => router.push("/oasis/escape")}
           className="w-full rounded-2xl p-4 text-left flex items-center gap-4"
           style={{
             background: "linear-gradient(135deg,rgba(5,92,63,0.45) 0%,rgba(4,6,8,0.92) 100%)",

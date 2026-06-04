@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, XCircle, Swords } from "lucide-react";
 import { QUESTIONS } from "@/lib/game/questions";
 import { springTap } from "@/lib/motion";
 import type { DuelData } from "@/hooks/useFamily";
+import type { Question } from "@/lib/game/types";
 
 interface Props {
   duel: DuelData;
@@ -19,10 +20,24 @@ export default function DuelQuizModal({ duel, onClose, onScore }: Props) {
   const [selected,   setSelected]   = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [done,       setDone]       = useState(false);
+  const [pool,       setPool]       = useState<Question[]>([]);
+
+  // Load questions: cache (Supabase-synced) → local fallback
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("yawmi_q_pool_v1");
+      if (raw) {
+        const cached = JSON.parse(raw) as { questions: Question[] };
+        if (cached.questions?.length) { setPool(cached.questions); return; }
+      }
+    } catch { /* ignore */ }
+    setPool(QUESTIONS as Question[]);
+  }, []);
 
   const total    = duel.questionIds.length;
   const score    = answers.filter(Boolean).length;
-  const question = QUESTIONS.find(q => q.id === duel.questionIds[qIdx]);
+  const question = pool.find(q => q.id === duel.questionIds[qIdx])
+    ?? QUESTIONS.find(q => q.id === duel.questionIds[qIdx]) as Question | undefined;
 
   function handleSelect(idx: number) {
     if (showResult || !question) return;
@@ -50,6 +65,15 @@ export default function DuelQuizModal({ duel, onClose, onScore }: Props) {
 
   const opponent = duel.isChallenger ? duel.challengedName : duel.challengerName;
 
+  // Questions still loading from cache
+  if (pool.length === 0) return (
+    <div className="flex flex-col items-center justify-center gap-3" style={{ minHeight: "100dvh", background: "var(--bg)" }}>
+      <motion.div animate={{ rotate: 360 }} transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+        className="rounded-full border-2" style={{ width: 36, height: 36, borderColor: "var(--gold)", borderTopColor: "transparent" }} />
+      <p className="text-sm opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>Chargement des questions…</p>
+    </div>
+  );
+
   if (done) {
     const theirScore = duel.isChallenger ? duel.challengedScore : duel.challengerScore;
     return (
@@ -76,7 +100,17 @@ export default function DuelQuizModal({ duel, onClose, onScore }: Props) {
     );
   }
 
-  if (!question) { onClose(); return null; }
+  if (!question) return (
+    <div className="flex flex-col items-center justify-center gap-4 px-8 text-center" style={{ minHeight: "100dvh", background: "var(--bg)" }}>
+      <p className="text-4xl">😕</p>
+      <p className="text-base font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>Question introuvable</p>
+      <p className="text-sm opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>Question {qIdx + 1} n&apos;a pas pu être chargée.</p>
+      <motion.button onClick={onClose} whileTap={{ scale: 0.96 }} className="rounded-full px-6 py-2.5 text-sm font-bold"
+        style={{ background: "var(--gradient-primary)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+        Retour
+      </motion.button>
+    </div>
+  );
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}

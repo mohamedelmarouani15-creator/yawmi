@@ -7,6 +7,7 @@ import { Lock, Star, Flame, Waves, Leaf, Moon, Shield, Route, Heart, Sparkles, C
 import { pageVariants, itemVariants } from "@/lib/motion";
 import { supabase } from "@/lib/supabase";
 import { useT } from "@/hooks/useT";
+import { useSettings } from "@/hooks/useSettings";
 
 const ARCS = [
   // ── Disponible ──────────────────────────────────────────────
@@ -159,6 +160,8 @@ function TapisVoyageur() {
 export default function HistoirePage() {
   const router = useRouter();
   const tt = useT();
+  const { settings } = useSettings();
+  const isAr = settings.motherTongue === "arabe" || settings.motherTongue === "darija";
   // Statuts lus depuis Supabase — écrase les valeurs hardcodées de ARCS
   const [arcStatuses, setArcStatuses] = useState<Record<string, "published" | "draft">>({});
 
@@ -246,13 +249,15 @@ export default function HistoirePage() {
                 <arc.Icon size={28} style={{ color: arc.color, opacity: available ? 1 : 0.6, flexShrink: 0 }} />
                 <div className="flex-1 pr-12">
                   <p className="font-bold text-base leading-tight mb-0.5"
-                    style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-                    {arc.title}
+                    style={{ color: "var(--text)", fontFamily: isAr ? "var(--font-amiri)" : "var(--font-bricolage)", direction: isAr ? "rtl" : "ltr" }}>
+                    {isAr ? arc.titleAr : arc.title}
                   </p>
-                  <p lang="ar" className="text-base leading-tight mb-1"
-                    style={{ color: arc.color, fontFamily: "var(--font-amiri)", direction: "rtl", opacity: available ? 1 : 0.6 }}>
-                    {arc.titleAr}
-                  </p>
+                  {!isAr && (
+                    <p lang="ar" className="text-base leading-tight mb-1"
+                      style={{ color: arc.color, fontFamily: "var(--font-amiri)", direction: "rtl", opacity: available ? 1 : 0.6 }}>
+                      {arc.titleAr}
+                    </p>
+                  )}
                   <p className="text-xs opacity-55"
                     style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                     {arc.subtitle}

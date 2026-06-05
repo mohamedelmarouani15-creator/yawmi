@@ -9,7 +9,7 @@
   "crons": [
     {
       "path": "/api/cron/adhan",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 3 * * *"
     },
     {
       "path": "/api/cron/liga-promotion",

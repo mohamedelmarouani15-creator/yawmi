@@ -259,7 +259,8 @@ export default function QuizPage() {
     if (victory) {
       const stagesBefore = gameStorage.get().locationStages?.[lieu] ?? 0;
       gameStorage.completeLocationStage(lieu);
-      gameStorage.progressWeekly("stages_complete", 1);
+      // "stages_complete" weekly only counts reaching mastery (★★★)
+      if (stageIndex === 3) gameStorage.progressWeekly("stages_complete", 1);
       if (stageIndex === 3 && sage) {
         // Full sage defeat — only at mastery stage
         gameStorage.addXP(sage.reward.xp);

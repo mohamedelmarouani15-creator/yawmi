@@ -2093,6 +2093,641 @@ export const QUESTIONS: Question[] = [
     explanation: "Le Coran comporte plusieurs sourates nommées après des prophètes ou figures importantes. Yusuf (12), Ibrahim (14), Maryam (19) et Ta-Ha [Moussa] (20) sont parmi les plus connues.",
   },
 
+  // ── RELIGION — Bases accessibles (diff 1-2) ─────────────────────
+  {
+    id: "rel_base_001", category: "religion", type: "mcq", difficulty: 1,
+    question: "Quelle est la première chose que fait un musulman en se réveillant ?",
+    options: [
+      { text: "Lire le Coran",                        correct: false },
+      { text: "Dire 'Al-hamdulillah alladhi ahyânâ'", correct: true  },
+      { text: "Faire ses ablutions",                  correct: false },
+      { text: "Prier Fajr immédiatement",             correct: false },
+    ],
+    explanation: "Le Prophète ﷺ a enseigné : en se réveillant, dire 'Al-hamdulillah alladhi ahyânâ ba'da mâ amâtanâ wa ilayhi an-nushûr' (Louange à Allah qui nous a fait revivre après nous avoir fait mourir, et vers Lui est la résurrection).",
+  },
+  {
+    id: "rel_base_002", category: "religion", type: "mcq", difficulty: 1,
+    question: "Combien de fois par jour les musulmans se prosternent-ils dans les 5 prières ?",
+    options: [
+      { text: "17 prosternations",  correct: false },
+      { text: "34 prosternations",  correct: true  },
+      { text: "10 prosternations",  correct: false },
+      { text: "20 prosternations",  correct: false },
+    ],
+    explanation: "Chaque prière a des raka'at (unités) : Fajr 2, Dhuhr 4, Asr 4, Maghrib 3, Isha 4 = 17 raka'at. Chaque raka'a contient 2 prosternations = 34 par jour. Ce chiffre montre le niveau d'humilité quotidien demandé.",
+  },
+  {
+    id: "rel_base_003", category: "religion", type: "mcq", difficulty: 1,
+    question: "Quel est le sens du mot 'Islam' en arabe ?",
+    options: [
+      { text: "La paix",                              correct: false },
+      { text: "La soumission / la paix par la soumission", correct: true  },
+      { text: "La foi",                               correct: false },
+      { text: "La prière",                            correct: false },
+    ],
+    explanation: "Islam (إسلام) vient de la racine s-l-m (سلم) : paix, intégrité, soumission. Islama = se soumettre volontairement à Allah. Muslim = celui qui se soumet. Salam = paix. La paix découle de la soumission à la volonté divine.",
+  },
+  {
+    id: "rel_base_004", category: "religion", type: "mcq", difficulty: 1,
+    question: "Quelle est la durée du jeûne pendant le Ramadan ?",
+    options: [
+      { text: "De minuit à minuit",            correct: false },
+      { text: "De l'aube (fajr) au coucher du soleil (maghrib)", correct: true  },
+      { text: "De lever du soleil au coucher", correct: false },
+      { text: "24h consécutives",              correct: false },
+    ],
+    explanation: "Le jeûne du Ramadan commence à Al-Fajr (l'aube, quand on distingue un fil blanc d'un fil noir) et se termine à Al-Maghrib (coucher du soleil). La nuit est une période de liberté alimentaire.",
+  },
+  {
+    id: "rel_base_005", category: "religion", type: "mcq", difficulty: 1,
+    question: "Combien de fois le pèlerinage (Hajj) est-il obligatoire dans une vie ?",
+    options: [
+      { text: "5 fois",          correct: false },
+      { text: "1 fois",          correct: true  },
+      { text: "Autant que possible", correct: false },
+      { text: "1 fois tous les 10 ans", correct: false },
+    ],
+    explanation: "Le Hajj est obligatoire une seule fois dans la vie pour tout musulman capable physiquement et financièrement. Le Prophète ﷺ a dit : 'Le Hajj est une fois, celui qui en fait plus, c'est une volontaire.'",
+  },
+  {
+    id: "rel_base_006", category: "religion", type: "mcq", difficulty: 2,
+    question: "Qu'est-ce que la 'Fitrah' en islam ?",
+    options: [
+      { text: "La prière du vendredi",                                          correct: false },
+      { text: "La disposition naturelle de l'être humain à reconnaître Allah",  correct: true  },
+      { text: "L'aumône obligatoire de fin de Ramadan",                         correct: false },
+      { text: "La rupture du jeûne",                                            correct: false },
+    ],
+    explanation: "Fitrah (فطرة) est la nature originelle sur laquelle Allah a créé les humains — une prédisposition au monothéisme. Le Prophète ﷺ dit : 'Tout enfant naît sur la fitrah.' La circoncision, les poils des aisselles, le siwak font aussi partie des pratiques de la fitrah.",
+  },
+  {
+    id: "rel_base_007", category: "religion", type: "mcq", difficulty: 2,
+    question: "Qu'est-ce que le 'Siwak' dans la tradition islamique ?",
+    options: [
+      { text: "Un type de prière nocturne",                      correct: false },
+      { text: "Une brindille de nettoyage des dents recommandée", correct: true  },
+      { text: "Une forme d'aumône discrète",                     correct: false },
+      { text: "Un chapelet de 99 perles",                        correct: false },
+    ],
+    explanation: "Le Siwak (سواك) est une brindille de l'arbre arak (Salvadora persica) utilisée pour nettoyer les dents. Le Prophète ﷺ : 'Le siwak purifie la bouche et plaît au Seigneur.' Il est recommandé avant chaque prière et à plusieurs moments de la journée.",
+  },
+  {
+    id: "rel_base_008", category: "religion", type: "mcq", difficulty: 2,
+    question: "Qu'est-ce que l'Adhan (أذان) ?",
+    options: [
+      { text: "La prière obligatoire",                              correct: false },
+      { text: "L'appel à la prière lancé par le muezzin",           correct: true  },
+      { text: "Le sermon du vendredi",                              correct: false },
+      { text: "La prière funèbre sur un défunt",                    correct: false },
+    ],
+    explanation: "L'Adhan (appel) est prononcé 5 fois par jour par le muezzin depuis le minaret. Il commence par 'Allahu Akbar' (×4), puis la shahada, puis 'Hayya alas-salah' (×2 — Venez à la prière), 'Hayya alal-falah' (×2 — Venez au salut).",
+  },
+  {
+    id: "rel_base_009", category: "religion", type: "mcq", difficulty: 1,
+    question: "Combien y a-t-il de piliers de l'Iman (foi) en islam ?",
+    options: [
+      { text: "5 piliers",  correct: false },
+      { text: "6 piliers",  correct: true  },
+      { text: "4 piliers",  correct: false },
+      { text: "7 piliers",  correct: false },
+    ],
+    explanation: "Les 6 piliers de l'Iman : 1) Croire en Allah, 2) Ses anges, 3) Ses livres, 4) Ses prophètes, 5) Le Jour dernier, 6) Le destin (qadar) bon et mauvais. Ces 6 piliers définissent la croyance (iman) par opposition aux pratiques (islam).",
+  },
+  {
+    id: "rel_base_010", category: "religion", type: "mcq", difficulty: 2,
+    question: "Qu'est-ce que la 'Qibla' ?",
+    options: [
+      { text: "La direction de prière vers La Mecque",             correct: true  },
+      { text: "Le tapis de prière",                               correct: false },
+      { text: "La niche dans la mosquée indiquant la direction",  correct: false },
+      { text: "L'heure exacte de la prière",                     correct: false },
+    ],
+    explanation: "La Qibla (قبلة — direction) est l'orientation vers la Ka'ba à La Mecque. Obligatoire pendant la prière sauf en voyage (on peut prier dans la direction générale). La Qibla originelle était Jérusalem (Al-Aqsa), changée vers La Mecque en 624 (2 AH).",
+  },
+
+  // ── CORAN — Accessible (diff 1-2) ────────────────────────────────
+  {
+    id: "qur_easy_001", category: "quran", type: "mcq", difficulty: 1,
+    question: "Quelle est la plus courte sourate du Coran ?",
+    options: [
+      { text: "Al-Ikhlas (4 versets)",    correct: false },
+      { text: "Al-Kawthar (3 versets)",   correct: true  },
+      { text: "Al-Asr (3 versets)",       correct: false },
+      { text: "An-Nasr (3 versets)",      correct: false },
+    ],
+    explanation: "Al-Kawthar (sourate 108) est la plus courte avec 3 versets courts. Al-Asr et An-Nasr ont aussi 3 versets mais sont plus longs en mots. Al-Kawthar révèle que le Prophète ﷺ a reçu Al-Kawthar (la rivière du paradis) en échange de ceux qui le haïssent.",
+  },
+  {
+    id: "qur_easy_002", category: "quran", type: "mcq", difficulty: 1,
+    question: "Quelle sourate est récitée à la mosquée chaque vendredi ?",
+    options: [
+      { text: "Al-Baqara",    correct: false },
+      { text: "Al-Kahf",      correct: true  },
+      { text: "Ya-Sin",       correct: false },
+      { text: "Al-Mulk",      correct: false },
+    ],
+    explanation: "Al-Kahf (sourate 18 — La Caverne) est recommandée le vendredi : 'Celui qui lit Al-Kahf le vendredi, une lumière s'illumine pour lui d'un vendredi à l'autre.' Elle contient 4 histoires : les Gens de la Caverne, le Jardinier, Moussa et Al-Khidr, Dhul-Qarnayn.",
+  },
+  {
+    id: "qur_easy_003", category: "quran", type: "mcq", difficulty: 1,
+    question: "Quel verset est connu comme 'Ayat al-Kursi' (Verset du Trône) ?",
+    options: [
+      { text: "Al-Fatiha 1:1",       correct: false },
+      { text: "Al-Baqara 2:255",     correct: true  },
+      { text: "Al-Imran 3:18",       correct: false },
+      { text: "An-Nisa 4:1",         correct: false },
+    ],
+    explanation: "Ayat al-Kursi (Al-Baqara 2:255) décrit la grandeur d'Allah : 'Allah — il n'y a de dieu que Lui, le Vivant, le Subsistant par Lui-même...' Le Prophète ﷺ a dit que c'est le plus grand verset du Coran. Sa récitation après chaque prière protège jusqu'à la prochaine.",
+  },
+  {
+    id: "qur_easy_004", category: "quran", type: "mcq", difficulty: 1,
+    question: "Combien de sourates le Coran contient-il ?",
+    options: [
+      { text: "99 sourates",   correct: false },
+      { text: "100 sourates",  correct: false },
+      { text: "114 sourates",  correct: true  },
+      { text: "120 sourates",  correct: false },
+    ],
+    explanation: "Le Coran contient exactement 114 sourates. La plus longue est Al-Baqara (286 versets). La plus courte est Al-Kawthar (3 versets). Les sourates sont numérotées de 1 à 114 dans l'ordre de la compilation, pas de la révélation.",
+  },
+  {
+    id: "qur_easy_005", category: "quran", type: "mcq", difficulty: 2,
+    question: "Qu'est-ce que le 'Juz' (جزء) dans le Coran ?",
+    options: [
+      { text: "Un verset du Coran",                      correct: false },
+      { text: "Une des 30 parties égales du Coran",      correct: true  },
+      { text: "Une sourate de 30 versets",               correct: false },
+      { text: "La session de récitation d'une heure",    correct: false },
+    ],
+    explanation: "Le Coran est divisé en 30 Juz (sections) pour faciliter la récitation en un mois (1 juz/jour pendant Ramadan). Chaque juz = environ 20 pages. Chaque juz est divisé en 2 hizb, chaque hizb en 4 ruba'.",
+  },
+  {
+    id: "qur_easy_006", category: "quran", type: "mcq", difficulty: 2,
+    question: "Quelle est la sourate qui ne commence PAS par la Basmala ?",
+    options: [
+      { text: "Al-Fatiha",    correct: false },
+      { text: "At-Tawba (9)", correct: true  },
+      { text: "Al-Baqara",    correct: false },
+      { text: "Al-Kahf",      correct: false },
+    ],
+    explanation: "At-Tawba (sourate 9) est la seule sourate sans Basmala au début. Les savants expliquent cela par son contenu dur (déclaration de guerre aux polythéistes) — le Prophète ﷺ est mort avant de préciser si elle devait en avoir une.",
+  },
+  {
+    id: "qur_easy_007", category: "quran", type: "mcq", difficulty: 2,
+    question: "Pendant combien d'années le Coran fut-il révélé ?",
+    options: [
+      { text: "10 ans",   correct: false },
+      { text: "23 ans",   correct: true  },
+      { text: "30 ans",   correct: false },
+      { text: "40 ans",   correct: false },
+    ],
+    explanation: "Le Coran fut révélé sur 23 ans : 13 ans à La Mecque (610-622) et 10 ans à Médine (622-632). La première révélation fut Al-Alaq 96:1-5 dans la grotte de Hira. La dernière fut le verset 5:3 lors du pèlerinage d'adieu.",
+  },
+  {
+    id: "qur_easy_008", category: "quran", type: "mcq", difficulty: 1,
+    question: "Quelle sourate est récitée lors de chaque raka'a (unité) de prière ?",
+    options: [
+      { text: "Al-Baqara",     correct: false },
+      { text: "Al-Fatiha",     correct: true  },
+      { text: "Al-Ikhlas",     correct: false },
+      { text: "Al-Falaq",      correct: false },
+    ],
+    explanation: "Al-Fatiha (L'Ouverture) est obligatoire dans chaque raka'a de chaque prière. Le Prophète ﷺ : 'Pas de prière valide sans Al-Fatiha.' Elle est récitée au moins 17 fois par jour dans les prières obligatoires.",
+  },
+
+  // ── HISTOIRE ISLAMIQUE — Accessible (diff 1-2) ───────────────────
+  {
+    id: "his_easy_001", category: "history", type: "mcq", difficulty: 1,
+    question: "En quelle année a débuté le calendrier islamique (hégirien) ?",
+    options: [
+      { text: "570 EC",  correct: false },
+      { text: "622 EC",  correct: true  },
+      { text: "632 EC",  correct: false },
+      { text: "610 EC",  correct: false },
+    ],
+    explanation: "Le calendrier hégirien (Al-Hijri) commence en 622 EC, année de la migration du Prophète ﷺ de La Mecque vers Médine. C'est Omar ibn al-Khattab qui l'institua comme calendrier officiel de l'État islamique en 638 EC.",
+  },
+  {
+    id: "his_easy_002", category: "history", type: "mcq", difficulty: 1,
+    question: "Comment s'appelait la ville de Médine avant l'islam ?",
+    options: [
+      { text: "Mecca",        correct: false },
+      { text: "Yathrib",      correct: true  },
+      { text: "Taïf",         correct: false },
+      { text: "Al-Ula",       correct: false },
+    ],
+    explanation: "Médine s'appelait Yathrib avant la migration du Prophète ﷺ en 622. Après son arrivée, la ville fut renommée Al-Madina (La Ville) ou Madinat an-Nabi (La Ville du Prophète). Le Prophète ﷺ disait que même prononcer 'Yathrib' est makruh (déconseillé).",
+  },
+  {
+    id: "his_easy_003", category: "history", type: "mcq", difficulty: 1,
+    question: "Quel est le nom de l'épouse la plus célèbre du Prophète ﷺ avant l'islam ?",
+    options: [
+      { text: "Aïcha",    correct: false },
+      { text: "Khadija",  correct: true  },
+      { text: "Fatima",   correct: false },
+      { text: "Hafsa",    correct: false },
+    ],
+    explanation: "Khadija bint Khuwaylid fut la première épouse du Prophète ﷺ. Veuve riche de 40 ans, elle l'avait d'abord engagé comme marchand. Leur union dura 25 ans. Elle fut la première croyante en sa mission et mourut en 619, l'année dite de la Tristesse.",
+  },
+  {
+    id: "his_easy_004", category: "history", type: "mcq", difficulty: 2,
+    question: "Quel est le nom du père du Prophète Muhammad ﷺ ?",
+    options: [
+      { text: "Abu Bakr",      correct: false },
+      { text: "Abdullah",      correct: true  },
+      { text: "Abd al-Muttalib", correct: false },
+      { text: "Waraqa",        correct: false },
+    ],
+    explanation: "Le père du Prophète ﷺ était Abdullah ibn Abd al-Muttalib. Il mourut avant la naissance de Muhammad ﷺ (ou peu après selon certaines narrations). Abd al-Muttalib était son grand-père qui l'éleva après la mort de sa mère Amina.",
+  },
+  {
+    id: "his_easy_005", category: "history", type: "mcq", difficulty: 1,
+    question: "Comment s'appellent les deux grandes fêtes islamiques ?",
+    options: [
+      { text: "Eid al-Fitr et Eid al-Adha",       correct: true  },
+      { text: "Mawlid et Achoura",                 correct: false },
+      { text: "Ramadan et Hajj",                   correct: false },
+      { text: "Eid al-Fitr et Isra' wal Mi'raj",   correct: false },
+    ],
+    explanation: "Les deux Eid : Eid al-Fitr (عيد الفطر — fête de la rupture du jeûne) le 1er Shawwal après le Ramadan, et Eid al-Adha (عيد الأضحى — fête du sacrifice) le 10 Dhul Hijja lors du Hajj. Le Prophète ﷺ : 'Chaque peuple a sa fête, et ces deux-là sont les nôtres.'",
+  },
+  {
+    id: "his_easy_006", category: "history", type: "mcq", difficulty: 2,
+    question: "Quel est le vrai nom de La Mecque en arabe classique ?",
+    options: [
+      { text: "Al-Haram",       correct: false },
+      { text: "Mecca al-Mukarrama / Bakkah", correct: true  },
+      { text: "Umm al-Qura",    correct: false },
+      { text: "Al-Balad al-Amin", correct: false },
+    ],
+    explanation: "La Mecque est appelée dans le Coran 'Bakkah' (3:96) et 'Umm al-Qura' (6:92 — Mère des cités). 'Makkah al-Mukarrama' (La Mecque l'Honorée) est son titre officiel. Le Coran l'appelle aussi 'Al-Balad al-Amin' (3:97 — la cité sûre).",
+  },
+  {
+    id: "his_easy_007", category: "history", type: "mcq", difficulty: 2,
+    question: "Qui était Abu Bakr al-Siddiq par rapport au Prophète ﷺ ?",
+    options: [
+      { text: "Son oncle",                                          correct: false },
+      { text: "Son meilleur ami et premier calife après sa mort",  correct: true  },
+      { text: "Son beau-frère",                                    correct: false },
+      { text: "Son cousin germain",                                correct: false },
+    ],
+    explanation: "Abu Bakr (573-634) fut le meilleur ami (khayru sahabi) du Prophète ﷺ, son compagnon dans la grotte de Thawr lors de l'Hégire, et le premier calife après sa mort. Son surnom 'al-Siddiq' (le Véridique) lui fut donné après avoir immédiatement cru au Mi'raj.",
+  },
+  {
+    id: "his_easy_008", category: "history", type: "mcq", difficulty: 2,
+    question: "Quel était le surnom du Prophète ﷺ chez ses contemporains avant la révélation ?",
+    options: [
+      { text: "Al-Amin (le Fidèle)",      correct: true  },
+      { text: "Al-Murtada (le Choisi)",   correct: false },
+      { text: "Al-Karim (le Généreux)",   correct: false },
+      { text: "As-Sadiq (le Véridique)",  correct: false },
+    ],
+    explanation: "Avant la révélation, les Mecquois appelaient Muhammad ﷺ 'Al-Amin' (الأمين — le Fidèle, le Digne de confiance) en raison de sa probité. Ils lui confiaient leurs biens et leurs secrets. Cette réputation précède sa mission prophétique.",
+  },
+
+  // ── ARABE — Vocabulaire de base (diff 1-2) ──────────────────────
+  {
+    id: "ara_voc_001", category: "arabic", type: "mcq", difficulty: 1,
+    question: "Que signifie 'As-salamu alaykum' ?",
+    options: [
+      { text: "Bonjour / Bonne journée",                        correct: false },
+      { text: "La paix soit sur vous",                          correct: true  },
+      { text: "Comment vas-tu ?",                               correct: false },
+      { text: "Que Dieu te bénisse",                            correct: false },
+    ],
+    explanation: "As-salamu alaykum (السلام عليكم — la paix soit sur vous) est le salut islamique. La réponse complète est Wa alaykum as-salam wa rahmatullahi wa barakatuh (et sur vous la paix, la miséricorde d'Allah et Ses bénédictions). Le Prophète ﷺ a dit que diffuser le salut répand l'amour.",
+  },
+  {
+    id: "ara_voc_002", category: "arabic", type: "mcq", difficulty: 1,
+    question: "Que signifie 'Jazak Allahu khayran' ?",
+    options: [
+      { text: "Pardon / Excuse-moi",                    correct: false },
+      { text: "Qu'Allah te récompense par le bien",     correct: true  },
+      { text: "Que Dieu te pardonne",                   correct: false },
+      { text: "Que ta santé soit bonne",               correct: false },
+    ],
+    explanation: "Jazak Allahu khayran (جزاك الله خيراً) est la formule de remerciement islamique. Le Prophète ﷺ : 'Celui à qui on fait du bien, s'il dit Jazak Allahu khayran, il a parfaitement répondu.' Réponse : Wa iyyak(a) (Et toi aussi).",
+  },
+  {
+    id: "ara_voc_003", category: "arabic", type: "mcq", difficulty: 1,
+    question: "Que signifie 'Masha'Allah' dans l'usage quotidien ?",
+    options: [
+      { text: "Si Allah le veut",                                           correct: false },
+      { text: "Ce qu'Allah a voulu — exprime admiration et gratitude à Allah", correct: true  },
+      { text: "Que Dieu nous pardonne",                                      correct: false },
+      { text: "Au nom d'Allah",                                             correct: false },
+    ],
+    explanation: "Masha'Allah (ما شاء الله — ce qu'Allah a voulu) exprime l'émerveillement et le rappel que c'est Allah qui accorde les bienfaits. On le dit face à quelque chose de beau ou réussi pour se prémunir du mauvais œil. InshAllah = si Allah le veut (pour le futur).",
+  },
+  {
+    id: "ara_voc_004", category: "arabic", type: "mcq", difficulty: 1,
+    question: "Que veut dire 'Astaghfirullah' ?",
+    options: [
+      { text: "Que Dieu bénisse",              correct: false },
+      { text: "Je demande pardon à Allah",     correct: true  },
+      { text: "Allahu Akbar",                  correct: false },
+      { text: "Dieu est grand et sage",        correct: false },
+    ],
+    explanation: "Astaghfirullah (أستغفر الله — je demande pardon à Allah) est une formule d'istighfar (demande de pardon). Le Prophète ﷺ la répétait 70 à 100 fois par jour. Il se dit quand on regrette une faute, mais aussi comme formule de glorification d'Allah.",
+  },
+  {
+    id: "ara_voc_005", category: "arabic", type: "mcq", difficulty: 2,
+    question: "Que signifie 'Alhamdulillah' mot à mot ?",
+    options: [
+      { text: "Dieu est le plus grand",               correct: false },
+      { text: "Toute louange appartient à Allah",      correct: true  },
+      { text: "Gloire à Allah",                        correct: false },
+      { text: "Allah est unique",                      correct: false },
+    ],
+    explanation: "Al-hamdulillah (الحمد لله) = Al-hamd (la louange) + li (à) + Allah = Toute louange est à Allah. C'est la 2e phrase du Coran après la Basmala. La 'Tasbiha complète' : SubhanAllah (Gloire) + Alhamdulillah (Louange) + Allahu Akbar (Dieu est grand) = les 3 formules fondamentales.",
+  },
+  {
+    id: "ara_voc_006", category: "arabic", type: "mcq", difficulty: 2,
+    question: "Que signifie le mot 'Ummah' (أمة) ?",
+    options: [
+      { text: "La mère en arabe",                          correct: false },
+      { text: "La communauté des musulmans du monde entier", correct: true  },
+      { text: "La ville de Médine",                         correct: false },
+      { text: "La prière du vendredi",                     correct: false },
+    ],
+    explanation: "Ummah (أمة) désigne la communauté islamique mondiale — tous les musulmans forment une seule Ummah sans frontières nationales. Le Coran (3:110) : 'Vous êtes la meilleure communauté que l'on ait fait surgir pour les hommes.' Le terme signifie aussi 'nation' au sens large.",
+  },
+  {
+    id: "ara_voc_007", category: "arabic", type: "mcq", difficulty: 1,
+    question: "Comment dit-on 'Dieu' en arabe ?",
+    options: [
+      { text: "Ilah",   correct: false },
+      { text: "Allah",  correct: true  },
+      { text: "Rabb",   correct: false },
+      { text: "Al-Haqq",correct: false },
+    ],
+    explanation: "Allah (الله) est le nom propre de Dieu en arabe, utilisé par les arabophones chrétiens, juifs et musulmans. Il ne s'emploie pas au pluriel et n'a pas de féminin — marquant son unicité absolue. Ilah = une divinité (générique), Rabb = Seigneur/Maître.",
+  },
+  {
+    id: "ara_voc_008", category: "arabic", type: "mcq", difficulty: 2,
+    question: "Que signifie 'Halal' et 'Haram' ?",
+    options: [
+      { text: "Bon / Mauvais (goût)",                    correct: false },
+      { text: "Permis / Interdit par la loi islamique",  correct: true  },
+      { text: "Sacré / Profane",                         correct: false },
+      { text: "Propre / Sale (hygiène)",                 correct: false },
+    ],
+    explanation: "Halal (حلال — permis) désigne ce qu'Allah a autorisé. Haram (حرام — interdit) désigne ce qu'Il a interdit. Entre les deux : Makruh (déconseillé), Mubah (neutre), Mandub (recommandé). Ces catégories constituent l'échelle du Ahkam al-Sharia.",
+  },
+  {
+    id: "ara_voc_009", category: "arabic", type: "mcq", difficulty: 1,
+    question: "Que signifie 'Amin' (آمين) au sens religieux ?",
+    options: [
+      { text: "Merci à Allah",        correct: false },
+      { text: "Ainsi soit-il / Réponds à notre prière", correct: true  },
+      { text: "Louange à Allah",      correct: false },
+      { text: "Que Dieu pardonne",    correct: false },
+    ],
+    explanation: "Amin (آمين) vient de la racine amana (foi, confiance). On le dit après Al-Fatiha et les du'a (invocations) pour signifier 'Exauce cette prière.' Le Prophète ﷺ a dit que 'Amin' des fidèles et des anges coïncident lors de la prière du vendredi — moment de l'exaucement.",
+  },
+  {
+    id: "ara_voc_010", category: "arabic", type: "mcq", difficulty: 2,
+    question: "Que signifie 'Tawbah' (توبة) ?",
+    options: [
+      { text: "La prière de nuit",                  correct: false },
+      { text: "Le repentir sincère et le retour vers Allah", correct: true  },
+      { text: "L'aumône secrète",                   correct: false },
+      { text: "Le jeûne volontaire",                correct: false },
+    ],
+    explanation: "Tawbah (توبة — retour) est le repentir islamique. Conditions : regretter sincèrement, arrêter le péché immédiatement, décider de ne pas recommencer, réparer si un tiers est lésé. 'Allah aime ceux qui se repentent et ceux qui se purifient' (2:222). La Tawba n'a pas besoin d'un intermédiaire.",
+  },
+
+  // ── DARIJA — Vie quotidienne (diff 1-2) ─────────────────────────
+  {
+    id: "dar_voc_001", category: "darija", type: "mcq", difficulty: 1,
+    question: "Comment dit-on 'Comment tu t'appelles ?' en darija ?",
+    options: [
+      { text: "Ach mak smiytk ?",    correct: true  },
+      { text: "Kif dayr / dayra ?",  correct: false },
+      { text: "Mnin nta / nti ?",    correct: false },
+      { text: "Chhal men 'am ?",     correct: false },
+    ],
+    explanation: "'Ach mak smiytk?' = Quel est ton prénom? (masc.) / 'Ach mak smiytch?' (fém.). 'Kif dayr?' = Comment vas-tu ? 'Mnin nta?' = D'où es-tu ? 'Chhal men am?' = Quel âge as-tu ?",
+  },
+  {
+    id: "dar_voc_002", category: "darija", type: "mcq", difficulty: 1,
+    question: "Que signifie 'Safi' en darija marocaine ?",
+    options: [
+      { text: "C'est propre",                      correct: false },
+      { text: "C'est bon / ça suffit / d'accord",  correct: true  },
+      { text: "C'est délicieux",                   correct: false },
+      { text: "C'est fini / terminé",              correct: false },
+    ],
+    explanation: "'Safi' (صافي) en darija signifie 'c'est bon, d'accord, assez, c'est réglé'. Ex: 'Safi, mshi!' = 'Ok, vas-y !' C'est l'un des mots les plus polyvalents du darija — approuvé, compris, terminé selon le contexte.",
+  },
+  {
+    id: "dar_voc_003", category: "darija", type: "mcq", difficulty: 1,
+    question: "Comment dit-on 'J'ai faim' en darija ?",
+    options: [
+      { text: "Ana 'atshan",         correct: false },
+      { text: "Ana ji'an",           correct: true  },
+      { text: "Bghet nakol",         correct: false },
+      { text: "Ma kaynch makla",     correct: false },
+    ],
+    explanation: "'Ana ji'an' (أنا جيعان) = J'ai faim. 'Ana 'atshan' = J'ai soif. 'Bghet nakol' = Je veux manger. En darija, l'adjectif 'ji'an' vient de 'ju'' (faim en arabe classique جوع).",
+  },
+  {
+    id: "dar_voc_004", category: "darija", type: "mcq", difficulty: 1,
+    question: "Que signifie 'Zwina / Zwin' en darija ?",
+    options: [
+      { text: "Triste / Malheureux",  correct: false },
+      { text: "Beau / Belle",         correct: true  },
+      { text: "Cher / Coûteux",       correct: false },
+      { text: "Nouveau / Moderne",    correct: false },
+    ],
+    explanation: "'Zwin' (masc.) / 'Zwina' (fém.) = beau/belle. 'Zwin bzzaf' = très beau. En arabe classique, 'husn' signifie beauté. 'Zwin' vient probablement de racines arabes dialectales. 'Mazyan' a le même sens et peut aussi signifier 'bien / correctement'.",
+  },
+  {
+    id: "dar_voc_005", category: "darija", type: "mcq", difficulty: 2,
+    question: "Que signifie 'Hshuma' (حشومة) en darija ?",
+    options: [
+      { text: "Honte / C'est honteux / Pudeur",   correct: true  },
+      { text: "C'est trop cher",                  correct: false },
+      { text: "Attention / Danger",               correct: false },
+      { text: "C'est interdit / Haram",           correct: false },
+    ],
+    explanation: "'Hshuma' (حشومة) vient de 'hishma' arabe (pudeur, retenue). En darija, c'est une exclamation sociale forte : 'Tu n'as pas honte ?' On l'utilise pour signaler un comportement inapproprié ou embarrassant. Proche de la notion islamique de 'haya' (pudeur/retenue).",
+  },
+  {
+    id: "dar_voc_006", category: "darija", type: "mcq", difficulty: 2,
+    question: "Comment dit-on 'Bienvenue' en darija marocaine ?",
+    options: [
+      { text: "Ahlan wa sahlan",    correct: false },
+      { text: "Marhba bik / biki", correct: true  },
+      { text: "Salam o alaykum",   correct: false },
+      { text: "Yallah, dkhol",     correct: false },
+    ],
+    explanation: "'Marhba bik' (masc.) / 'Marhba biki' (fém.) = bienvenue. Vient de l'arabe 'marhaban' (espace large). 'Ahlan wa sahlan' est l'arabe classique. 'Tfddal / tfddli' = 'faites comme chez vous / entrez' est aussi utilisé. 'Yallah dkhol' = 'allez, entre' — moins formel.",
+  },
+  {
+    id: "dar_voc_007", category: "darija", type: "mcq", difficulty: 1,
+    question: "Que signifie 'Yallah' en darija ?",
+    options: [
+      { text: "Au revoir",              correct: false },
+      { text: "Allez / Viens / Allons-y", correct: true  },
+      { text: "Attention !",             correct: false },
+      { text: "S'il te plaît",           correct: false },
+    ],
+    explanation: "'Yallah' (يالله) = 'Allons-y / allez / vite !' Vient de 'ya Allah' (ô Allah). Très utilisé pour inciter à l'action ou exprimer l'impatience. 'Yallah mshi!' = 'Allez, pars !' 'Yallah, shd rasek!' = 'Allez, dépêche-toi !'",
+  },
+  {
+    id: "dar_voc_008", category: "darija", type: "mcq", difficulty: 2,
+    question: "Que veut dire 'Hna' en darija ?",
+    options: [
+      { text: "Là-bas (loin)",             correct: false },
+      { text: "Ici / Nous",                correct: true  },
+      { text: "Maintenant",                correct: false },
+      { text: "Ensemble",                  correct: false },
+    ],
+    explanation: "'Hna' (هنا) a deux sens selon le contexte : 1) 'ici' (lieu), ex: 'lgles hna!' = 'assieds-toi ici !'. 2) 'nous' (pronom), ex: 'hna mshina' = 'nous sommes allés'. En arabe classique, 'huna' = ici uniquement.",
+  },
+
+  // ── HISTOIRE — Plus de questions diff 2-3 ────────────────────────
+  {
+    id: "his_med_001", category: "history", type: "mcq", difficulty: 2,
+    question: "Quelle fut la première mosquée construite dans l'histoire de l'islam ?",
+    options: [
+      { text: "La Grande Mosquée de La Mecque",    correct: false },
+      { text: "La Mosquée de Quba à Médine",        correct: true  },
+      { text: "La Mosquée Al-Aqsa à Jérusalem",    correct: false },
+      { text: "La Mosquée du Prophète à Médine",   correct: false },
+    ],
+    explanation: "La Mosquée de Quba (مسجد قباء) fut construite par le Prophète ﷺ dès son arrivée à Médine en 622, avant même la Mosquée du Prophète (Al-Masjid an-Nabawi). Prière de 2 raka'at à Quba = récompense d'une Umra selon un hadith.",
+  },
+  {
+    id: "his_med_002", category: "history", type: "mcq", difficulty: 2,
+    question: "Quel calife a compilé le Coran en un seul volume standardisé ?",
+    options: [
+      { text: "Abu Bakr al-Siddiq",   correct: false },
+      { text: "Othman ibn Affan",     correct: true  },
+      { text: "Omar ibn al-Khattab",  correct: false },
+      { text: "Ali ibn Abi Talib",    correct: false },
+    ],
+    explanation: "Othman ibn Affan (3e calife, 644-656) ordonna la standardisation du Coran en un seul codex (Mushaf Uthmani) et en envoya des copies aux grandes villes. Ce codex est la base de tous les Corans actuels. Abu Bakr avait initié la compilation écrite pour préserver le Coran après la mort de nombreux Huffaz.",
+  },
+  {
+    id: "his_med_003", category: "history", type: "mcq", difficulty: 2,
+    question: "Quel est le titre honorifique du Prophète ﷺ dans le Coran ?",
+    options: [
+      { text: "Al-Amin (le Fidèle)",          correct: false },
+      { text: "Khatam an-Nabiyyin (le sceau des prophètes)", correct: true  },
+      { text: "Rasul Allah (le messager d'Allah)", correct: false },
+      { text: "Habib Allah (le bien-aimé d'Allah)", correct: false },
+    ],
+    explanation: "Khatam an-Nabiyyin (خاتم النبيين — Sceau des prophètes) est son titre coranique (33:40). Il est le dernier prophète — aucun autre ne viendra après lui. Ce principe est fondamental dans la croyance islamique.",
+  },
+  {
+    id: "his_med_004", category: "history", type: "mcq", difficulty: 3,
+    question: "Qui fonda Al-Azhar en 970 EC et dans quel but ?",
+    options: [
+      { text: "Les Abbassides — école de droit islamique",                              correct: false },
+      { text: "Les Fatimides chiites — mosquée et université pour diffuser le chiisme", correct: true  },
+      { text: "Saladin — pour répondre aux Croisés",                                   correct: false },
+      { text: "Les Omeyyades — centre administratif",                                  correct: false },
+    ],
+    explanation: "Al-Azhar fut fondé en 970 par les Fatimides (califes chiites du Caire) pour diffuser l'enseignement chiite ismaélien. Après la conquête de Saladin en 1171, il devint une institution sunnite. Il est aujourd'hui la principale autorité religieuse sunnite mondiale.",
+  },
+  {
+    id: "his_med_005", category: "history", type: "mcq", difficulty: 3,
+    question: "Qu'est-ce que la 'Nahda' (نهضة) dans l'histoire islamique moderne ?",
+    options: [
+      { text: "La révolution industrielle islamique du XIXe siècle",                    correct: false },
+      { text: "Le mouvement de renaissance culturelle et intellectuelle arabe (XIXe-XXe s.)", correct: true  },
+      { text: "La résistance à la colonisation par les armes",                          correct: false },
+      { text: "La réforme administrative de l'empire ottoman",                         correct: false },
+    ],
+    explanation: "La Nahda (renaissance) fut un mouvement culturel/intellectuel arabo-islamique du XIXe-XXe siècle visant à moderniser la pensée islamique face à la colonisation. Figures : Jamal ad-Din al-Afghani, Muhammad Abduh, Rashid Rida. Leur question centrale : comment l'islam peut-il répondre aux défis de la modernité ?",
+  },
+
+  // ── SCHOLARS MATCH — supplémentaires ─────────────────────────────
+  {
+    id: "sm_008", category: "history", type: "scholars_match", difficulty: 2,
+    question: "Associe chaque prophète à son pays/région d'origine",
+    options: [{ text: "scholars_match", correct: true }],
+    minigameData: {
+      matchPairs: [
+        { scholar: "Ibrahim ﷺ",  work: "Ur (Irak actuel)" },
+        { scholar: "Moussa ﷺ",  work: "Égypte" },
+        { scholar: "Issa ﷺ",    work: "Jérusalem (Palestine)" },
+        { scholar: "Muhammad ﷺ",work: "La Mecque (Arabie)" },
+      ],
+    },
+  },
+  {
+    id: "sm_009", category: "religion", type: "scholars_match", difficulty: 2,
+    question: "Associe chaque pilier de l'Islam à son nom arabe",
+    options: [{ text: "scholars_match", correct: true }],
+    minigameData: {
+      matchPairs: [
+        { scholar: "Témoignage de foi",   work: "Shahada (شهادة)" },
+        { scholar: "Prière",             work: "Salat (صلاة)" },
+        { scholar: "Aumône purificatrice",work: "Zakat (زكاة)" },
+        { scholar: "Pèlerinage",         work: "Hajj (حج)" },
+      ],
+    },
+  },
+  {
+    id: "sm_010", category: "history", type: "scholars_match", difficulty: 3,
+    question: "Associe chaque invention islamique médiévale à son inventeur",
+    options: [{ text: "scholars_match", correct: true }],
+    minigameData: {
+      matchPairs: [
+        { scholar: "Al-Jazari",          work: "Automates hydrauliques (horloge)" },
+        { scholar: "Al-Zahrawi",         work: "Chirurgie moderne (instruments)" },
+        { scholar: "Ibn al-Nafis",       work: "Circulation sanguine pulmonaire" },
+        { scholar: "Abbas ibn Firnas",   work: "Premier vol humain (876 EC)" },
+      ],
+    },
+    culturalCapsule: { title: "4 inventeurs, 4 révolutions", text: "Al-Jazari (horloge-éléphant), Al-Zahrawi (père de la chirurgie, Kitab al-Tasrif), Ibn al-Nafis (circulation sanguine, 300 ans avant Harvey) et Abbas ibn Firnas (premier vol humain avec une machine en 876 EC à Cordoue) illustrent la profondeur de l'innovation islamique médiévale." },
+  },
+
+  // ── TIMELINE — supplémentaires ───────────────────────────────────
+  {
+    id: "tl_sup_001", category: "religion", type: "timeline", difficulty: 2,
+    question: "Ordonne les quatre grands livres saints par ordre de révélation",
+    options: [{ text: "timeline", correct: true }],
+    minigameData: {
+      events: [
+        { text: "La Torah (Tawrat) — Moussa ﷺ",       year: -1300, hint: "vers 1300 av. J.-C." },
+        { text: "Les Psaumes (Zabur) — Daoud ﷺ",       year: -1000, hint: "vers 1000 av. J.-C." },
+        { text: "L'Évangile (Injil) — Issa ﷺ",         year: 0,     hint: "vers l'an 0"          },
+        { text: "Le Coran — Muhammad ﷺ",               year: 610,   hint: "610 apr. J.-C."       },
+      ],
+    },
+    explanation: "Les 4 grands livres islamiques : Torah (Moussa), Zabur/Psaumes (Daoud), Injil/Évangile (Issa), Coran (Muhammad ﷺ). Le Coran affirme confirmer et préserver les précédents qui ont été altérés.",
+  },
+  {
+    id: "tl_sup_002", category: "history", type: "timeline", difficulty: 2,
+    question: "Ordonne ces événements des premières années de l'islam",
+    options: [{ text: "timeline", correct: true }],
+    minigameData: {
+      events: [
+        { text: "Naissance du Prophète ﷺ à La Mecque",   year: 570 },
+        { text: "Mort de Khadija et Abu Talib (Année de Tristesse)", year: 619 },
+        { text: "Hégire vers Médine",                     year: 622 },
+        { text: "Mort du Prophète ﷺ",                    year: 632 },
+      ],
+    },
+  },
+  {
+    id: "tl_sup_003", category: "history", type: "timeline", difficulty: 3,
+    question: "Ordonne ces grandes conquêtes islamiques",
+    options: [{ text: "timeline", correct: true }],
+    minigameData: {
+      events: [
+        { text: "Conquête de La Mecque",                     year: 630 },
+        { text: "Conquête de Jérusalem (Omar)",              year: 638 },
+        { text: "Conquête de la Perse — bataille de Qadisiyya", year: 636 },
+        { text: "Conquête de l'Égypte",                      year: 641 },
+      ],
+    },
+  },
+
   // ── ÈRE V — Islam contemporain (diff 4-5) ───────────────────────
   {
     id: "v_001", category: "religion", type: "mcq", difficulty: 4,

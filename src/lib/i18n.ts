@@ -93,6 +93,7 @@ const T: Record<AppLang, Record<string, string>> = {
     "oasis.libraryDesc": "Savoirs islamiques · Science · Histoire",
     "oasis.badge.defeated": "✓ SAGE VAINCU", "oasis.badge.available": "⚔ DÉFI DISPONIBLE",
     "oasis.badge.locked": "⊘ XP requis", "oasis.badge.start": "✦ POINT DE DÉPART",
+    "oasis.badge.end": "✦ POINT D'ARRIVÉE",
     "oasis.locked": "XP requis pour accéder à ce lieu",
 
     // Quiz
@@ -297,6 +298,7 @@ const T: Record<AppLang, Record<string, string>> = {
     "oasis.libraryDesc": "معرفة إسلامية · علوم · تاريخ",
     "oasis.badge.defeated": "✓ الحكيم مغلوب", "oasis.badge.available": "⚔ التحدي متاح",
     "oasis.badge.locked": "⊘ نقاط خبرة مطلوبة", "oasis.badge.start": "✦ نقطة البداية",
+    "oasis.badge.end": "✦ نقطة الوصول",
     "oasis.locked": "تحتاج نقاط خبرة أكثر للوصول",
 
     "quiz.question": "السؤال", "quiz.of": "من",
@@ -682,6 +684,7 @@ const T: Record<AppLang, Record<string, string>> = {
     "oasis.libraryDesc": "Islamic knowledge · Science · History",
     "oasis.badge.defeated": "✓ SAGE DEFEATED", "oasis.badge.available": "⚔ CHALLENGE AVAILABLE",
     "oasis.badge.locked": "⊘ XP required", "oasis.badge.start": "✦ STARTING POINT",
+    "oasis.badge.end": "✦ ARRIVAL POINT",
     "oasis.locked": "XP required to access this location",
 
     "quiz.question": "Question", "quiz.of": "of",
@@ -875,6 +878,7 @@ const T: Record<AppLang, Record<string, string>> = {
     "oasis.libraryDesc": "Conocimiento islámico · Ciencia · Historia",
     "oasis.badge.defeated": "✓ SABIO VENCIDO", "oasis.badge.available": "⚔ DESAFÍO DISPONIBLE",
     "oasis.badge.locked": "⊘ XP requerida", "oasis.badge.start": "✦ PUNTO DE PARTIDA",
+    "oasis.badge.end": "✦ PUNTO DE LLEGADA",
     "oasis.locked": "XP requerida para acceder a este lugar",
 
     "quiz.question": "Pregunta", "quiz.of": "de",
@@ -1068,6 +1072,7 @@ const T: Record<AppLang, Record<string, string>> = {
     "oasis.libraryDesc": "İslami bilgi · Bilim · Tarih",
     "oasis.badge.defeated": "✓ BİLGE YENİLDİ", "oasis.badge.available": "⚔ MEYDAN OKUMA HAZIR",
     "oasis.badge.locked": "⊘ XP gerekli", "oasis.badge.start": "✦ BAŞLANGIÇ NOKTASI",
+    "oasis.badge.end": "✦ VARIŞ NOKTASI",
     "oasis.locked": "Bu yere erişmek için daha fazla XP gerekli",
 
     "quiz.question": "Soru", "quiz.of": "/",

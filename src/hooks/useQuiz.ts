@@ -63,11 +63,13 @@ export function useQuiz(locationId: string) {
     if (!spent) { setNoEnergy(true); return; }
     setNoEnergy(false);
 
-    // Stage-aware difficulty
-    const currentIdx = currentStageIndex(freshState.locationStages ?? {}, locationId);
-    const stageCfg   = getStageConfig(currentIdx);
+    // Stage-aware difficulty — prestige overrides to max
+    const currentIdx   = currentStageIndex(freshState.locationStages ?? {}, locationId);
+    const stageCfg     = getStageConfig(currentIdx);
+    const isPrestige   = (freshState.prestigeLevel ?? 0) > 0;
+    const effectiveCfg = isPrestige ? { ...stageCfg, maxDiff: 5 as const, timer: 12 } : stageCfg;
     setStageIdx(currentIdx);
-    setStageConfig(stageCfg);
+    setStageConfig(effectiveCfg);
 
     let startedStoryIds: string[] = [];
     try {
@@ -83,7 +85,7 @@ export function useQuiz(locationId: string) {
 
     const questions = await getQuestionsAsync(
       10, freshState.questionHistory, settings.arabicLevel ?? "beginner",
-      freshState.level, startedStoryIds, stageCfg.maxDiff,
+      freshState.level, startedStoryIds, effectiveCfg.maxDiff,
     );
     setSession({
       locationId,

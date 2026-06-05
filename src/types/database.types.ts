@@ -197,6 +197,7 @@ export type Database = {
           manuscripts:             Json
           weekly_challenge:        Json | null
           total_correct_answers:   number
+          category_xp:             Json
         }
         Insert: {
           user_id:                  string
@@ -218,6 +219,7 @@ export type Database = {
           manuscripts?:             Json
           weekly_challenge?:        Json | null
           total_correct_answers?:   number
+          category_xp?:             Json
         }
         Update: {
           user_id?:                 string
@@ -239,6 +241,7 @@ export type Database = {
           manuscripts?:             Json
           weekly_challenge?:        Json | null
           total_correct_answers?:   number
+          category_xp?:             Json
         }
         Relationships: [
           { foreignKeyName: "player_progress_user_id_fkey"; columns: ["user_id"]; referencedRelation: "users"; referencedColumns: ["id"] }

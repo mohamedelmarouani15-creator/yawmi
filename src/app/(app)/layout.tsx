@@ -20,7 +20,7 @@ import { gameStorage } from "@/lib/game/game-storage";
 function NotifScheduler() {
   useNotifications();
 
-  // ── Adhan automatique ─────────────────────────────────────────
+  // ── Adhan automatique — recalcule si les settings changent (ville, méthode) ──
   useEffect(() => {
     const s = storage.getSettings();
     if (s.adhanMode !== "audio") return;
@@ -44,7 +44,9 @@ function NotifScheduler() {
     });
 
     return () => ids.forEach(clearTimeout);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  // Recompute when settings change (city, method, adhan mode)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storage.getSettings().lat, storage.getSettings().lng, storage.getSettings().method, storage.getSettings().adhanMode]);
 
   return null;
 }

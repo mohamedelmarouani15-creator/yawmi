@@ -363,8 +363,8 @@ export const gameStorage = {
   // ── Prestige (Mode Hafiz) ─────────────────────────────────────
   activatePrestige(): GameState {
     const state = this.get();
-    const ALL_SAGES_COUNT = 20; // 10 Ère I + 5 Ère II + 5 Ère III + ... total
-    if ((state.defeatedSages?.length ?? 0) < 8) return state; // at least Ère I complete
+    if ((state.defeatedSages?.length ?? 0) < 8) return state;
+    if ((state.level ?? 1) < 20) return state; // niveau minimum requis
     const updated: GameState = {
       ...state,
       prestigeLevel: (state.prestigeLevel ?? 0) + 1,
@@ -521,6 +521,8 @@ export const gameStorage = {
       prestigeLevel:    Math.max(local.prestigeLevel ?? 0, data.prestige_level ?? 0),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       manuscripts:      { ...((data.manuscripts ?? {}) as any), ...local.manuscripts },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      categoryXP:       { ...((data as any).category_xp ?? {}), ...local.categoryXP },
     };
     this.save(merged);
   },
@@ -562,6 +564,7 @@ export const gameStorage = {
       prestige_level:         state.prestigeLevel ?? 0,
       manuscripts:            state.manuscripts ?? {},
       total_correct_answers:  state.totalCorrectAnswers ?? 0,
+      category_xp:            state.categoryXP ?? {},
       updated_at:             new Date().toISOString(),
     });
 
@@ -570,7 +573,10 @@ export const gameStorage = {
     const xpEntries = Object.entries(categoryXP).filter(([, v]) => v > 0).sort(([, a], [, b]) => b - a);
     if (xpEntries.length > 0) {
       const strongCategories = xpEntries.slice(0, 2).map(([k]) => k);
-      const weakCategories   = xpEntries.slice(-2).reverse().map(([k]) => k);
+      // Exclure les fortes pour éviter contradiction fort = faible
+      const weakCategories = xpEntries
+        .filter(([k]) => !strongCategories.includes(k))
+        .slice(-2).reverse().map(([k]) => k);
       await supabase.from("companion_memory").upsert({
         user_id:           userId,
         strong_categories: strongCategories,

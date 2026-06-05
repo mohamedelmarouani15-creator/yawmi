@@ -24,7 +24,7 @@ const MosqueIsometrique = dynamic(() => import("@/components/MosqueIsometrique")
 import { EventBanner } from "@/components/EventBanner";
 import { HadithCard } from "@/components/HadithCard";
 import { supabase } from "@/lib/supabase";
-import { AnimatePresence, motion as m2 } from "framer-motion";
+import { AnimatePresence } from "framer-motion";
 import { useContextualMessage } from "@/hooks/useContextualMessage";
 import { useMosqueeGameLink } from "@/hooks/useMosqueeGameLink";
 
@@ -102,7 +102,7 @@ const SHORTCUTS: ShortcutDef[] = [
   { href: "/prieres", icon: CrescentStar, labelKey: "nav.prayers" },
   { href: "/coran",   icon: BookOpen,     labelKey: "nav.quran"   },
   { href: "/dhikr",   icon: TasbihIcon,   labelKey: "nav.dhikr"   },
-  { href: "/azkar",   icon: Star8,        labelKey: "nav.dhikr"   },
+  { href: "/azkar",   icon: Star8,        labelKey: "nav.azkar"   },
   { href: "/famille", icon: Users,        labelKey: "nav.family"  },
 ];
 
@@ -110,7 +110,7 @@ const SHORTCUTS_KIDS: ShortcutDef[] = [
   { href: "/oasis",   icon: Compass,      labelKey: "nav.play"    },
   { href: "/coran",   icon: BookOpen,     labelKey: "nav.quran"   },
   { href: "/dhikr",   icon: TasbihIcon,   labelKey: "nav.dhikr"   },
-  { href: "/azkar",   icon: Star8,        labelKey: "nav.dhikr"   },
+  { href: "/azkar",   icon: Star8,        labelKey: "nav.azkar"   },
 ];
 
 const SHORTCUTS_ELDER: ShortcutDef[] = [
@@ -196,7 +196,7 @@ export default function AccueilPage() {
 
       <AnimatePresence>
         {ctxMsg && ageMode !== "kids" && (
-          <m2.div
+          <motion.div
             initial={{ opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
@@ -219,7 +219,7 @@ export default function AccueilPage() {
             >
               ✕
             </button>
-          </m2.div>
+          </motion.div>
         )}
       </AnimatePresence>
 

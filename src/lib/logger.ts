@@ -1,7 +1,8 @@
 type LogArgs = unknown[];
 
-// Centralized server-side logger — swap console.* for Sentry/Axiom here when ready
+const isDev = process.env.NODE_ENV !== "production";
+
 export const logger = {
-  error: (tag: string, ...args: LogArgs) => console.error(`[${tag}]`, ...args),
-  warn:  (tag: string, ...args: LogArgs) => console.warn(`[${tag}]`, ...args),
+  error: (tag: string, ...args: LogArgs) => { if (isDev) console.error(`[${tag}]`, ...args); },
+  warn:  (tag: string, ...args: LogArgs) => { if (isDev) console.warn(`[${tag}]`, ...args); },
 };

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, LogOut, Volume2, VolumeX, Star, Zap, Moon, Home, Crown, Sun, Sunrise, Swords, CalendarDays, Trophy, Languages, Sprout, BookOpen, PenTool, GraduationCap, Pencil, type LucideIcon } from "lucide-react";
@@ -47,6 +48,7 @@ const AGE_OPTIONS = [
 ] as const;
 
 export default function ProfilPage() {
+  const router              = useRouter();
   const { user, signOut }   = useAuth();
   const { settings, save }  = useSettings();
   const tt = useT();
@@ -95,7 +97,7 @@ export default function ProfilPage() {
     ]);
     setNameSaving(false);
     setEditingName(false);
-    window.location.reload();
+    router.refresh();
   }
 
   return (

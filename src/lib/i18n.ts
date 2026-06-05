@@ -26,7 +26,7 @@ const T: Record<AppLang, Record<string, string>> = {
     // Navigation
     "nav.home": "Accueil", "nav.prayers": "Prières", "nav.oasis": "Oasis",
     "nav.history": "Histoire", "nav.family": "Famille", "nav.quran": "Coran",
-    "nav.dhikr": "Dhikr", "nav.play": "Jouer", "nav.stories": "Histoires",
+    "nav.dhikr": "Dhikr", "nav.azkar": "Azkar", "nav.play": "Jouer", "nav.stories": "Histoires",
 
     // Communs
     "common.saved": "✓ Sauvegardé", "common.continue": "Continuer",
@@ -239,7 +239,7 @@ const T: Record<AppLang, Record<string, string>> = {
   ar: {
     "nav.home": "الرئيسية", "nav.prayers": "الصلوات", "nav.oasis": "الواحة",
     "nav.history": "التاريخ", "nav.family": "العائلة", "nav.quran": "القرآن",
-    "nav.dhikr": "الذكر", "nav.play": "العب", "nav.stories": "القصص",
+    "nav.dhikr": "الذكر", "nav.azkar": "الأذكار", "nav.play": "العب", "nav.stories": "القصص",
 
     "common.saved": "✓ تم الحفظ", "common.continue": "المتابعة",
     "common.back": "رجوع", "common.greeting": "السلام عليكم",
@@ -433,7 +433,7 @@ const T: Record<AppLang, Record<string, string>> = {
   darija: {
     "nav.home": "D-Dar", "nav.prayers": "S-Salat", "nav.oasis": "L-Waha",
     "nav.history": "L-Qissa", "nav.family": "L-3a'ila", "nav.quran": "L-Qur'an",
-    "nav.dhikr": "D-Dhikr", "nav.play": "L3eb", "nav.stories": "L-Qsas",
+    "nav.dhikr": "D-Dhikr", "nav.azkar": "Azkar", "nav.play": "L3eb", "nav.stories": "L-Qsas",
 
     "common.saved": "✓ Tsejjel", "common.continue": "Sir",
     "common.back": "Rje3", "common.greeting": "Salam 3likoum",
@@ -625,7 +625,7 @@ const T: Record<AppLang, Record<string, string>> = {
   en: {
     "nav.home": "Home", "nav.prayers": "Prayers", "nav.oasis": "Oasis",
     "nav.history": "Stories", "nav.family": "Family", "nav.quran": "Quran",
-    "nav.dhikr": "Dhikr", "nav.play": "Play", "nav.stories": "Stories",
+    "nav.dhikr": "Dhikr", "nav.azkar": "Azkar", "nav.play": "Play", "nav.stories": "Stories",
 
     "common.saved": "✓ Saved", "common.continue": "Continue",
     "common.back": "Back", "common.greeting": "As-salamu alaykum",
@@ -819,7 +819,7 @@ const T: Record<AppLang, Record<string, string>> = {
   es: {
     "nav.home": "Inicio", "nav.prayers": "Oraciones", "nav.oasis": "Oasis",
     "nav.history": "Historia", "nav.family": "Familia", "nav.quran": "Corán",
-    "nav.dhikr": "Dhikr", "nav.play": "Jugar", "nav.stories": "Historias",
+    "nav.dhikr": "Dhikr", "nav.azkar": "Azkar", "nav.play": "Jugar", "nav.stories": "Historias",
 
     "common.saved": "✓ Guardado", "common.continue": "Continuar",
     "common.back": "Volver", "common.greeting": "As-salamu alaykum",
@@ -1013,7 +1013,7 @@ const T: Record<AppLang, Record<string, string>> = {
   tr: {
     "nav.home": "Ana Sayfa", "nav.prayers": "Namaz", "nav.oasis": "Vaha",
     "nav.history": "Tarih", "nav.family": "Aile", "nav.quran": "Kuran",
-    "nav.dhikr": "Zikir", "nav.play": "Oyna", "nav.stories": "Hikayeler",
+    "nav.dhikr": "Zikir", "nav.azkar": "Ezkar", "nav.play": "Oyna", "nav.stories": "Hikayeler",
 
     "common.saved": "✓ Kaydedildi", "common.continue": "Devam",
     "common.back": "Geri", "common.greeting": "Selamün aleyküm",

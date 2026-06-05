@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const { storyId, chapterNumber, questionId, answerIdx, isCorrect, chapterCompleted } = body ?? {};
 
-  if (!storyId || !chapterNumber == null || !questionId) {
+  if (!storyId || chapterNumber == null || !questionId) {
     return NextResponse.json({ error: "missing_params" }, { status: 400 });
   }
 

@@ -1,6 +1,7 @@
 import type { GameState, QuestionHistory, Category, PowerUpType, DailyQuest, DailyQuestType, WeeklyChallenge, WeeklyChallengeType } from "./types";
 import { checkNewAchievements } from "./achievements";
 import { supabase } from "@/lib/supabase";
+import { MANUSCRIPTS, CORRECT_PER_PAGE } from "./stages";
 
 const KEY = "yawmi_game_state_v2";
 
@@ -279,7 +280,6 @@ export const gameStorage = {
 
   // ── Manuscripts ───────────────────────────────────────────────
   addManuscriptPages(categoryId: Category, correctCount: number): GameState {
-    const { MANUSCRIPTS, CORRECT_PER_PAGE } = require("./stages") as typeof import("./stages");
     const state     = this.get();
     const manuscripts = { ...state.manuscripts };
     const pagesEarned = Math.floor(correctCount / CORRECT_PER_PAGE);

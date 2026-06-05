@@ -370,41 +370,6 @@ export default function EscapeSelectPage() {
           </div>
         </motion.button>
 
-        {/* Riad 3D */}
-        <motion.button
-          onClick={() => router.push("/escape3d")}
-          whileTap={{ scale: 0.97 }}
-          style={{
-            width: "100%", borderRadius: 16, border: "1px solid rgba(5,195,111,0.4)",
-            padding: "18px 20px", textAlign: "left",
-            background: "linear-gradient(135deg,rgba(5,92,63,0.35) 0%,rgba(4,6,8,0.9) 100%)",
-            boxShadow: "0 0 28px rgba(5,195,111,0.1)",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-            <div style={{
-              width: 46, height: 46, borderRadius: 12, flexShrink: 0,
-              background: "rgba(5,195,111,0.15)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>
-              <Boxes size={22} style={{ color: "#05C36F" }} />
-            </div>
-            <div style={{ flex: 1 }}>
-              <p style={{ color: "#05C36F", fontSize: 10, fontWeight: 700, textTransform: "uppercase",
-                letterSpacing: "0.1em", fontFamily: "var(--font-dm-sans)", marginBottom: 2 }}>
-                ✦ Expérience 3D
-              </p>
-              <p style={{ color: "var(--text)", fontSize: 15, fontWeight: 700,
-                fontFamily: "var(--font-bricolage)", marginBottom: 2 }}>
-                Le Riad des Secrets
-              </p>
-              <p style={{ color: "rgba(248,244,236,0.45)", fontSize: 11, fontFamily: "var(--font-dm-sans)" }}>
-                Explore le riad · 5 énigmes en arabe
-              </p>
-            </div>
-            <span style={{ color: "#05C36F", fontSize: 18 }}>→</span>
-          </div>
-        </motion.button>
       </div>
 
       {/* Grille de cartes */}

@@ -765,39 +765,36 @@ export type Database = {
 
       push_subscriptions: {
         Row: {
-          id:             string
           user_id:        string
-          endpoint:       string
-          keys:           Json
+          sub:            Json
           lat:            number | null
           lng:            number | null
           prayer_method:  string | null
           madhab:         string | null
           last_notif_key: string | null
+          updated_at:     string
           created_at:     string
         }
         Insert: {
-          id?:             string
           user_id:         string
-          endpoint:        string
-          keys:            Json
+          sub:             Json
           lat?:            number | null
           lng?:            number | null
           prayer_method?:  string | null
           madhab?:         string | null
           last_notif_key?: string | null
+          updated_at?:     string
           created_at?:     string
         }
         Update: {
-          id?:             string
           user_id?:        string
-          endpoint?:       string
-          keys?:           Json
+          sub?:            Json
           lat?:            number | null
           lng?:            number | null
           prayer_method?:  string | null
           madhab?:         string | null
           last_notif_key?: string | null
+          updated_at?:     string
           created_at?:     string
         }
         Relationships: [

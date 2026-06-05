@@ -124,7 +124,7 @@ export async function GET(req: NextRequest) {
     shown:        false,
     message_date: today,
     created_at:   new Date().toISOString(),
-  }, { onConflict: "user_id" });
+  }, { onConflict: "user_id,message_date" });
 
   return NextResponse.json({ message, already_shown: false });
 }

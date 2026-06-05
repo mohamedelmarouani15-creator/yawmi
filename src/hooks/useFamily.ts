@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase, type Family, type SupaTask } from "@/lib/supabase";
 import { useAuth } from "./useAuth";
 import { getQuestionsAsync } from "@/lib/game/questions-loader";
-import { QUESTIONS } from "@/lib/game/questions";
 import { gameStorage } from "@/lib/game/game-storage";
 import type { Question } from "@/lib/game/types";
 
@@ -70,7 +69,8 @@ export function useFamily() {
   const fetchOrCreateDaily = useCallback(async (familyId: string, myId: string) => {
     const today = new Date().toISOString().split("T")[0];
     const localKey = `yawmi_daily_${familyId}_${today}`;
-    const hard = QUESTIONS.filter(q => q.difficulty >= 3);
+    const { QUESTIONS: allQ } = await import("@/lib/game/questions");
+    const hard = allQ.filter(q => q.difficulty >= 3);
     const seed = today.split("-").reduce((acc, part) => acc + parseInt(part, 10), 0);
     const localQuestion = hard[seed % hard.length];
     type LocalAnswer = { answerIdx: number; correct: boolean; answeredAt: string };
@@ -89,7 +89,7 @@ export function useFamily() {
         if (!insertErr) dc = created;
       }
       if (dc) {
-        const question = QUESTIONS.find(q => q.id === dc!.question_id) ?? localQuestion;
+        const question = allQ.find(q => q.id === dc!.question_id) ?? localQuestion;
         const responses = (dc.responses ?? {}) as Record<string, LocalAnswer>;
         setDailyChallenge({ id: dc.id, date: dc.date, question, responses, myAnswer: responses[myId] ?? localAnswer ?? null });
         return;
@@ -188,9 +188,10 @@ export function useFamily() {
     weekStart.setDate(now.getDate() - diff);
     const weekStartStr = weekStart.toISOString().split("T")[0];
 
-    const hard = QUESTIONS.filter(q => q.difficulty >= 4);
+    const { QUESTIONS: allQ } = await import("@/lib/game/questions");
+    const hard = allQ.filter(q => q.difficulty >= 4);
     const seed = weekStartStr.split("-").reduce((acc, p) => acc + parseInt(p, 10), 0);
-    const fallbackQ = hard[seed % hard.length] ?? QUESTIONS[0];
+    const fallbackQ = hard[seed % hard.length] ?? allQ[0];
 
     try {
       let { data: wc } = await supabase
@@ -214,7 +215,7 @@ export function useFamily() {
         const myAns = answers[myId] ?? null;
         const answeredCount = Object.keys(answers).length;
         const allCorrect = answeredCount === memberCount && Object.values(answers).every(a => a.correct);
-        const question = QUESTIONS.find(q => q.id === (wc as { question_id: string }).question_id) ?? fallbackQ;
+        const question = allQ.find(q => q.id === (wc as { question_id: string }).question_id) ?? fallbackQ;
         setWeeklyChallenge({ id: (wc as { id: string }).id, weekStart: weekStartStr, question, answers, myAnswer: myAns, allCorrect, memberCount });
       }
     } catch { /* no-op */ }

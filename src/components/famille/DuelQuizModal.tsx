@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, XCircle, Swords } from "lucide-react";
-import { QUESTIONS } from "@/lib/game/questions";
+import { getQuestionsAsync } from "@/lib/game/questions-loader";
 import { springTap } from "@/lib/motion";
 import type { DuelData } from "@/hooks/useFamily";
 import type { Question } from "@/lib/game/types";
@@ -22,22 +22,28 @@ export default function DuelQuizModal({ duel, onClose, onScore }: Props) {
   const [done,       setDone]       = useState(false);
   const [pool,       setPool]       = useState<Question[]>([]);
 
-  // Load questions: cache (Supabase-synced) → local fallback
+  // Load questions: cache (Supabase-synced) → dynamic import fallback
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("yawmi_q_pool_v1");
-      if (raw) {
-        const cached = JSON.parse(raw) as { questions: Question[] };
-        if (cached.questions?.length) { setPool(cached.questions); return; }
-      }
-    } catch { /* ignore */ }
-    setPool(QUESTIONS as Question[]);
+    let cancelled = false;
+    getQuestionsAsync(
+      300,
+      {},
+      "none",
+      1,
+      [],
+    ).then(questions => {
+      if (!cancelled) setPool(questions);
+    }).catch(() => {
+      import("@/lib/game/questions").then(mod => {
+        if (!cancelled) setPool(mod.QUESTIONS as Question[]);
+      });
+    });
+    return () => { cancelled = true; };
   }, []);
 
   const total    = duel.questionIds.length;
   const score    = answers.filter(Boolean).length;
-  const question = pool.find(q => q.id === duel.questionIds[qIdx])
-    ?? QUESTIONS.find(q => q.id === duel.questionIds[qIdx]) as Question | undefined;
+  const question = pool.find(q => q.id === duel.questionIds[qIdx]);
 
   function handleSelect(idx: number) {
     if (showResult || !question) return;

@@ -99,6 +99,20 @@ html {
   transition: background-color 1.5s ease, color 1.5s ease;
 }
 
+/* ── Safe area utilities (viewport-fit=cover, punch-hole, notch) ─ */
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+@utility pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+
 /* ── Base ─────────────────────────────────────────────────────── */
 body {
   background: var(--background);
@@ -106,6 +120,8 @@ body {
   font-family: var(--font-dm-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
 }
 
 /* ── Texte arabe — RTL systématique ──────────────────────────── */

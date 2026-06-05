@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, DM_Sans, Amiri } from "next/font/google";
 import { cookies } from "next/headers";
 import RegisterSW from "@/components/RegisterSW";
@@ -22,6 +22,14 @@ const amiri = Amiri({
   weight: ["400", "700"],
   display: "swap",
 });
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  minimumScale: 1,
+  viewportFit: "cover",
+  themeColor: "#055C3F",
+};
 
 export const metadata: Metadata = {
   title: "Yawmi — يومي",

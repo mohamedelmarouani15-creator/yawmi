@@ -87,7 +87,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   if (!showApp) return <SplashScreen onDone={() => setSplashDone(true)} />;
 
   return (
-    <div className="flex min-h-screen flex-col" style={{ background: "var(--background)" }}>
+    <div className="flex min-h-screen flex-col pt-safe" style={{ background: "var(--background)" }}>
       <OfflineBanner />
       <NotifScheduler />
       <PageWrapper>

@@ -10,7 +10,7 @@ import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useSettings }    from "@/hooks/useSettings";
 import { useT }           from "@/hooks/useT";
 import { useAuth }        from "@/hooks/useAuth";
-import { PRAYER_LABELS }  from "@/lib/prayer";
+import { PRAYER_LABELS, computePrayerStreak }  from "@/lib/prayer";
 import { storage, todayKey } from "@/lib/storage";
 import { getHijriDate, formatHijri } from "@/lib/hijri";
 import { getUpcomingEvents, formatGregorian } from "@/lib/islamic-events";
@@ -140,16 +140,7 @@ export default function AccueilPage() {
     setStats(getTodayStats());
     setAzkarStatus(getAzkarStatus(times));
     // Calcul stade mosquée depuis prayer log
-    const log     = storage.getPrayerLog();
-    const tracked = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
-    let streak = 0;
-    for (let i = 0; i < 365; i++) {
-      const d = new Date(); d.setDate(d.getDate() - i);
-      const key = d.toISOString().split("T")[0];
-      const entry = log.find(l => l.date === key);
-      if (tracked.every(k => entry?.done[k])) streak++;
-      else if (i > 0) break;
-    }
+    const streak = computePrayerStreak(storage.getPrayerLog());
     const stage: MosqueStage = streak >= 30 ? 3 : streak >= 7 ? 2 : 1;
     setMosqueData({ stage, streak });
   }, [times]);

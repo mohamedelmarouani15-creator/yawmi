@@ -24,7 +24,7 @@ export function useQuiz(locationId: string) {
   const [stageConfig, setStageConfig] = useState(getStageConfig(1));
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const QUESTION_TIME = session?.timeLeft !== undefined ? stageConfig.timer : stageConfig.timer;
+  const QUESTION_TIME = stageConfig.timer;
 
   // ── Timer ──────────────────────────────────────────────────────
   useEffect(() => {
@@ -63,11 +63,16 @@ export function useQuiz(locationId: string) {
     if (!spent) { setNoEnergy(true); return; }
     setNoEnergy(false);
 
-    // Stage-aware difficulty — prestige overrides to max
-    const currentIdx   = currentStageIndex(freshState.locationStages ?? {}, locationId);
-    const stageCfg     = getStageConfig(currentIdx);
-    const isPrestige   = (freshState.prestigeLevel ?? 0) > 0;
-    const effectiveCfg = isPrestige ? { ...stageCfg, maxDiff: 5 as const, timer: 12 } : stageCfg;
+    // Stage-aware difficulty — prestige overrides to max, kids to easy
+    const currentIdx = currentStageIndex(freshState.locationStages ?? {}, locationId);
+    const stageCfg   = getStageConfig(currentIdx);
+    const isPrestige = (freshState.prestigeLevel ?? 0) > 0;
+    const isKids     = settings.ageGroup === "4-10";
+    const effectiveCfg = isPrestige
+      ? { ...stageCfg, maxDiff: 5 as const, timer: 12 }
+      : isKids
+        ? { ...stageCfg, maxDiff: 2 as const, timer: 30 }
+        : stageCfg;
     setStageIdx(currentIdx);
     setStageConfig(effectiveCfg);
 
@@ -83,10 +88,15 @@ export function useQuiz(locationId: string) {
       }
     } catch { /* offline graceful */ }
 
-    const questions = await getQuestionsAsync(
+    let questions = await getQuestionsAsync(
       10, freshState.questionHistory, settings.arabicLevel ?? "beginner",
       freshState.level, startedStoryIds, effectiveCfg.maxDiff,
     );
+    // Pour les enfants : exclure types visuellement complexes
+    if (isKids) {
+      const filtered = questions.filter(q => !["calligraphy", "timeline", "scholars_match"].includes(q.type));
+      if (filtered.length >= 5) questions = filtered;
+    }
     setSession({
       locationId,
       questions,

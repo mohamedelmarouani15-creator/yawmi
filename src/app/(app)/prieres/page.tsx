@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useSettings }    from "@/hooks/useSettings";
-import { PRAYER_LABELS, PRAYER_ORDER, formatTime, type PrayerKey } from "@/lib/prayer";
+import { PRAYER_LABELS, PRAYER_ORDER, formatTime, computePrayerStreak, type PrayerKey } from "@/lib/prayer";
 import { storage, todayKey } from "@/lib/storage";
 import { Qibla, Coordinates } from "adhan";
 import Link from "next/link";
@@ -60,19 +60,7 @@ export default function PrieresPage() {
     if (typeof navigator !== "undefined" && navigator.vibrate) navigator.vibrate(10);
   }, [donePrayers]);
 
-  const prayerStreak = (() => {
-    const log = storage.getPrayerLog();
-    const trackedKeys = PRAYER_ORDER.filter(k => k !== "sunrise");
-    let streak = 0;
-    for (let i = 0; i < 365; i++) {
-      const d = new Date(); d.setDate(d.getDate() - i);
-      const key = d.toISOString().split("T")[0];
-      const entry = log.find(l => l.date === key);
-      if (trackedKeys.every(k => entry?.done[k])) streak++;
-      else if (i > 0) break;
-    }
-    return streak;
-  })();
+  const prayerStreak = computePrayerStreak(storage.getPrayerLog());
 
   const reciterId   = settings.adhanReciter ?? "alafasy";
   const reciter     = RECITERS.find(r => r.id === reciterId) ?? RECITERS[0];

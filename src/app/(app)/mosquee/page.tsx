@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { MosqueIcon } from "@/components/IslamicIcons";
 import { Construction, Sparkles } from "lucide-react";
 import { storage } from "@/lib/storage";
+import { computePrayerStreak } from "@/lib/prayer";
 import { gameStorage } from "@/lib/game/game-storage";
 import MosqueIsometrique, { type MosqueStage } from "@/components/MosqueIsometrique";
 import { pageVariants, itemVariants } from "@/lib/motion";
@@ -29,16 +30,8 @@ export default function MosqueePage() {
     const log     = storage.getPrayerLog();
     const tracked = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
 
-    let streak = 0;
-    for (let i = 0; i < 365; i++) {
-      const d = new Date(); d.setDate(d.getDate() - i);
-      const key = d.toISOString().split("T")[0];
-      const entry = log.find(l => l.date === key);
-      if (tracked.every(k => entry?.done[k])) streak++;
-      else if (i > 0) break;
-    }
-
-    const total = log.filter(l => tracked.every(k => l.done[k])).length;
+    const streak = computePrayerStreak(log);
+    const total  = log.filter(l => tracked.every(k => l.done[k])).length;
     setStreak(streak);
     setAllDays(total);
     setStage(streak >= 30 ? 3 : streak >= 7 ? 2 : 1);

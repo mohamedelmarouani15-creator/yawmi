@@ -565,6 +565,20 @@ export const gameStorage = {
       updated_at:             new Date().toISOString(),
     });
 
+    // Sync strong/weak categories vers companion_memory
+    const categoryXP = state.categoryXP ?? {};
+    const xpEntries = Object.entries(categoryXP).filter(([, v]) => v > 0).sort(([, a], [, b]) => b - a);
+    if (xpEntries.length > 0) {
+      const strongCategories = xpEntries.slice(0, 2).map(([k]) => k);
+      const weakCategories   = xpEntries.slice(-2).reverse().map(([k]) => k);
+      await supabase.from("companion_memory").upsert({
+        user_id:           userId,
+        strong_categories: strongCategories,
+        weak_categories:   weakCategories,
+        updated_at:        new Date().toISOString(),
+      }, { onConflict: "user_id" });
+    }
+
     // Récompenses (mosquée, coffres, titres, cartes sages)
     if (state.mosqueObjects.length > 0 || state.chestsAvailable > 0 || state.sageCards.length > 0) {
       await supabase.from("rewards").upsert({

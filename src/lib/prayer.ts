@@ -116,3 +116,16 @@ export function formatCountdown(ms: number): string {
   if (h > 0) return `${h}h ${String(m).padStart(2, "0")}min`;
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
+
+export function computePrayerStreak(log: { date: string; done: Partial<Record<string, boolean>> }[]): number {
+  const tracked = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
+  let streak = 0;
+  for (let i = 0; i < 365; i++) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const key = d.toISOString().split("T")[0];
+    const entry = log.find(l => l.date === key);
+    if (tracked.every(k => entry?.done[k])) streak++;
+    else if (i > 0) break;
+  }
+  return streak;
+}

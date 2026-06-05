@@ -14,6 +14,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { supabase } from "@/lib/supabase";
 import { computePrayerTimes, PRAYER_ORDER, PRAYER_LABELS } from "@/lib/prayer";
 import { storage } from "@/lib/storage";
+import { gameStorage } from "@/lib/game/game-storage";
 
 function NotifScheduler() {
   useNotifications();
@@ -69,6 +70,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       .then(({ data }) => {
         if (data.session) {
           localStorage.setItem("yawmi_onboarded", "1");
+          // Sync progression depuis Supabase en arrière-plan (multi-device)
+          gameStorage.syncFromSupabase(data.session.user.id).catch(() => {});
           setAuthReady(true);
         } else {
           localStorage.removeItem("yawmi_onboarded");

@@ -15,7 +15,17 @@ interface Ayah  { numberInSurah: number; text: string; }
 interface QuranData { surahs: { number: number; name: string; englishName: string; numberOfAyahs: number; ayahs: Ayah[] }[] }
 
 const IDB_AR = "quran_ar";
-const IDB_FR = "quran_fr";
+const IDB_FR = "quran_fr"; // clé générique — stocke la traduction active
+
+const QURAN_EDITIONS: Record<string, { key: string; label: string }> = {
+  anglais:  { key: "en.pickthall",  label: "Pickthall (EN)" },
+  espagnol: { key: "es.asad",       label: "Asad (ES)" },
+  turc:     { key: "tr.diyanet",    label: "Diyanet (TR)" },
+};
+
+function getEdition(motherTongue: string | null): { key: string; label: string } {
+  return QURAN_EDITIONS[motherTongue ?? ""] ?? { key: "fr.hamidullah", label: "Hamidullah (FR)" };
+}
 
 // ── Données Juzz (fin de chaque juzz : sourate + dernier verset) ──
 const JUZZ_ENDS: { surah: number; ayah: number }[] = [
@@ -65,14 +75,17 @@ export default function CoranPage() {
   const [ayahs,        setAyahs]        = useState<Ayah[]>([]);
   const [translations, setTranslations] = useState<Ayah[]>([]);
   const [loading,      setLoading]      = useState(false);
-  const ageMode  = ageGroupToMode(storage.getSettings().ageGroup);
+  const settings = storage.getSettings();
+  const ageMode  = ageGroupToMode(settings.ageGroup);
   const isKids   = ageMode === "kids";
   const isElder  = ageMode === "elder";
+  const edition  = getEdition(settings.motherTongue);
   // Kids et aînés voient la traduction par défaut (aide à la compréhension)
   const [showTrans, setShowTrans] = useState(isKids || isElder);
   const [offline,      setOffline]      = useState(false);
   const [downloading,  setDownloading]  = useState(false);
   const [dlProgress,   setDlProgress]  = useState(0);
+  const [dlConfirm,    setDlConfirm]   = useState(false);
   const [playingAyah,  setPlayingAyah] = useState(1);
   const [showPlayer,   setShowPlayer]  = useState(false);
   const [favs,         setFavs]        = useState<Set<string>>(new Set());
@@ -253,7 +266,7 @@ export default function CoranPage() {
       } else {
         const [arRes, frRes] = await Promise.all([
           fetch(`https://api.alquran.cloud/v1/surah/${n}/quran-uthmani`).then(r => r.json()),
-          fetch(`https://api.alquran.cloud/v1/surah/${n}/fr.hamidullah`).then(r => r.json()),
+          fetch(`https://api.alquran.cloud/v1/surah/${n}/${edition.key}`).then(r => r.json()),
         ]);
         setAyahs(arRes.data.ayahs);
         setTranslations(frRes.data.ayahs);
@@ -268,7 +281,7 @@ export default function CoranPage() {
     try {
       const [arRes, frRes] = await Promise.all([
         fetch("https://api.alquran.cloud/v1/quran/quran-uthmani").then(r => r.json()),
-        fetch("https://api.alquran.cloud/v1/quran/fr.hamidullah").then(r => r.json()),
+        fetch(`https://api.alquran.cloud/v1/quran/${edition.key}`).then(r => r.json()),
       ]);
       setDlProgress(80);
       await Promise.all([idbSet(IDB_AR, arRes.data), idbSet(IDB_FR, frRes.data)]);
@@ -441,13 +454,27 @@ export default function CoranPage() {
             <WifiOff size={11} /> Hors-ligne <Trash2 size={11} />
           </button>
         ) : !isKids && (
-          <button onClick={downloadOffline} disabled={downloading}
-            className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs disabled:opacity-50"
-            style={{ borderColor: "rgba(212,175,55,0.3)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
-            {downloading
-              ? <><Loader2 size={11} className="animate-spin" /> {dlProgress}%</>
-              : <><Download size={11} /> Hors-ligne</>}
-          </button>
+          dlConfirm ? (
+            <div className="flex items-center gap-2">
+              <span className="text-xs opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                ~12 Mo · {edition.label}
+              </span>
+              <button onClick={() => { setDlConfirm(false); downloadOffline(); }} disabled={downloading}
+                className="flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs"
+                style={{ borderColor: "rgba(212,175,55,0.5)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+                <Download size={11} /> Confirmer
+              </button>
+              <button onClick={() => setDlConfirm(false)} className="text-xs opacity-40" style={{ color: "var(--text)" }}>✕</button>
+            </div>
+          ) : (
+            <button onClick={() => setDlConfirm(true)} disabled={downloading}
+              className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs disabled:opacity-50"
+              style={{ borderColor: "rgba(212,175,55,0.3)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+              {downloading
+                ? <><Loader2 size={11} className="animate-spin" /> {dlProgress}%</>
+                : <><Download size={11} /> Hors-ligne</>}
+            </button>
+          )
         )}
       </div>
 

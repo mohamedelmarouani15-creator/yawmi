@@ -62,7 +62,7 @@ const ARCS = [
     titleAr: "السِّيرَةُ النَّبَوِيَّةُ",
     subtitle: "De La Mecque à Médine",
     chapters: 12,
-    status: "coming_soon",
+    status: "available",
     color: "#34d399",
     Icon: Moon,
     description: "Les grandes étapes de la vie du Prophète Muhammad ﷺ — la révélation, les épreuves et la construction de la communauté.",

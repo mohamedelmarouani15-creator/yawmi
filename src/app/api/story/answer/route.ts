@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { gameStorage } from "@/lib/game/game-storage";
+import { checkRateLimit, isSafeId } from "@/lib/rate-limit";
 
 function supabaseAdmin() {
   return createClient(
@@ -17,10 +17,20 @@ export async function POST(req: NextRequest) {
   const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
   if (authErr || !user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
+  // Rate limiting : 60 req/heure/user
+  const rl = await checkRateLimit(user.id, "story/answer", 60);
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: "rate_limit_exceeded", message: "Trop de requêtes. Réessaie dans une heure." },
+      { status: 429 }
+    );
+  }
+
   const body = await req.json().catch(() => null);
   const { storyId, chapterNumber, questionId, answerIdx, isCorrect, chapterCompleted } = body ?? {};
 
-  if (!storyId || chapterNumber == null || !questionId) {
+  // Validation des entrées
+  if (!storyId || !isSafeId(storyId) || chapterNumber == null || !questionId || !isSafeId(questionId)) {
     return NextResponse.json({ error: "missing_params" }, { status: 400 });
   }
 

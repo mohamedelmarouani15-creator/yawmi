@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const TombouctouScene = dynamic(
   () => import("@/components/escape/tombouctou/TombouctouScene"),
@@ -39,9 +40,20 @@ export default function TombouctouPage() {
       width: "100vw", height: "100dvh",
       background: "#061A12", overflow: "hidden",
     }}>
-      <Suspense fallback={<TombouctouLoader />}>
-        <TombouctouScene />
-      </Suspense>
+      <ErrorBoundary name="Tombouctou 3D" fallback={
+        <div style={{
+          position: "fixed", inset: 0, background: "#061A12",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <p style={{ color: "rgba(212,175,55,0.5)", fontFamily: "Georgia, serif", fontSize: 13 }}>
+            La scène 3D n&apos;a pas pu se charger.
+          </p>
+        </div>
+      }>
+        <Suspense fallback={<TombouctouLoader />}>
+          <TombouctouScene />
+        </Suspense>
+      </ErrorBoundary>
     </div>
   );
 }

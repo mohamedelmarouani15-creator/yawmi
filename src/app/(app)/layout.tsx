@@ -109,6 +109,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         localStorage.removeItem("yawmi_onboarded");
         router.replace("/onboarding");
       });
+
+    // Écoute les changements d'état d'auth — redirige si session expirée
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_OUT" || event === "TOKEN_REFRESHED") {
+        if (event === "SIGNED_OUT") {
+          localStorage.removeItem("yawmi_onboarded");
+          router.replace("/connexion");
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const showApp = authReady && splashDone;

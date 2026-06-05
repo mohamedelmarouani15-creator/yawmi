@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { logger } from "@/lib/logger";
+import { checkRateLimit, isSafeId } from "@/lib/rate-limit";
 
 const BUCKET    = "story-images";
 const BASE_URL  = process.env.NEXT_PUBLIC_SUPABASE_URL!;
@@ -53,8 +54,14 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser(token);
   if (!user) return new NextResponse("unauthorized", { status: 401 });
 
+  // Rate limiting : 5 req/heure/user (génération Replicate coûteuse)
+  const rl = await checkRateLimit(user.id, "story/image", 5);
+  if (rl.limited) {
+    return new NextResponse("rate_limit_exceeded", { status: 429 });
+  }
+
   const { storyId, slideIndex = 0 } = await req.json() as { storyId?: string; slideIndex?: number };
-  if (!storyId) return new NextResponse("missing storyId", { status: 400 });
+  if (!storyId || !isSafeId(storyId)) return new NextResponse("missing or invalid storyId", { status: 400 });
 
   const key = cacheKey(storyId, slideIndex);
 

@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useLang } from "@/hooks/useLang";
 import { pick } from "@/lib/content-i18n";
 import staticT from "@/lib/static-translations.json";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 
 // Three.js ne tourne pas en SSR
@@ -34,9 +35,17 @@ function BibliothequeFullscreen() {
       background: "#080502", overflow: "hidden",
     }}>
       {/* Scène 3D — charge en parallèle dès le montage */}
-      <Suspense fallback={null}>
-        <TapisScene />
-      </Suspense>
+      <ErrorBoundary name="scène 3D" fallback={
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "#080502" }}>
+          <p style={{ color: "rgba(212,175,55,0.5)", fontFamily: "var(--font-dm-sans)", fontSize: 13 }}>
+            La scène 3D n&apos;a pas pu se charger.
+          </p>
+        </div>
+      }>
+        <Suspense fallback={null}>
+          <TapisScene />
+        </Suspense>
+      </ErrorBoundary>
 
       {/* Bouton quitter — toujours au-dessus */}
       <Link

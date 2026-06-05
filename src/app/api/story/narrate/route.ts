@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { createHash } from "crypto";
 import { logger } from "@/lib/logger";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 const BUCKET = "narrate-cache";
 
@@ -19,6 +20,12 @@ export async function POST(req: NextRequest) {
   );
   const { data: { user } } = await supabase.auth.getUser(token);
   if (!user) return new NextResponse("unauthorized", { status: 401 });
+
+  // Rate limiting : 10 req/heure/user (TTS coûteux)
+  const rl = await checkRateLimit(user.id, "story/narrate", 10);
+  if (rl.limited) {
+    return new NextResponse("rate_limit_exceeded", { status: 429 });
+  }
 
   // Accepte JSON { text } (useNarrator) ou text/plain (StoryPrologue)
   let text: string;

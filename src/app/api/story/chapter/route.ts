@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { checkRateLimit, isSafeId } from "@/lib/rate-limit";
 
 function supabaseAdmin() {
   return createClient(
@@ -14,7 +15,10 @@ export async function GET(req: NextRequest) {
   const chapterN = parseInt(searchParams.get("chapter") ?? "1", 10);
   const lang     = searchParams.get("lang") ?? "fr";
 
-  if (!storyId) return NextResponse.json({ error: "storyId required" }, { status: 400 });
+  // Validation des entrées
+  if (!storyId || !isSafeId(storyId)) {
+    return NextResponse.json({ error: "storyId invalide" }, { status: 400 });
+  }
 
   const token = req.headers.get("Authorization")?.replace("Bearer ", "");
   if (!token)  return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -22,6 +26,15 @@ export async function GET(req: NextRequest) {
   const supabase = supabaseAdmin();
   const { data: { user }, error: authErr } = await supabase.auth.getUser(token);
   if (authErr || !user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  // Rate limiting : 30 req/heure/user
+  const rl = await checkRateLimit(user.id, "story/chapter", 30);
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: "rate_limit_exceeded", message: "Trop de requêtes. Réessaie dans une heure." },
+      { status: 429 }
+    );
+  }
 
   // Récupère le chapitre et le total de l'arc en parallèle
   const [{ data: chapter, error }, { data: story }] = await Promise.all([

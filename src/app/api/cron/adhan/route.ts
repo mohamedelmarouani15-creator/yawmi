@@ -5,7 +5,7 @@ import { computePrayerTimes, PRAYER_LABELS } from "@/lib/prayer";
 import type { CalcMethodKey, MadhabKey } from "@/lib/prayer";
 
 const PRAYER_KEYS = ["fajr", "dhuhr", "asr", "maghrib", "isha"] as const;
-const WINDOW_MS   = 2 * 60 * 1000; // fenêtre de 2 minutes
+const WINDOW_MS   = 16 * 60 * 1000; // fenêtre de 16 min — overlap avec cron toutes les 15 min
 
 export async function GET(req: NextRequest) {
   if (!process.env.CRON_SECRET) {

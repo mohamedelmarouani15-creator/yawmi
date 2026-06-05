@@ -437,7 +437,22 @@ export default function ChapterPage() {
     );
   }
 
+  // Meta SEO dynamique via document
+  useEffect(() => {
+    if (!data) return;
+    document.title = `${data.title} — La Grande Histoire · Yawmi`;
+    let metaDesc = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement("meta");
+      metaDesc.name = "description";
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.content = `Chapitre ${chapterN} : ${data.title}. ${data.narrative.slice(0, 120)}…`;
+    return () => { document.title = "Yawmi"; };
+  }, [data, chapterN]);
+
   return (
+    <>
     <motion.main
       initial={{ opacity: 0 }} animate={{ opacity: 1 }}
       className="flex flex-col px-5 pt-11 pb-32 min-h-screen"
@@ -629,6 +644,32 @@ export default function ChapterPage() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Navigation chapitre précédent / suivant (phase lecture uniquement) */}
+      {phase === "reading" && (
+        <div className="flex items-center justify-between gap-3 mt-4">
+          {chapterN > 1 ? (
+            <motion.button
+              onClick={() => router.push(`/histoire/${storyId}/${chapterN - 1}`)}
+              whileTap={{ scale: 0.95 }} transition={springTap}
+              className="flex items-center gap-1.5 rounded-full border px-4 py-2.5 text-xs font-semibold"
+              style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-dm-sans)" }}>
+              <ArrowLeft size={13} /> Chapitre {chapterN - 1}
+            </motion.button>
+          ) : <div />}
+          {chapterN < totalChapters && (
+            <motion.button
+              onClick={() => router.push(`/histoire/${storyId}/${chapterN + 1}`)}
+              whileTap={{ scale: 0.95 }} transition={springTap}
+              className="flex items-center gap-1.5 rounded-full border px-4 py-2.5 text-xs font-semibold"
+              style={{ borderColor: "rgba(212,175,55,0.25)", color: "rgba(212,175,55,0.65)", fontFamily: "var(--font-dm-sans)" }}>
+              Chapitre {chapterN + 1} <ChevronRight size={13} />
+            </motion.button>
+          )}
+        </div>
+      )}
     </motion.main>
+    </>
   );
 }
+

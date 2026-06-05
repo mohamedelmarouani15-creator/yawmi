@@ -92,6 +92,10 @@ export default function ConnexionPage() {
             style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
             Pas de compte ? Créer un compte
           </Link>
+          <Link href="/decouvrir" className="text-sm opacity-55 hover:opacity-90 transition-opacity font-medium"
+            style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+            Essayer sans compte →
+          </Link>
           <Link href="/mot-de-passe-oublie" className="text-xs opacity-40 hover:opacity-70 transition-opacity"
             style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Mot de passe oublié ?

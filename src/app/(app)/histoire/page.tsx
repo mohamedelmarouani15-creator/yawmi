@@ -157,24 +157,47 @@ function TapisVoyageur() {
   );
 }
 
+interface ArcProgress {
+  current_chapter: number;
+  completed_chapters: number[];
+}
+
 export default function HistoirePage() {
   const router = useRouter();
   const tt = useT();
   const lang = useLang();
   const isAr = lang === "ar" || lang === "darija";
   // Statuts lus depuis Supabase — écrase les valeurs hardcodées de ARCS
-  const [arcStatuses, setArcStatuses] = useState<Record<string, "published" | "draft">>({});
+  const [arcStatuses, setArcStatuses]   = useState<Record<string, "published" | "draft">>({});
+  const [arcProgress, setArcProgress]   = useState<Record<string, ArcProgress>>({});
 
   useEffect(() => {
-    supabase
-      .from("stories")
-      .select("id, status")
-      .then(({ data }) => {
-        if (!data) return;
+    async function loadData() {
+      const [{ data: stories }, sessionRes] = await Promise.all([
+        supabase.from("stories").select("id, status"),
+        supabase.auth.getSession(),
+      ]);
+      if (stories) {
         const map: Record<string, "published" | "draft"> = {};
-        data.forEach(s => { map[s.id] = s.status as "published" | "draft"; });
+        stories.forEach(s => { map[s.id] = s.status as "published" | "draft"; });
         setArcStatuses(map);
-      });
+      }
+      const session = sessionRes.data.session;
+      if (session) {
+        const { data: progData } = await supabase
+          .from("story_progress")
+          .select("story_id, current_chapter, completed_chapters")
+          .eq("user_id", session.user.id);
+        if (progData) {
+          const map: Record<string, ArcProgress> = {};
+          progData.forEach((p: { story_id: string; current_chapter: number; completed_chapters: number[] }) => {
+            map[p.story_id] = { current_chapter: p.current_chapter, completed_chapters: p.completed_chapters };
+          });
+          setArcProgress(map);
+        }
+      }
+    }
+    loadData();
   }, []);
 
   return (
@@ -219,6 +242,12 @@ export default function HistoirePage() {
           const available = supaStatus
             ? supaStatus === "published"
             : arc.status === "available";
+          const prog = arcProgress[arc.id];
+          const completedCount = prog?.completed_chapters?.length ?? 0;
+          const hasStarted = completedCount > 0 || (prog?.current_chapter ?? 1) > 1;
+          const isNew = available && !hasStarted;
+          const progressPct = arc.chapters > 0 ? Math.round((completedCount / arc.chapters) * 100) : 0;
+
           return (
             <motion.button
               key={arc.id}
@@ -245,6 +274,12 @@ export default function HistoirePage() {
                   {tt("histoire.locked")}
                 </div>
               )}
+              {isNew && (
+                <div className="absolute top-3 right-3 rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                  style={{ background: `${arc.color}25`, color: arc.color, border: `1px solid ${arc.color}50`, fontFamily: "var(--font-dm-sans)" }}>
+                  Nouveau
+                </div>
+              )}
               <div className="flex items-start gap-3 mb-3">
                 <arc.Icon size={28} style={{ color: arc.color, opacity: available ? 1 : 0.6, flexShrink: 0 }} />
                 <div className="flex-1 pr-12">
@@ -268,6 +303,28 @@ export default function HistoirePage() {
                 style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 {arc.description}
               </p>
+
+              {/* Barre de progression si arc commencé */}
+              {available && hasStarted && (
+                <div className="mb-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-xs opacity-45"
+                      style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                      {completedCount}/{arc.chapters} chapitres
+                    </span>
+                    <span className="text-xs font-semibold"
+                      style={{ color: arc.color, fontFamily: "var(--font-dm-sans)" }}>
+                      {progressPct}%
+                    </span>
+                  </div>
+                  <div className="h-1.5 rounded-full overflow-hidden"
+                    style={{ background: "rgba(255,255,255,0.07)" }}>
+                    <div className="h-full rounded-full transition-all duration-700"
+                      style={{ width: `${progressPct}%`, background: `linear-gradient(90deg,${arc.color},#055C3F)` }} />
+                  </div>
+                </div>
+              )}
+
               <div className="flex items-center justify-between">
                 <span className="text-xs"
                   style={{ color: "rgba(248,244,236,0.35)", fontFamily: "var(--font-dm-sans)" }}>
@@ -281,7 +338,7 @@ export default function HistoirePage() {
                       border: `1px solid ${arc.color}40`,
                       fontFamily: "var(--font-dm-sans)",
                     }}>
-                    {tt("histoire.start")}
+                    {hasStarted ? "Continuer" : tt("histoire.start")}
                   </span>
                 )}
               </div>

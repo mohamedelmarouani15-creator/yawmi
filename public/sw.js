@@ -85,7 +85,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 2. API Quran → réseau d'abord, cache en fallback (stale-while-revalidate)
+  // 2. API Quran (externe) → réseau d'abord, cache en fallback
   if (url.hostname === "api.alquran.cloud") {
     event.respondWith(
       caches.open(CACHE_API).then(async cache => {
@@ -95,6 +95,27 @@ self.addEventListener("fetch", (event) => {
           return fresh;
         } catch {
           return cache.match(event.request);
+        }
+      })
+    );
+    return;
+  }
+
+  // 2b. Proxy interne /api/quran → cache-first (sourate déjà vue offline)
+  if (url.origin === self.location.origin && url.pathname === "/api/quran") {
+    event.respondWith(
+      caches.open(CACHE_API).then(async cache => {
+        const cached = await cache.match(event.request);
+        if (cached) return cached;
+        try {
+          const fresh = await fetch(event.request.clone());
+          if (fresh.ok) cache.put(event.request, fresh.clone());
+          return fresh;
+        } catch {
+          return new Response(
+            JSON.stringify({ error: "Contenu Coran indisponible hors-ligne" }),
+            { status: 503, headers: { "Content-Type": "application/json" } }
+          );
         }
       })
     );

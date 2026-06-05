@@ -14,6 +14,7 @@ import { ageGroupToMode } from "@/hooks/useAgeMode";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
 import { Button, Card } from "@/components/ui";
 import { useT } from "@/hooks/useT";
+import PrayerStats from "@/components/PrayerStats";
 
 const RECITERS = [
   { id: "alafasy",    name: "Mishary Alafasy",      src: "/audio/adhan-alafasy.mp3"    },
@@ -284,6 +285,13 @@ export default function PrieresPage() {
           })}
         </div>
       </motion.div>
+
+      {/* Statistiques visuelles (graphe 7j) — masqué pour kids */}
+      {ageMode !== "kids" && (
+        <motion.div variants={itemVariants}>
+          <PrayerStats log={storage.getPrayerLog()} />
+        </motion.div>
+      )}
 
       {/* Calendrier mensuel — masqué pour kids */}
       {ageMode !== "kids" && (

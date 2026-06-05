@@ -5,7 +5,7 @@ import { storage } from "@/lib/storage";
 import { idbSet, idbGet, idbDel } from "@/lib/idb";
 import { favorites } from "@/lib/favorites";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, BookOpen, Bookmark, BookmarkCheck, Download, Loader2, Moon, Trash2, WifiOff } from "lucide-react";
+import { ArrowLeft, BookOpen, Bookmark, BookmarkCheck, Download, Loader2, Moon, RefreshCw, Trash2, WifiOff } from "lucide-react";
 import QuranPlayer from "@/components/QuranPlayer";
 import SleepModeOverlay, { type SleepOption } from "@/components/SleepModeOverlay";
 import HifzMode, { getTotalMasteredCount } from "@/components/HifzMode";
@@ -77,6 +77,7 @@ export default function CoranPage() {
   const [ayahs,        setAyahs]        = useState<Ayah[]>([]);
   const [translations, setTranslations] = useState<Ayah[]>([]);
   const [loading,      setLoading]      = useState(false);
+  const [fetchError,   setFetchError]   = useState(false);
   const settings = storage.getSettings();
   const ageMode  = ageGroupToMode(settings.ageGroup);
   const isKids   = ageMode === "kids";
@@ -249,16 +250,20 @@ export default function CoranPage() {
         return;
       }
       try {
+        // Utiliser le proxy pour la liste des sourates (sourate 1 pour récupérer la liste)
         const r = await fetch("https://api.alquran.cloud/v1/meta");
         const d = await r.json();
         setSurahs(d.data.surahs.references as Surah[]);
-      } catch { /* offline sans cache */ }
+        setFetchError(false);
+      } catch {
+        setFetchError(true);
+      }
     }
     load();
   }, []);
 
   async function openSurah(n: number) {
-    setSelected(n); setAyahs([]); setTranslations([]); setLoading(true);
+    setSelected(n); setAyahs([]); setTranslations([]); setLoading(true); setFetchError(false);
     try {
       const [arCache, frCache] = await Promise.all([idbGet<QuranData>(IDB_AR), idbGet<QuranData>(IDB_FR)]);
       if (arCache && frCache) {
@@ -267,14 +272,25 @@ export default function CoranPage() {
         if (arS) setAyahs(arS.ayahs);
         if (frS) setTranslations(frS.ayahs);
       } else {
+        // Appels via le proxy interne /api/quran (avec cache serveur)
         const [arRes, frRes] = await Promise.all([
-          fetch(`https://api.alquran.cloud/v1/surah/${n}/quran-uthmani`).then(r => r.json()),
-          fetch(`https://api.alquran.cloud/v1/surah/${n}/${edition.key}`).then(r => r.json()),
+          fetch(`/api/quran?surah=${n}&edition=quran-uthmani`).then(r => { if (!r.ok) throw new Error("proxy error"); return r.json(); }),
+          fetch(`/api/quran?surah=${n}&edition=${edition.key}`).then(r => { if (!r.ok) throw new Error("proxy error"); return r.json(); }),
         ]);
         setAyahs(arRes.data.ayahs);
         setTranslations(frRes.data.ayahs);
+        // Cache local IndexedDB pour offline (sourate par sourate)
+        const arIdb = await idbGet<QuranData>(IDB_AR) ?? { surahs: [] };
+        const frIdb = await idbGet<QuranData>(IDB_FR) ?? { surahs: [] };
+        const filterOld = (d: QuranData) => ({ surahs: d.surahs.filter(s => s.number !== n) });
+        await Promise.all([
+          idbSet(IDB_AR, { surahs: [...filterOld(arIdb).surahs, arRes.data] }),
+          idbSet(IDB_FR, { surahs: [...filterOld(frIdb).surahs, frRes.data] }),
+        ]);
       }
-    } catch { /* offline */ }
+    } catch {
+      setFetchError(true);
+    }
     setLoading(false);
     storage.saveReading({ surah: n, ayah: 1 });
   }
@@ -282,6 +298,7 @@ export default function CoranPage() {
   async function downloadOffline() {
     setDownloading(true); setDlProgress(5);
     try {
+      // Téléchargement complet : on passe par l'API externe directement (pas de proxy pour le Coran entier)
       const [arRes, frRes] = await Promise.all([
         fetch("https://api.alquran.cloud/v1/quran/quran-uthmani").then(r => r.json()),
         fetch(`https://api.alquran.cloud/v1/quran/${edition.key}`).then(r => r.json()),
@@ -387,7 +404,23 @@ export default function CoranPage() {
           )}
         </div>
 
-        {loading ? (
+        {fetchError ? (
+          <div className="flex flex-col items-center gap-4 py-16 text-center px-4">
+            <WifiOff size={40} style={{ color: "rgba(248,244,236,0.2)" }} />
+            <p className="text-base font-semibold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+              Contenu Coran indisponible hors-ligne
+            </p>
+            <p className="text-sm opacity-50 leading-relaxed" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              Consulte Quran.com ou télécharge l&apos;app Coran+
+            </p>
+            <button
+              onClick={() => openSurah(selected!)}
+              className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold"
+              style={{ borderColor: "rgba(212,175,55,0.4)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+              <RefreshCw size={14} /> Réessayer
+            </button>
+          </div>
+        ) : loading ? (
           <div className="flex justify-center py-16">
             <Loader2 size={24} className="animate-spin" style={{ color: "var(--gold)" }} />
           </div>
@@ -576,12 +609,30 @@ export default function CoranPage() {
       )}
 
       {surahs.length === 0 ? (
-        <div className="flex flex-col items-center gap-3 py-12">
-          <Loader2 size={24} className="animate-spin" style={{ color: "var(--gold)" }} />
-          <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            Chargement…
-          </p>
-        </div>
+        fetchError ? (
+          <div className="flex flex-col items-center gap-4 py-16 text-center px-4">
+            <WifiOff size={40} style={{ color: "rgba(248,244,236,0.2)" }} />
+            <p className="text-base font-semibold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+              Contenu Coran temporairement indisponible
+            </p>
+            <p className="text-sm opacity-50 leading-relaxed" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              Vérifiez votre connexion. Consulte Quran.com ou télécharge l&apos;app Coran+
+            </p>
+            <button
+              onClick={() => { setFetchError(false); window.location.reload(); }}
+              className="flex items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold"
+              style={{ borderColor: "rgba(212,175,55,0.4)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+              <RefreshCw size={14} /> Réessayer
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center gap-3 py-12">
+            <Loader2 size={24} className="animate-spin" style={{ color: "var(--gold)" }} />
+            <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              Chargement…
+            </p>
+          </div>
+        )
       ) : (
         <div className="flex flex-col gap-2">
           {surahs.map(s => (

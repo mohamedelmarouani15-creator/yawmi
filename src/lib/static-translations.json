@@ -2,7 +2,7 @@
   "achievements": {
     "first_correct": {
       "en": {
-        "title": "",
+        "title": "First Light",
         "description": "Answer your first question correctly"
       },
       "es": {
@@ -14,8 +14,8 @@
         "description": "İlk sorunuza doğru cevap verin"
       },
       "darija": {
-        "title": "Første lys",
-        "description": "Besvar dit første spørgsmål rigtigt"
+        "title": "أول نور",
+        "description": "جاوبت مزيان على أول سؤال"
       }
     },
     "sage_1": {
@@ -32,8 +32,8 @@
         "description": "İlk bilgeni yen"
       },
       "darija": {
-        "title": "Kartograflærling",
-        "description": "Besejr din første vismand"
+        "title": "طالب الحكمة",
+        "description": "غلبت أول حكيم"
       }
     },
     "sage_3": {
@@ -50,8 +50,8 @@
         "description": "3 bilgeyi yen"
       },
       "darija": {
-        "title": "spirende lærd",
-        "description": "Besejr 3 vismænd"
+        "title": "طالب متقدم",
+        "description": "غلبت 3 حكما"
       }
     },
     "sage_all": {
@@ -68,8 +68,8 @@
         "description": "Bütün bilgeleri yen"
       },
       "darija": {
-        "title": "Visdommens mester",
-        "description": "Besejr alle vismændene"
+        "title": "مولى الحكمة",
+        "description": "غلبت جميع الحكما"
       }
     },
     "streak_3": {
@@ -86,8 +86,8 @@
         "description": "3 gün üst üste"
       },
       "darija": {
-        "title": "Flittig",
-        "description": "3 dage i træk"
+        "title": "مجتهد",
+        "description": "3 ديال النهارات خلف بعضياتهم"
       }
     },
     "streak_7": {
@@ -104,8 +104,8 @@
         "description": "7 gün üst üste"
       },
       "darija": {
-        "title": "Trofast",
-        "description": "7 dage i træk"
+        "title": "وفي",
+        "description": "7 ديال النهارات خلف بعضياتهم"
       }
     },
     "streak_30": {
@@ -122,8 +122,8 @@
         "description": "30 gün üst üste"
       },
       "darija": {
-        "title": "Tålmodig Pilgrim",
-        "description": "30 dage i træk"
+        "title": "الحاج الصابر",
+        "description": "30 ديال النهارات خلف بعضياتهم"
       }
     },
     "questions_50": {
@@ -140,8 +140,8 @@
         "description": "50 soru cevaplandı"
       },
       "darija": {
-        "title": "Nysgerrig",
-        "description": "50 spørgsmål besvaret"
+        "title": "الفضولي",
+        "description": "جاوبت على 50 سؤال"
       }
     },
     "questions_100": {
@@ -158,8 +158,8 @@
         "description": "100 soru cevaplandı"
       },
       "darija": {
-        "title": "Hundrede visdom",
-        "description": "100 spørgsmål besvaret"
+        "title": "ميا حكمة",
+        "description": "جاوبت على 100 سؤال"
       }
     },
     "questions_500": {
@@ -176,8 +176,8 @@
         "description": "500 soru cevaplandı"
       },
       "darija": {
-        "title": "Encyklopædist",
-        "description": "500 spørgsmål besvaret"
+        "title": "الموسوعة",
+        "description": "جاوبت على 500 سؤال"
       }
     },
     "perfect_game": {
@@ -194,8 +194,8 @@
         "description": "Bir meydan okumaya 10/10"
       },
       "darija": {
-        "title": "Perfektionere",
-        "description": "10/10 til en udfordring"
+        "title": "كامل",
+        "description": "10/10 فواحد التحدي"
       }
     },
     "level_10": {
@@ -212,8 +212,8 @@
         "description": "10. seviyeye ulaş"
       },
       "darija": {
-        "title": "Lærd",
-        "description": "Nå niveau 10"
+        "title": "العالم",
+        "description": "وصلت ل المستوى 10"
       }
     },
     "level_25": {
@@ -230,8 +230,8 @@
         "description": "25. seviyeye ulaş"
       },
       "darija": {
-        "title": "Klog",
-        "description": "Nå niveau 25"
+        "title": "الحكيم",
+        "description": "وصلت ل المستوى 25"
       }
     },
     "level_50": {
@@ -248,8 +248,8 @@
         "description": "50. seviyeye ulaş"
       },
       "darija": {
-        "title": "Stormester",
-        "description": "Nå niveau 50"
+        "title": "الأستاذ الكبير",
+        "description": "وصلت ل المستوى 50"
       }
     },
     "coins_100": {
@@ -266,8 +266,8 @@
         "description": "100 altın biriktirin"
       },
       "darija": {
-        "title": "Lille skat",
-        "description": "Saml 100 guldmønter"
+        "title": "الكنز الصغير",
+        "description": "جمعت 100 قطعة دهب"
       }
     },
     "mosque_1": {
@@ -284,8 +284,8 @@
         "description": "Caminize ilk nesneyi ekleyin"
       },
       "darija": {
-        "title": "Bygmester",
-        "description": "Tilføj et første objekt til din moske"
+        "title": "البناء",
+        "description": "زيدت أول حاجة فالجامع ديالك"
       }
     },
     "category_quran": {
@@ -302,8 +302,8 @@
         "description": "Kuran'da 5. seviyeye ulaş"
       },
       "darija": {
-        "title": "Memorizer",
-        "description": "Nå niveau 5 i Koranen"
+        "title": "الحافظ",
+        "description": "وصلت ل المستوى 5 فالقرآن"
       }
     },
     "category_arabic": {
@@ -320,8 +320,8 @@
         "description": "Arapçada 5. seviyeye ulaş"
       },
       "darija": {
-        "title": "Lingvist",
-        "description": "Nå niveau 5 på arabisk"
+        "title": "اللغوي",
+        "description": "وصلت ل المستوى 5 فالعربية"
       }
     },
     "sage_card_all": {
@@ -338,8 +338,8 @@
         "description": "Tüm bilge kartları topla"
       },
       "darija": {
-        "title": "Bibliotekar",
-        "description": "Saml alle kloge kort"
+        "title": "أمين المكتبة",
+        "description": "جمعت جميع بطاقات الحكما"
       }
     },
     "la_mecque": {
@@ -356,8 +356,8 @@
         "description": "Mekke'ye Ulaşmak"
       },
       "darija": {
-        "title": "Pilgrimmen",
-        "description": "At nå Mekka"
+        "title": "الحاج",
+        "description": "وصلت لمكة المكرمة"
       }
     }
   },
@@ -382,10 +382,10 @@
         "dialogueFailure": "Yıldızlar henüz seni yeterince iyi yönlendirmiyor yoldaş. Ders çalışmaya geri dön ve geri dön. Bilgi bir varış noktası değil, bir yoldur."
       },
       "darija": {
-        "title": "Verdenskartograf",
-        "dialogueIntro": "Åh, en rejsende, der leder efter sin vej! Jeg er Al-Idrissi, og jeg kortlagde hele verden på en sølvskive til kong Roger II af Sicilien. Før du går ind i min madrassah, så bevis for mig, at du fortjener at sejle i videns vande...",
-        "dialogueSuccess": "Fremragende! Du har hjertets kompas og sindets kort. Middelhavet holder dig ikke længere tilbage – tag mod Cordoba, hvor den kloge Ibn Rushd venter på dig.",
-        "dialogueFailure": "Stjernerne vejleder dig endnu ikke godt nok, medrejsende. Gå tilbage for at studere, og kom tilbage. Viden er ikke en destination - det er en vej."
+        "title": "رسام خريطة العالم",
+        "dialogueIntro": "آه، مسافر كيقلب على طريقو! أنا الإدريسي، رسمت خريطة الكون كاملة على قرص فضي لصاحب الملك روجر الثاني ديال صقلية. قبل ما تدخل للمدرسة ديالي، وريني بلي تستاهل تبحر فبحار العلم...",
+        "dialogueSuccess": "ممتاز! عندك بوصلة القلب وخريطة العقل. البحر الأبيض ما عادش يوقفك — سير لقرطبة، فين ابن رشد كيسناك.",
+        "dialogueFailure": "النجوم ما زالت ما توجهكش مزيان، رفيق. ارجع تقرا وعود. العلم مشي وجهة — هو الطريق."
       }
     },
     "ibn_rushd": {
@@ -408,10 +408,10 @@
         "dialogueFailure": "Aklın da kaslar gibi egzersize ihtiyacı vardır. Ders çalıştıktan sonra geri gelin."
       },
       "darija": {
-        "title": "Filosof af Andalusien",
-        "dialogueIntro": "Aristoteles blev glemt i Europa - det var takket være mine arabiske oversættelser, at han overlevede. Jeg er Ibn Rushd. Fornuft og tro modsættes ikke: de oplyser hinanden.",
-        "dialogueSuccess": "Du ræsonnerer med en filosofs klarhed! På vej mod Marrakech.",
-        "dialogueFailure": "Fornuften har brug for motion, som muskler. Kom tilbage efter at have studeret."
+        "title": "فيلسوف الأندلس",
+        "dialogueIntro": "أرسطو تنسا فأوروبا — بفضل ترجماتي للعربية بقا حي. أنا ابن رشد. العقل والإيمان ما هومش ضدين: كيضيؤوا بعضياتهم.",
+        "dialogueSuccess": "كتفكر بوضوح الفيلسوف! سيرنا لمراكش.",
+        "dialogueFailure": "العقل محتاج لتمرين، بحال العضلة. عود بعد ما تقرا مزيان."
       }
     },
     "ibn_toumert": {
@@ -434,10 +434,10 @@
         "dialogueFailure": "Dağlar bile zamanla şekillenmiştir. Azimle."
       },
       "darija": {
-        "title": "Grundlægger af almohaderne",
-        "dialogueIntro": "Jeg krydsede ørkenen for at bringe sandheden til mit folk. Jeg er Ibn Toumert. Vis mig styrken af ​​din viden.",
-        "dialogueSuccess": "Du har det høje atlas fasthed! Damaskus er det næste.",
-        "dialogueFailure": "Selv bjergene er blevet formet af tiden. Hold ud."
+        "title": "مؤسس الموحدين",
+        "dialogueIntro": "قطعت الصحراء باش نجيب الحق لشعبي. أنا ابن تومرت. وريني قوة العلم ديالك.",
+        "dialogueSuccess": "عندك صلابة الأطلس الكبير! الشام هي التالية.",
+        "dialogueFailure": "حتى الجبال تشكلات مع الوقت. استمر، ما توقفش."
       }
     },
     "ibn_asaker": {
@@ -460,10 +460,10 @@
         "dialogueFailure": "80 ciltlik ansiklopedim bile 60 yılımı aldı. Sabır tarihçinin ilk erdemidir."
       },
       "darija": {
-        "title": "Historiker fra Damaskus",
-        "dialogueIntro": "Jeg har viet mit liv til at glemme ingenting: Jeg har samlet 1300 biografier. Jeg er Ibn Asaker. Hukommelse er nationernes skat.",
-        "dialogueSuccess": "Din hukommelse er dyrebar som et sjældent manuskript! Bagdad venter på dig.",
-        "dialogueFailure": "Selv mit 80-binds encyklopædi tog 60 år. Tålmodighed er historikerens første dyd."
+        "title": "مؤرخ دمشق",
+        "dialogueIntro": "خصصت حياتي باش ما ننساش والو: جمعت 1300 سيرة. أنا ابن عساكر. الذاكرة هي كنز الأمم.",
+        "dialogueSuccess": "الذاكرة ديالك غالية بحال مخطوط نادر! بغداد كتسناك.",
+        "dialogueFailure": "حتى الموسوعة ديالي ديال 80 مجلد خذات 60 عام. الصبر هو أول فضيلة ديال المؤرخ."
       }
     },
     "al_khwarizmi": {
@@ -486,10 +486,10 @@
         "dialogueFailure": "Denklem basit: bilgi = çaba × zaman. Geri gelmek!"
       },
       "darija": {
-        "title": "Algebras far",
-        "dialogueIntro": "Mit navn gav 'algoritme' og min afhandling 'algebra'. Jeg er Al-Khwarizmi. Tal har en uforsonlig logik.",
-        "dialogueSuccess": "Perfekt! Du regner som en astronom fra Bagdad. Samarkand venter på dig.",
-        "dialogueFailure": "Ligningen er enkel: viden = indsats × tid. Kom tilbage!"
+        "title": "أبو الجبر",
+        "dialogueIntro": "الاسم ديالي عطا 'الخوارزمية' والرسالة ديالي عطات 'الجبر'. أنا الخوارزمي. الأرقام عندها منطق لا يرحم.",
+        "dialogueSuccess": "كامل! كتحسب بحال فلكي من بغداد. سمرقند كتسناك.",
+        "dialogueFailure": "المعادلة بسيطة: العلم = المجهود × الوقت. عود!"
       }
     },
     "ibn_sina": {
@@ -512,10 +512,10 @@
         "dialogueFailure": "Sınırlarını bilmeyen doktor tehlikelidir. Çalış, sonra geri gel."
       },
       "darija": {
-        "title": "Prinsen af ​​læger",
-        "dialogueIntro": "Jeg skrev medicinkanonen som 21-årig. I Samarkand inviterer jeg dig til at måle omfanget af din viden.",
-        "dialogueSuccess": "Dit sind er sundt, og din viden blomstrer! Timbuktu venter på dig.",
-        "dialogueFailure": "En læge, der ikke kender sine grænser, er farlig. Studer, og kom så tilbage."
+        "title": "أمير الأطباء",
+        "dialogueIntro": "كتبت القانون فالطب وعمري 21 عام. فسمرقند، كندعوك تقيس مدى العلم ديالك.",
+        "dialogueSuccess": "العقل ديالك صحيح والعلم ديالك كيزهر! تمبكتو كتسناك.",
+        "dialogueFailure": "طبيب ما كيعرفش حدوده خطير. قرا مزيان، وعود."
       }
     },
     "ahmad_baba": {
@@ -538,10 +538,10 @@
         "dialogueFailure": "Timbuktu'nun el yazmaları istilalardan sağ kurtuldu. Geri gelmek!"
       },
       "darija": {
-        "title": "Manuskripternes vogter",
-        "dialogueIntro": "Timbuktu er ikke verdens undergang - det er dens centrum! Jeg har samlet 700.000 manuskripter her. Jeg er Ahmad Baba.",
-        "dialogueSuccess": "Pragtfuldt! Du bærer Timbuktus lys i dig. Kairo venter på dig.",
-        "dialogueFailure": "Timbuktus manuskripter overlevede invasionerne. Kom tilbage!"
+        "title": "حارس المخطوطات",
+        "dialogueIntro": "تمبكتو مشي نهاية العالم — هي مركزو! جمعت هنا 700,000 مخطوط. أنا أحمد بابا.",
+        "dialogueSuccess": "رائع! كتحمل نور تمبكتو فداخلك. القاهرة كتسناك.",
+        "dialogueFailure": "المخطوطات ديال تمبكتو بقات حتى بعد الغزوات. عود!"
       }
     },
     "ibn_khaldoun": {
@@ -564,10 +564,10 @@
         "dialogueFailure": "Her medeniyetin inişleri ve çıkışları vardır. Bilginiz doruğa ulaştığında geri gelin."
       },
       "darija": {
-        "title": "Fader til sociologi",
-        "dialogueIntro": "Jeg forstod før nogen anden, at samfund fødes, trives og forfalder i henhold til præcise love. Jeg er Ibn Khaldun.",
-        "dialogueSuccess": "Du har en sociologs øje og en historikers sjæl! Mekka er inden for rækkevidde.",
-        "dialogueFailure": "Enhver civilisation har sine op- og nedture. Kom tilbage, når din viden er på sit højeste."
+        "title": "أبو علم الاجتماع",
+        "dialogueIntro": "فهمت قبل الكل بلي المجتمعات كتولد وكتزهر وكتنحط حسب قوانين واضحة. أنا ابن خلدون.",
+        "dialogueSuccess": "عندك عين عالم الاجتماع وروح المؤرخ! مكة المكرمة قريبة.",
+        "dialogueFailure": "كل حضارة عندها صعود ونزول. عود ملي يوصل العلم ديالك لأعلى درجة."
       }
     }
   },
@@ -586,8 +586,8 @@
         "country": "Suudi Arabistan"
       },
       "darija": {
-        "description": "Profetens by ﷺ. Dit udgangspunkt for visdom.",
-        "country": "Saudi-Arabien"
+        "description": "مدينة النبي ﷺ. نقطة البداية ديالك نحو الحكمة.",
+        "country": "السعودية"
       }
     },
     "fes": {
@@ -604,8 +604,8 @@
         "country": "Fas"
       },
       "darija": {
-        "description": "Byen af ​​lærde og madrassahs. Al-Idrissi mapped the world there.",
-        "country": "Marokko"
+        "description": "مدينة العلماء والمدارس. الإدريسي رسم خريطة العالم هناك.",
+        "country": "المغرب"
       }
     },
     "cordoue": {
@@ -622,8 +622,8 @@
         "country": "İspanya (Endülüs)"
       },
       "darija": {
-        "description": "Det islamiske vestens perle. Averroes forenede fornuft og tro der.",
-        "country": "Spanien (Andalusien)"
+        "description": "لؤلؤة الغرب الإسلامي. ابن رشد وفق هناك بين العقل والإيمان.",
+        "country": "إسبانيا (الأندلس)"
       }
     },
     "marrakech": {
@@ -640,8 +640,8 @@
         "country": "Fas"
       },
       "darija": {
-        "description": "Okkerbyen, Almohadernes og Koutoubias vugge.",
-        "country": "Marokko"
+        "description": "المدينة الحمراء، مهد الموحدين والكتبية.",
+        "country": "المغرب"
       }
     },
     "damas": {
@@ -658,8 +658,8 @@
         "country": "Suriye"
       },
       "darija": {
-        "description": "Den ældste islamiske hovedstad. Ibn Asaker bevarede 1300 biografier der.",
-        "country": "Syrien"
+        "description": "أقدم عاصمة إسلامية. ابن عساكر حفظ هناك 1300 سيرة.",
+        "country": "سوريا"
       }
     },
     "bagdad": {
@@ -676,8 +676,8 @@
         "country": "Irak"
       },
       "darija": {
-        "description": "Visdommens Hus. Al-Khwarizmi opfandt algebra der.",
-        "country": "Irak"
+        "description": "بيت الحكمة. الخوارزمي اخترع الجبر هناك.",
+        "country": "العراق"
       }
     },
     "samarcande": {
@@ -694,8 +694,8 @@
         "country": "Özbekistan"
       },
       "darija": {
-        "description": "Silkevejenes kryds. Ibn Sina skrev medicinkanonen der.",
-        "country": "Usbekistan"
+        "description": "ملتقى طرق الحرير. ابن سينا كتب القانون فالطب هناك.",
+        "country": "أوزبكستان"
       }
     },
     "tombouctou": {
@@ -712,8 +712,8 @@
         "country": "Mali"
       },
       "darija": {
-        "description": "Byen med 333 helgener. Ahmad Baba samlede 700.000 manuskripter der.",
-        "country": "Mali"
+        "description": "مدينة 333 ولي. أحمد بابا جمع هناك 700,000 مخطوط.",
+        "country": "مالي"
       }
     },
     "le_caire": {
@@ -730,8 +730,8 @@
         "country": "Mısır"
       },
       "darija": {
-        "description": "Belejring af Al-Azhar. Ibn Khaldoun grundlagde moderne sociologi der.",
-        "country": "Egypten"
+        "description": "مقر الأزهر. ابن خلدون أسس علم الاجتماع الحديث هناك.",
+        "country": "مصر"
       }
     },
     "la_mecque": {
@@ -748,8 +748,8 @@
         "country": "Suudi Arabistan"
       },
       "darija": {
-        "description": "Rejsens højdepunkt. Må din søgen efter visdom blive accepteret.",
-        "country": "Saudi-Arabien"
+        "description": "قمة الرحلة. تقبل الله مسعاك في طلب الحكمة.",
+        "country": "السعودية"
       }
     }
   },
@@ -768,8 +768,8 @@
         "description": "Fez'deki Karaviyyin Medresesi'nde bir oda. Dört asma kilit bilgiyi saklıyor."
       },
       "darija": {
-        "name": "Den hemmelige madrasa",
-        "description": "Et værelse i Al-Qarawiyyin Madrasa i Fez. Fire hængelåse holder viden."
+        "name": "المدرسة السرية",
+        "description": "حجرة فمدرسة القرويين بفاس. أربع أقفال كيحفظو العلم."
       }
     },
     "room_bibliotheque_1": {
@@ -786,8 +786,8 @@
         "description": "Ahmed Baba 700.000 el yazması arasında en büyük sırrı sakladı. 4 bulmacayı çözün."
       },
       "darija": {
-        "name": "Biblioteket i Timbuktu",
-        "description": "Blandt 700.000 manuskripter gemte Ahmad Baba den ultimative hemmelighed. Løs de 4 gåder."
+        "name": "مكتبة تمبكتو",
+        "description": "بين 700,000 مخطوط، أحمد بابا خبا السر الأكبر. حل 4 ألغاز."
       }
     }
   }

@@ -97,6 +97,10 @@
 /* Transition douce entre thèmes */
 html {
   transition: background-color 1.5s ease, color 1.5s ease;
+  /* Bloque Samsung/Chrome force-dark auto — l'app gère son propre thème */
+  color-scheme: dark light;
+  /* Hauteur viewport dynamique (Android Chrome gesture bar) */
+  height: 100%;
 }
 
 /* ── Safe area utilities (viewport-fit=cover, punch-hole, notch) ─ */
@@ -120,6 +124,9 @@ body {
   font-family: var(--font-dm-sans), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Empêche Samsung One UI de scaler les textes et casser les layouts */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
   padding-left: env(safe-area-inset-left);
   padding-right: env(safe-area-inset-right);
 }

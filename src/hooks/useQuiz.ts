@@ -163,7 +163,6 @@ export function useQuiz(locationId: string) {
     const addedCoins = isCorrect ? COINS_PER_CORRECT + seasonBonus.coinBonus : 0;
 
     const isLast = session.currentIndex === session.questions.length - 1;
-    const correctCount = newAnswers.filter(Boolean).length + (isCorrect ? 0 : 0); // already counted above
 
     let totalXP    = session.xpEarned + addedXP;
     let totalCoins = session.coinsEarned + addedCoins;

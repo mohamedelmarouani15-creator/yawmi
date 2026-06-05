@@ -385,16 +385,19 @@ export function useFamily() {
     setDuels(prev => [newDuel, ...prev]);
 
     // Notifie le défié
-    fetch("/api/push/notify", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        targetUserId: challengedId,
-        title: "⚔️ Nouveau défi !",
-        body:  `${challengerName} te défie sur Yawmi — relève le défi !`,
-        url:   "/famille",
-      }),
-    }).catch(() => {/* silencieux si pas d'abonnement */});
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) return;
+      fetch("/api/push/notify", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session.access_token}` },
+        body: JSON.stringify({
+          targetUserId: challengedId,
+          title: "⚔️ Nouveau défi !",
+          body:  `${challengerName} te défie sur Yawmi — relève le défi !`,
+          url:   "/famille",
+        }),
+      }).catch(() => {});
+    });
 
     return true;
   }, [user, family]);
@@ -432,16 +435,19 @@ export function useFamily() {
 
       // Si le challenger vient de jouer, notifie le défié que c'est son tour
       if (duel.isChallenger) {
-        fetch("/api/push/notify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            targetUserId: duel.challengedId,
-            title: "⏰ À toi de jouer !",
-            body:  `${duel.challengerName} a joué son défi — réponds-lui !`,
-            url:   "/famille",
-          }),
-        }).catch(() => {});
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (!session) return;
+          fetch("/api/push/notify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session.access_token}` },
+            body: JSON.stringify({
+              targetUserId: duel.challengedId,
+              title: "⏰ À toi de jouer !",
+              body:  `${duel.challengerName} a joué son défi — réponds-lui !`,
+              url:   "/famille",
+            }),
+          }).catch(() => {});
+        });
       }
     }
   }, [user, duels]);

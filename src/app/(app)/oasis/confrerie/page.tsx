@@ -171,25 +171,30 @@ export default function ConfrerierPage() {
         </div>
       </div>
 
-      {/* Join a family */}
-      <div className="rounded-3xl border p-4" style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.07)" }}>
-        <p className="text-[9px] uppercase tracking-widest opacity-40 mb-3" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          Rejoindre une confrérie
-        </p>
-        <div className="flex gap-2">
-          <input value={joinInput} onChange={e => setJoinInput(e.target.value.toUpperCase())} placeholder="Code à 6 lettres" maxLength={6}
-            className="flex-1 rounded-xl px-3 py-2.5 text-sm font-bold text-center uppercase outline-none tracking-widest"
-            style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text)", fontFamily: "var(--font-bricolage)" }} />
-          <motion.button onClick={joinFamily} whileTap={{ scale: 0.95 }} transition={springTap}
-            className="rounded-xl px-4 py-2.5 text-sm font-black"
-            style={{ background: "rgba(167,139,250,0.15)", color: "#a78bfa", border: "1px solid rgba(167,139,250,0.3)", fontFamily: "var(--font-bricolage)" }}>
-            Rejoindre
-          </motion.button>
+      {/* Join a family — bientôt disponible */}
+      <div className="rounded-3xl border p-4 opacity-50" style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.07)" }}>
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[9px] uppercase tracking-widest opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            Rejoindre une confrérie
+          </p>
+          <span className="text-[9px] font-bold px-2 py-0.5 rounded-full"
+            style={{ background: "rgba(167,139,250,0.15)", color: "#a78bfa", fontFamily: "var(--font-dm-sans)" }}>
+            Bientôt
+          </span>
         </div>
-        <AnimatePresence>
-          {joinError && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="text-xs mt-2" style={{ color: "#f87171", fontFamily: "var(--font-dm-sans)" }}>{joinError}</motion.p>}
-        </AnimatePresence>
+        <div className="flex gap-2">
+          <input disabled value={joinInput} placeholder="Code à 6 lettres" maxLength={6}
+            className="flex-1 rounded-xl px-3 py-2.5 text-sm font-bold text-center uppercase outline-none tracking-widest cursor-not-allowed"
+            style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", color: "var(--text)", fontFamily: "var(--font-bricolage)" }} />
+          <button disabled
+            className="rounded-xl px-4 py-2.5 text-sm font-black cursor-not-allowed"
+            style={{ background: "rgba(167,139,250,0.06)", color: "rgba(167,139,250,0.3)", border: "1px solid rgba(167,139,250,0.1)", fontFamily: "var(--font-bricolage)" }}>
+            Rejoindre
+          </button>
+        </div>
+        <p className="text-[10px] mt-2 opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+          La synchronisation en temps réel arrive prochainement.
+        </p>
       </div>
 
       {/* Members */}

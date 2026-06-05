@@ -34,6 +34,7 @@ export const DEFAULT_STATE: GameState = {
   lastEnergyUpdate: null,
   locationStages: {},
   categoryMastery: { religion: 0, history: 0, arabic: 0, darija: 0, quran: 0 },
+  categoryXP: {},
   manuscripts: {},
   completedArcs: [],
   dailyQuests: [],
@@ -401,10 +402,11 @@ export const gameStorage = {
   // ── Category level ───────────────────────────────────────────
   updateCategoryLevel(category: Category, xpGained: number): GameState {
     const state = this.get();
-    const current = state.categoryLevels[category] ?? 1;
-    const newLevel = Math.min(10, Math.floor(xpGained / 50) + current);
+    const cumulative = (state.categoryXP?.[category] ?? 0) + xpGained;
+    const newLevel = Math.min(10, Math.floor(cumulative / 50) + 1);
     const updated = {
       ...state,
+      categoryXP: { ...state.categoryXP, [category]: cumulative },
       categoryLevels: { ...state.categoryLevels, [category]: newLevel },
     };
     this.save(updated);
@@ -483,28 +485,42 @@ export const gameStorage = {
 
   // ── Supabase sync — méthodes bas niveau (userId requis) ───────
   async syncFromSupabase(userId: string): Promise<void> {
-    const { data, error } = await supabase
-      .from("player_progress")
-      .select("*")
-      .eq("user_id", userId)
-      .single();
-    if (error || !data) return;
+    const [progressRes, storyRes] = await Promise.all([
+      supabase.from("player_progress").select("*").eq("user_id", userId).single(),
+      supabase.from("story_progress").select("story_id,completed_chapters").eq("user_id", userId),
+    ]);
+    if (progressRes.error || !progressRes.data) return;
+    const data = progressRes.data;
+
+    // Build completedArcs from story_progress (arcs with ≥1 completed chapter)
+    const remoteArcs: string[] = (storyRes.data ?? [])
+      .filter((r: { completed_chapters: unknown[] }) => Array.isArray(r.completed_chapters) && r.completed_chapters.length > 0)
+      .map((r: { story_id: string }) => r.story_id);
 
     const local = this.get();
     const merged: GameState = {
       ...local,
-      xp: Math.max(local.xp, data.xp ?? 0),
-      level: Math.max(local.level, data.level ?? 1),
-      coins: Math.max(local.coins, data.coins ?? 0),
-      currentLocation: data.current_location ?? local.currentLocation,
-      gameStreak: Math.max(local.gameStreak, data.game_streak ?? 0),
-      lastGameDate: data.last_game_date ?? local.lastGameDate,
+      xp:               Math.max(local.xp, data.xp ?? 0),
+      level:            Math.max(local.level, data.level ?? 1),
+      coins:            Math.max(local.coins, data.coins ?? 0),
+      currentLocation:  data.current_location ?? local.currentLocation,
+      gameStreak:       Math.max(local.gameStreak, data.game_streak ?? 0),
+      lastGameDate:     data.last_game_date ?? local.lastGameDate,
       unlockedLocations: Array.from(new Set([...local.unlockedLocations, ...(data.unlocked_locations ?? [])])),
-      defeatedSages: Array.from(new Set([...local.defeatedSages, ...(data.defeated_sages ?? [])])),
+      defeatedSages:    Array.from(new Set([...local.defeatedSages, ...(data.defeated_sages ?? [])])),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      categoryLevels: (data.category_levels ?? local.categoryLevels) as any,
+      categoryLevels:   (data.category_levels ?? local.categoryLevels) as any,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      powerupCounts: (data.powerup_counts ?? local.powerupCounts) as any,
+      powerupCounts:    (data.powerup_counts ?? local.powerupCounts) as any,
+      // New Phase 1-7 fields — merge max/union
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      locationStages:   { ...((data.location_stages ?? {}) as any), ...local.locationStages },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      categoryMastery:  ((data.category_mastery ?? local.categoryMastery) as any),
+      completedArcs:    Array.from(new Set([...(local.completedArcs ?? []), ...(data.completed_arcs ?? []), ...remoteArcs])),
+      prestigeLevel:    Math.max(local.prestigeLevel ?? 0, data.prestige_level ?? 0),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      manuscripts:      { ...((data.manuscripts ?? {}) as any), ...local.manuscripts },
     };
     this.save(merged);
   },
@@ -528,18 +544,25 @@ export const gameStorage = {
 
     // Progression principale
     await supabase.from("player_progress").upsert({
-      user_id: userId,
-      xp: state.xp,
-      level: state.level,
-      coins: state.coins,
-      current_location: state.currentLocation,
-      game_streak: state.gameStreak,
-      last_game_date: state.lastGameDate,
+      user_id:           userId,
+      xp:                state.xp,
+      level:             state.level,
+      coins:             state.coins,
+      current_location:  state.currentLocation,
+      game_streak:       state.gameStreak,
+      last_game_date:    state.lastGameDate,
       unlocked_locations: state.unlockedLocations,
-      defeated_sages: state.defeatedSages,
-      category_levels: state.categoryLevels,
-      powerup_counts: state.powerupCounts,
-      updated_at: new Date().toISOString(),
+      defeated_sages:    state.defeatedSages,
+      category_levels:   state.categoryLevels,
+      powerup_counts:    state.powerupCounts,
+      // Phase 1-7 fields
+      location_stages:   state.locationStages ?? {},
+      category_mastery:       state.categoryMastery ?? {},
+      completed_arcs:         state.completedArcs ?? [],
+      prestige_level:         state.prestigeLevel ?? 0,
+      manuscripts:            state.manuscripts ?? {},
+      total_correct_answers:  state.totalCorrectAnswers ?? 0,
+      updated_at:             new Date().toISOString(),
     });
 
     // Récompenses (mosquée, coffres, titres, cartes sages)

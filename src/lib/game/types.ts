@@ -126,6 +126,7 @@ export interface GameState {
   locationStages: Record<string, number>; // locationId → stages completed (0–3)
   // mastery system
   categoryMastery: Record<Category, number>;   // 0–100 per category
+  categoryXP: Partial<Record<Category, number>>; // XP cumulatif par catégorie → dérive categoryLevels
   manuscripts: Record<string, number>;         // manuscriptId → pages collected
   completedArcs: string[];                     // story arc IDs fully completed
   dailyQuests: DailyQuest[];

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import { springTap } from "@/lib/motion";
@@ -11,6 +12,7 @@ interface Props {
 }
 
 export default function NoFamilySetup({ onCreateFamily, onJoinFamily }: Props) {
+  const router = useRouter();
   const [mode,       setMode]       = useState<"create" | "join" | null>(null);
   const [loading,    setLoading]    = useState(false);
   const [error,      setError]      = useState("");
@@ -23,7 +25,7 @@ export default function NoFamilySetup({ onCreateFamily, onJoinFamily }: Props) {
     setLoading(true); setError("");
     const { error: err } = await onCreateFamily(nom);
     if (err) { setError(err); setLoading(false); }
-    else window.location.href = "/famille";
+    else router.refresh();
   }
 
   async function handleJoin() {
@@ -32,7 +34,7 @@ export default function NoFamilySetup({ onCreateFamily, onJoinFamily }: Props) {
     setLoading(true); setError("");
     const ok = await onJoinFamily(code);
     if (!ok) { setError("Code introuvable — vérifie l'orthographe."); setLoading(false); }
-    else window.location.href = "/famille";
+    else router.refresh();
   }
 
   return (

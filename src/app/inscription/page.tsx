@@ -41,6 +41,8 @@ export default function InscriptionPage() {
     }
     // Si confirmation désactivée → accueil direct
     if (typeof localStorage !== "undefined") localStorage.setItem("yawmi_onboarded", "1");
+    // router.push ne peut pas être utilisé ici (pas de useRouter en dehors du component tree)
+    // window.location est intentionnel pour forcer un reload complet avec la session active
     window.location.href = "/accueil";
   }
 

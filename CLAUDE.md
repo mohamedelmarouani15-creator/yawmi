@@ -13,7 +13,7 @@ npm run lint     # ESLint
 npx tsc --noEmit # Type-check without emitting
 ```
 
-No test runner is configured. Playwright is installed but tests are not yet written.
+Playwright e2e tests are in `e2e/` — run with `npx playwright test`.
 
 ## Architecture Overview
 
@@ -105,6 +105,7 @@ GROQ_API_KEY
 VAPID_SUBJECT                  # must be mailto: format
 NEXT_PUBLIC_VAPID_PUBLIC_KEY
 VAPID_PRIVATE_KEY
+CRON_SECRET                    # protège /api/cron/adhan et /api/cron/liga-promotion
 ```
 
 `webpush.setVapidDetails()` must be called inside the route handler, never at module level — calling it at module level causes a Next.js build failure during static analysis.

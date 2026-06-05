@@ -680,7 +680,19 @@ export default function TombouctouScene() {
         <VictorySequence
           timeRemaining={gameSeconds}
           hintsUsed={hintsUsed}
-          onReplay={() => { window.location.reload(); }}
+          onReplay={() => {
+            setVictoryActive(false);
+            setSolvedMs(Array(5).fill(false));
+            setHintsUsed(0);
+            setGameSeconds(30 * 60);
+            setIntroComplete(false);
+            setTimerVisible(false);
+            setIsTension(false);
+            setLocked(false);
+            setActiveEnigme(null);
+            setRevealingMs(null);
+            setNearbyMs(null);
+          }}
         />
       )}
 

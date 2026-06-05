@@ -17,13 +17,15 @@ export function ageGroupToMode(group: string | null | undefined): AgeMode {
 }
 
 const TONGUE_TO_LANG: Record<string, string> = {
-  arabe: "ar", darija: "ar", anglais: "en", espagnol: "es", turc: "tr",
+  // Darija romanisé (Latin) → lang="fr" + dir="ltr"
+  // Darija en script arabe dans static-translations.json utilise dir inline
+  arabe: "ar", darija: "fr", anglais: "en", espagnol: "es", turc: "tr",
 };
 
 export function useAgeMode(): AgeMode {
   const { settings } = useSettings();
   const mode = ageGroupToMode(settings.ageGroup);
-  const isRTL = settings.motherTongue === "arabe" || settings.motherTongue === "darija";
+  const isRTL = settings.motherTongue === "arabe"; // Darija romanisé = LTR
   const htmlLang = TONGUE_TO_LANG[settings.motherTongue ?? ""] ?? "fr";
 
   useEffect(() => {

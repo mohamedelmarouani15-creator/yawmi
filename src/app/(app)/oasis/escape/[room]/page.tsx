@@ -11,12 +11,23 @@ import { gameStorage } from "@/lib/game/game-storage";
 import { springTap } from "@/lib/motion";
 import type { EscapeLock } from "@/lib/game/escape-rooms";
 import EscapeLoadingScreen from "@/components/escape3d/EscapeLoadingScreen";
-import EscapeLobby, { generateSessionCode } from "@/components/escape3d/EscapeLobby";
 import { useAuth } from "@/hooks/useAuth";
 import { useLang } from "@/hooks/useLang";
 import { pick } from "@/lib/content-i18n";
 import staticT from "@/lib/static-translations.json";
 import ErrorBoundary from "@/components/ErrorBoundary";
+
+// Three.js lobby — chargé uniquement quand la salle de Tombouctou est demandée
+const EscapeLobby = dynamic(
+  () => import("@/components/escape3d/EscapeLobby"),
+  { ssr: false, loading: () => <div style={{ position: "fixed", inset: 0, background: "#030C06" }} /> },
+);
+
+// Fonction de génération inline pour éviter l'import statique de EscapeLobby
+function generateSessionCode(): string {
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  return Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join("");
+}
 
 
 // Three.js ne tourne pas en SSR

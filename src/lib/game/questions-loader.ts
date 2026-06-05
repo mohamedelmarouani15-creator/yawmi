@@ -2,7 +2,6 @@ import { supabase } from "@/lib/supabase";
 import type { Question, MinigameData, QuestionOption } from "./types";
 
 type ArabicLevel = "none" | "beginner" | "intermediate" | "advanced";
-import { QUESTIONS, getQuestions } from "./questions";
 
 const CACHE_KEY = "yawmi_q_pool_v1";
 const CACHE_TTL = 24 * 60 * 60 * 1000; // 24h
@@ -147,7 +146,8 @@ export async function getQuestionsAsync(
     return pickQuestions(remote, count, history, arabicLevel, playerLevel, startedStoryIds, forcedMaxDiff);
   }
 
-  // 3. Fallback local — questions.ts (toujours disponible hors-ligne)
+  // 3. Fallback local — questions.ts (dynamic import to keep it out of initial bundle)
+  const { getQuestions } = await import("./questions");
   return getQuestions(count, history, arabicLevel);
 }
 

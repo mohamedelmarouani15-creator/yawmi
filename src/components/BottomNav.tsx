@@ -63,6 +63,7 @@ export default function BottomNav() {
           <motion.div key={href} whileTap={{ scale: 0.86 }} transition={{ type: "spring", stiffness: 500, damping: 25 }}>
             <Link
               href={href}
+              prefetch={true}
               className="relative flex flex-col items-center gap-0.5 px-3 py-2.5"
               style={{ color: active ? "var(--gold)" : "rgba(248,244,236,0.35)" }}
             >

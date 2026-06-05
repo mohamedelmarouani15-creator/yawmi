@@ -50,14 +50,36 @@ export async function POST(req: NextRequest) {
   }
   const userMessage: string = body.message.slice(0, 2000); // limite longueur
 
-  // ── Récupère le profil et la progression ─────────────────────
-  const [{ data: profile }, { data: progress }] = await Promise.all([
+  // ── Récupère le profil, la progression et l'histoire en cours ──
+  const [{ data: profile }, { data: progress }, { data: storyRows }] = await Promise.all([
     supabase.from("profiles").select("display_name, age_group, main_objective, mother_tongue, app_mode").eq("id", userId).single(),
     supabase.from("player_progress")
       .select("category_levels, game_streak, defeated_sages, total_correct_answers")
       .eq("user_id", userId)
       .single(),
+    supabase.from("story_progress")
+      .select("story_id, current_chapter")
+      .eq("user_id", userId)
+      .order("last_read_at", { ascending: false })
+      .limit(1),
   ]);
+
+  const activeStoryProgress = storyRows?.[0] ?? null;
+  let currentStory: { id: string; chapter: number; title: string } | undefined;
+  if (activeStoryProgress) {
+    const { data: storyMeta } = await supabase
+      .from("stories")
+      .select("id, title")
+      .eq("id", activeStoryProgress.story_id)
+      .single();
+    if (storyMeta) {
+      currentStory = {
+        id:      storyMeta.id,
+        chapter: activeStoryProgress.current_chapter ?? 1,
+        title:   (storyMeta.title as string) ?? storyMeta.id,
+      };
+    }
+  }
 
   // ── Historique de conversation (10 derniers) ──────────────────
   const { data: msgRows } = await supabase
@@ -91,6 +113,7 @@ export async function POST(req: NextRequest) {
     tonePreference:  (mem?.tone_preference ?? "warm") as CompanionContext["tonePreference"],
     lastMessages:    history,
     lastSessionDate: mem?.last_session_at ?? null,
+    currentStory,
   };
 
   // ── Appel Groq ──────────────────────────────────────────────

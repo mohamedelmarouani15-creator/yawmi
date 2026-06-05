@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, LogOut, Volume2, VolumeX, Star, Zap, Moon, Home, Crown, Sun, Sunrise, Swords, CalendarDays, Trophy, Languages, Sprout, BookOpen, PenTool, GraduationCap, Pencil, type LucideIcon } from "lucide-react";
+import { Check, LogOut, Volume2, VolumeX, Star, Zap, Moon, Home, Crown, Sun, Sunrise, Swords, CalendarDays, Trophy, Download, Trash2, AlertTriangle, Sprout, BookOpen, PenTool, GraduationCap, Pencil, type LucideIcon } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { MosqueIcon } from "@/components/IslamicIcons";
 import { useAuth }        from "@/hooks/useAuth";
@@ -57,9 +57,14 @@ export default function ProfilPage() {
   const [showCities,   setShowCities]   = useState(false);
   const [saved,        setSaved]        = useState(false);
   const [notifMsg,     setNotifMsg]     = useState<string | null>(null);
-  const [editingName,  setEditingName]  = useState(false);
-  const [nameInput,    setNameInput]    = useState("");
-  const [nameSaving,   setNameSaving]   = useState(false);
+  const [editingName,   setEditingName]   = useState(false);
+  const [nameInput,     setNameInput]     = useState("");
+  const [nameSaving,    setNameSaving]    = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteConfirm,   setDeleteConfirm]   = useState("");
+  const [deleting,        setDeleting]        = useState(false);
+  const [deleteError,     setDeleteError]     = useState("");
+  const [exporting,       setExporting]       = useState(false);
   const stats = getStats();
 
   const displayName = user?.user_metadata?.display_name as string | undefined;
@@ -98,6 +103,57 @@ export default function ProfilPage() {
     setNameSaving(false);
     setEditingName(false);
     router.refresh();
+  }
+
+  async function exportData() {
+    if (!user) return;
+    setExporting(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token;
+      if (!token) return;
+      const res = await fetch("/api/user/export", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Erreur export");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "yawmi-mes-donnees.json";
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch {
+      // Export silently fails — user can retry
+    } finally {
+      setExporting(false);
+    }
+  }
+
+  async function deleteAccount() {
+    if (!user || deleteConfirm !== "SUPPRIMER") return;
+    setDeleting(true);
+    setDeleteError("");
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      const token = session?.session?.access_token;
+      if (!token) { setDeleteError("Session expirée, reconnectez-vous."); setDeleting(false); return; }
+      const res = await fetch("/api/user/delete", {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setDeleteError((body as { error?: string }).error ?? "Erreur lors de la suppression.");
+        setDeleting(false);
+        return;
+      }
+      await supabase.auth.signOut();
+      router.replace("/connexion");
+    } catch {
+      setDeleteError("Erreur réseau. Réessayez.");
+      setDeleting(false);
+    }
   }
 
   return (
@@ -611,6 +667,153 @@ export default function ProfilPage() {
           </div>
         </Link>
       </motion.div>
+
+      {/* ── Section RGPD / Mon compte ──────────────────────────── */}
+      <motion.div variants={itemVariants}>
+        <div className="flex items-center gap-2 mb-4">
+          <div className="h-px flex-1" style={{ background: "rgba(212,175,55,0.12)" }} />
+          <p className="text-xs font-semibold tracking-widest uppercase"
+            style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)", opacity: 0.7 }}>
+            Mes données
+          </p>
+          <div className="h-px flex-1" style={{ background: "rgba(212,175,55,0.12)" }} />
+        </div>
+
+        <div className="flex flex-col gap-2">
+          {/* Export données */}
+          {user && (
+            <motion.button
+              onClick={exportData}
+              disabled={exporting}
+              whileTap={{ scale: 0.97 }} transition={springTap}
+              className="flex items-center gap-3 rounded-xl border px-4 py-3.5 text-left"
+              style={{
+                background: "rgba(255,255,255,0.02)",
+                borderColor: "rgba(255,255,255,0.08)",
+              }}>
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl"
+                style={{ background: "rgba(212,175,55,0.1)" }}>
+                <Download size={16} style={{ color: "var(--gold)" }} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  {exporting ? "Export en cours…" : "Exporter mes données"}
+                </p>
+                <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Télécharger un fichier JSON (RGPD Art. 20)
+                </p>
+              </div>
+            </motion.button>
+          )}
+
+          {/* Lien politique */}
+          <Link href="/privacy">
+            <div className="flex items-center justify-between rounded-xl border px-4 py-3"
+              style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}>
+              <p className="text-sm" style={{ color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-dm-sans)" }}>
+                Politique de confidentialité
+              </p>
+              <span style={{ color: "rgba(212,175,55,0.4)", fontSize: 16 }}>›</span>
+            </div>
+          </Link>
+
+          {/* Suppression compte */}
+          {user && (
+            <motion.button
+              onClick={() => { setShowDeleteModal(true); setDeleteConfirm(""); setDeleteError(""); }}
+              whileTap={{ scale: 0.97 }} transition={springTap}
+              className="flex items-center gap-3 rounded-xl border px-4 py-3.5 text-left"
+              style={{
+                background: "rgba(239,68,68,0.05)",
+                borderColor: "rgba(239,68,68,0.15)",
+              }}>
+              <div className="flex h-9 w-9 items-center justify-center rounded-xl"
+                style={{ background: "rgba(239,68,68,0.1)" }}>
+                <Trash2 size={16} style={{ color: "#f87171" }} />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-semibold" style={{ color: "#f87171", fontFamily: "var(--font-dm-sans)" }}>
+                  Supprimer mon compte
+                </p>
+                <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Suppression définitive de toutes vos données
+                </p>
+              </div>
+            </motion.button>
+          )}
+        </div>
+      </motion.div>
+
+      {/* ── Modale confirmation suppression ───────────────────── */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-end justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+            onClick={e => { if (e.target === e.currentTarget) setShowDeleteModal(false); }}
+          >
+            <motion.div
+              initial={{ y: 40, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 40, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 340, damping: 28 }}
+              className="w-full max-w-sm rounded-2xl p-6"
+              style={{ background: "#0d1f14", border: "1px solid rgba(239,68,68,0.2)" }}
+            >
+              <div className="flex items-center gap-3 mb-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-xl"
+                  style={{ background: "rgba(239,68,68,0.12)" }}>
+                  <AlertTriangle size={20} style={{ color: "#f87171" }} />
+                </div>
+                <h2 className="text-lg font-bold" style={{ color: "#f87171", fontFamily: "var(--font-bricolage)" }}>
+                  Supprimer mon compte
+                </h2>
+              </div>
+
+              <p className="text-sm mb-4 leading-relaxed" style={{ color: "rgba(248,244,236,0.7)", fontFamily: "var(--font-dm-sans)" }}>
+                Cette action est <strong style={{ color: "#f87171" }}>irréversible</strong>. Toutes vos données
+                seront supprimées : profil, progression, messages Parchemin, historique de prières.
+              </p>
+
+              <p className="text-xs mb-2 opacity-60" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                Tapez <strong>SUPPRIMER</strong> pour confirmer
+              </p>
+              <input
+                value={deleteConfirm}
+                onChange={e => setDeleteConfirm(e.target.value)}
+                placeholder="SUPPRIMER"
+                className="w-full rounded-xl border bg-transparent px-4 py-2.5 text-sm outline-none mb-4"
+                style={{ borderColor: "rgba(239,68,68,0.3)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}
+              />
+
+              {deleteError && (
+                <p className="text-xs mb-3" style={{ color: "#f87171", fontFamily: "var(--font-dm-sans)" }}>
+                  {deleteError}
+                </p>
+              )}
+
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 rounded-full py-3 text-sm font-semibold"
+                  style={{ background: "rgba(255,255,255,0.06)", color: "rgba(248,244,236,0.6)", fontFamily: "var(--font-dm-sans)" }}>
+                  Annuler
+                </button>
+                <button
+                  onClick={deleteAccount}
+                  disabled={deleteConfirm !== "SUPPRIMER" || deleting}
+                  className="flex-1 rounded-full py-3 text-sm font-semibold transition-all disabled:opacity-30"
+                  style={{ background: "#dc2626", color: "#fff", fontFamily: "var(--font-dm-sans)" }}>
+                  {deleting ? "Suppression…" : "Supprimer"}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Méthode de calcul */}
       <motion.div variants={itemVariants}>

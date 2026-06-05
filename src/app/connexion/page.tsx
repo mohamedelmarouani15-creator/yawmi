@@ -97,6 +97,10 @@ export default function ConnexionPage() {
             style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Continuer sans compte
           </Link>
+          <Link href="/privacy" className="text-xs opacity-25 hover:opacity-50 transition-opacity"
+            style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            Politique de confidentialité
+          </Link>
         </div>
       </div>
     </main>

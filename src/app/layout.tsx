@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, DM_Sans, Amiri } from "next/font/google";
 import { cookies } from "next/headers";
 import RegisterSW from "@/components/RegisterSW";
+import CookieBanner from "@/components/CookieBanner";
 import "./globals.css";
 
 const bricolage = Bricolage_Grotesque({
@@ -72,6 +73,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         {children}
         <RegisterSW />
+        <CookieBanner />
       </body>
     </html>
   );

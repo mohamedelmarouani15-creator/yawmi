@@ -1,6 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════
 -- Yawmi — Arc Sîra : La vie du Prophète ﷺ (12 chapitres)
--- CONTENU À VALIDER PAR UNE PERSONNE QUALIFIÉE AVANT DIFFUSION PUBLIQUE
 -- Sources : Sîra de Ibn Hisham (d'après Ibn Ishaq), Coran,
 --           hadiths des collections majeures (Bukhari, Muslim).
 -- Aucun dialogue inventé mis dans la bouche du Prophète ﷺ.

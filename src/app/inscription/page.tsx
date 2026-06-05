@@ -57,6 +57,21 @@ export default function InscriptionPage() {
           <p className="mt-1 text-2xl" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)" }}>يومي</p>
         </div>
 
+        {emailSent ? (
+          <div className="flex flex-col items-center gap-4 text-center py-6">
+            <Mail size={48} style={{ color: "var(--gold)" }} />
+            <h2 className="text-xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+              Confirmez votre email
+            </h2>
+            <p className="text-sm opacity-60 leading-relaxed" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              Un lien de confirmation a été envoyé à <strong>{email}</strong>. Cliquez dessus pour activer votre compte.
+            </p>
+            <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              Vérifiez aussi vos spams.
+            </p>
+          </div>
+        ) : (
+          <>
         <h2 className="mb-6 text-xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
           Créer un compte
         </h2>
@@ -107,6 +122,8 @@ export default function InscriptionPage() {
             Déjà un compte ? Se connecter
           </Link>
         </div>
+          </>
+        )}
       </div>
     </main>
   );

@@ -128,7 +128,7 @@ export type Database = {
         Row: {
           id:               string
           category:         "religion" | "history" | "arabic" | "darija" | "quran"
-          type:             "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i" | "calligraphy"
+          type:             "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i" | "calligraphy" | "timeline" | "scholars_match"
           difficulty:       number
           question:         string
           transliteration:  string | null
@@ -144,7 +144,7 @@ export type Database = {
         Insert: {
           id:                string
           category:          "religion" | "history" | "arabic" | "darija" | "quran"
-          type?:             "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i" | "calligraphy"
+          type?:             "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i" | "calligraphy" | "timeline" | "scholars_match"
           difficulty:        number
           question:          string
           transliteration?:  string | null
@@ -160,7 +160,7 @@ export type Database = {
         Update: {
           id?:               string
           category?:         "religion" | "history" | "arabic" | "darija" | "quran"
-          type?:             "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i" | "calligraphy"
+          type?:             "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i" | "calligraphy" | "timeline" | "scholars_match"
           difficulty?:       number
           question?:         string
           transliteration?:  string | null

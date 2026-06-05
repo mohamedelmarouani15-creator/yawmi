@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import type { ParcheminMessage } from "@/components/Parchemin";
 
@@ -16,10 +16,27 @@ export function useCompanion(): UseCompanionReturn {
   const [remaining, setRemaining] = useState(20);
   const [error,     setError]     = useState<string | null>(null);
 
+  // Charge l'historique depuis Supabase au montage
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) return;
+      supabase
+        .from("companion_messages")
+        .select("role, content")
+        .eq("user_id", session.user.id)
+        .order("created_at", { ascending: true })
+        .limit(20)
+        .then(({ data }) => {
+          if (data?.length) {
+            setMessages(data.map(r => ({ role: r.role as "user" | "assistant", content: r.content })));
+          }
+        });
+    });
+  }, []);
+
   const send = useCallback(async (message: string): Promise<string> => {
     setError(null);
 
-    // Récupère le token de session Supabase
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
 
@@ -32,6 +49,9 @@ export function useCompanion(): UseCompanionReturn {
       ]);
       return fallback;
     }
+
+    // Optimistic : affiche le message utilisateur immédiatement
+    setMessages(prev => [...prev, { role: "user", content: message }]);
 
     const res = await fetch("/api/companion/chat", {
       method:  "POST",
@@ -46,6 +66,7 @@ export function useCompanion(): UseCompanionReturn {
       const data = await res.json();
       const msg  = data.message ?? "Limite quotidienne atteinte. Reviens demain !";
       setError(msg);
+      setMessages(prev => [...prev, { role: "assistant", content: msg }]);
       return msg;
     }
 
@@ -53,12 +74,15 @@ export function useCompanion(): UseCompanionReturn {
       const errData = await res.json().catch(() => ({}));
       const fallback = errData.message ?? "Je rencontre une difficulté. Réessaie dans un instant.";
       setError(fallback);
+      setMessages(prev => [...prev, { role: "assistant", content: fallback }]);
       return fallback;
     }
 
     const data = await res.json();
     if (typeof data.remaining === "number") setRemaining(data.remaining);
-    return data.message ?? "…";
+    const reply = data.message ?? "…";
+    setMessages(prev => [...prev, { role: "assistant", content: reply }]);
+    return reply;
   }, []);
 
   return { send, messages, remaining, error };

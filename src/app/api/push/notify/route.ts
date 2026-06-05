@@ -3,6 +3,16 @@ import webpush from "web-push";
 import { createClient } from "@supabase/supabase-js";
 
 export async function POST(req: NextRequest) {
+  const token = req.headers.get("authorization")?.replace("Bearer ", "");
+  if (!token) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
+  const authClient = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+  const { data: { user }, error: authError } = await authClient.auth.getUser(token);
+  if (authError || !user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+
   webpush.setVapidDetails(
     process.env.VAPID_SUBJECT!,
     process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!,

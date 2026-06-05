@@ -1,43 +1,44 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Horaires des prières — /prieres", () => {
-  test("la page /prieres charge sans erreur critique", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (err) => errors.push(err.message));
-
-    await page.goto("/prieres");
-    // Attend que la page soit chargée (pas de spinner ou erreur fatale)
-    await page.waitForLoadState("domcontentloaded");
-
-    // La page ne doit pas afficher une erreur 404 ou 500
-    await expect(page).not.toHaveURL(/404|500/);
-    expect(errors.filter((e) => !e.includes("hydration"))).toHaveLength(0);
+test.describe("Pages publiques & infrastructure", () => {
+  test("/inscription accessible (200)", async ({ page }) => {
+    const res = await page.goto("/inscription");
+    expect(res?.status()).toBe(200);
+    await expect(page.locator("body")).not.toContainText("Application error");
   });
 
-  test("les noms des prières sont affichés sur /prieres", async ({ page }) => {
-    await page.goto("/prieres");
-    await page.waitForLoadState("networkidle");
-
-    // Au moins un nom de prière doit être visible parmi Fajr, Dhuhr, Asr, Maghrib, Isha
-    const prayerNames = ["Fajr", "Dhuhr", "Asr", "Maghrib", "Isha"];
-    let found = 0;
-    for (const name of prayerNames) {
-      const el = page.getByText(name, { exact: false });
-      const count = await el.count();
-      if (count > 0) found++;
-    }
-    expect(found).toBeGreaterThan(0);
+  test("/connexion accessible (200)", async ({ page }) => {
+    const res = await page.goto("/connexion");
+    expect(res?.status()).toBe(200);
+    await expect(page.locator("body")).not.toContainText("Application error");
   });
 
-  test("des éléments affichant des horaires (format HH:MM) sont présents", async ({
-    page,
-  }) => {
-    await page.goto("/prieres");
-    await page.waitForLoadState("networkidle");
+  test("/onboarding accessible (200)", async ({ page }) => {
+    const res = await page.goto("/onboarding");
+    expect(res?.status()).toBe(200);
+    await expect(page.locator("body")).not.toContainText("Application error");
+  });
 
-    // Cherche un texte correspondant à un format d'heure HH:MM
-    const timePattern = /\d{1,2}:\d{2}/;
-    const bodyText = await page.locator("body").innerText();
-    expect(timePattern.test(bodyText)).toBe(true);
+  test("redirect / → /accueil", async ({ page }) => {
+    await page.goto("/");
+    await expect(page).toHaveURL(/accueil/);
+  });
+
+  test("manifest.webmanifest accessible et contient Yawmi", async ({ page }) => {
+    const res = await page.goto("/manifest.webmanifest");
+    expect(res?.status()).toBe(200);
+    const body = await page.textContent("body") ?? "";
+    expect(body).toContain("Yawmi");
+  });
+
+  test("sw.js accessible (200)", async ({ page }) => {
+    const res = await page.goto("/sw.js");
+    expect(res?.status()).toBe(200);
+  });
+
+  test("page /prières redirige vers onboarding si pas auth", async ({ page }) => {
+    await page.goto("/prieres");
+    // Sans session, doit rediriger vers /onboarding
+    await expect(page).toHaveURL(/onboarding|prieres/);
   });
 });

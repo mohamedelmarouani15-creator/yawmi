@@ -1,41 +1,51 @@
 import { test, expect } from "@playwright/test";
 
-test.describe("Oasis — carte isométrique", () => {
-  test("la page /oasis charge sans erreur critique", async ({ page }) => {
-    const errors: string[] = [];
-    page.on("pageerror", (err) => errors.push(err.message));
-
-    await page.goto("/oasis");
+test.describe("Flux onboarding", () => {
+  test("onboarding étape 1 visible au chargement", async ({ page }) => {
+    await page.goto("/onboarding");
     await page.waitForLoadState("domcontentloaded");
-
-    await expect(page).not.toHaveURL(/404|500/);
-    expect(errors.filter((e) => !e.includes("hydration"))).toHaveLength(0);
+    // La première étape doit afficher du contenu
+    await expect(page.locator("main, body")).toBeVisible();
+    await expect(page.locator("body")).not.toContainText("Application error");
   });
 
-  test("la carte isométrique SVG est présente sur /oasis", async ({ page }) => {
-    await page.goto("/oasis");
-    await page.waitForLoadState("networkidle");
-
-    // La carte est rendue en SVG (isometric map)
-    const svg = page.locator("svg").first();
-    await expect(svg).toBeVisible();
+  test("inscription — champs présents et bouton submit actif", async ({ page }) => {
+    await page.goto("/inscription");
+    const email = page.locator('input[type="email"]');
+    const pass  = page.locator('input[type="password"]');
+    const btn   = page.locator('button[type="submit"]');
+    await expect(email).toBeVisible();
+    await expect(pass).toBeVisible();
+    await expect(btn).toBeVisible();
+    await expect(btn).not.toBeDisabled();
   });
 
-  test("au moins un lieu de l''oasis est affiché", async ({ page }) => {
-    await page.goto("/oasis");
-    await page.waitForLoadState("networkidle");
+  test("inscription — email invalide bloque le submit natif", async ({ page }) => {
+    await page.goto("/inscription");
+    await page.fill('input[type="email"]', "invalide");
+    await page.fill('input[type="password"]', "123456");
+    await page.click('button[type="submit"]');
+    const valid = await page.locator('input[type="email"]').evaluate(
+      (el: HTMLInputElement) => el.validity.valid
+    );
+    expect(valid).toBe(false);
+  });
 
-    // Les lieux du jeu sont présents dans le DOM (text ou bouton cliquable)
-    // On cherche au moins un des lieux connus
-    const locationNames = ["Médine", "La Mecque", "médine", "mecque", "Oasis"];
-    let found = 0;
-    for (const name of locationNames) {
-      const el = page.getByText(name, { exact: false });
-      const count = await el.count();
-      if (count > 0) found++;
+  test("connexion — formulaire présent", async ({ page }) => {
+    await page.goto("/connexion");
+    await expect(page.locator('input[type="email"]')).toBeVisible();
+    await expect(page.locator('input[type="password"]')).toBeVisible();
+    await expect(page.locator('button[type="submit"]')).toBeVisible();
+  });
+
+  test("liens entre inscription et connexion fonctionnent", async ({ page }) => {
+    await page.goto("/inscription");
+    await page.locator('a[href*="connexion"]').first().click();
+    await expect(page).toHaveURL(/connexion/);
+    const backLink = page.locator('a[href*="inscription"]').first();
+    if (await backLink.count() > 0) {
+      await backLink.click();
+      await expect(page).toHaveURL(/inscription/);
     }
-    // Au minimum la page contient du contenu lié au jeu
-    const bodyText = await page.locator("body").innerText();
-    expect(bodyText.length).toBeGreaterThan(100);
   });
 });

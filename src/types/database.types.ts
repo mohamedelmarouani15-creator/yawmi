@@ -190,34 +190,55 @@ export type Database = {
           category_levels:    Json
           powerup_counts:     Json
           updated_at:         string
+          location_stages:    Json
+          category_mastery:   Json
+          completed_arcs:     string[]
+          prestige_level:     number
+          manuscripts:             Json
+          weekly_challenge:        Json | null
+          total_correct_answers:   number
         }
         Insert: {
-          user_id:             string
-          xp?:                 number
-          level?:              number
-          coins?:              number
-          current_location?:   string
-          game_streak?:        number
-          last_game_date?:     string | null
-          unlocked_locations?: string[]
-          defeated_sages?:     string[]
-          category_levels?:    Json
-          powerup_counts?:     Json
-          updated_at?:         string
+          user_id:                  string
+          xp?:                      number
+          level?:                   number
+          coins?:                   number
+          current_location?:        string
+          game_streak?:             number
+          last_game_date?:          string | null
+          unlocked_locations?:      string[]
+          defeated_sages?:          string[]
+          category_levels?:         Json
+          powerup_counts?:          Json
+          updated_at?:              string
+          location_stages?:         Json
+          category_mastery?:        Json
+          completed_arcs?:          string[]
+          prestige_level?:          number
+          manuscripts?:             Json
+          weekly_challenge?:        Json | null
+          total_correct_answers?:   number
         }
         Update: {
-          user_id?:            string
-          xp?:                 number
-          level?:              number
-          coins?:              number
-          current_location?:   string
-          game_streak?:        number
-          last_game_date?:     string | null
-          unlocked_locations?: string[]
-          defeated_sages?:     string[]
-          category_levels?:    Json
-          powerup_counts?:     Json
-          updated_at?:         string
+          user_id?:                 string
+          xp?:                      number
+          level?:                   number
+          coins?:                   number
+          current_location?:        string
+          game_streak?:             number
+          last_game_date?:          string | null
+          unlocked_locations?:      string[]
+          defeated_sages?:          string[]
+          category_levels?:         Json
+          powerup_counts?:          Json
+          updated_at?:              string
+          location_stages?:         Json
+          category_mastery?:        Json
+          completed_arcs?:          string[]
+          prestige_level?:          number
+          manuscripts?:             Json
+          weekly_challenge?:        Json | null
+          total_correct_answers?:   number
         }
         Relationships: [
           { foreignKeyName: "player_progress_user_id_fkey"; columns: ["user_id"]; referencedRelation: "users"; referencedColumns: ["id"] }

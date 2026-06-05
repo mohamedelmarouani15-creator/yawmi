@@ -71,6 +71,9 @@ export default async function RootLayout({
         <link rel="icon" type="image/png" sizes="32x32" href="/icons/icon-96x96.png" />
       </head>
       <body className="min-h-full flex flex-col">
+        <a href="#main-content" className="skip-link">
+          Aller au contenu principal
+        </a>
         {children}
         <RegisterSW />
         <CookieBanner />

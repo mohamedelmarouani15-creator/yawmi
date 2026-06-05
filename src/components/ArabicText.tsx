@@ -26,12 +26,15 @@ export function ArabicText({
     <div className={`flex flex-col items-center gap-1 ${className}`}>
       <div className="flex items-center gap-2">
         <span
+          lang="ar"
+          dir="rtl"
           style={{
             color,
             fontSize,
             fontFamily: "var(--font-amiri)",
             direction: "rtl",
             lineHeight: 1.4,
+            unicodeBidi: "isolate",
           }}
         >
           {arabic}

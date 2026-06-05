@@ -132,7 +132,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <OfflineBanner />
       <NotifScheduler />
       <PageWrapper>
-        <div className="flex-1 pb-20">
+        <div id="main-content" className="flex-1 pb-20">
           <AppWithCompanion>{children}</AppWithCompanion>
         </div>
       </PageWrapper>

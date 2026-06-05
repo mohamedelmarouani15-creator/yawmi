@@ -54,6 +54,8 @@ export default function QuranPlayer({
             Verset {currentAyah}/{totalAyahs}
           </p>
           <button onClick={() => setShowRec(v => !v)}
+            aria-label={`Récitateur : ${RECITERS.find(r => r.id === reciter)?.name ?? ""} — changer`}
+            aria-expanded={showRec}
             className="flex items-center gap-1.5 text-xs"
             style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
             <Volume2 size={11} />

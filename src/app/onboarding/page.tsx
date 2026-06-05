@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Check, ChevronRight, MapPin, Settings2, Sparkles,
+  Check, ChevronRight, ChevronLeft, MapPin, Settings2, Sparkles,
   Star, Zap, Moon, Home, Crown,
   Minus, Leaf, BookOpen,
   Heart, Compass, Map,
@@ -165,6 +165,11 @@ export default function OnboardingPage() {
     if (i < STEPS.length - 1) setStep(STEPS[i + 1]);
   }
 
+  function back() {
+    const i = STEPS.indexOf(step);
+    if (i > 0) setStep(STEPS[i - 1]);
+  }
+
   function autoAdvance(update: Partial<YawmiSettings>) {
     if (advancing) return;
     setAdv(true);
@@ -216,6 +221,29 @@ export default function OnboardingPage() {
         style={{ background: "radial-gradient(circle, #D4AF37, transparent)" }} />
       <div className="pointer-events-none absolute bottom-0 -left-20 h-60 w-60 rounded-full opacity-5"
         style={{ background: "radial-gradient(circle, #055C3F, transparent)" }} />
+
+      {/* Bouton retour — visible dès la 2e étape */}
+      <AnimatePresence>
+        {stepIndex > 0 && (
+          <motion.button
+            key="back-btn"
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -8 }}
+            transition={{ duration: 0.18 }}
+            onClick={back}
+            aria-label="Étape précédente"
+            className="absolute left-5 top-5 z-20 flex h-9 w-9 items-center justify-center rounded-full"
+            style={{
+              background: "rgba(255,255,255,0.06)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              color: "rgba(248,244,236,0.5)",
+            }}
+          >
+            <ChevronLeft size={18} />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Barre de progression globale */}
       <div className="relative z-10 mx-6 mt-14 h-0.5 rounded-full"

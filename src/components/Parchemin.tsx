@@ -259,6 +259,9 @@ export default function Parchemin({ onSend, initialMessages = [], remaining = 20
             {/* Panneau parchemin */}
             <motion.div
               key="parchemin"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="parchemin-title"
               initial={{ scaleY: 0.03, opacity: 0 }}
               animate={{ scaleY: 1, opacity: 1 }}
               exit={{ scaleY: 0.03, opacity: 0 }}
@@ -324,6 +327,7 @@ export default function Parchemin({ onSend, initialMessages = [], remaining = 20
                   <ScrollIcon color="rgba(139,90,20,0.7)" />
                   <div>
                     <p
+                      id="parchemin-title"
                       className="text-sm font-bold leading-tight"
                       style={{
                         color: "#5C3A0A",

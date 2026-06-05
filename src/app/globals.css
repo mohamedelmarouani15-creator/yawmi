@@ -177,6 +177,32 @@ body {
   50%       { opacity: 1;   transform: scale(1);   }
 }
 
+/* ── RTL overrides ────────────────────────────────────────────── */
+
+/* Navigation : ordre des items déjà géré par flexbox (row-reverse auto en RTL) */
+[dir="rtl"] nav {
+  direction: rtl;
+}
+
+/* Espacement LTR hardcodé à compenser en RTL pour éléments inline */
+[dir="rtl"] .ml-2 { margin-left: 0; margin-inline-start: 0.5rem; }
+[dir="rtl"] .ml-3 { margin-left: 0; margin-inline-start: 0.75rem; }
+[dir="rtl"] .ml-4 { margin-left: 0; margin-inline-start: 1rem; }
+[dir="rtl"] .pl-4 { padding-left: 0; padding-inline-start: 1rem; }
+
+/* Icônes directionnelles (flèches, chevrons) */
+[dir="rtl"] .icon-arrow,
+[dir="rtl"] .icon-chevron {
+  transform: scaleX(-1);
+}
+
+/* Textes arabes inline dans un contexte LTR */
+[lang="ar"],
+span[dir="rtl"],
+.arabic {
+  unicode-bidi: isolate;
+}
+
 /* ── Mihrab & motifs islamiques ───────────────────────────────── */
 
 /* Arche mihrab via clip-path sur les cards importantes */
@@ -334,10 +360,27 @@ body {
 }
 
 /* ── Accessibilité ────────────────────────────────────────────── */
+
+/* Focus visible : clavier seulement (pas pour la souris/tactile) */
 :focus-visible {
-  outline: 2px solid rgba(212, 175, 55, 0.7);
+  outline: 2px solid var(--gold);
   outline-offset: 2px;
   border-radius: 4px;
+}
+
+/* Masque l'outline natif uniquement pour la souris/tactile,
+   sans supprimer la protection clavier */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Inputs avec outline-none : leur rendre un focus-visible custom */
+input.outline-none:focus-visible,
+textarea.outline-none:focus-visible,
+select.outline-none:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 1px;
+  border-color: var(--gold) !important;
 }
 
 /* Texte de grande taille pour la lisibilité */
@@ -347,6 +390,62 @@ body {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* ── WCAG AA : contraste minimum pour textes secondaires ─────────
+   opacity-40 / opacity-50 sur fond sombre (#061A12) génère des
+   couleurs effectives trop sombres pour les labels importants.
+   Ces utilitaires remplacent les opacités trop basses. ───────── */
+
+/* Texte secondaire lisible (remplace opacity-50 sur label/caption) */
+.text-secondary-accessible {
+  color: rgba(248, 244, 236, 0.65) !important;  /* ratio ~6.8:1 sur #061A12 */
+}
+
+/* Thème jour : adapter */
+[data-theme="day"] .text-secondary-accessible {
+  color: rgba(13, 31, 20, 0.65) !important;
+}
+
+/* Labels de formulaire : minimum 50% opacité pour WCAG AA */
+label.opacity-50,
+label.opacity-40 {
+  opacity: 0.65 !important;
+}
+
+/* ── Skip link ────────────────────────────────────────────────── */
+
+.skip-link {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  text-decoration: none;
+}
+
+.skip-link:focus-visible {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 9999;
+  width: auto;
+  height: auto;
+  padding: 0.5rem 1rem;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  background: #055C3F;
+  color: #F8F4EC;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: 0 0 0 2px #D4AF37;
 }
 
 /* Contraste minimum sur les textes importants */

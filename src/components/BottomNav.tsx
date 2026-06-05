@@ -64,6 +64,8 @@ export default function BottomNav() {
             <Link
               href={href}
               prefetch={true}
+              aria-label={tt(labelKey)}
+              aria-current={active ? "page" : undefined}
               className="relative flex flex-col items-center gap-0.5 px-3 py-2.5"
               style={{ color: active ? "var(--gold)" : "rgba(248,244,236,0.35)" }}
             >

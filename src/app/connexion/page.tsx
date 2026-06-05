@@ -43,25 +43,28 @@ export default function ConnexionPage() {
 
         <form onSubmit={submit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            <label htmlFor="connexion-email" className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               Email
             </label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required
+            <input id="connexion-email" type="email" value={email} onChange={e => setEmail(e.target.value)} required
               placeholder="vous@exemple.com"
-              className="rounded-xl border bg-transparent px-4 py-3 text-sm outline-none"
+              aria-label="Adresse e-mail"
+              className="rounded-xl border bg-transparent px-4 py-3 text-sm outline-none focus-visible:outline-2 focus-visible:outline-[var(--gold)] focus-visible:outline-offset-2"
               style={{ borderColor: "var(--border-gold)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }} />
           </div>
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            <label htmlFor="connexion-password" className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               Mot de passe
             </label>
             <div className="relative">
-              <input type={show ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} required
+              <input id="connexion-password" type={show ? "text" : "password"} value={password} onChange={e => setPassword(e.target.value)} required
                 placeholder="••••••••"
-                className="w-full rounded-xl border bg-transparent px-4 py-3 pr-11 text-sm outline-none"
+                aria-label="Mot de passe"
+                className="w-full rounded-xl border bg-transparent px-4 py-3 pr-11 text-sm outline-none focus-visible:outline-2 focus-visible:outline-[var(--gold)] focus-visible:outline-offset-2"
                 style={{ borderColor: "var(--border-gold)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }} />
               <button type="button" onClick={() => setShow(v => !v)}
+                aria-label={show ? "Masquer le mot de passe" : "Afficher le mot de passe"}
                 className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40"
                 style={{ color: "var(--text)" }}>
                 {show ? <EyeOff size={16} /> : <Eye size={16} />}

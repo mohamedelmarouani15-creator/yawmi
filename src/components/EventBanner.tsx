@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 import { getActiveGameEvent, type GameEvent } from "@/lib/game/game-events";
 
 // ── Gold confetti for Aïd ──────────────────────────────────────
@@ -115,7 +116,9 @@ export function EventBanner() {
             background: event.theme.bgOverlay,
             border: `1px solid ${event.theme.primaryColor}30`,
             boxShadow: `0 0 20px ${event.theme.primaryColor}15`,
+            cursor: isRamadan ? "pointer" : "default",
           }}
+          {...(isRamadan ? { onClick: () => window.location.href = "/ramadan" } : {})}
         >
           <motion.span
             animate={{ scale: [1, 1.2, 1] }}

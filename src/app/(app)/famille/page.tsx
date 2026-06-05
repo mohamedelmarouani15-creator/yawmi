@@ -469,11 +469,18 @@ export default function FamillePage() {
 
               {/* ── Duels ── */}
               <div className="flex flex-col gap-3">
-                <div className="flex items-center gap-2">
-                  <Swords size={15} style={{ color: "var(--gold)" }} />
-                  <span className="font-bold text-sm" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
-                    Duels Famille · 10 questions · 24h
-                  </span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <Swords size={15} style={{ color: "var(--gold)" }} />
+                    <span className="font-bold text-sm" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
+                      Duels Famille · 10 questions · 24h
+                    </span>
+                  </div>
+                  <Link href={`/famille/duel-live/new`}
+                    className="flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold"
+                    style={{ background: "rgba(212,175,55,0.12)", color: "var(--gold)", border: "1px solid rgba(212,175,55,0.25)", fontFamily: "var(--font-dm-sans)" }}>
+                    ⚡ Duel en direct
+                  </Link>
                 </div>
 
                 {duelError && (

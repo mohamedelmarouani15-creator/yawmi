@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
     console.log("[cron/adhan] Aucun abonnement actif");
     return NextResponse.json({ ok: true, sent: 0 });
   }
-  console.log(`[cron/adhan] ${subs.length} abonnement(s) à vérifier`);
+  // [cron/adhan] ${subs.length} abonnement(s) à vérifier`);
 
   const now  = new Date();
   let   sent = 0;
@@ -90,6 +90,6 @@ export async function GET(req: NextRequest) {
     })
   );
 
-  console.log(`[cron/adhan] Terminé — ${sent} notification(s) envoyée(s)`);
+  // [cron/adhan] Terminé — ${sent} notification(s) envoyée(s)`);
   return NextResponse.json({ ok: true, sent });
 }

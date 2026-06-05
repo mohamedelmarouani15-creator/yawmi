@@ -3,7 +3,8 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, LogOut, Volume2, VolumeX, Star, Zap, Moon, Home, Crown, Sun, Sunrise, Swords, CalendarDays, Trophy, Languages, Sprout, BookOpen, PenTool, GraduationCap, type LucideIcon } from "lucide-react";
+import { Check, LogOut, Volume2, VolumeX, Star, Zap, Moon, Home, Crown, Sun, Sunrise, Swords, CalendarDays, Trophy, Languages, Sprout, BookOpen, PenTool, GraduationCap, Pencil, type LucideIcon } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 import { MosqueIcon } from "@/components/IslamicIcons";
 import { useAuth }        from "@/hooks/useAuth";
 import { useSettings }    from "@/hooks/useSettings";
@@ -54,6 +55,9 @@ export default function ProfilPage() {
   const [showCities,   setShowCities]   = useState(false);
   const [saved,        setSaved]        = useState(false);
   const [notifMsg,     setNotifMsg]     = useState<string | null>(null);
+  const [editingName,  setEditingName]  = useState(false);
+  const [nameInput,    setNameInput]    = useState("");
+  const [nameSaving,   setNameSaving]   = useState(false);
   const stats = getStats();
 
   const displayName = user?.user_metadata?.display_name as string | undefined;
@@ -79,6 +83,19 @@ export default function ProfilPage() {
   function flash() {
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+  }
+
+  async function saveName() {
+    const name = nameInput.trim();
+    if (!name || !user) return;
+    setNameSaving(true);
+    await Promise.all([
+      supabase.auth.updateUser({ data: { display_name: name } }),
+      supabase.from("profiles").update({ display_name: name }).eq("id", user.id),
+    ]);
+    setNameSaving(false);
+    setEditingName(false);
+    window.location.reload();
   }
 
   return (
@@ -111,10 +128,31 @@ export default function ProfilPage() {
             style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
             Mon compte
           </p>
-          <h1 className="mt-0.5 text-2xl font-bold truncate"
-            style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-            {displayName ?? "Profil"}
-          </h1>
+          {editingName ? (
+            <div className="flex items-center gap-2 mt-0.5">
+              <input autoFocus value={nameInput} onChange={e => setNameInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter") saveName(); if (e.key === "Escape") setEditingName(false); }}
+                maxLength={30} placeholder="Ton prénom"
+                className="text-xl font-bold rounded-xl px-3 py-1 outline-none"
+                style={{ background: "rgba(255,255,255,0.07)", border: "1px solid rgba(212,175,55,0.4)", color: "var(--text)", fontFamily: "var(--font-bricolage)", width: 160 }} />
+              <button onClick={saveName} disabled={nameSaving}
+                className="flex h-8 w-8 items-center justify-center rounded-full"
+                style={{ background: "var(--gradient-primary)" }}>
+                <Check size={14} style={{ color: "var(--text)" }} />
+              </button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 mt-0.5">
+              <h1 className="text-2xl font-bold truncate"
+                style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+                {displayName ?? "Profil"}
+              </h1>
+              <button onClick={() => { setNameInput(displayName ?? ""); setEditingName(true); }}
+                className="opacity-30 hover:opacity-70 transition-opacity">
+                <Pencil size={14} style={{ color: "var(--text)" }} />
+              </button>
+            </div>
+          )}
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
             {user?.email && (
               <p className="text-xs opacity-35 truncate"

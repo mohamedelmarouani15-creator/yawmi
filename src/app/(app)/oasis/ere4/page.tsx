@@ -11,7 +11,7 @@ import { springTap } from "@/lib/motion";
 import { LOCATIONS } from "@/lib/game/locations";
 import { SAGES } from "@/lib/game/sages";
 
-const ERE3_ORDER = ["istanbul", "agra", "isfahan", "gao", "zanzibar"];
+const ERE4_ORDER = ["istanbul", "agra", "isfahan", "gao", "zanzibar"];
 
 const THEME = { bg: "linear-gradient(180deg,#020a05 0%,#1a0a04 100%)", accent: "#f97316" };
 
@@ -115,7 +115,7 @@ export default function Ere4Page() {
 
           {/* Cards */}
           <div className="flex flex-col gap-4">
-            {ERE3_ORDER.map((locId, i) => {
+            {ERE4_ORDER.map((locId, i) => {
               const loc     = LOCATIONS.find(l => l.id === locId);
               const sage    = SAGES.find(s => s.locationId === locId);
               if (!loc) return null;

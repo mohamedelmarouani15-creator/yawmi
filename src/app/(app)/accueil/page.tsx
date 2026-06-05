@@ -23,6 +23,7 @@ import dynamic from "next/dynamic";
 const MosqueIsometrique = dynamic(() => import("@/components/MosqueIsometrique"), { ssr: false });
 import { EventBanner } from "@/components/EventBanner";
 import { HadithCard } from "@/components/HadithCard";
+import { supabase } from "@/lib/supabase";
 import { AnimatePresence, motion as m2 } from "framer-motion";
 import { useContextualMessage } from "@/hooks/useContextualMessage";
 import { useMosqueeGameLink } from "@/hooks/useMosqueeGameLink";
@@ -138,12 +139,23 @@ export default function AccueilPage() {
   const upcomingEvents = getUpcomingEvents(3);
 
   useEffect(() => {
-    setStats(getTodayStats());
+    const base = getTodayStats();
+    setStats(base);
     setAzkarStatus(getAzkarStatus(times));
-    // Calcul stade mosquée depuis prayer log
     const streak = computePrayerStreak(storage.getPrayerLog());
     const stage: MosqueStage = streak >= 30 ? 3 : streak >= 7 ? 2 : 1;
     setMosqueData({ stage, streak });
+
+    // Sync tâches famille depuis Supabase si l'utilisateur est dans une famille
+    void (async () => {
+      const { data: { user: u } } = await supabase.auth.getUser();
+      if (!u) return;
+      const { data: prof } = await supabase.from("profiles").select("family_id").eq("id", u.id).single();
+      if (!prof?.family_id) return;
+      const { data: tasks } = await supabase.from("tasks").select("done").eq("family_id", prof.family_id);
+      if (!tasks) return;
+      setStats(s => ({ ...s, tasksDone: tasks.filter(t => t.done).length, tasksTotal: tasks.length }));
+    })();
   }, [times]);
 
   return (

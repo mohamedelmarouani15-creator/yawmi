@@ -7,12 +7,15 @@ import Link from "next/link";
 import { pageVariants, itemVariants, tapScale, springTap } from "@/lib/motion";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { RAMADAN_DEFIS, RAMADAN_DUAS, JUZZ_PLAN } from "@/lib/ramadan-data";
+import { storage } from "@/lib/storage";
+import { gameStorage } from "@/lib/game/game-storage";
 import RamadanCountdown from "@/components/ramadan/RamadanCountdown";
 import { formatTime } from "@/lib/prayer";
 
 // ── localStorage keys ─────────────────────────────────────────
-const DEFIS_KEY = "yawmi_ramadan_2027_defis";
-const JUZZ_KEY  = "yawmi_ramadan_juzz";
+const YEAR      = new Date().getFullYear();
+const DEFIS_KEY = `yawmi_ramadan_${YEAR}_defis`;
+const JUZZ_KEY  = `yawmi_ramadan_${YEAR}_juzz`;
 
 type DefisState = Record<number, { completed: boolean; completedAt: string }>;
 type JuzzState  = Record<number, boolean>;
@@ -42,20 +45,15 @@ function saveJuzz(state: JuzzState): void {
 // ── Bonne action counter ──────────────────────────────────────
 function getBonnesActions(): number {
   if (typeof window === "undefined") return 0;
-  const prayerLog: { date: string; done: Record<string, boolean> }[] =
-    JSON.parse(localStorage.getItem("yawmi_prayer_log") ?? "[]");
   const today = new Date().toISOString().split("T")[0];
+  const prayerLog = storage.getPrayerLog();
   const entry = prayerLog.find(l => l.date === today);
   const prayers = entry ? Object.values(entry.done).filter(Boolean).length : 0;
-
-  const dhikrLog: { date: string; counts: Record<string, number> }[] =
-    JSON.parse(localStorage.getItem("yawmi_dhikr") ?? "[]");
+  const dhikrLog = storage.getDhikrLog();
   const dhikrEntry = dhikrLog.find(d => d.date === today);
   const dhikrs = dhikrEntry ? Object.keys(dhikrEntry.counts).length : 0;
-
-  const gameState = JSON.parse(localStorage.getItem("yawmi_game_state") ?? "{}") as { stats?: { correctAnswers?: number } };
-  const quizCorrect = Math.min(5, Math.floor((gameState.stats?.correctAnswers ?? 0) / 10));
-
+  const gameState = gameStorage.get();
+  const quizCorrect = Math.min(5, Math.floor((gameState.totalCorrectAnswers ?? 0) / 20));
   return prayers + dhikrs + quizCorrect;
 }
 

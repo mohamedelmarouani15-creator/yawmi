@@ -3,7 +3,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase, type Family, type SupaTask } from "@/lib/supabase";
 import { useAuth } from "./useAuth";
+import { getQuestionsAsync } from "@/lib/game/questions-loader";
 import { QUESTIONS } from "@/lib/game/questions";
+import { gameStorage } from "@/lib/game/game-storage";
 import type { Question } from "@/lib/game/types";
 
 // ── Types ──────────────────────────────────────────────────────
@@ -350,10 +352,9 @@ export function useFamily() {
     challengerName: string,
   ): Promise<boolean> => {
     if (!user || !family) return false;
-    const questionIds = [...QUESTIONS]
-      .sort(() => Math.random() - 0.5)
-      .slice(0, 10)
-      .map(q => q.id);
+    const gameState = gameStorage.get();
+    const qPool = await getQuestionsAsync(10, gameState.questionHistory, "beginner", gameState.level, [], 4);
+    const questionIds = qPool.map(q => q.id);
 
     const { data, error } = await supabase.from("duels").insert({
       challenger_id: user.id,

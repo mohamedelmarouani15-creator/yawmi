@@ -133,6 +133,8 @@ export interface GameState {
   lastQuestDate: string | null;                // ISO date of last quest generation
   weeklyChallenge: WeeklyChallenge | null;
   prestigeLevel: number;                       // 0 = normal, 1+ = Hafiz prestige
+  // sync metadata
+  lastUpdatedAt: string | null;                // ISO timestamp — détermine l'état le plus récent en cas de conflit multi-appareil
 }
 
 export interface LocationTranslation { description?: string; country?: string; }

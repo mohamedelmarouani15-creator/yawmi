@@ -3,6 +3,16 @@ import { checkNewAchievements } from "./achievements";
 import { supabase } from "@/lib/supabase";
 import { MANUSCRIPTS, CORRECT_PER_PAGE } from "./stages";
 
+// ── Retry queue ────────────────────────────────────────────────
+const RETRY_KEY = "yawmi_sync_retry_queue";
+const MAX_RETRY_ATTEMPTS = 3;
+
+interface SyncRetryItem {
+  state: GameState;
+  failedAt: string;  // ISO timestamp
+  attempts: number;
+}
+
 const KEY = "yawmi_game_state_v2";
 
 const DEFAULT_POWERUPS = { joker50: 3, bouclier: 1, double_xp: 2, time_freeze: 1 };
@@ -42,6 +52,7 @@ export const DEFAULT_STATE: GameState = {
   lastQuestDate: null,
   weeklyChallenge: null,
   prestigeLevel: 0,
+  lastUpdatedAt: null,
 };
 
 // ── Weekly challenge pool ──────────────────────────────────────
@@ -132,7 +143,9 @@ export const gameStorage = {
 
   save(state: GameState): void {
     if (typeof window === "undefined") return;
-    localStorage.setItem(KEY, JSON.stringify(state));
+    // Toujours estampiller au moment du write local
+    const stamped: GameState = { ...state, lastUpdatedAt: new Date().toISOString() };
+    localStorage.setItem(KEY, JSON.stringify(stamped));
   },
 
   // ── XP & Level ───────────────────────────────────────────────
@@ -468,11 +481,68 @@ export const gameStorage = {
     return { coins, powerup, object };
   },
 
+  // ── Mutex — protège contre les syncs Supabase concurrents ────
+  _isSyncing: false as boolean,
+  _syncQueue: [] as Array<() => Promise<void>>,
+
+  // ── Retry queue helpers ───────────────────────────────────────
+  _loadRetryQueue(): SyncRetryItem[] {
+    if (typeof window === "undefined") return [];
+    try {
+      const raw = localStorage.getItem(RETRY_KEY);
+      if (!raw) return [];
+      return JSON.parse(raw) as SyncRetryItem[];
+    } catch {
+      return [];
+    }
+  },
+
+  _saveRetryQueue(queue: SyncRetryItem[]): void {
+    if (typeof window === "undefined") return;
+    try {
+      localStorage.setItem(RETRY_KEY, JSON.stringify(queue));
+    } catch { /* storage plein */ }
+  },
+
+  _enqueueRetry(state: GameState): void {
+    const queue = this._loadRetryQueue();
+    // Remplace si une entrée est déjà en attente (on garde le plus récent)
+    const existing = queue.findIndex(item =>
+      item.state.lastUpdatedAt === state.lastUpdatedAt
+    );
+    if (existing >= 0) return; // déjà en queue
+    queue.push({ state, failedAt: new Date().toISOString(), attempts: 1 });
+    this._saveRetryQueue(queue);
+  },
+
+  async _flushRetryQueue(userId: string): Promise<void> {
+    const queue = this._loadRetryQueue();
+    if (queue.length === 0) return;
+    const remaining: SyncRetryItem[] = [];
+    for (const item of queue) {
+      if (item.attempts >= MAX_RETRY_ATTEMPTS) {
+        // Abandon après 3 tentatives
+        console.warn("[yawmi-sync] Abandon sync après 3 tentatives", item.failedAt);
+        continue;
+      }
+      try {
+        await this._doSupabasePush(userId, item.state);
+        // Succès — ne pas remettre en queue
+      } catch {
+        remaining.push({ ...item, attempts: item.attempts + 1 });
+      }
+    }
+    this._saveRetryQueue(remaining);
+  },
+
   // ── Supabase sync — helpers publics (auth auto-détectée) ──────
   async sync(): Promise<void> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) await this.syncFromSupabase(user.id);
+      if (user) {
+        await this._flushRetryQueue(user.id);
+        await this.syncFromSupabase(user.id);
+      }
     } catch { /* offline graceful */ }
   },
 
@@ -498,33 +568,88 @@ export const gameStorage = {
       .map((r: { story_id: string }) => r.story_id);
 
     const local = this.get();
+
+    // ── Merge déterministe par timestamp ──────────────────────────
+    // Comparer lastUpdatedAt local vs updated_at Supabase pour déterminer
+    // quel état est le plus récent. L'état le plus récent gagne pour les
+    // champs non-cumulatifs ; on applique toujours max/union sur les métriques
+    // cumulatives quel que soit le timestamp.
+    const localTs  = local.lastUpdatedAt ? new Date(local.lastUpdatedAt).getTime() : 0;
+    const remoteTs = data.updated_at     ? new Date(data.updated_at).getTime()     : 0;
+    const remoteIsNewer = remoteTs > localTs;
+
+    // Métriques cumulatives → toujours max/union
+    const mergedXP     = Math.max(local.xp,           data.xp    ?? 0);
+    const mergedCoins  = Math.max(local.coins,         data.coins ?? 0);
+    const mergedStreak = Math.max(local.gameStreak,    data.game_streak ?? 0);
+    const mergedTotal  = Math.max(local.totalCorrectAnswers ?? 0, data.total_correct_answers ?? 0);
+    // Level doit toujours être recalculé depuis XP fusionné pour garantir la cohérence
+    const mergedLevel  = Math.floor(mergedXP / 200) + 1;
+
+    // Tableaux → toujours union
+    const mergedLocations = Array.from(new Set([...local.unlockedLocations, ...(data.unlocked_locations ?? [])]));
+    const mergedSages     = Array.from(new Set([...local.defeatedSages,     ...(data.defeated_sages    ?? [])]));
+    const mergedArcs      = Array.from(new Set([...(local.completedArcs ?? []), ...(data.completed_arcs ?? []), ...remoteArcs]));
+
+    // Prestige → max car c'est un seuil atteint
+    const mergedPrestige = Math.max(local.prestigeLevel ?? 0, data.prestige_level ?? 0);
+
+    // Champs winner-takes-all par timestamp (état le plus récent gagne)
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mergedCategoryLevels = remoteIsNewer ? ((data.category_levels ?? local.categoryLevels) as any) : (local.categoryLevels as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mergedPowerupCounts  = remoteIsNewer ? ((data.powerup_counts  ?? local.powerupCounts)  as any) : (local.powerupCounts  as any);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const mergedCategoryMastery = remoteIsNewer ? ((data.category_mastery ?? local.categoryMastery) as any) : (local.categoryMastery as any);
+
+    // Pour locationStages et manuscripts : fusionner en prenant le max par clé
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const remoteStages     = (data.location_stages ?? {}) as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const remoteManuscripts = (data.manuscripts ?? {}) as any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const remoteCategoryXP  = ((data as any).category_xp ?? {}) as any;
+    const mergedLocationStages: Record<string, number> = { ...remoteStages };
+    for (const [k, v] of Object.entries(local.locationStages ?? {})) {
+      mergedLocationStages[k] = Math.max(mergedLocationStages[k] ?? 0, v as number);
+    }
+    const mergedManuscripts: Record<string, number> = { ...remoteManuscripts };
+    for (const [k, v] of Object.entries(local.manuscripts ?? {})) {
+      mergedManuscripts[k] = Math.max(mergedManuscripts[k] ?? 0, v as number);
+    }
+    const mergedCategoryXP: Partial<Record<string, number>> = { ...remoteCategoryXP };
+    for (const [k, v] of Object.entries(local.categoryXP ?? {})) {
+      mergedCategoryXP[k] = Math.max((mergedCategoryXP[k] as number) ?? 0, v as number);
+    }
+
     const merged: GameState = {
       ...local,
-      xp:               Math.max(local.xp, data.xp ?? 0),
-      level:            Math.max(local.level, data.level ?? 1),
-      coins:            Math.max(local.coins, data.coins ?? 0),
-      currentLocation:  data.current_location ?? local.currentLocation,
-      gameStreak:       Math.max(local.gameStreak, data.game_streak ?? 0),
-      lastGameDate:     data.last_game_date ?? local.lastGameDate,
-      unlockedLocations: Array.from(new Set([...local.unlockedLocations, ...(data.unlocked_locations ?? [])])),
-      defeatedSages:    Array.from(new Set([...local.defeatedSages, ...(data.defeated_sages ?? [])])),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      categoryLevels:   (data.category_levels ?? local.categoryLevels) as any,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      powerupCounts:    (data.powerup_counts ?? local.powerupCounts) as any,
-      // New Phase 1-7 fields — merge max/union
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      locationStages:   { ...((data.location_stages ?? {}) as any), ...local.locationStages },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      categoryMastery:  ((data.category_mastery ?? local.categoryMastery) as any),
-      completedArcs:    Array.from(new Set([...(local.completedArcs ?? []), ...(data.completed_arcs ?? []), ...remoteArcs])),
-      prestigeLevel:    Math.max(local.prestigeLevel ?? 0, data.prestige_level ?? 0),
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      manuscripts:      { ...((data.manuscripts ?? {}) as any), ...local.manuscripts },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      categoryXP:       { ...((data as any).category_xp ?? {}), ...local.categoryXP },
+      xp:               mergedXP,
+      level:            mergedLevel,
+      coins:            mergedCoins,
+      currentLocation:  remoteIsNewer ? (data.current_location ?? local.currentLocation) : local.currentLocation,
+      gameStreak:       mergedStreak,
+      lastGameDate:     remoteIsNewer ? (data.last_game_date ?? local.lastGameDate) : local.lastGameDate,
+      unlockedLocations: mergedLocations,
+      defeatedSages:    mergedSages,
+      categoryLevels:   mergedCategoryLevels,
+      powerupCounts:    mergedPowerupCounts,
+      locationStages:   mergedLocationStages,
+      categoryMastery:  mergedCategoryMastery,
+      completedArcs:    mergedArcs,
+      prestigeLevel:    mergedPrestige,
+      manuscripts:      mergedManuscripts,
+      categoryXP:       mergedCategoryXP as Partial<Record<import("./types").Category, number>>,
+      totalCorrectAnswers: mergedTotal,
+      // Conserver le timestamp le plus récent
+      lastUpdatedAt: remoteTs > localTs && data.updated_at
+        ? data.updated_at
+        : (local.lastUpdatedAt ?? new Date().toISOString()),
     };
-    this.save(merged);
+    // Sauvegarder sans re-estampiller (on veut conserver le timestamp du gagnant)
+    if (typeof window !== "undefined") {
+      localStorage.setItem(KEY, JSON.stringify(merged));
+    }
   },
 
   // Débloque les 5 objets Tombouctou dans la mosquée
@@ -541,8 +666,9 @@ export const gameStorage = {
     this.save({ ...state, mosqueObjects: merged });
   },
 
-  async pushToSupabase(userId: string): Promise<void> {
-    const state = this.get();
+  // ── Logique de push bas niveau (séparé pour le mutex) ────────
+  async _doSupabasePush(userId: string, state: GameState): Promise<void> {
+    const now = state.lastUpdatedAt ?? new Date().toISOString();
 
     // Progression principale
     await supabase.from("player_progress").upsert({
@@ -558,31 +684,40 @@ export const gameStorage = {
       category_levels:   state.categoryLevels,
       powerup_counts:    state.powerupCounts,
       // Phase 1-7 fields
-      location_stages:   state.locationStages ?? {},
+      location_stages:        state.locationStages ?? {},
       category_mastery:       state.categoryMastery ?? {},
       completed_arcs:         state.completedArcs ?? [],
       prestige_level:         state.prestigeLevel ?? 0,
       manuscripts:            state.manuscripts ?? {},
       total_correct_answers:  state.totalCorrectAnswers ?? 0,
       category_xp:            state.categoryXP ?? {},
-      updated_at:             new Date().toISOString(),
+      updated_at:             now,
     });
 
     // Sync strong/weak categories vers companion_memory
+    // Utilise un UPDATE conditionnel (WHERE updated_at < now) pour éviter
+    // qu'un appareil en retard n'écrase un appareil plus récent (Item 5).
     const categoryXP = state.categoryXP ?? {};
     const xpEntries = Object.entries(categoryXP).filter(([, v]) => v > 0).sort(([, a], [, b]) => b - a);
     if (xpEntries.length > 0) {
       const strongCategories = xpEntries.slice(0, 2).map(([k]) => k);
-      // Exclure les fortes pour éviter contradiction fort = faible
       const weakCategories = xpEntries
         .filter(([k]) => !strongCategories.includes(k))
         .slice(-2).reverse().map(([k]) => k);
-      await supabase.from("companion_memory").upsert({
-        user_id:           userId,
-        strong_categories: strongCategories,
-        weak_categories:   weakCategories,
-        updated_at:        new Date().toISOString(),
-      }, { onConflict: "user_id" });
+      // D'abord s'assurer que la ligne existe (insert if not exists)
+      await supabase.from("companion_memory").upsert(
+        { user_id: userId },
+        { onConflict: "user_id", ignoreDuplicates: true }
+      );
+      // Update conditionnel : n'écrire que si notre timestamp est plus récent
+      await supabase.from("companion_memory")
+        .update({
+          strong_categories: strongCategories,
+          weak_categories:   weakCategories,
+          updated_at:        now,
+        })
+        .eq("user_id", userId)
+        .lt("updated_at", now);
     }
 
     // Récompenses (mosquée, coffres, titres, cartes sages)
@@ -603,9 +738,43 @@ export const gameStorage = {
       const rows = state.achievements.map(id => ({
         user_id:        userId,
         achievement_id: id,
-        unlocked_at:    new Date().toISOString(),
+        unlocked_at:    now,
       }));
       await supabase.from("achievements").upsert(rows, { onConflict: "user_id,achievement_id" });
+    }
+  },
+
+  // ── Push avec mutex anti-concurrence (Item 2) ─────────────────
+  async pushToSupabase(userId: string): Promise<void> {
+    const state = this.get();
+
+    if (this._isSyncing) {
+      // Mettre en queue : le prochain slot exécutera avec l'état courant
+      return new Promise<void>((resolve) => {
+        this._syncQueue.push(async () => {
+          try {
+            await this._doSupabasePush(userId, this.get());
+          } catch {
+            this._enqueueRetry(this.get());
+          }
+          resolve();
+        });
+      });
+    }
+
+    this._isSyncing = true;
+    try {
+      await this._doSupabasePush(userId, state);
+      // Vider la queue
+      while (this._syncQueue.length > 0) {
+        const next = this._syncQueue.shift();
+        if (next) await next();
+      }
+    } catch {
+      // Échec Supabase → stocker en retry queue (Item 3)
+      this._enqueueRetry(state);
+    } finally {
+      this._isSyncing = false;
     }
   },
 };

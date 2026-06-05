@@ -3,8 +3,12 @@ import type { Question, MinigameData, QuestionOption } from "./types";
 
 type ArabicLevel = "none" | "beginner" | "intermediate" | "advanced";
 
-const CACHE_KEY = "yawmi_q_pool_v1";
-const CACHE_TTL = 24 * 60 * 60 * 1000; // 24h
+const CACHE_KEY     = "yawmi_q_pool_v1";
+const CACHE_TTL     = 24 * 60 * 60 * 1000;   // 24h
+const CACHE_MAX_AGE = 7  * 24 * 60 * 60 * 1000; // 7 jours — seuil de purge
+
+// Préfixes de clés localStorage qui appartiennent au cache questions
+const STALE_CACHE_PREFIXES = ["yawmi_q_pool"];
 
 const ARABIC_LEVEL_ORDER: ArabicLevel[] = ["none", "beginner", "intermediate", "advanced"];
 
@@ -35,8 +39,45 @@ function rowToQuestion(row: Record<string, unknown>): Question {
   };
 }
 
+/**
+ * Purge toutes les clés localStorage correspondant aux anciens caches questions
+ * dont l'âge dépasse CACHE_MAX_AGE (7 jours). Appelé une fois au démarrage.
+ */
+function purgeStaleQuestionsCache(): void {
+  if (typeof window === "undefined") return;
+  try {
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (!key) continue;
+      const isQuestionsCache = STALE_CACHE_PREFIXES.some(prefix => key.startsWith(prefix));
+      if (!isQuestionsCache) continue;
+      try {
+        const raw = localStorage.getItem(key);
+        if (!raw) { keysToRemove.push(key); continue; }
+        const parsed = JSON.parse(raw) as { cachedAt?: string };
+        if (!parsed.cachedAt) { keysToRemove.push(key); continue; }
+        const age = Date.now() - new Date(parsed.cachedAt).getTime();
+        if (age > CACHE_MAX_AGE) keysToRemove.push(key);
+      } catch {
+        keysToRemove.push(key); // clé corrompue → supprimer
+      }
+    }
+    for (const key of keysToRemove) localStorage.removeItem(key);
+  } catch { /* storage inaccessible */ }
+}
+
+// Exécuter la purge une fois par session (guard pour éviter les appels répétés)
+let _purgeDone = false;
+function runPurgeOnce(): void {
+  if (_purgeDone) return;
+  _purgeDone = true;
+  purgeStaleQuestionsCache();
+}
+
 function loadCache(): Pool | null {
   if (typeof window === "undefined") return null;
+  runPurgeOnce();
   try {
     const raw = localStorage.getItem(CACHE_KEY);
     if (!raw) return null;

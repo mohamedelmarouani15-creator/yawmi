@@ -65,19 +65,18 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   usePrayerTheme();  // bascule data-theme=day|night selon Fajr/Maghrib
 
   useEffect(() => {
-    const done = localStorage.getItem("yawmi_onboarded");
-    if (done) { setAuthReady(true); return; }
-
     supabase.auth.getSession()
       .then(({ data }) => {
         if (data.session) {
           localStorage.setItem("yawmi_onboarded", "1");
           setAuthReady(true);
         } else {
+          localStorage.removeItem("yawmi_onboarded");
           router.replace("/onboarding");
         }
       })
       .catch(() => {
+        localStorage.removeItem("yawmi_onboarded");
         router.replace("/onboarding");
       });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

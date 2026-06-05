@@ -1133,21 +1133,38 @@ export default function OasisPage() {
           <span className="text-sm opacity-30" style={{ color: "var(--text)" }}>→</span>
         </motion.button>
 
-        {/* Confrérie */}
-        <motion.button onClick={() => router.push("/oasis/confrerie")}
-          whileTap={{ scale: 0.97 }} transition={springTap}
-          className="rounded-3xl border p-4 flex items-center gap-4 text-left w-full"
-          style={{ background: "rgba(167,139,250,0.05)", borderColor: "rgba(167,139,250,0.18)" }}>
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl"
-            style={{ background: "rgba(167,139,250,0.1)" }}>👨‍👩‍👧</div>
-          <div className="flex-1 min-w-0">
-            <p className="font-black text-sm" style={{ color: "#a78bfa", fontFamily: "var(--font-bricolage)" }}>Confrérie du Savoir</p>
-            <p className="text-[10px] opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-              Partage ton code famille · progresser ensemble
-            </p>
-          </div>
-          <span className="text-sm opacity-40" style={{ color: "var(--text)" }}>→</span>
-        </motion.button>
+        {/* Confrérie + Liga row */}
+        <div className="flex gap-3">
+          <motion.button onClick={() => router.push("/oasis/confrerie")}
+            whileTap={{ scale: 0.97 }} transition={springTap}
+            className="flex-1 rounded-3xl border p-4 flex flex-col items-start gap-2 text-left"
+            style={{ background: "rgba(167,139,250,0.05)", borderColor: "rgba(167,139,250,0.18)" }}>
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl text-lg"
+              style={{ background: "rgba(167,139,250,0.1)" }}>👨‍👩‍👧</div>
+            <div>
+              <p className="font-black text-sm" style={{ color: "#a78bfa", fontFamily: "var(--font-bricolage)" }}>Confrérie</p>
+              <p className="text-[10px] opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                Progresser en famille
+              </p>
+            </div>
+          </motion.button>
+
+          <motion.button onClick={() => router.push("/oasis/liga")}
+            whileTap={{ scale: 0.97 }} transition={springTap}
+            className="flex-1 rounded-3xl border p-4 flex flex-col items-start gap-2 text-left"
+            style={{ background: "rgba(212,175,55,0.04)", borderColor: "rgba(212,175,55,0.2)" }}>
+            <div className="flex h-10 w-10 items-center justify-center rounded-2xl text-lg"
+              style={{ background: "rgba(212,175,55,0.1)" }}>
+              <Swords size={18} style={{ color: "#D4AF37" }} />
+            </div>
+            <div>
+              <p className="font-black text-sm" style={{ color: "#D4AF37", fontFamily: "var(--font-bricolage)" }}>Liga</p>
+              <p className="text-[10px] opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                Classement hebdo
+              </p>
+            </div>
+          </motion.button>
+        </div>
 
         {/* Ère V portal */}
         <motion.button onClick={() => router.push("/oasis/ere5")}

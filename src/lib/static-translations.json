@@ -288,6 +288,24 @@
         "description": "زيدت أول حاجة فالجامع ديالك"
       }
     },
+    "hafiz_start": {
+      "en": {
+        "title": "First Ayah Memorized",
+        "description": "Memorize your first ayah in Hifz mode"
+      },
+      "es": {
+        "title": "Primer aleya memorizado",
+        "description": "Memoriza tu primer aleya en el modo Hifz"
+      },
+      "tr": {
+        "title": "İlk Ayet Ezberle",
+        "description": "Hıfz modunda ilk ayeti ezberle"
+      },
+      "darija": {
+        "title": "أول آية محفوظة",
+        "description": "حفظت أول آية فوضع الحفظ"
+      }
+    },
     "category_quran": {
       "en": {
         "title": "Memorizer",

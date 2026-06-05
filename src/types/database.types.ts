@@ -801,6 +801,36 @@ export type Database = {
           { foreignKeyName: "push_subscriptions_user_id_fkey"; columns: ["user_id"]; referencedRelation: "users"; referencedColumns: ["id"] }
         ]
       }
+      confreries: {
+        Row:    { id: string; name: string; code: string; created_by: string | null; created_at: string }
+        Insert: { id?: string; name: string; code: string; created_by?: string | null; created_at?: string }
+        Update: { id?: string; name?: string; code?: string; created_by?: string | null; created_at?: string }
+        Relationships: []
+      }
+      confrerie_members: {
+        Row:    { confrerie_id: string; user_id: string; joined_at: string }
+        Insert: { confrerie_id: string; user_id: string; joined_at?: string }
+        Update: { confrerie_id?: string; user_id?: string; joined_at?: string }
+        Relationships: []
+      }
+      liga_seasons: {
+        Row:    { id: string; week_start: string; week_end: string }
+        Insert: { id?: string; week_start: string; week_end: string }
+        Update: { id?: string; week_start?: string; week_end?: string }
+        Relationships: []
+      }
+      liga_placements: {
+        Row:    { id: string; user_id: string; season_id: string; league: string; xp_this_week: number; rank_in_league: number | null; promoted: boolean | null; relegated: boolean | null }
+        Insert: { id?: string; user_id: string; season_id: string; league?: string; xp_this_week?: number; rank_in_league?: number | null; promoted?: boolean | null; relegated?: boolean | null }
+        Update: { id?: string; user_id?: string; season_id?: string; league?: string; xp_this_week?: number; rank_in_league?: number | null; promoted?: boolean | null; relegated?: boolean | null }
+        Relationships: []
+      }
+      hadiths: {
+        Row:    { id: string; text_fr: string; text_ar: string; source: string; reference: string; category: string; difficulty: number; is_active: boolean }
+        Insert: { id: string; text_fr: string; text_ar: string; source: string; reference: string; category: string; difficulty?: number; is_active?: boolean }
+        Update: { id?: string; text_fr?: string; text_ar?: string; source?: string; reference?: string; category?: string; difficulty?: number; is_active?: boolean }
+        Relationships: []
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

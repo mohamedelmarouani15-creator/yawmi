@@ -98,6 +98,12 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     icon: "🕌", condition: (s) => s.mosqueObjects.length >= 1,
   },
   {
+    id: "hafiz_start",
+    title: "Première ayah mémorisée", titleAr: "أول آية محفوظة",
+    description: "Mémoriser une première ayah en mode Hifz", descriptionAr: "احفظ أول آية في وضع الحفظ",
+    icon: "🤲", condition: (s) => s.achievements.includes("hafiz_start"),
+  },
+  {
     id: "category_quran",
     title: "Mémorisateur", titleAr: "الحافظ",
     description: "Atteindre niveau 5 en Coran", descriptionAr: "بلوغ المستوى 5 في القرآن",

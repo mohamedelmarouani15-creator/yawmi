@@ -17,6 +17,75 @@ const COINS_PER_CORRECT = 2;
 const PERFECT_BONUS_XP  = 50;
 const PERFECT_BONUS_COINS = 10;
 
+// ── Liga helpers ──────────────────────────────────────────────────
+
+/** Monday of the week containing today (UTC), returns YYYY-MM-DD */
+function currentWeekStart(): string {
+  const d = new Date();
+  const day = d.getUTCDay();
+  const diff = day === 0 ? -6 : 1 - day;
+  d.setUTCDate(d.getUTCDate() + diff);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Add xpGained to liga_placements.xp_this_week for the current season */
+async function updateLigaXP(xpGained: number): Promise<void> {
+  if (xpGained <= 0) return;
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    const weekStart = currentWeekStart();
+
+    // Ensure season row exists (insert if not present)
+    const weekEnd = (() => {
+      const d = new Date(weekStart);
+      d.setUTCDate(d.getUTCDate() + 6);
+      return d.toISOString().slice(0, 10);
+    })();
+
+    await supabase
+      .from("liga_seasons")
+      .upsert({ week_start: weekStart, week_end: weekEnd }, { onConflict: "week_start" });
+
+    const { data: seasonRow } = await supabase
+      .from("liga_seasons")
+      .select("id")
+      .eq("week_start", weekStart)
+      .single();
+
+    if (!seasonRow) return;
+    const seasonId = (seasonRow as { id: string }).id;
+
+    // Get current xp_this_week
+    const { data: existing } = await supabase
+      .from("liga_placements")
+      .select("xp_this_week, league")
+      .eq("user_id", user.id)
+      .eq("season_id", seasonId)
+      .maybeSingle();
+
+    const currentXP    = (existing as { xp_this_week: number } | null)?.xp_this_week ?? 0;
+    const totalXP      = gameStorage.get().xp;
+    const league       = (existing as { league: string } | null)?.league
+      ?? (totalXP >= 5000 ? "diamond" : totalXP >= 1500 ? "gold" : totalXP >= 400 ? "silver" : "bronze");
+
+    await supabase
+      .from("liga_placements")
+      .upsert(
+        {
+          user_id:      user.id,
+          season_id:    seasonId,
+          league,
+          xp_this_week: currentXP + xpGained,
+        },
+        { onConflict: "user_id,season_id" }
+      );
+  } catch {
+    // Non-blocking — liga update is best-effort
+  }
+}
+
 export function useQuiz(locationId: string) {
   const [session,     setSession]     = useState<QuizSession | null>(null);
   const [noEnergy,    setNoEnergy]    = useState(false);
@@ -222,6 +291,9 @@ export function useQuiz(locationId: string) {
       if (isPerfect10)             gameStorage.progressWeekly("perfect_quizzes",     1);
       if (calligraphyCorrect > 0)  gameStorage.progressWeekly("calligraphy_correct", calligraphyCorrect);
       if (timelineCorrect > 0)     gameStorage.progressWeekly("timeline_correct",    timelineCorrect);
+
+      // Liga: update weekly XP (fire-and-forget, non-blocking)
+      if (totalXP > 0) updateLigaXP(totalXP).catch(() => {});
     }
 
     setSession(s => s ? {

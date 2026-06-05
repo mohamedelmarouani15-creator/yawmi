@@ -4,10 +4,12 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { storage } from "@/lib/storage";
 import { idbSet, idbGet, idbDel } from "@/lib/idb";
 import { favorites } from "@/lib/favorites";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, BookOpen, Bookmark, BookmarkCheck, Download, Loader2, Moon, Trash2, WifiOff } from "lucide-react";
 import QuranPlayer from "@/components/QuranPlayer";
 import SleepModeOverlay, { type SleepOption } from "@/components/SleepModeOverlay";
+import HifzMode, { getTotalMasteredCount } from "@/components/HifzMode";
+import { gameStorage } from "@/lib/game/game-storage";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 
 interface Surah { number: number; name: string; englishName: string; numberOfAyahs: number; }
@@ -89,6 +91,7 @@ export default function CoranPage() {
   const [playingAyah,  setPlayingAyah] = useState(1);
   const [showPlayer,   setShowPlayer]  = useState(false);
   const [favs,         setFavs]        = useState<Set<string>>(new Set());
+  const [hifzMode,     setHifzMode]    = useState(false);
 
   // ── Mode sommeil ──────────────────────────────────────────────
   const [nightMode,    setNightMode]   = useState(false);
@@ -299,6 +302,18 @@ export default function CoranPage() {
     setOffline(false);
   }
 
+  /* ── Hifz mastered callback ──────────────────────────────────── */
+  const handleHifzMastered = useCallback((totalMastered: number) => {
+    // Unlock achievement "hafiz_start" on first ever mastered ayah
+    if (totalMastered >= 1) {
+      const state = gameStorage.get();
+      if (!state.achievements.includes("hafiz_start")) {
+        gameStorage.unlockAchievement("hafiz_start");
+        gameStorage.push().catch(() => {/* non-blocking */});
+      }
+    }
+  }, []);
+
   /* ── Vue sourate ─────────────────────────────────────────────── */
   if (selected !== null) {
     const surah      = surahs.find(s => s.number === selected);
@@ -340,6 +355,21 @@ export default function CoranPage() {
             }}>
             {showPlayer ? "⏹" : "▶"} Audio
           </button>
+
+          {/* Bouton Mode Hifz */}
+          {ayahs.length > 0 && (
+            <button
+              onClick={() => setHifzMode(true)}
+              className="rounded-full border px-3 py-1 text-xs font-semibold"
+              style={{
+                borderColor: "rgba(212,175,55,0.3)",
+                color:       "var(--gold)",
+                background:  "rgba(212,175,55,0.07)",
+                fontFamily:  "var(--font-dm-sans)",
+              }}>
+              Memoriser
+            </button>
+          )}
 
           {/* Bouton Mode Sommeil — masqué pour les enfants */}
           {!isKids && (
@@ -431,6 +461,22 @@ export default function CoranPage() {
             onStop={exitSleepMode}
           />
         )}
+
+        {/* ── Overlay Mode Hifz ────────────────────────────────── */}
+        <AnimatePresence>
+          {hifzMode && ayahs.length > 0 && (
+            <HifzMode
+              surahNumber={selected}
+              surahName={surah?.englishName ?? ""}
+              ayahs={ayahs}
+              translations={translations}
+              startIndex={0}
+              fontSize={isKids || isElder ? 26 : 21}
+              onClose={() => setHifzMode(false)}
+              onMastered={handleHifzMastered}
+            />
+          )}
+        </AnimatePresence>
       </main>
     );
   }

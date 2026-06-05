@@ -22,6 +22,7 @@ import type { MosqueStage } from "@/components/MosqueIsometrique";
 import dynamic from "next/dynamic";
 const MosqueIsometrique = dynamic(() => import("@/components/MosqueIsometrique"), { ssr: false });
 import { EventBanner } from "@/components/EventBanner";
+import { HadithCard } from "@/components/HadithCard";
 import { AnimatePresence, motion as m2 } from "framer-motion";
 import { useContextualMessage } from "@/hooks/useContextualMessage";
 import { useMosqueeGameLink } from "@/hooks/useMosqueeGameLink";
@@ -681,6 +682,11 @@ export default function AccueilPage() {
             </motion.div>
           </Link>
         </motion.div>
+      )}
+
+      {/* Hadith du jour — commun (non enfants, non elder) */}
+      {ageMode !== "kids" && ageMode !== "elder" && (
+        <HadithCard showArabic showLearnMore={false} />
       )}
 
       {/* Dhikr du jour — commun */}

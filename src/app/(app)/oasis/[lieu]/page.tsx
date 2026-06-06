@@ -14,7 +14,7 @@ import { useLang } from "@/hooks/useLang";
 import { pick } from "@/lib/content-i18n";
 import { SagePortrait } from "@/components/SagePortrait";
 import staticT from "@/lib/static-translations.json";
-import { ALL_THEMES, isThemeValidated, THEME_VALIDATE_MIN } from "@/lib/game/locations";
+import { ALL_THEMES, isThemeCompleted, getThemeProgress, completedThemesCount } from "@/lib/game/locations";
 import type { Category } from "@/lib/game/types";
 
 const THEME_META: Record<Category, { label: string; icon: string; color: string }> = {
@@ -317,17 +317,36 @@ export default function LieuPage() {
             </div>
           )}
 
+          {/* Progression globale de la ville */}
+          {state && (() => {
+            const done = completedThemesCount(state, lieu);
+            return (
+              <div className="flex items-center gap-3">
+                <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <motion.div className="h-full rounded-full"
+                    animate={{ width: `${(done / 7) * 100}%` }}
+                    transition={{ duration: 0.6, ease: "easeOut" }}
+                    style={{ background: done === 7 ? "#22c55e" : color }}
+                  />
+                </div>
+                <span className="text-xs font-bold shrink-0"
+                  style={{ color: done === 7 ? "#22c55e" : color, fontFamily: "var(--font-dm-sans)" }}>
+                  {done}/7
+                </span>
+              </div>
+            );
+          })()}
+
           <p className="text-[10px] uppercase tracking-widest opacity-40 text-center"
             style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-            Valide les 7 thèmes pour débloquer la ville suivante
+            Complète les 7 thèmes pour débloquer la ville suivante
           </p>
 
           <div className="grid grid-cols-1 gap-2">
             {ALL_THEMES.map((theme, i) => {
-              const meta      = THEME_META[theme];
-              const validated = state ? isThemeValidated(state, lieu, theme) : false;
-              const progress  = state?.locationThemeProgress?.[lieu]?.[theme] ?? 0;
-              const pct       = Math.min(100, Math.round((progress / THEME_VALIDATE_MIN) * 100));
+              const meta       = THEME_META[theme];
+              const completed  = state ? isThemeCompleted(state, lieu, theme) : false;
+              const tp         = state ? getThemeProgress(state, lieu, theme) : null;
 
               return (
                 <motion.button key={theme}
@@ -337,32 +356,39 @@ export default function LieuPage() {
                   disabled={!hasEnergy}
                   onClick={() => hasEnergy && router.push(`/oasis/quiz/${lieu}?theme=${theme}`)}
                   whileTap={hasEnergy ? { scale: 0.97 } : {}}
-                  className="flex items-center gap-3 rounded-2xl px-4 py-3 text-left relative overflow-hidden"
+                  className="flex items-center gap-3 rounded-2xl px-4 py-3 text-left"
                   style={{
-                    background: validated ? `${meta.color}18` : "rgba(255,255,255,0.04)",
-                    border: `1px solid ${validated ? meta.color + "55" : "rgba(255,255,255,0.08)"}`,
+                    background: completed ? `${meta.color}18` : "rgba(255,255,255,0.04)",
+                    border: `1px solid ${completed ? meta.color + "55" : "rgba(255,255,255,0.08)"}`,
                     opacity: hasEnergy ? 1 : 0.6,
                   }}>
-                  {/* Progress bar behind */}
-                  {!validated && pct > 0 && (
-                    <div className="absolute inset-0 pointer-events-none"
-                      style={{ background: `linear-gradient(90deg,${meta.color}12 ${pct}%,transparent ${pct}%)` }} />
-                  )}
                   <span className="text-xl shrink-0">{meta.icon}</span>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold leading-tight"
-                      style={{ color: validated ? meta.color : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                      style={{ color: completed ? meta.color : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                       {meta.label}
                     </p>
                     <p className="text-[10px] opacity-50 mt-0.5"
                       style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                      {validated ? "Validé ✓" : `${progress}/${THEME_VALIDATE_MIN} bonnes réponses`}
+                      {completed
+                        ? `Complété · meilleur score ${tp?.bestScore ?? 0}/10`
+                        : tp
+                          ? `${tp.attempts} tentative${tp.attempts > 1 ? "s" : ""} · meilleur ${tp.bestScore}/10`
+                          : "10 questions à répondre"
+                      }
                     </p>
                   </div>
-                  {validated
-                    ? <span className="text-base shrink-0">✅</span>
-                    : <span className="text-xs opacity-30 shrink-0" style={{ color: "var(--text)" }}>▶</span>
-                  }
+                  <div className="flex flex-col items-end gap-0.5 shrink-0">
+                    {completed
+                      ? <span className="text-base">✅</span>
+                      : <span className="text-xs opacity-30" style={{ color: "var(--text)" }}>▶</span>
+                    }
+                    {tp && !completed && (
+                      <span className="text-[9px] font-bold" style={{ color: meta.color }}>
+                        Rejouer
+                      </span>
+                    )}
+                  </div>
                 </motion.button>
               );
             })}

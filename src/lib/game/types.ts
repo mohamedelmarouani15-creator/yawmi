@@ -1,5 +1,17 @@
 export type Category = "theologie" | "histoire" | "coran" | "arabe" | "ethique" | "sira" | "fiqh";
 
+/**
+ * Progression d'un thème dans une ville.
+ * completed = true dès que le quiz de 10 questions a été joué jusqu'au bout,
+ * quel que soit le score. Le score est conservé pour l'affichage uniquement.
+ */
+export interface ThemeProgress {
+  completed:    boolean;  // quiz joué entièrement → thème validé
+  bestScore:    number;   // meilleur score sur 10 (affichage)
+  attempts:     number;   // nombre de fois que le quiz a été complété
+  lastPlayedAt: string;   // ISO timestamp
+}
+
 export type DailyQuestType    = "quiz_win" | "correct_answers" | "story_chapter" | "calligraphy" | "timeline_correct";
 export type WeeklyChallengeType = "stages_complete" | "perfect_quizzes" | "total_correct" | "calligraphy_correct" | "timeline_correct" | "arcs_read";
 
@@ -133,8 +145,8 @@ export interface GameState {
   lastQuestDate: string | null;                // ISO date of last quest generation
   weeklyChallenge: WeeklyChallenge | null;
   prestigeLevel: number;                       // 0 = normal, 1+ = Hafiz prestige
-  // theme-based location progression
-  locationThemeProgress: Record<string, Partial<Record<Category, number>>>; // lieu → theme → correct answers
+  // theme-based location progression (Ville > Thèmes > Quiz)
+  locationThemeProgress: Record<string, Partial<Record<Category, ThemeProgress>>>;
   // sync metadata
   lastUpdatedAt: string | null;                // ISO timestamp — détermine l'état le plus récent en cas de conflit multi-appareil
 }

@@ -413,23 +413,40 @@ export const gameStorage = {
     return updated;
   },
 
-  // ── Theme progress per location ──────────────────────────────
-  recordThemeCorrect(locationId: string, category: Category, correctCount: number): GameState {
+  // ── Theme progress per location (Ville > Thème > Quiz) ───────
+  /**
+   * Enregistre la complétion d'un quiz de thème.
+   * completed = true dès que le quiz est joué jusqu'au bout (10 questions).
+   * Le score n'est PAS un critère de déblocage — uniquement pour l'affichage.
+   */
+  recordThemeCompletion(locationId: string, category: Category, correctCount: number): GameState {
     const state = this.get();
-    const prev = state.locationThemeProgress?.[locationId]?.[category] ?? 0;
-    const next = Math.max(prev, correctCount); // keep best score
+    const rawPrev = state.locationThemeProgress?.[locationId]?.[category];
+    // Backward compat : ancien format était un nombre
+    const prev = rawPrev && typeof rawPrev === "object" ? rawPrev : null;
+    const entry = {
+      completed:    true,                                          // toujours vrai si le quiz est terminé
+      bestScore:    Math.max(correctCount, prev?.bestScore ?? 0), // meilleur score conservé
+      attempts:     (prev?.attempts ?? 0) + 1,
+      lastPlayedAt: new Date().toISOString(),
+    };
     const updated = {
       ...state,
       locationThemeProgress: {
         ...(state.locationThemeProgress ?? {}),
         [locationId]: {
           ...(state.locationThemeProgress?.[locationId] ?? {}),
-          [category]: next,
+          [category]: entry,
         },
       },
     };
     this.save(updated);
     return updated;
+  },
+
+  /** @deprecated Utiliser recordThemeCompletion */
+  recordThemeCorrect(locationId: string, category: Category, correctCount: number): GameState {
+    return this.recordThemeCompletion(locationId, category, correctCount);
   },
 
   // ── Category level ───────────────────────────────────────────

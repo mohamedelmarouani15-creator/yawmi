@@ -1,14 +1,41 @@
 import type { LocationDef, Category, GameState } from "./types";
 
 export const ALL_THEMES: Category[] = ["theologie", "histoire", "coran", "arabe", "ethique", "sira", "fiqh"];
-export const THEME_VALIDATE_MIN = 7; // correct answers needed to validate a theme
 
-export function isThemeValidated(state: GameState, locationId: string, category: Category): boolean {
-  return (state.locationThemeProgress?.[locationId]?.[category] ?? 0) >= THEME_VALIDATE_MIN;
+/**
+ * Un thème est validé lorsque l'utilisateur a répondu aux 10 questions du quiz
+ * (completed = true). Le score n'est PAS un critère de déblocage.
+ */
+export function isThemeCompleted(state: GameState, locationId: string, category: Category): boolean {
+  const entry = state.locationThemeProgress?.[locationId]?.[category];
+  if (!entry) return false;
+  // Backward compat : anciens saves stockaient un number (score correct)
+  if (typeof entry === "number") return (entry as number) >= 7;
+  return entry.completed === true;
 }
 
+/** Alias pour le code existant */
+export const isThemeValidated = isThemeCompleted;
+
+/**
+ * Ville complète = les 7 thèmes ont chacun été joués jusqu'au bout.
+ * Condition stricte : toutes les 7 séries de 10 questions complétées.
+ */
 export function isLocationCompleted(state: GameState, locationId: string): boolean {
-  return ALL_THEMES.every(cat => isThemeValidated(state, locationId, cat));
+  return ALL_THEMES.every(cat => isThemeCompleted(state, locationId, cat));
+}
+
+/** Retourne le nombre de thèmes complétés dans une ville (0-7). */
+export function completedThemesCount(state: GameState, locationId: string): number {
+  return ALL_THEMES.filter(cat => isThemeCompleted(state, locationId, cat)).length;
+}
+
+/** Retourne la progression d'un thème (bestScore, attempts) ou null. */
+export function getThemeProgress(state: GameState, locationId: string, category: Category) {
+  const entry = state.locationThemeProgress?.[locationId]?.[category];
+  if (!entry) return null;
+  if (typeof entry === "number") return { completed: (entry as number) >= 7, bestScore: entry as number, attempts: 1, lastPlayedAt: "" };
+  return entry;
 }
 
 /** Ère I location order (index-based for unlock chain) */

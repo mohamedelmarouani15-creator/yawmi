@@ -316,9 +316,9 @@ export function useQuiz(locationId: string, themeCategory?: string) {
       // Liga: update weekly XP (fire-and-forget, non-blocking)
       if (totalXP > 0) updateLigaXP(totalXP).catch(() => {});
 
-      // Theme progress per location
-      if (themeCategory) {
-        gameStorage.recordThemeCorrect(locationId, themeCategory as import("@/lib/game/types").Category, totalCorrectCount);
+      // Theme progress per location — validé si quiz joué jusqu'au bout
+      if (themeCategory && isLast) {
+        gameStorage.recordThemeCompletion(locationId, themeCategory as import("@/lib/game/types").Category, totalCorrectCount);
       }
     }
 

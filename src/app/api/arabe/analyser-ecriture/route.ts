@@ -72,7 +72,8 @@ Pour les enfants (4-10 ans) : sois très encourageant même si c'est imparfait.`
     const result = JSON.parse(match[0]);
     return NextResponse.json(result);
   } catch (err) {
-    console.error("[analyser-ecriture]", err);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[analyser-ecriture]", msg);
+    return NextResponse.json({ error: `Erreur: ${msg}` }, { status: 500 });
   }
 }

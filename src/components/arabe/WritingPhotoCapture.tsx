@@ -42,18 +42,31 @@ export default function WritingPhotoCapture({
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setMimeType(file.type || "image/jpeg");
 
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const dataUrl = ev.target?.result as string;
+    // Compresser via canvas avant envoi (photo téléphone = 3-7MB, limite Anthropic ~1MB)
+    const img = new Image();
+    const objectUrl = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 1024; // max dimension px
+      let { width, height } = img;
+      if (width > MAX || height > MAX) {
+        const ratio = Math.min(MAX / width, MAX / height);
+        width  = Math.round(width  * ratio);
+        height = Math.round(height * ratio);
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width  = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, 0, 0, width, height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.8); // 80% qualité
+      URL.revokeObjectURL(objectUrl);
+      setMimeType("image/jpeg");
       setPreview(dataUrl);
-      // Extract base64 without prefix
-      const b64 = dataUrl.split(",")[1];
-      setImageB64(b64);
+      setImageB64(dataUrl.split(",")[1]);
       setPhase("preview");
     };
-    reader.readAsDataURL(file);
+    img.src = objectUrl;
   }
 
   async function analyse() {

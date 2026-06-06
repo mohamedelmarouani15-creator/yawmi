@@ -122,7 +122,7 @@ export const EVENT_QUESTIONS: Partial<Record<GameEventId, Question[]>> = {
   laylat_qadr: [
     {
       id: "ev_qadr_001",
-      category: "religion",
+      category: "theologie",
       type: "mcq",
       difficulty: 3,
       question: "La Nuit du Destin (Laylat al-Qadr) vaut combien de mois d'adoration selon le Coran ?",
@@ -142,7 +142,7 @@ export const EVENT_QUESTIONS: Partial<Record<GameEventId, Question[]>> = {
   ramadan: [
     {
       id: "ev_ramadan_001",
-      category: "religion",
+      category: "theologie",
       type: "mcq",
       difficulty: 2,
       question: "Quel verset du Coran ordonne le jeûne du Ramadan ?",
@@ -158,7 +158,7 @@ export const EVENT_QUESTIONS: Partial<Record<GameEventId, Question[]>> = {
   aid_fitr: [
     {
       id: "ev_fitr_001",
-      category: "religion",
+      category: "theologie",
       type: "mcq",
       difficulty: 2,
       question: "Quelle aumône est obligatoire avant la prière de l'Aïd al-Fitr ?",
@@ -174,7 +174,7 @@ export const EVENT_QUESTIONS: Partial<Record<GameEventId, Question[]>> = {
   hajj: [
     {
       id: "ev_hajj_001",
-      category: "religion",
+      category: "theologie",
       type: "mcq",
       difficulty: 3,
       question: "Le Tawaf (circumambulation) autour de la Ka'ba se fait dans quel sens ?",

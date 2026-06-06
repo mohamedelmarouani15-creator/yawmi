@@ -620,9 +620,9 @@ export default function OasisPage() {
   const energy       = computeCurrentEnergy(liveState.energy, liveState.lastEnergyUpdate);
   const era          = getEraForLevel(level);
   const dailyQuests  = gameStorage.getDailyQuests();
-  const categoryMastery = liveState.categoryMastery ?? { religion: 0, history: 0, arabic: 0, darija: 0, quran: 0 };
+  const categoryMastery = liveState.categoryMastery ?? { theologie: 0, histoire: 0, coran: 0, arabe: 0, ethique: 0, sira: 0, fiqh: 0 };
   const completedArcs   = liveState.completedArcs ?? [];
-  const avgMastery      = Math.round(Object.values(categoryMastery).reduce((a, b) => a + b, 0) / 5);
+  const avgMastery      = Math.round(Object.values(categoryMastery).reduce((a, b) => a + b, 0) / 7);
   const currentEraIdx   = getCurrentEraIndex(level, completedArcs.length, avgMastery);
   const nextEra         = ERA_CONDITIONS.find(e => e.eraIndex === currentEraIdx + 1);
   const manuscripts      = liveState.manuscripts ?? {};
@@ -1266,11 +1266,13 @@ export default function OasisPage() {
             Maîtrise par catégorie
           </p>
           {([
-            { id: "religion", label: "Théologie",  icon: "🕌" },
-            { id: "history",  label: "Histoire",   icon: "📜" },
-            { id: "quran",    label: "Coran",       icon: "📖" },
-            { id: "arabic",   label: "Arabe",       icon: "✍️" },
-            { id: "darija",   label: "Darija",      icon: "🗣️" },
+            { id: "theologie", label: "Théologie", icon: "🕌" },
+            { id: "histoire",  label: "Histoire",  icon: "📜" },
+            { id: "coran",     label: "Coran",     icon: "📖" },
+            { id: "arabe",     label: "Arabe",     icon: "✍️" },
+            { id: "ethique",   label: "Éthique",   icon: "🌿" },
+            { id: "sira",      label: "Sira",      icon: "🌙" },
+            { id: "fiqh",      label: "Fiqh",      icon: "⚖️" },
           ] as { id: Category; label: string; icon: string }[]).map(({ id, label, icon }) => {
             const pct = Math.round(categoryMastery[id] ?? 0);
             const barColor = pct >= 80 ? "#4ade80" : pct >= 50 ? "#D4AF37" : "#60a5fa";

@@ -2,7 +2,7 @@ import type { EscapeRoomTranslation, EscapeLockTranslation } from "@/lib/game/ty
 
 export interface EscapeLock {
   id: number;
-  type: "arabic" | "religion" | "calligraphy" | "darija";
+  type: "arabe" | "theologie" | "calligraphy" | "fiqh";
   label: string;
   labelAr: string;
   icon: string;
@@ -44,7 +44,7 @@ export const ESCAPE_ROOMS: EscapeRoom[] = [
     reward: { xp: 300, coins: 80, chests: 2 },
     locks: [
       {
-        id: 0, type: "arabic", label: "Manuscrit arabe", labelAr: "المخطوطة", icon: "📜", objectSVG: "manuscript",
+        id: 0, type: "arabe", label: "Manuscrit arabe", labelAr: "المخطوطة", icon: "📜", objectSVG: "manuscript",
         question: "Quelle est la traduction de 'العلم' (Al-'Ilm) ?",
         questionAr: "ما معنى كلمة 'العلم'؟",
         options: [
@@ -59,7 +59,7 @@ export const ESCAPE_ROOMS: EscapeRoom[] = [
         hintAr: "هو ما يميّز الإنسان عن البهائم حسب ابن خلدون.",
       },
       {
-        id: 1, type: "religion", label: "Livre brillant", labelAr: "الكتاب", icon: "📖", objectSVG: "book",
+        id: 1, type: "theologie", label: "Livre brillant", labelAr: "الكتاب", icon: "📖", objectSVG: "book",
         question: "Quelle sourate est surnommée 'Umm Al-Kitab' (Mère du Livre) ?",
         questionAr: "أي سورة تُسمى 'أم الكتاب'؟",
         options: [
@@ -93,19 +93,19 @@ export const ESCAPE_ROOMS: EscapeRoom[] = [
         hintAr: "هو أكثر الأساليب الخطية وضوحاً وانتشاراً.",
       },
       {
-        id: 3, type: "darija", label: "Tapis marocain", labelAr: "الزربية", icon: "🪣", objectSVG: "carpet",
-        question: "Que signifie 'بلا مزيان' (bla mzyan) en darija marocain ?",
-        questionAr: "ماذا تعني 'بلا مزيان' بالدارجة المغربية؟",
+        id: 3, type: "fiqh", label: "Parchemin de jurisprudence", labelAr: "الفقه", icon: "⚖️", objectSVG: "carpet",
+        question: "Combien de fois par jour un musulman doit-il prier ?",
+        questionAr: "كم مرة يصلي المسلم في اليوم؟",
         options: [
-          { text: "Pas bien / pas terrible", correct: true }, { text: "Très bien", correct: false },
-          { text: "Sans problème", correct: false }, { text: "Avec plaisir", correct: false },
+          { text: "5 fois", correct: true }, { text: "3 fois", correct: false },
+          { text: "7 fois", correct: false }, { text: "4 fois", correct: false },
         ],
         optionsAr: [
-          { text: "مش مزيان / عادي", correct: true }, { text: "مزيان بزاف", correct: false },
-          { text: "بلا مشكل", correct: false }, { text: "بكل سرور", correct: false },
+          { text: "5 مرات", correct: true }, { text: "3 مرات", correct: false },
+          { text: "7 مرات", correct: false }, { text: "4 مرات", correct: false },
         ],
-        hint: "'Mzyan' = bien, 'bla' = sans.",
-        hintAr: "'مزيان' = جيد، 'بلا' = بدون.",
+        hint: "Fajr, Dhuhr, Asr, Maghrib, Isha — les cinq piliers de la prière.",
+        hintAr: "الفجر والظهر والعصر والمغرب والعشاء.",
       },
     ],
   },
@@ -120,7 +120,7 @@ export const ESCAPE_ROOMS: EscapeRoom[] = [
     reward: { xp: 400, coins: 100, chests: 2 },
     locks: [
       {
-        id: 0, type: "arabic", label: "Manuscrit Bambara", labelAr: "المخطوطة", icon: "📜", objectSVG: "manuscript",
+        id: 0, type: "arabe", label: "Manuscrit Bambara", labelAr: "المخطوطة", icon: "📜", objectSVG: "manuscript",
         question: "Comment dit-on 'étudiant' en arabe classique ?",
         questionAr: "كيف تقول 'طالب' بالعربية الفصحى؟",
         options: [
@@ -135,7 +135,7 @@ export const ESCAPE_ROOMS: EscapeRoom[] = [
         hintAr: "هو أيضاً اسم حركة دينية مشهورة.",
       },
       {
-        id: 1, type: "religion", label: "Traité de jurisprudence", labelAr: "الكتاب", icon: "📖", objectSVG: "book",
+        id: 1, type: "theologie", label: "Traité de jurisprudence", labelAr: "الكتاب", icon: "📖", objectSVG: "book",
         question: "Quel est le nom du grand savant qui a protégé les manuscrits de Tombouctou contre l'esclavage ?",
         questionAr: "من هو العالم الكبير الذي دافع عن مخطوطات تمبكتو وناضل ضد العبودية؟",
         options: [
@@ -165,18 +165,18 @@ export const ESCAPE_ROOMS: EscapeRoom[] = [
         hintAr: "تأسست جامعة سنكوري في القرن الرابع عشر.",
       },
       {
-        id: 3, type: "darija", label: "Tapis Songhaï", labelAr: "الزربية", icon: "🪣", objectSVG: "carpet",
-        question: "Comment dit-on 'livre' en darija marocaine ?",
-        questionAr: "كيف تقول 'كتاب' بالدارجة المغربية؟",
+        id: 3, type: "fiqh", label: "Parchemin de fiqh", labelAr: "الفقه", icon: "⚖️", objectSVG: "carpet",
+        question: "Quelle est la condition (rukn) indispensable pour la validité du jeûne ?",
+        questionAr: "ما الركن الأساسي لصحة الصيام؟",
         options: [
-          { text: "كتاب (ktab)", correct: true }, { text: "ورقة (warka)", correct: false },
-          { text: "قلم (qlam)", correct: false }, { text: "مدرسة (mdersa)", correct: false },
+          { text: "L'intention (niyya)", correct: true }, { text: "La prière du Fajr", correct: false },
+          { text: "La lecture du Coran", correct: false }, { text: "Le suhur", correct: false },
         ],
         optionsAr: [
-          { text: "كتاب (ktab)", correct: true }, { text: "ورقة (warka)", correct: false },
-          { text: "قلم (qlam)", correct: false }, { text: "مدرسة (mdersa)", correct: false },
+          { text: "النية", correct: true }, { text: "صلاة الفجر", correct: false },
+          { text: "قراءة القرآن", correct: false }, { text: "السحور", correct: false },
         ],
-        hint: "Même mot qu'en arabe classique, légèrement simplifié.",
+        hint: "Le Prophète ﷺ a dit : 'Les actes ne valent que par les intentions.'",
         hintAr: "نفس الكلمة كالعربية الفصحى، مع تبسيط طفيف.",
       },
     ],

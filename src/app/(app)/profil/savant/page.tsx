@@ -24,11 +24,13 @@ function getTitle(avgMastery: number) {
 }
 
 const CATEGORIES: { id: Category; label: string; icon: string }[] = [
-  { id: "religion", label: "Théologie",  icon: "🕌" },
-  { id: "history",  label: "Histoire",   icon: "📜" },
-  { id: "quran",    label: "Coran",       icon: "📖" },
-  { id: "arabic",   label: "Arabe",       icon: "✍️" },
-  { id: "darija",   label: "Darija",      icon: "🗣️" },
+  { id: "theologie", label: "Théologie", icon: "🕌" },
+  { id: "histoire",  label: "Histoire",  icon: "📜" },
+  { id: "coran",     label: "Coran",     icon: "📖" },
+  { id: "arabe",     label: "Arabe",     icon: "✍️" },
+  { id: "ethique",   label: "Éthique",   icon: "🌿" },
+  { id: "sira",      label: "Sira",      icon: "🌙" },
+  { id: "fiqh",      label: "Fiqh",      icon: "⚖️" },
 ];
 
 export default function SavantPage() {
@@ -44,7 +46,7 @@ export default function SavantPage() {
   const locationStages  = state.locationStages ?? {};
   const achievements    = state.achievements ?? [];
 
-  const avgMastery    = Math.round(Object.values(categoryMastery).reduce((a: number, b: number) => a + b, 0) / 5);
+  const avgMastery    = Math.round(Object.values(categoryMastery).reduce((a: number, b: number) => a + b, 0) / 7);
   const era           = getEraForLevel(level);
   const eraIdx        = getCurrentEraIndex(level, completedArcs.length, avgMastery);
   const title         = getTitle(avgMastery);

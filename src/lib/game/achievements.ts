@@ -107,13 +107,13 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     id: "category_quran",
     title: "Mémorisateur", titleAr: "الحافظ",
     description: "Atteindre niveau 5 en Coran", descriptionAr: "بلوغ المستوى 5 في القرآن",
-    icon: "📿", condition: (s) => (s.categoryLevels.quran ?? 1) >= 5,
+    icon: "📿", condition: (s) => (s.categoryLevels.coran ?? 1) >= 5,
   },
   {
     id: "category_arabic",
     title: "Linguiste", titleAr: "اللغوي",
     description: "Atteindre niveau 5 en Arabe", descriptionAr: "بلوغ المستوى 5 في العربية",
-    icon: "ع", condition: (s) => (s.categoryLevels.arabic ?? 1) >= 5,
+    icon: "ع", condition: (s) => (s.categoryLevels.arabe ?? 1) >= 5,
   },
   {
     id: "sage_card_all",

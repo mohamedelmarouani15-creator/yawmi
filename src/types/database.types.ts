@@ -127,7 +127,7 @@ export type Database = {
       questions: {
         Row: {
           id:               string
-          category:         "religion" | "history" | "arabic" | "darija" | "quran"
+          category:         "theologie" | "histoire" | "coran" | "arabe" | "ethique" | "sira" | "fiqh"
           type:             "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i" | "calligraphy" | "timeline" | "scholars_match"
           difficulty:       number
           question:         string
@@ -143,7 +143,7 @@ export type Database = {
         }
         Insert: {
           id:                string
-          category:          "religion" | "history" | "arabic" | "darija" | "quran"
+          category:          "theologie" | "histoire" | "coran" | "arabe" | "ethique" | "sira" | "fiqh"
           type?:             "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i" | "calligraphy" | "timeline" | "scholars_match"
           difficulty:        number
           question:          string
@@ -159,7 +159,7 @@ export type Database = {
         }
         Update: {
           id?:               string
-          category?:         "religion" | "history" | "arabic" | "darija" | "quran"
+          category?:         "theologie" | "histoire" | "coran" | "arabe" | "ethique" | "sira" | "fiqh"
           type?:             "mcq" | "true_false" | "fill_in" | "reorder" | "drag_drop" | "memory" | "fill_verse" | "who_am_i" | "calligraphy" | "timeline" | "scholars_match"
           difficulty?:       number
           question?:         string

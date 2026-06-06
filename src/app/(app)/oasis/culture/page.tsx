@@ -10,19 +10,23 @@ import { pageVariants, itemVariants } from "@/lib/motion";
 type Capsule = { title: string; text: string; category: string };
 
 const CATEGORY_LABELS: Record<string, string> = {
-  religion: "Religion",
-  history:  "Histoire",
-  arabic:   "Arabe",
-  darija:   "Darija",
-  quran:    "Coran",
+  theologie: "Théologie",
+  histoire:  "Histoire",
+  coran:     "Coran",
+  arabe:     "Arabe",
+  ethique:   "Éthique",
+  sira:      "Sira",
+  fiqh:      "Fiqh",
 };
 
 const CATEGORY_COLORS: Record<string, string> = {
-  religion: "var(--gold)",
-  history:  "#60a5fa",
-  arabic:   "#34d399",
-  darija:   "#f87171",
-  quran:    "#a78bfa",
+  theologie: "var(--gold)",
+  histoire:  "#60a5fa",
+  coran:     "#a78bfa",
+  arabe:     "#34d399",
+  ethique:   "#f97316",
+  sira:      "#fb7185",
+  fiqh:      "#38bdf8",
 };
 
 export default function CulturePage() {

@@ -30,7 +30,7 @@ export const DEFAULT_STATE: GameState = {
   lastGameDate: null,
   unlockedLocations: ["medine"],
   defeatedSages: [],
-  categoryLevels: { religion: 1, history: 1, arabic: 1, darija: 1, quran: 1 },
+  categoryLevels: { theologie: 1, histoire: 1, coran: 1, arabe: 1, ethique: 1, sira: 1, fiqh: 1 },
   questionHistory: {},
   powerupCounts: { ...DEFAULT_POWERUPS },
   achievements: [],
@@ -44,7 +44,7 @@ export const DEFAULT_STATE: GameState = {
   energy: ENERGY_MAX,
   lastEnergyUpdate: null,
   locationStages: {},
-  categoryMastery: { religion: 0, history: 0, arabic: 0, darija: 0, quran: 0 },
+  categoryMastery: { theologie: 0, histoire: 0, coran: 0, arabe: 0, ethique: 0, sira: 0, fiqh: 0 },
   categoryXP: {},
   manuscripts: {},
   completedArcs: [],
@@ -384,7 +384,7 @@ export const gameStorage = {
       level: 1,
       xp: 0,
       locationStages: {},
-      categoryMastery: { religion: 0, history: 0, arabic: 0, darija: 0, quran: 0 },
+      categoryMastery: { theologie: 0, histoire: 0, coran: 0, arabe: 0, ethique: 0, sira: 0, fiqh: 0 },
     };
     this.save(updated);
     return updated;

@@ -113,28 +113,28 @@ export interface ManuscriptDef {
 export const MANUSCRIPTS: ManuscriptDef[] = [
   {
     id: "muqaddima", title: "La Muqaddima", author: "Ibn Khaldoun", era: "XIVe siècle",
-    pages: 12, category: "history", color: "#a78bfa",
+    pages: 12, category: "histoire", color: "#a78bfa",
     unlocks: "arc_sahaba",
     description: "Le premier traité de sociologie — 12 pages à assembler via les questions d'histoire.",
   },
   {
     id: "al_jabr", title: "Kitāb al-Mukhtaṣar", author: "Al-Khwarizmi", era: "IXe siècle",
-    pages: 10, category: "arabic", color: "#D4AF37",
+    pages: 10, category: "arabe", color: "#D4AF37",
     description: "Le traité d'algèbre fondateur — 10 pages via les questions d'arabe.",
   },
   {
     id: "canon", title: "Canon de la Médecine", author: "Ibn Sina", era: "XIe siècle",
-    pages: 10, category: "religion", color: "#60a5fa",
+    pages: 10, category: "theologie", color: "#60a5fa",
     description: "La somme médicale d'Ibn Sina — 10 pages via les questions de religion.",
   },
   {
     id: "rihla", title: "La Rihla", author: "Ibn Battuta", era: "XIVe siècle",
-    pages: 8, category: "history", color: "#34d399",
+    pages: 8, category: "histoire", color: "#34d399",
     description: "Le journal de voyage le plus long de l'histoire médiévale — 8 pages via l'histoire.",
   },
   {
     id: "tabaqat", title: "Al-Tabaqāt al-Kubrā", author: "Ibn Sa'd", era: "IXe siècle",
-    pages: 10, category: "quran", color: "#f97316",
+    pages: 10, category: "coran", color: "#f97316",
     description: "Les biographies des Compagnons — 10 pages via les questions de Coran.",
   },
 ];

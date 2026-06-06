@@ -673,7 +673,7 @@ export default function EscapeRoomPage() {
                   {lock.label}
                 </p>
                 <p className="text-xs" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
-                  {lock.type === "arabic" ? "Arabe" : lock.type === "religion" ? "Religion" : lock.type === "calligraphy" ? "Calligraphie" : "Darija"}
+                  {lock.type === "arabe" ? "Arabe" : lock.type === "theologie" ? "Théologie" : lock.type === "calligraphy" ? "Calligraphie" : "Fiqh"}
                 </p>
               </div>
               {solved

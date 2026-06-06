@@ -1,4 +1,4 @@
-export type Category = "religion" | "history" | "arabic" | "darija" | "quran";
+export type Category = "theologie" | "histoire" | "coran" | "arabe" | "ethique" | "sira" | "fiqh";
 
 export type DailyQuestType    = "quiz_win" | "correct_answers" | "story_chapter" | "calligraphy" | "timeline_correct";
 export type WeeklyChallengeType = "stages_complete" | "perfect_quizzes" | "total_correct" | "calligraphy_correct" | "timeline_correct" | "arcs_read";

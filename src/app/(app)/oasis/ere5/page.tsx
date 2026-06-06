@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, Swords, Trophy } from "lucide-react";
 import { useGameState } from "@/hooks/useGameState";
-import { gameStorage, computeCurrentEnergy, ENERGY_COST, ENERGY_MAX } from "@/lib/game/game-storage";
+import { gameStorage, computeCurrentEnergy, computeCurrentEnergyFromState, ENERGY_COST, ENERGY_MAX } from "@/lib/game/game-storage";
 import { stagesDone, getStageConfig, currentStageIndex, ERA_CONDITIONS } from "@/lib/game/stages";
 import { getActiveEvents } from "@/lib/game/events";
 import { springTap } from "@/lib/motion";
@@ -27,7 +27,7 @@ export default function Ere5Page() {
   const router = useRouter();
   const { state } = useGameState();
   const liveState  = gameStorage.get();
-  const energy     = computeCurrentEnergy(liveState.energy, liveState.lastEnergyUpdate);
+  const energy     = computeCurrentEnergyFromState(liveState);
   const activeEvents = getActiveEvents();
 
   const level          = state?.level ?? 1;

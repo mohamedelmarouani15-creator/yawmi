@@ -9,7 +9,7 @@ import { springTap } from "@/lib/motion";
 import { useGameState } from "@/hooks/useGameState";
 import { LOCATIONS } from "@/lib/game/locations";
 import { SAGES } from "@/lib/game/sages";
-import { xpProgress, xpInCurrentLevel, gameStorage, computeCurrentEnergy, ENERGY_MAX } from "@/lib/game/game-storage";
+import { xpProgress, xpInCurrentLevel, gameStorage, computeCurrentEnergy, computeCurrentEnergyFromState, ENERGY_MAX } from "@/lib/game/game-storage";
 import { getEraForLevel, ERA_CONDITIONS, MANUSCRIPTS, getCurrentEraIndex, stagesDone } from "@/lib/game/stages";
 import { getActiveEvents } from "@/lib/game/events";
 import type { Category } from "@/lib/game/types";
@@ -617,7 +617,7 @@ export default function OasisPage() {
   const chests    = state?.chestsAvailable ?? 0;
   const pathD     = buildPath();
   const liveState    = gameStorage.get();
-  const energy       = computeCurrentEnergy(liveState.energy, liveState.lastEnergyUpdate);
+  const energy       = computeCurrentEnergyFromState(liveState);
   const era          = getEraForLevel(level);
   const dailyQuests  = gameStorage.getDailyQuests();
   const categoryMastery = liveState.categoryMastery ?? { theologie: 0, histoire: 0, coran: 0, arabe: 0, ethique: 0, sira: 0, fiqh: 0 };

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, BookOpen, Star, Trophy } from "lucide-react";
-import { gameStorage, computeCurrentEnergy, ENERGY_MAX } from "@/lib/game/game-storage";
+import { gameStorage, computeCurrentEnergy, computeCurrentEnergyFromState, ENERGY_MAX } from "@/lib/game/game-storage";
 import { getEraForLevel, ERA_CONDITIONS, MANUSCRIPTS, getCurrentEraIndex } from "@/lib/game/stages";
 import { ACHIEVEMENTS } from "@/lib/game/achievements";
 import { springTap } from "@/lib/motion";
@@ -36,7 +36,7 @@ const CATEGORIES: { id: Category; label: string; icon: string }[] = [
 export default function SavantPage() {
   const router = useRouter();
   const state  = gameStorage.get();
-  const energy = computeCurrentEnergy(state.energy, state.lastEnergyUpdate);
+  const energy = computeCurrentEnergyFromState(state);
 
   const level           = state.level ?? 1;
   const completedArcs   = state.completedArcs ?? [];

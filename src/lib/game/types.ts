@@ -145,6 +145,9 @@ export interface GameState {
   lastQuestDate: string | null;                // ISO date of last quest generation
   weeklyChallenge: WeeklyChallenge | null;
   prestigeLevel: number;                       // 0 = normal, 1+ = Hafiz prestige
+  // energy penalty escalation (reset à minuit)
+  energyDepletionCount: number;    // nb de fois épuisé aujourd'hui
+  energyDepletionDate:  string | null; // YYYY-MM-DD de la dernière déplétion
   // theme-based location progression (Ville > Thèmes > Quiz)
   locationThemeProgress: Record<string, Partial<Record<Category, ThemeProgress>>>;
   // sync metadata

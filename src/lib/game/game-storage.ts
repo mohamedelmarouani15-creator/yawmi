@@ -19,7 +19,16 @@ const DEFAULT_POWERUPS = { joker50: 3, bouclier: 1, double_xp: 2, time_freeze: 1
 
 export const ENERGY_MAX    = 30;
 export const ENERGY_COST   = 10;  // per quiz
-const ENERGY_REGEN_MS      = 30 * 60 * 1000; // +1 energy per 30 min
+
+/**
+ * Regen : 15 min * (depletionCount + 1)
+ * 1ère déplétion → 15 min, 2ème → 30 min, 3ème → 45 min…
+ * Reset à minuit (depletionCount revient à 0 → 15 min).
+ */
+const BASE_REGEN_MIN = 15;
+export function getEnergyRegenMs(depletionCount: number): number {
+  return Math.max(1, depletionCount + 1) * BASE_REGEN_MIN * 60 * 1000;
+}
 
 export const DEFAULT_STATE: GameState = {
   xp: 0,
@@ -43,6 +52,8 @@ export const DEFAULT_STATE: GameState = {
   totalCorrectAnswers: 0,
   energy: ENERGY_MAX,
   lastEnergyUpdate: null,
+  energyDepletionCount: 0,
+  energyDepletionDate:  null,
   locationStages: {},
   categoryMastery: { theologie: 0, histoire: 0, coran: 0, arabe: 0, ethique: 0, sira: 0, fiqh: 0 },
   categoryXP: {},
@@ -104,21 +115,35 @@ function generateDailyQuests(): DailyQuest[] {
 }
 
 /** Compute actual current energy from stored value + elapsed time. */
-export function computeCurrentEnergy(stored: number, lastUpdate: string | null): number {
+export function computeCurrentEnergy(stored: number, lastUpdate: string | null, regenMs?: number): number {
   if (!lastUpdate) return stored;
-  const elapsedMs   = Date.now() - new Date(lastUpdate).getTime();
-  const regenerated = Math.floor(elapsedMs / ENERGY_REGEN_MS);
+  const r          = regenMs ?? getEnergyRegenMs(0);
+  const elapsedMs  = Date.now() - new Date(lastUpdate).getTime();
+  const regenerated = Math.floor(elapsedMs / r);
   return Math.min(ENERGY_MAX, stored + regenerated);
 }
 
-/** How many ms until 10 energy is available. Returns 0 if already enough. */
-export function msUntilEnergy(stored: number, lastUpdate: string | null, needed = ENERGY_COST): number {
-  const current = computeCurrentEnergy(stored, lastUpdate);
+/** Wrapper pratique qui lit le depletionCount depuis l'état. */
+export function computeCurrentEnergyFromState(state: { energy: number; lastEnergyUpdate: string | null; energyDepletionCount?: number }): number {
+  const regenMs = getEnergyRegenMs(state.energyDepletionCount ?? 0);
+  return computeCurrentEnergy(state.energy, state.lastEnergyUpdate, regenMs);
+}
+
+/** How many ms until ENERGY_COST energy is available. Returns 0 if already enough. */
+export function msUntilEnergy(stored: number, lastUpdate: string | null, needed = ENERGY_COST, regenMs?: number): number {
+  const r       = regenMs ?? getEnergyRegenMs(0);
+  const current = computeCurrentEnergy(stored, lastUpdate, r);
   if (current >= needed) return 0;
-  const deficit = needed - current;
+  const deficit   = needed - current;
   const elapsedMs = lastUpdate ? Date.now() - new Date(lastUpdate).getTime() : 0;
-  const usedMs = elapsedMs % ENERGY_REGEN_MS;
-  return deficit * ENERGY_REGEN_MS - usedMs;
+  const usedMs    = elapsedMs % r;
+  return deficit * r - usedMs;
+}
+
+/** Wrapper qui lit le regenMs depuis l'état. */
+export function msUntilEnergyFromState(state: { energy: number; lastEnergyUpdate: string | null; energyDepletionCount?: number }): number {
+  const regenMs = getEnergyRegenMs(state.energyDepletionCount ?? 0);
+  return msUntilEnergy(state.energy, state.lastEnergyUpdate, ENERGY_COST, regenMs);
 }
 
 export const gameStorage = {
@@ -129,8 +154,16 @@ export const gameStorage = {
       if (!raw) return { ...DEFAULT_STATE };
       const saved = JSON.parse(raw) as Partial<GameState>;
       const base  = { ...DEFAULT_STATE, ...saved };
-      // Recompute energy based on elapsed time
-      const currentEnergy = computeCurrentEnergy(base.energy ?? ENERGY_MAX, base.lastEnergyUpdate);
+      // Recompute energy based on elapsed time (avec le bon regenMs)
+      const today = new Date().toISOString().slice(0, 10);
+      const sameDay = base.energyDepletionDate === today;
+      const depletionCount = sameDay ? (base.energyDepletionCount ?? 0) : 0;
+      if (!sameDay && base.energyDepletionCount) {
+        base.energyDepletionCount = 0; // reset minuit
+        base.energyDepletionDate  = null;
+      }
+      const regenMs = getEnergyRegenMs(depletionCount);
+      const currentEnergy = computeCurrentEnergy(base.energy ?? ENERGY_MAX, base.lastEnergyUpdate, regenMs);
       if (currentEnergy !== (base.energy ?? ENERGY_MAX)) {
         base.energy = currentEnergy;
         base.lastEnergyUpdate = new Date().toISOString();
@@ -269,10 +302,28 @@ export const gameStorage = {
   },
 
   spendEnergy(amount = ENERGY_COST): boolean {
-    const state   = this.get();
-    const current = computeCurrentEnergy(state.energy, state.lastEnergyUpdate);
+    const state = this.get();
+    const today = new Date().toISOString().slice(0, 10);
+
+    // Reset déplétion à minuit
+    const sameDay        = state.energyDepletionDate === today;
+    const depletionCount = sameDay ? (state.energyDepletionCount ?? 0) : 0;
+    const regenMs        = getEnergyRegenMs(depletionCount);
+
+    const current = computeCurrentEnergy(state.energy, state.lastEnergyUpdate, regenMs);
     if (current < amount) return false;
-    const updated = { ...state, energy: current - amount, lastEnergyUpdate: new Date().toISOString() };
+
+    const newEnergy = current - amount;
+    // Incrémenter depletionCount si énergie atteint 0
+    const newCount = newEnergy === 0 ? depletionCount + 1 : depletionCount;
+
+    const updated = {
+      ...state,
+      energy:               newEnergy,
+      lastEnergyUpdate:     new Date().toISOString(),
+      energyDepletionCount: newCount,
+      energyDepletionDate:  today,
+    };
     this.save(updated);
     return true;
   },

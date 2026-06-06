@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Scissors, Shield, Zap, Snowflake } from "lucide-react";
 import { useGameState } from "@/hooks/useGameState";
-import { gameStorage, computeCurrentEnergy, ENERGY_MAX } from "@/lib/game/game-storage";
+import { gameStorage, computeCurrentEnergy, computeCurrentEnergyFromState, ENERGY_MAX } from "@/lib/game/game-storage";
 import { POWERUPS } from "@/lib/game/powerups";
 import { springTap } from "@/lib/motion";
 import type { PowerUpType } from "@/lib/game/types";
@@ -173,7 +173,7 @@ export default function ShopPage() {
   const coins    = state?.coins ?? 0;
   const chests   = state?.chestsAvailable ?? 0;
   const powerups = state?.powerupCounts ?? {};
-  const energy   = computeCurrentEnergy(state?.energy ?? ENERGY_MAX, state?.lastEnergyUpdate ?? null);
+  const energy   = computeCurrentEnergyFromState({ energy: state?.energy ?? ENERGY_MAX, lastEnergyUpdate: state?.lastEnergyUpdate ?? null, energyDepletionCount: state?.energyDepletionCount });
 
   const buyEnergy = useCallback((amount: number, cost: number) => {
     if (coins < cost) { showToast("Pièces insuffisantes"); return; }

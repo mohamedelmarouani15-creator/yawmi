@@ -1,6 +1,6 @@
 "use client";
 
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, CheckCircle2, XCircle, Scissors, Shield, Zap, Snowflake, Trophy, Coins, Swords } from "lucide-react";
@@ -210,10 +210,8 @@ export default function QuizPage() {
   const isRtl = lang === "ar";
   const { state, refresh } = useGameState();
 
-  // Read ?theme= from URL (set by /oasis/[lieu] theme selection)
-  const searchParams = typeof window !== "undefined"
-    ? new URLSearchParams(window.location.search)
-    : new URLSearchParams();
+  // Read ?theme= from URL via Next.js hook (window.location.search pas fiable en App Router)
+  const searchParams  = useSearchParams();
   const themeCategory = searchParams.get("theme") ?? undefined;
 
   const {

@@ -125,11 +125,7 @@ export function useQuiz(locationId: string, themeCategory?: string) {
     const freshState = gameStorage.get();
     const settings   = storage.getSettings();
 
-    // Energy gate (free during Ramadan night)
-    const seasonBonuses = getEventBonuses();
-    const energyFree = seasonBonuses.freeEnergyNight;
-    const spent = energyFree || gameStorage.spendEnergy(ENERGY_COST);
-    if (!spent) { setNoEnergy(true); return; }
+    // Énergie supprimée — pas de gate
     setNoEnergy(false);
 
     // Stage-aware difficulty — prestige overrides to max, age group caps difficulty

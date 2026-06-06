@@ -6,7 +6,6 @@ import { ArrowLeft, Swords, Trophy, Lock, Star, BookOpen } from "lucide-react";
 import { useGameState } from "@/hooks/useGameState";
 import { getLocation } from "@/lib/game/locations";
 import { getSageForLocation } from "@/lib/game/sages";
-import { computeCurrentEnergyFromState, msUntilEnergyFromState, ENERGY_MAX, ENERGY_COST } from "@/lib/game/game-storage";
 import { currentStageIndex, getStageConfig, stagesDone, LOCATION_STORY_ARCS } from "@/lib/game/stages";
 import { springTap } from "@/lib/motion";
 import { useT } from "@/hooks/useT";
@@ -38,10 +37,10 @@ export default function LieuPage() {
   const location    = getLocation(lieu);
   const sage        = getSageForLocation(lieu);
   const unlocked    = locationUnlocked(lieu);
-  const energy      = computeCurrentEnergyFromState({ energy: state?.energy ?? ENERGY_MAX, lastEnergyUpdate: state?.lastEnergyUpdate ?? null, energyDepletionCount: state?.energyDepletionCount });
-  const hasEnergy   = energy >= ENERGY_COST;
-  const waitMs      = msUntilEnergyFromState({ energy: state?.energy ?? ENERGY_MAX, lastEnergyUpdate: state?.lastEnergyUpdate ?? null, energyDepletionCount: state?.energyDepletionCount });
-  const waitMin     = Math.ceil(waitMs / 60000);
+  // energy system removed
+  const hasEnergy = true; // energy removed
+  // waitMs removed
+  // waitMin removed
   const stagesDoneN = stagesDone(state?.locationStages ?? {}, lieu);
   const stageIdx    = currentStageIndex(state?.locationStages ?? {}, lieu);
   const stageCfg    = getStageConfig(stageIdx);
@@ -257,32 +256,13 @@ export default function LieuPage() {
               {mastered ? "Maîtrisé" : stageCfg.name}
             </p>
           </div>
-          <div className="flex-1 rounded-2xl border px-4 py-3 text-center"
-            style={{ background: "rgba(255,255,255,0.04)", borderColor: hasEnergy ? "rgba(255,255,255,0.1)" : "rgba(248,113,113,0.3)" }}>
-            <div className="flex items-center justify-center gap-1 mb-0.5">
-              <span className="text-sm">⚡</span>
-              <span className="text-lg font-black"
-                style={{ color: hasEnergy ? "var(--text)" : "#f87171", fontFamily: "var(--font-bricolage)" }}>
-                {energy}/{ENERGY_MAX}
-              </span>
-            </div>
-            <p className="text-[9px] uppercase tracking-widest opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-              {hasEnergy ? `−${ENERGY_COST} par quiz` : `${waitMin} min`}
-            </p>
-          </div>
+          {/* ⚡ énergie supprimée */}
         </motion.div>
 
         {/* Theme grid — 7 themes to validate before next city */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
           className="w-full max-w-sm flex flex-col gap-3 pb-8">
 
-          {/* Energy indicator */}
-          {!hasEnergy && (
-            <div className="rounded-2xl py-2.5 text-sm text-center"
-              style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.25)", fontFamily: "var(--font-dm-sans)" }}>
-              <span className="text-xs font-black" style={{ color: "#f87171" }}>⚡ Énergie épuisée — recharge dans {waitMin} min</span>
-            </div>
-          )}
 
           {/* Progression globale de la ville */}
           {state && (() => {

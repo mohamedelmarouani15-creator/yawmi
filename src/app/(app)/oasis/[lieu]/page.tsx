@@ -67,55 +67,9 @@ export default function LieuPage() {
   const locationCountry = pick(locT, lang, "country",     lang === "ar" ? (location.countryAr  ?? location.country)     : location.country);
   const locationDesc    = pick(locT, lang, "description", lang === "ar" ? (location.descriptionAr ?? location.description) : location.description);
 
-  // ── Terminal cities (Médine / La Mecque) ─────────────────────
-  if (!sage) {
-    return (
-      <div className="relative flex flex-col items-center justify-center px-6 text-center"
-        style={{ minHeight: "100dvh", background: "#020a05", overflow: "hidden" }}>
-        {/* Atmospheric bg */}
-        <div className="pointer-events-none absolute inset-0"
-          style={{ background: `radial-gradient(ellipse 80% 60% at 50% 30%, ${color}20 0%, transparent 70%)` }} />
-
-        <motion.button onClick={() => router.back()} whileTap={{ scale: 0.9 }}
-          className="absolute top-12 left-5 flex h-10 w-10 items-center justify-center rounded-full border"
-          style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(248,244,236,0.5)" }}>
-          <ArrowLeft size={16} />
-        </motion.button>
-
-        <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
-          className="text-6xl mb-4" style={{ fontFamily: "var(--font-amiri)", color }}>
-          {lieu === "la_mecque" ? "مكة المكرمة" : "المدينة المنورة"}
-        </motion.p>
-
-        <motion.h1 initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
-          className="text-2xl font-black mb-2" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-          {locationName}
-        </motion.h1>
-
-        <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
-          className="text-sm opacity-55 leading-relaxed max-w-xs mb-10" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          {locationDesc}
-        </motion.p>
-
-        {lieu === "medine" && (
-          <motion.button initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-            onClick={() => router.push("/oasis/quiz/medine")} whileTap={{ scale: 0.96 }}
-            className="rounded-full px-10 py-4 text-base font-black w-full max-w-xs"
-            style={{ background: `linear-gradient(135deg,${color},#055C3F)`, color: "#0a0f0d",
-              fontFamily: "var(--font-bricolage)", boxShadow: `0 4px 28px ${color}55` }}>
-            <Swords size={18} className="inline mr-2" />{tt("lieu.start")}
-          </motion.button>
-        )}
-
-        <motion.button initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
-          onClick={() => router.back()} whileTap={{ scale: 0.95 }}
-          className="mt-4 rounded-full px-6 py-2.5 text-sm"
-          style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
-          ← {tt("lieu.backMap")}
-        </motion.button>
-      </div>
-    );
-  }
+  // ── Terminal cities sans sage (Médine, La Mecque) ───────────
+  // Elles utilisent le même layout que les autres villes avec la grille de thèmes.
+  // Pas de early-return ici — on tombe dans le bloc principal ci-dessous.
 
   // ── Locked ───────────────────────────────────────────────────
   if (!unlocked) {
@@ -210,70 +164,83 @@ export default function LieuPage() {
           </span>
         </motion.div>
 
-        {/* Sage portrait — large, centered */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.85, y: 20 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ type: "spring", stiffness: 200, damping: 22, delay: 0.1 }}
-          className="relative mb-5"
-          style={{ filter: `drop-shadow(0 0 30px ${color}66) drop-shadow(0 0 60px ${color}33)` }}
-        >
-          {/* Glow ring */}
-          <motion.div className="absolute -inset-4 rounded-full"
-            style={{ background: `radial-gradient(circle, ${color}18 0%, transparent 70%)` }}
-            animate={{ scale: [1, 1.05, 1] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <SagePortrait sageId={sage.portrait} color={color} size={140} />
+        {/* Hero section : sage si dispo, sinon nom de la ville */}
+        {sage ? (
+          <>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.85, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 200, damping: 22, delay: 0.1 }}
+              className="relative mb-5"
+              style={{ filter: `drop-shadow(0 0 30px ${color}66) drop-shadow(0 0 60px ${color}33)` }}
+            >
+              <motion.div className="absolute -inset-4 rounded-full"
+                style={{ background: `radial-gradient(circle, ${color}18 0%, transparent 70%)` }}
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <SagePortrait sageId={sage.portrait} color={color} size={140} />
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+                className="absolute -bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-[9px] font-bold uppercase tracking-widest"
+                style={{ background: `${color}22`, color, border: `1px solid ${color}44`, backdropFilter: "blur(8px)" }}>
+                {sage.specialty}
+              </motion.div>
+            </motion.div>
 
-          {/* Specialty badge */}
-          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-            className="absolute -bottom-3 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-3 py-1 text-[9px] font-bold uppercase tracking-widest"
-            style={{ background: `${color}22`, color, border: `1px solid ${color}44`, backdropFilter: "blur(8px)" }}>
-            {sage.specialty}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+              className="text-center mt-5 mb-3">
+              <h1 className="text-3xl font-black mb-1" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)", letterSpacing: "-0.02em" }}>
+                {sageName}
+              </h1>
+              <p className="text-sm font-semibold" style={{ color: `${color}cc`, fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-dm-sans)" }}>
+                {sageTitle}
+              </p>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+              className="mx-auto max-w-sm text-center mb-6 px-2">
+              <p className="text-sm leading-relaxed opacity-60 italic"
+                style={{ color: "var(--text)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-dm-sans)", direction: isRtl ? "rtl" : "ltr" }}>
+                &ldquo;{defeated ? sageSuccess : sageIntro}&rdquo;
+              </p>
+            </motion.div>
+
+            <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+              className="flex gap-2 mb-4">
+              {[1, 2, 3].map(s => (
+                <div key={s} className="flex flex-col items-center gap-1">
+                  <div className="rounded-xl px-3 py-2 text-center"
+                    style={{
+                      background: stagesDoneN >= s ? `${color}22` : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${stagesDoneN >= s ? color : "rgba(255,255,255,0.08)"}`,
+                      minWidth: 72,
+                    }}>
+                    <span className="text-base">{stagesDoneN >= s ? "★" : "☆"}</span>
+                    <p className="text-[9px] font-bold mt-0.5 uppercase tracking-wider"
+                      style={{ color: stagesDoneN >= s ? color : "rgba(248,244,236,0.3)", fontFamily: "var(--font-dm-sans)" }}>
+                      {["Découverte","Épreuve","Maîtrise"][s - 1]}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </motion.div>
+          </>
+        ) : (
+          /* Ville sans sage (Médine, La Mecque) — affiche le nom + description */
+          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+            className="text-center mb-8 mt-4 px-2">
+            <p className="text-5xl mb-3" style={{ color, fontFamily: "var(--font-amiri)" }}>
+              {lieu === "la_mecque" ? "مكة المكرمة" : lieu === "medine" ? "المدينة المنورة" : location.name}
+            </p>
+            <h1 className="text-2xl font-black mb-2" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+              {locationName}
+            </h1>
+            <p className="text-sm opacity-55 leading-relaxed max-w-xs mx-auto"
+              style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              {locationDesc}
+            </p>
           </motion.div>
-        </motion.div>
-
-        {/* Sage name + title */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          className="text-center mt-5 mb-3">
-          <h1 className="text-3xl font-black mb-1" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)", letterSpacing: "-0.02em" }}>
-            {sageName}
-          </h1>
-          <p className="text-sm font-semibold" style={{ color: `${color}cc`, fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-dm-sans)" }}>
-            {sageTitle}
-          </p>
-        </motion.div>
-
-        {/* Dialogue quote */}
-        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-          className="mx-auto max-w-sm text-center mb-6 px-2">
-          <p className="text-sm leading-relaxed opacity-60 italic"
-            style={{ color: "var(--text)", fontFamily: isRtl ? "var(--font-amiri)" : "var(--font-dm-sans)", direction: isRtl ? "rtl" : "ltr" }}>
-            &ldquo;{defeated ? sageSuccess : sageIntro}&rdquo;
-          </p>
-        </motion.div>
-
-        {/* Stage progress stars */}
-        <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-          className="flex gap-2 mb-4">
-          {[1, 2, 3].map(s => (
-            <div key={s} className="flex flex-col items-center gap-1">
-              <div className="rounded-xl px-3 py-2 text-center"
-                style={{
-                  background: stagesDoneN >= s ? `${color}22` : "rgba(255,255,255,0.04)",
-                  border: `1px solid ${stagesDoneN >= s ? color : "rgba(255,255,255,0.08)"}`,
-                  minWidth: 72,
-                }}>
-                <span className="text-base">{stagesDoneN >= s ? "★" : "☆"}</span>
-                <p className="text-[9px] font-bold mt-0.5 uppercase tracking-wider"
-                  style={{ color: stagesDoneN >= s ? color : "rgba(248,244,236,0.3)", fontFamily: "var(--font-dm-sans)" }}>
-                  {["Découverte","Épreuve","Maîtrise"][s - 1]}
-                </p>
-              </div>
-            </div>
-          ))}
-        </motion.div>
+        )}
 
         {/* Current stage info + battle stats */}
         <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
@@ -283,7 +250,7 @@ export default function LieuPage() {
             <div className="flex items-center justify-center gap-1 mb-0.5">
               <Star size={12} fill={color} style={{ color }} />
               <span className="text-lg font-black" style={{ color, fontFamily: "var(--font-bricolage)" }}>
-                {mastered ? sage.victoryRequirement : stageCfg.victoryReq}/10
+                {mastered ? (sage?.victoryRequirement ?? stageCfg.victoryReq) : stageCfg.victoryReq}/10
               </span>
             </div>
             <p className="text-[9px] uppercase tracking-widest opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
@@ -397,7 +364,7 @@ export default function LieuPage() {
           {mastered && (
             <div className="flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-bold mt-1"
               style={{ background: `${color}15`, color, fontFamily: "var(--font-dm-sans)", border: `1px solid ${color}35` }}>
-              <Trophy size={14} /> {sage.name} vaincu — Ville maîtrisée
+              <Trophy size={14} /> {sage ? `${sage.name} vaincu — ` : ""}Ville maîtrisée
             </div>
           )}
         </motion.div>

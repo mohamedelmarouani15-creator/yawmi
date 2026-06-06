@@ -50,7 +50,7 @@ Réponds UNIQUEMENT en JSON valide :
         "X-Title":       "Yawmi Arabic Learning",
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-3.2-11b-vision-instruct:free",
+        model: "nvidia/nemotron-nano-12b-v2-vl:free",
         messages: [{
           role: "user",
           content: [

@@ -26,6 +26,7 @@ const T: Record<AppLang, Record<string, string>> = {
     "nav.home": "Accueil", "nav.prayers": "Prières", "nav.oasis": "Oasis",
     "nav.history": "Histoire", "nav.family": "Famille", "nav.quran": "Coran",
     "nav.dhikr": "Dhikr", "nav.azkar": "Azkar", "nav.play": "Jouer", "nav.stories": "Histoires",
+    "nav.arabe": "Arabe",
 
     // Communs
     "common.saved": "✓ Sauvegardé", "common.continue": "Continuer",
@@ -239,6 +240,7 @@ const T: Record<AppLang, Record<string, string>> = {
     "nav.home": "الرئيسية", "nav.prayers": "الصلوات", "nav.oasis": "الواحة",
     "nav.history": "التاريخ", "nav.family": "العائلة", "nav.quran": "القرآن",
     "nav.dhikr": "الذكر", "nav.azkar": "الأذكار", "nav.play": "العب", "nav.stories": "القصص",
+    "nav.arabe": "العربية",
 
     "common.saved": "✓ تم الحفظ", "common.continue": "المتابعة",
     "common.back": "رجوع", "common.greeting": "السلام عليكم",

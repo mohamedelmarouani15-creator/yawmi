@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { Home, Compass, BookOpen, Users } from "lucide-react";
+import { Home, Compass, BookOpen, Users, GraduationCap } from "lucide-react";
 import { useSettings } from "@/hooks/useSettings";
 import { useT } from "@/hooks/useT";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
@@ -13,11 +13,11 @@ import type React from "react";
 type NavKey = { href: string; labelKey: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number }> };
 
 const NAV_DEFAULT: NavKey[] = [
-  { href: "/accueil",  labelKey: "nav.home",    Icon: Home       },
-  { href: "/prieres",  labelKey: "nav.prayers", Icon: CrescentStar },
-  { href: "/oasis",    labelKey: "nav.oasis",   Icon: Compass    },
-  { href: "/histoire", labelKey: "nav.history", Icon: BookOpen   },
-  { href: "/famille",  labelKey: "nav.family",  Icon: Users      },
+  { href: "/accueil",  labelKey: "nav.home",    Icon: Home          },
+  { href: "/prieres",  labelKey: "nav.prayers", Icon: CrescentStar  },
+  { href: "/oasis",    labelKey: "nav.oasis",   Icon: Compass       },
+  { href: "/arabe",    labelKey: "nav.arabe",   Icon: GraduationCap },
+  { href: "/histoire", labelKey: "nav.history", Icon: BookOpen      },
 ];
 
 const NAV_KIDS: NavKey[] = [

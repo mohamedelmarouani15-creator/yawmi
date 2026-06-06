@@ -2,22 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import { createClient } from "@supabase/supabase-js";
 
-// ── Levenshtein distance (character level — used per-word) ────────
+// ── Levenshtein (character level, used per word) ──────────────────
 function levenshtein(a: string, b: string): number {
   const matrix: number[][] = Array(b.length + 1)
     .fill(null)
     .map(() => Array(a.length + 1).fill(0));
-
   for (let i = 0; i <= a.length; i++) matrix[0][i] = i;
   for (let j = 0; j <= b.length; j++) matrix[j][0] = j;
-
   for (let j = 1; j <= b.length; j++) {
     for (let i = 1; i <= a.length; i++) {
-      const indicator = a[i - 1] === b[j - 1] ? 0 : 1;
+      const ind = a[i - 1] === b[j - 1] ? 0 : 1;
       matrix[j][i] = Math.min(
         matrix[j][i - 1] + 1,
         matrix[j - 1][i] + 1,
-        matrix[j - 1][i - 1] + indicator,
+        matrix[j - 1][i - 1] + ind,
       );
     }
   }
@@ -25,23 +23,15 @@ function levenshtein(a: string, b: string): number {
 }
 
 // ── Arabic normalization ─────────────────────────────────────────
-// Whisper unifies alef variants, drops diacritics, normalizes ta-marbuta.
-// We apply the same transforms to `expected` so comparison is fair.
 function stripDiacritics(s: string): string {
-  // U+064B–U+065F tashkil, U+0670 superscript alef, U+06D6-U+06DC quranic marks
-  return s.replace(/[ً-ٰٟۖ-ۜ۟-۪ۤۧۨ-ۭ]/g, "");
+  return s.replace(/[ً-ٰٟۖ-ۜ۟-۪ۤۧۨ-ۭ]/g, "");
 }
 
 function normalizeArabic(s: string): string {
   return s
-    // Alef variants → bare alef
-    .replace(/[أإآٱاى]/g, "ا")   // أإآٱاى → ا
-    // Alef maqsura → ya (Whisper sometimes uses ya where text has alef maqsura)
-    // ta marbuta → ha (Whisper often drops the dots)
-    .replace(/ة/g, "ه")                                    // ة → ه
-    // Remove tatweel (kashida)
-    .replace(/ـ/g, "")
-    // Normalize whitespace
+    .replace(/[أإآٱاى]/g, "ا")  // alef variants → bare alef
+    .replace(/ة/g, "ه")          // ta marbuta → ha
+    .replace(/ـ/g, "")            // remove kashida
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -50,79 +40,164 @@ function normalize(s: string): string {
   return normalizeArabic(stripDiacritics(s));
 }
 
-// ── Word-level scoring ────────────────────────────────────────────
-// Each expected word scores 1 (exact), 0.5 (close variant), 0 (wrong/missing).
-// This makes one wrong word matter regardless of verse length.
-function calcScore(transcribed: string, expected: string): number {
-  const raw = transcribed.trim();
-  if (!raw) return 0;
+// ── Arabic phonetic similarity bonus ─────────────────────────────
+// Confusing phonetically similar letters (ذ/ز, ث/س, ح/ه, ع/أ etc.)
+// is a lesser error than confusing completely different letters.
+// Returns 0-0.3 bonus added to raw character similarity.
+const PHONETIC_PAIRS: [string, string][] = [
+  ["ذ", "ز"], ["ذ", "ض"], ["ض", "ز"],
+  ["ث", "س"], ["ث", "ص"], ["س", "ص"],
+  ["ح", "ه"], ["ح", "خ"],
+  ["ع", "غ"], ["ق", "ك"],
+  ["ظ", "ض"], ["ظ", "ذ"],
+  ["ط", "ت"], ["د", "ذ"],
+];
 
-  const tWords = normalize(transcribed).split(" ").filter(Boolean);
-  const eWords = normalize(expected).split(" ").filter(Boolean);
-
-  if (eWords.length === 0) return 0;
-  if (normalize(transcribed) === normalize(expected)) return 100;
-
-  let points = 0;
-
-  for (let i = 0; i < eWords.length; i++) {
-    const tw = tWords[i] ?? "";
-    const ew = eWords[i];
-
-    if (tw === ew) {
-      points += 1;
-      continue;
-    }
-
-    if (tw) {
-      const dist = levenshtein(tw, ew);
-      const maxLen = Math.max(tw.length, ew.length, 1);
-      const similarity = 1 - dist / maxLen;
-      // ≥70% similar → half credit (minor mispronunciation / variant)
-      if (similarity >= 0.7) points += 0.5;
-      // else 0 — clearly wrong word
-    }
-    // missing word = 0 points
+function phoneticBonus(a: string, b: string): number {
+  if (a === b) return 0;
+  if (a.length !== 1 || b.length !== 1) return 0;
+  for (const [x, y] of PHONETIC_PAIRS) {
+    if ((a === x && b === y) || (a === y && b === x)) return 0.25;
   }
-
-  // Small penalty for extra words (Whisper hallucination / added bismillah)
-  const extraWords = Math.max(0, tWords.length - eWords.length);
-  const penalty = Math.min(extraWords * 0.5, eWords.length * 0.2);
-
-  const raw_score = (points - penalty) / eWords.length;
-  return Math.max(0, Math.round(raw_score * 100));
+  return 0;
 }
 
-// ── Word-level diff ──────────────────────────────────────────────
+// ── Word similarity (continuous 0.0–1.0) ─────────────────────────
+// Character-level similarity adjusted for Arabic phonetics.
+function wordSim(a: string, b: string): number {
+  if (a === b) return 1.0;
+  if (!a || !b) return 0.0;
+
+  const maxLen = Math.max(a.length, b.length);
+  const charSim = 1 - levenshtein(a, b) / maxLen;
+
+  // Phonetic bonus: check if single-letter difference is a phonetic pair
+  const diffCount = levenshtein(a, b);
+  let bonus = 0;
+  if (diffCount === 1 && a.length === b.length) {
+    for (let i = 0; i < a.length; i++) {
+      if (a[i] !== b[i]) { bonus = phoneticBonus(a[i], b[i]); break; }
+    }
+  }
+
+  return Math.min(1.0, charSim + bonus * (1 - charSim));
+}
+
+// ── Precision scoring via Needleman-Wunsch alignment ─────────────
+// Aligns transcribed words to expected words optimally.
+// Handles skipped words (missing), extra words (hallucination), reorder.
+// Returns score 0.0–100.0 with one decimal precision.
+
+const GAP_PENALTY = 0.15; // penalty per extra transcribed word
+
+function calcScore(transcribed: string, expected: string): number {
+  if (!transcribed.trim()) return 0;
+
+  const tW = normalize(transcribed).split(" ").filter(Boolean);
+  const eW = normalize(expected).split(" ").filter(Boolean);
+
+  if (eW.length === 0) return 0;
+  if (normalize(transcribed) === normalize(expected)) return 100;
+
+  const E = eW.length;
+  const T = tW.length;
+
+  // dp[i][j] = best cumulative score using eW[0..i-1] and tW[0..j-1]
+  const dp: number[][] = Array.from({ length: E + 1 }, () => new Array(T + 1).fill(0));
+
+  // Penalty for unused transcribed words at the start
+  for (let j = 1; j <= T; j++) dp[0][j] = dp[0][j - 1] - GAP_PENALTY;
+
+  for (let i = 1; i <= E; i++) {
+    for (let j = 0; j <= T; j++) {
+      // Skip expected word (missing) — no gain, no penalty
+      const skipE = dp[i - 1][j];
+
+      if (j === 0) { dp[i][j] = skipE; continue; }
+
+      // Skip transcribed word (extra/hallucinated) — small penalty
+      const skipT = dp[i][j - 1] - GAP_PENALTY;
+
+      // Match expected word i with transcribed word j
+      const sim   = wordSim(eW[i - 1], tW[j - 1]);
+      const match = dp[i - 1][j - 1] + sim;
+
+      dp[i][j] = Math.max(skipE, skipT, match);
+    }
+  }
+
+  // Score = aligned_score / E (max possible = E words × 1.0 each)
+  const raw = dp[E][T] / E;
+  return Math.max(0, Math.min(100, Math.round(raw * 1000) / 10)); // 1 decimal
+}
+
+// ── Word error detection (backtrack alignment) ───────────────────
 interface WordError {
   word: string;
-  position: number;
-  suggestion: string;
+  position: number;       // index in expected
+  suggestion: string;     // original expected word (with tashkil)
+  similarity: number;     // 0-100
 }
 
 function compareWords(transcribed: string, expected: string): WordError[] {
-  const tWords = normalize(transcribed).split(" ").filter(Boolean);
-  const eWords = normalize(expected).split(" ").filter(Boolean);
+  const tW   = normalize(transcribed).split(" ").filter(Boolean);
+  const eW   = normalize(expected).split(" ").filter(Boolean);
+  // Keep original expected words (with tashkil) for suggestions
+  const eOrig = stripDiacritics(expected).split(/\s+/).filter(Boolean);
   const errors: WordError[] = [];
 
-  for (let i = 0; i < eWords.length; i++) {
-    const tw = tWords[i] ?? "";
-    const ew = eWords[i];
+  const E = eW.length;
+  const T = tW.length;
 
-    if (tw === ew) continue;
+  // DP (same as calcScore)
+  const dp: number[][] = Array.from({ length: E + 1 }, () => new Array(T + 1).fill(0));
+  for (let j = 1; j <= T; j++) dp[0][j] = dp[0][j - 1] - GAP_PENALTY;
+  for (let i = 1; i <= E; i++) {
+    for (let j = 0; j <= T; j++) {
+      const skipE = dp[i - 1][j];
+      if (j === 0) { dp[i][j] = skipE; continue; }
+      const skipT = dp[i][j - 1] - GAP_PENALTY;
+      const match = dp[i - 1][j - 1] + wordSim(eW[i - 1], tW[j - 1]);
+      dp[i][j] = Math.max(skipE, skipT, match);
+    }
+  }
 
-    const dist = tw ? levenshtein(tw, ew) : ew.length;
-    const maxLen = Math.max(tw.length, ew.length, 1);
+  // Backtrack to find alignment
+  let i = E, j = T;
+  const alignment: { ei: number; ti: number | null }[] = [];
 
-    // Report error if < 70% similar
-    if (dist / maxLen >= 0.3) {
+  while (i > 0 || j > 0) {
+    if (i > 0 && j > 0) {
+      const sim   = wordSim(eW[i - 1], tW[j - 1]);
+      const match = dp[i - 1][j - 1] + sim;
+      if (Math.abs(dp[i][j] - match) < 1e-9) {
+        alignment.unshift({ ei: i - 1, ti: j - 1 });
+        i--; j--; continue;
+      }
+    }
+    if (j > 0 && Math.abs(dp[i][j] - (dp[i][j - 1] - GAP_PENALTY)) < 1e-9) {
+      // extra transcribed word — skip
+      j--; continue;
+    }
+    // missing expected word
+    alignment.unshift({ ei: i - 1, ti: null });
+    i--;
+  }
+
+  for (const { ei, ti } of alignment) {
+    const tw  = ti !== null ? tW[ti] : "";
+    const ew  = eW[ei];
+    const sim = ti !== null ? wordSim(tw, ew) : 0;
+    if (sim < 0.9) {
       errors.push({
         word:       tw || "(manquant)",
-        position:   i,
-        suggestion: ew,
+        position:   ei,
+        suggestion: eOrig[ei] ?? ew,
+        similarity: Math.round(sim * 100),
       });
     }
   }
+
   return errors;
 }
 
@@ -131,12 +206,10 @@ interface TajwidIssue { type: string; position: number }
 
 function detectTajwidIssues(text: string): TajwidIssue[] {
   const issues: TajwidIssue[] = [];
-  const words = text.split(/\s+/);
-  words.forEach((word, idx) => {
-    if (/[قطبجد]/.test(word))              issues.push({ type: "qalqala", position: idx });
-    if (/[نم][ّ]/.test(word))         issues.push({ type: "ghunna",  position: idx });
-    if (/[آأإا][َُِ]|[وي](?=ْ)/.test(word))
-                                            issues.push({ type: "madd",    position: idx });
+  text.split(/\s+/).forEach((word, idx) => {
+    if (/[قطبجد]/.test(word))                      issues.push({ type: "qalqala", position: idx });
+    if (/[نم][ّ]/.test(word))                 issues.push({ type: "ghunna",  position: idx });
+    if (/[آأإا][َُِ]|[وي](?=ْ)/.test(word))  issues.push({ type: "madd",    position: idx });
   });
   return issues;
 }
@@ -168,7 +241,6 @@ export async function POST(req: NextRequest) {
     if (!audioBlob || !expected) {
       return NextResponse.json({ error: "audio et expected sont requis" }, { status: 400 });
     }
-
     if (audioBlob.size > 25 * 1024 * 1024) {
       return NextResponse.json({ error: "Audio trop volumineux (max 25 Mo)" }, { status: 413 });
     }
@@ -178,7 +250,6 @@ export async function POST(req: NextRequest) {
 
     const groq = new Groq({ apiKey });
 
-    // Prompt tells Whisper this is Quranic Arabic — improves transcription accuracy
     const transcription = await groq.audio.transcriptions.create({
       file:            audioBlob,
       model:           "whisper-large-v3-turbo",
@@ -192,20 +263,15 @@ export async function POST(req: NextRequest) {
     const errors        = compareWords(transcribed, expected);
     const tajwid_issues = detectTajwidIssues(expected);
 
-    // Debug info — always returned so UI can show what Whisper heard
     const debug = {
       transcribed_normalized: normalize(transcribed),
       expected_normalized:    normalize(expected),
+      word_count:             { transcribed: normalize(transcribed).split(" ").filter(Boolean).length,
+                                expected:    normalize(expected).split(" ").filter(Boolean).length },
     };
 
-    return NextResponse.json({
-      transcribed,
-      expected,
-      score,
-      errors,
-      tajwid_issues,
-      debug,
-    });
+    return NextResponse.json({ transcribed, expected, score, errors, tajwid_issues, debug });
+
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[quran/recite]", msg);

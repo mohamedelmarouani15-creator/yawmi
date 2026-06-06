@@ -18,6 +18,7 @@ interface WordError {
   word: string;
   position: number;
   suggestion: string;
+  similarity?: number; // 0-100 — precision per word
 }
 
 interface TajwidIssue {
@@ -479,7 +480,7 @@ function SegmentPhase({
                 <p className="text-xs opacity-70" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{fb.subtitle}</p>
               </div>
               <span className="ml-auto text-xs font-bold" style={{ color: fb.color, fontFamily: "var(--font-dm-sans)" }}>
-                {result.score}%
+                {Number(result.score).toFixed(1)}%
               </span>
             </div>
             {result.errors.length > 0 && result.score < 90 && (
@@ -628,9 +629,9 @@ function FullPhase({
       setCoaching(null);
       setShowCoach(true);
 
-      // SM-2 persist — fire-and-forget
+      // SM-2 persist — fire-and-forget (Supabase stores integer, round float score)
       const types = [...new Set(data.tajwid_issues.map((t: TajwidIssue) => t.type))];
-      saveRecitation(surahNumber, ayah.numberInSurah, data.score, types).catch(() => {});
+      saveRecitation(surahNumber, ayah.numberInSurah, Math.round(data.score), types).catch(() => {});
       onResult?.(data.score, types);
 
       // ── Chef Agent coaching — parallel sub-agents ─────────────
@@ -718,7 +719,7 @@ function FullPhase({
                 <p className="text-sm opacity-70" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>{fb.subtitle}</p>
               </div>
               <span className="ml-auto font-bold" style={{ color: fb.color, fontFamily: "var(--font-dm-sans)" }}>
-                {result.score}%
+                {Number(result.score).toFixed(1)}%
               </span>
             </div>
             {result.errors.length > 0 && result.score < 90 && (
@@ -728,6 +729,16 @@ function FullPhase({
                     <span className="opacity-50">{e.word || "(manquant)"}</span>
                     <span className="opacity-30">→</span>
                     <span style={{ color: "#22c55e", fontFamily: "var(--font-amiri)" }}>{e.suggestion}</span>
+                    {e.similarity !== undefined && (
+                      <span className="ml-auto text-[10px] rounded-full px-1.5 py-0.5"
+                        style={{
+                          background: e.similarity >= 70 ? "rgba(34,197,94,0.1)" : "rgba(239,68,68,0.1)",
+                          color: e.similarity >= 70 ? "#22c55e" : "#ef4444",
+                          fontFamily: "var(--font-dm-sans)",
+                        }}>
+                        {e.similarity}%
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>

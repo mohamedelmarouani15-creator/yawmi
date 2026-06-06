@@ -6,7 +6,7 @@ import { Volume2, Mic, PenLine, CheckCircle2, ChevronRight, RotateCcw } from "lu
 import type { Lesson } from "@/lib/arabe/curriculum";
 import PronunciationButton from "./PronunciationButton";
 import VoiceInput from "./VoiceInput";
-import ArabicWritingCanvas from "./ArabicWritingCanvas";
+import WritingPhotoCapture from "./WritingPhotoCapture";
 import { arabeProgress } from "@/lib/arabe/progress";
 
 type Step = "listen" | "repeat" | "write";
@@ -252,9 +252,11 @@ export default function PracticeMode({ lesson, color }: PracticeModeProps) {
 
           {step === "write" && (
             <div className="flex flex-col gap-3">
-              <ArabicWritingCanvas
+              <WritingPhotoCapture
                 letter={currentWord.arabic}
                 transliteration={currentWord.transliteration}
+                french={currentWord.french}
+                lessonId={lesson.id}
                 color={color}
                 onValidated={() => handleWriteValidated(wordIdx)}
               />

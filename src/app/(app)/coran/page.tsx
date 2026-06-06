@@ -267,8 +267,9 @@ export default function CoranPage() {
     load();
   }, []);
 
-  async function openSurah(n: number) {
+  async function openSurah(n: number, mode: "read" | "recite" | "guided" = "read") {
     setSelected(n); setAyahs([]); setTranslations([]); setLoading(true); setFetchError(false);
+    setRecitationMode(false);
     // Load SM-2 review count for this surah (non-blocking)
     getRecitationStats(n).then(s => setSurahDueCount(s.dueToday)).catch(() => {});
     try {
@@ -300,6 +301,8 @@ export default function CoranPage() {
     }
     setLoading(false);
     storage.saveReading({ surah: n, ayah: 1 });
+    if (mode === "recite") { setRecitationGuided(false); setRecitationMode(true); }
+    if (mode === "guided") { setRecitationGuided(true);  setRecitationMode(true); }
   }
 
   async function downloadOffline() {
@@ -694,25 +697,45 @@ export default function CoranPage() {
       ) : (
         <div className="flex flex-col gap-2">
           {surahs.map(s => (
-            <button key={s.number} onClick={() => openSurah(s.number)}
-              className="flex items-center gap-4 rounded-xl border px-4 py-3 text-left active:scale-[0.98]"
+            <div key={s.number}
+              className="flex items-center gap-2 rounded-xl border"
               style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}>
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
-                style={{ background: "var(--border-primary)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
-                {s.number}
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-semibold" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                  {s.englishName}
+              {/* Main tap area — opens for reading */}
+              <button
+                onClick={() => openSurah(s.number)}
+                className="flex flex-1 items-center gap-4 px-4 py-3 text-left active:opacity-70"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
+                  style={{ background: "var(--border-primary)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+                  {s.number}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-semibold" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                    {s.englishName}
+                  </p>
+                  <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                    {s.numberOfAyahs} versets
+                  </p>
+                </div>
+                <p className="text-base" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
+                  {s.name}
                 </p>
-                <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                  {s.numberOfAyahs} versets
-                </p>
-              </div>
-              <p className="text-base" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
-                {s.name}
-              </p>
-            </button>
+              </button>
+              {/* Mic button — opens directly for recitation */}
+              <button
+                onClick={(e) => { e.stopPropagation(); openSurah(s.number, isElder ? "guided" : "recite"); }}
+                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg mr-2"
+                style={{ background: "rgba(5,92,63,0.15)", border: "1px solid rgba(5,92,63,0.3)" }}
+                title="Pratiquer la récitation"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                  stroke="var(--gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" y1="19" x2="12" y2="22"/>
+                </svg>
+              </button>
+            </div>
           ))}
         </div>
       )}

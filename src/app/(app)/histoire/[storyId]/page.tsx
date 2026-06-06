@@ -47,7 +47,7 @@ export default function StoryChaptersPage() {
           .select("current_chapter, completed_chapters")
           .eq("user_id", session.user.id)
           .eq("story_id", storyId)
-          .single(),
+          .maybeSingle(),
       ]);
 
       setChapters((chaps ?? []) as unknown as ChapterMeta[]);

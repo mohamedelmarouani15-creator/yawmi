@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       .select("completed_chapters, current_chapter")
       .eq("user_id", user.id)
       .eq("story_id", storyId)
-      .single();
+      .maybeSingle();
 
     const completed = existing?.completed_chapters ?? [];
     const already   = completed.includes(chapterNumber);
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
       .select("rewards")
       .eq("story_id", storyId)
       .eq("chapter_number", chapterNumber)
-      .single();
+      .maybeSingle();
 
     if (chapter?.rewards && !already) {
       const rewards = chapter.rewards as { xp?: number; coins?: number; mosque_object?: string; location_unlock?: string };

@@ -1,7 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 
 export async function GET() {
-  return NextResponse.json({ status: "ok", provider: "OpenRouter — qwen/qwen-2.5-vl-7b-instruct:free" });
+  const apiKey = process.env.OPENROUTER_API_KEY;
+  if (!apiKey) return NextResponse.json({ error: "OPENROUTER_API_KEY manquante" });
+  const res  = await fetch("https://openrouter.ai/api/v1/models", {
+    headers: { "Authorization": `Bearer ${apiKey}` },
+  });
+  const data = await res.json();
+  // Filtre : gratuits + supportent vision (image dans input modalities)
+  const free = (data.data ?? [])
+    .filter((m: { id: string; pricing: { prompt: string }; architecture?: { modalities?: string[] } }) =>
+      m.id.endsWith(":free") &&
+      (m.architecture?.modalities?.includes("image") || m.id.includes("vision") || m.id.includes("vl"))
+    )
+    .map((m: { id: string }) => m.id);
+  return NextResponse.json({ free_vision_models: free });
 }
 
 export async function POST(req: NextRequest) {

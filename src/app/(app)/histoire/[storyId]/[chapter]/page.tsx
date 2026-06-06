@@ -321,6 +321,21 @@ export default function ChapterPage() {
     setPhase("reward");
   }, [data, storyId, chapterN]); // eslint-disable-line
 
+  // ⚠️ useEffect DOIT être avant tout return conditionnel (Rules of Hooks)
+  // Meta SEO — data peut être null (gardé avant les returns conditionnels)
+  useEffect(() => {
+    if (!data) return;
+    document.title = `${data.title} — La Grande Histoire · Yawmi`;
+    let metaDesc = document.querySelector<HTMLMetaElement>('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement("meta");
+      metaDesc.name = "description";
+      document.head.appendChild(metaDesc);
+    }
+    metaDesc.content = `Chapitre ${chapterN} : ${data.title}. ${data.narrative.slice(0, 120)}…`;
+    return () => { document.title = "Yawmi"; };
+  }, [data, chapterN]);
+
   if (loading) return (
     <div className="flex min-h-screen items-center justify-center" style={{ background: "var(--bg)" }}>
       <motion.div
@@ -437,19 +452,6 @@ export default function ChapterPage() {
     );
   }
 
-  // Meta SEO dynamique via document
-  useEffect(() => {
-    if (!data) return;
-    document.title = `${data.title} — La Grande Histoire · Yawmi`;
-    let metaDesc = document.querySelector<HTMLMetaElement>('meta[name="description"]');
-    if (!metaDesc) {
-      metaDesc = document.createElement("meta");
-      metaDesc.name = "description";
-      document.head.appendChild(metaDesc);
-    }
-    metaDesc.content = `Chapitre ${chapterN} : ${data.title}. ${data.narrative.slice(0, 120)}…`;
-    return () => { document.title = "Yawmi"; };
-  }, [data, chapterN]);
 
   return (
     <>

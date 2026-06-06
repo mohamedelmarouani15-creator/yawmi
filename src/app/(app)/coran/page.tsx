@@ -9,6 +9,7 @@ import { ArrowLeft, BookOpen, Bookmark, BookmarkCheck, Download, Loader2, Moon, 
 import QuranPlayer from "@/components/QuranPlayer";
 import SleepModeOverlay, { type SleepOption } from "@/components/SleepModeOverlay";
 import HifzMode, { getTotalMasteredCount } from "@/components/HifzMode";
+import RecitationMode from "@/components/RecitationMode";
 import { gameStorage } from "@/lib/game/game-storage";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 
@@ -92,7 +93,8 @@ export default function CoranPage() {
   const [playingAyah,  setPlayingAyah] = useState(1);
   const [showPlayer,   setShowPlayer]  = useState(false);
   const [favs,         setFavs]        = useState<Set<string>>(new Set());
-  const [hifzMode,     setHifzMode]    = useState(false);
+  const [hifzMode,       setHifzMode]      = useState(false);
+  const [recitationMode, setRecitationMode] = useState(false);
 
   // ── Mode sommeil ──────────────────────────────────────────────
   const [nightMode,    setNightMode]   = useState(false);
@@ -388,6 +390,21 @@ export default function CoranPage() {
             </button>
           )}
 
+          {/* Bouton Récitation guidée */}
+          {ayahs.length > 0 && (
+            <button
+              onClick={() => setRecitationMode(true)}
+              className="flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold"
+              style={{
+                borderColor: "rgba(5,92,63,0.6)",
+                color:       "var(--primary)",
+                background:  "rgba(5,92,63,0.12)",
+                fontFamily:  "var(--font-dm-sans)",
+              }}>
+              🎙 Réciter
+            </button>
+          )}
+
           {/* Bouton Mode Sommeil — masqué pour les enfants */}
           {!isKids && (
             <button
@@ -507,6 +524,20 @@ export default function CoranPage() {
               fontSize={isKids || isElder ? 26 : 21}
               onClose={() => setHifzMode(false)}
               onMastered={handleHifzMastered}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* ── Overlay Récitation guidée ─────────────────────────── */}
+        <AnimatePresence>
+          {recitationMode && ayahs.length > 0 && (
+            <RecitationMode
+              surahNumber={selected}
+              surahName={surah?.englishName ?? ""}
+              surahNameAr={surah?.name ?? ""}
+              ayahs={ayahs}
+              startIndex={0}
+              onClose={() => setRecitationMode(false)}
             />
           )}
         </AnimatePresence>

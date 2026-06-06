@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, RotateCcw, Send, Loader2, CheckCircle2 } from "lucide-react";
+import { Camera, RotateCcw, CheckCircle2, Check } from "lucide-react";
 import { storage } from "@/lib/storage";
 import { arabeProgress } from "@/lib/arabe/progress";
 
@@ -15,7 +15,15 @@ interface WritingPhotoCaptureProps {
   onValidated?: (score: number) => void;
 }
 
-type Phase = "guide" | "preview" | "result";
+type Phase = "guide" | "preview" | "evaluate" | "result";
+
+const CRITERIA = [
+  { id: "readable",   label: "Je reconnais toutes les lettres",     points: 3 },
+  { id: "connected",  label: "Les lettres sont bien reliées",        points: 2 },
+  { id: "proportion", label: "Les tailles sont à peu près correctes", points: 2 },
+  { id: "direction",  label: "J'ai écrit de droite à gauche",        points: 2 },
+  { id: "effort",     label: "J'ai fait de mon mieux",               points: 1 },
+];
 
 export default function WritingPhotoCapture({
   letter,
@@ -30,14 +38,13 @@ export default function WritingPhotoCapture({
   const [preview, setPreview]     = useState<string | null>(null);
   const [imageB64, setImageB64]   = useState<string | null>(null);
   const [mimeType, setMimeType]   = useState("image/jpeg");
-  const [loading, setLoading]     = useState(false);
+  const [checked, setChecked]     = useState<Set<string>>(new Set());
   const [result, setResult]       = useState<{
-    score: number; emoji: string; feedback: string; encouragement: string;
+    score: number; emoji: string; feedback: string;
   } | null>(null);
-  const [error, setError]         = useState<string | null>(null);
 
-  const settings  = storage.getSettings();
-  const ageGroup  = settings.ageGroup ?? "18-35";
+  const settings = storage.getSettings();
+  const ageGroup = settings.ageGroup ?? "18-35";
 
   function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -69,33 +76,29 @@ export default function WritingPhotoCapture({
     img.src = objectUrl;
   }
 
-  async function analyse() {
-    if (!imageB64) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/arabe/analyser-ecriture", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          imageBase64: imageB64,
-          mimeType,
-          wordAr: letter,
-          wordFr: french || transliteration,
-          ageGroup,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Erreur");
-      setResult(data);
-      setPhase("result");
-      arabeProgress.recordWriting(lessonId);
-      onValidated?.(data.score ?? 0);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Erreur serveur");
-    } finally {
-      setLoading(false);
-    }
+  function toggleCriterion(id: string) {
+    setChecked(prev => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  }
+
+  function submitEvaluation() {
+    const total  = CRITERIA.reduce((s, c) => s + c.points, 0); // 10
+    const earned = CRITERIA.filter(c => checked.has(c.id)).reduce((s, c) => s + c.points, 0);
+    const score  = earned;
+    const emoji  = score >= 8 ? "🌟" : score >= 6 ? "👍" : score >= 4 ? "💪" : "🎯";
+    const isKid  = ageGroup === "4-10";
+    const feedback =
+      score >= 8 ? (isKid ? "Bravo ! C'est magnifique ! 🎉" : "Excellent travail ! Ta calligraphie est très bien formée.") :
+      score >= 6 ? (isKid ? "Très bien ! Continue comme ça !" : "Bien ! Quelques lettres à perfectionner mais c'est lisible.") :
+      score >= 4 ? (isKid ? "Courage ! Tu peux recommencer !" : "Continue à pratiquer. Regarde attentivement la forme de chaque lettre.") :
+      (isKid ? "Essaie encore, tu vas y arriver !" : "Recommence en te concentrant sur une lettre à la fois.");
+    setResult({ score, emoji, feedback });
+    setPhase("result");
+    arabeProgress.recordWriting(lessonId);
+    onValidated?.(score);
   }
 
   function reset() {
@@ -103,7 +106,7 @@ export default function WritingPhotoCapture({
     setPreview(null);
     setImageB64(null);
     setResult(null);
-    setError(null);
+    setChecked(new Set());
     if (inputRef.current) inputRef.current.value = "";
   }
 
@@ -176,37 +179,89 @@ export default function WritingPhotoCapture({
         </motion.div>
       )}
 
-      {/* Preview */}
+      {/* Preview → bouton pour passer à l'auto-éval */}
       <AnimatePresence>
         {phase === "preview" && preview && (
           <motion.div initial={{ opacity: 0, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }}
             className="flex flex-col gap-3">
             <div className="rounded-2xl overflow-hidden border" style={{ borderColor: `${color}30` }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={preview} alt="Ton écriture" className="w-full object-contain max-h-60" />
+              <img src={preview} alt="Ton écriture" className="w-full object-contain max-h-52" />
             </div>
-
-            {error && (
-              <p className="text-xs text-red-400 text-center" style={{ fontFamily: "var(--font-dm-sans)" }}>
-                {error}
-              </p>
-            )}
-
             <div className="flex gap-2">
               <motion.button whileTap={{ scale: 0.96 }} onClick={reset}
                 className="flex-1 flex items-center justify-center gap-2 rounded-2xl py-3 text-sm"
                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 <RotateCcw size={14} /> Reprendre
               </motion.button>
-              <motion.button whileTap={{ scale: 0.96 }} onClick={analyse} disabled={loading}
-                className="flex-1 flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-bold disabled:opacity-50"
+              <motion.button whileTap={{ scale: 0.96 }} onClick={() => setPhase("evaluate")}
+                className="flex-1 flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-bold"
                 style={{ background: color, color: "#0a0f0d", fontFamily: "var(--font-bricolage)" }}>
-                {loading
-                  ? <><Loader2 size={14} className="animate-spin" /> Analyse…</>
-                  : <><Send size={14} /> Analyser</>
-                }
+                <Check size={14} /> M'évaluer
               </motion.button>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Auto-évaluation guidée */}
+      <AnimatePresence>
+        {phase === "evaluate" && preview && (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col gap-3">
+            {/* Comparaison : modèle à gauche, photo à droite */}
+            <div className="grid grid-cols-2 gap-2">
+              <div className="rounded-xl px-3 py-3 text-center"
+                style={{ background: `${color}0a`, border: `1px solid ${color}20` }}>
+                <p className="text-[9px] opacity-50 mb-1 uppercase tracking-wider"
+                  style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>Modèle</p>
+                <p className="text-2xl" style={{ color, fontFamily: "var(--font-amiri)", direction: "rtl" }}>
+                  {letter}
+                </p>
+              </div>
+              <div className="rounded-xl overflow-hidden border" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={preview} alt="Ta photo" className="w-full h-full object-contain max-h-24" />
+              </div>
+            </div>
+
+            <p className="text-xs font-bold uppercase tracking-widest opacity-50 mt-1"
+              style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              Coche ce qui est vrai pour toi
+            </p>
+
+            <div className="flex flex-col gap-2">
+              {CRITERIA.map(c => {
+                const isChecked = checked.has(c.id);
+                return (
+                  <motion.button key={c.id} whileTap={{ scale: 0.97 }}
+                    onClick={() => toggleCriterion(c.id)}
+                    className="flex items-center gap-3 rounded-xl px-4 py-3 text-left"
+                    style={{
+                      background: isChecked ? `${color}18` : "rgba(255,255,255,0.03)",
+                      border: `1px solid ${isChecked ? color + "55" : "rgba(255,255,255,0.08)"}`,
+                    }}>
+                    <div className="h-5 w-5 rounded-full shrink-0 flex items-center justify-center"
+                      style={{ background: isChecked ? color : "rgba(255,255,255,0.08)", border: isChecked ? "none" : "1px solid rgba(255,255,255,0.2)" }}>
+                      {isChecked && <Check size={11} style={{ color: "#000" }} />}
+                    </div>
+                    <span className="text-sm" style={{ color: isChecked ? color : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                      {c.label}
+                    </span>
+                    <span className="ml-auto text-[10px] opacity-40 shrink-0"
+                      style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                      +{c.points}
+                    </span>
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            <motion.button whileTap={{ scale: 0.97 }} onClick={submitEvaluation}
+              className="flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-black"
+              style={{ background: `linear-gradient(135deg,${color},#055C3F)`, color: "#0a0f0d", fontFamily: "var(--font-bricolage)" }}>
+              <CheckCircle2 size={16} /> Valider mon évaluation
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -228,12 +283,6 @@ export default function WritingPhotoCapture({
                 style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 {result.feedback}
               </p>
-              {result.encouragement && (
-                <p className="text-xs mt-3 opacity-60 italic"
-                  style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)" }}>
-                  {result.encouragement}
-                </p>
-              )}
             </div>
 
             {/* Preview miniature */}

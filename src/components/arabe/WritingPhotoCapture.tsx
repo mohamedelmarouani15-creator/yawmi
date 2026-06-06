@@ -136,13 +136,30 @@ export default function WritingPhotoCapture({
             ))}
           </div>
 
-          <motion.button
+          {/* label = trigger natif garanti sur iOS/Android */}
+          <motion.label
             whileTap={{ scale: 0.97 }}
-            onClick={() => inputRef.current?.click()}
-            className="flex items-center justify-center gap-2 rounded-2xl py-4 font-black text-sm"
+            htmlFor="writing-photo-input"
+            className="flex items-center justify-center gap-2 rounded-2xl py-4 font-black text-sm cursor-pointer"
             style={{ background: `linear-gradient(135deg,${color},#055C3F)`, color: "#0a0f0d", fontFamily: "var(--font-bricolage)" }}>
             <Camera size={18} /> Prendre en photo
-          </motion.button>
+          </motion.label>
+
+          {/* Fallback galerie si caméra indispo */}
+          <motion.label
+            whileTap={{ scale: 0.97 }}
+            htmlFor="writing-gallery-input"
+            className="flex items-center justify-center gap-2 rounded-2xl py-2.5 text-xs cursor-pointer opacity-60"
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            📁 Choisir depuis la galerie
+          </motion.label>
+          <input
+            id="writing-gallery-input"
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            onChange={handleFileChange}
+          />
         </motion.div>
       )}
 
@@ -231,13 +248,14 @@ export default function WritingPhotoCapture({
         )}
       </AnimatePresence>
 
-      {/* Input caméra caché */}
+      {/* Input caméra — visible mais invisible visuellement, label le déclenche */}
       <input
         ref={inputRef}
+        id="writing-photo-input"
         type="file"
         accept="image/*"
         capture="environment"
-        className="hidden"
+        className="sr-only"
         onChange={handleFileChange}
       />
     </div>

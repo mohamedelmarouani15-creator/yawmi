@@ -1,5 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Modèles à essayer dans l'ordre (v1beta puis v1)
+const MODELS = [
+  { version: "v1beta", name: "gemini-2.0-flash-exp" },
+  { version: "v1beta", name: "gemini-1.5-flash" },
+  { version: "v1beta", name: "gemini-1.5-pro" },
+  { version: "v1beta", name: "gemini-pro-vision" },
+  { version: "v1",     name: "gemini-1.5-flash-001" },
+  { version: "v1",     name: "gemini-1.5-pro-001" },
+];
+
+export async function GET() {
+  const apiKey = process.env.GOOGLE_AI_API_KEY;
+  if (!apiKey) return NextResponse.json({ error: "GOOGLE_AI_API_KEY manquante" });
+  const res  = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+  const data = await res.json();
+  return NextResponse.json(data);
+}
+
 export async function POST(req: NextRequest) {
   try {
     const { imageBase64, mimeType, wordAr, wordFr, ageGroup } = await req.json();
@@ -20,42 +38,24 @@ export async function POST(req: NextRequest) {
 
     const prompt = `Tu es un professeur bienveillant de calligraphie arabe islamique qui évalue l'écriture d'${ageCtx}.
 L'élève devait écrire en arabe : "${wordAr}" (${wordFr ?? ""}).
+Regarde la photo et évalue : lisibilité, forme des lettres, connexions, effort.
+Réponds UNIQUEMENT en JSON :
+{"score":<0-10>,"emoji":"<🌟👍💪🎯>","feedback":"<2-3 phrases fr>","encouragement":"<citation islamique courte>"}`;
 
-Regarde la photo et évalue sur ces critères :
-1. Lisibilité — reconnaît-on les lettres ?
-2. Forme — proportions correctes ?
-3. Connexions — lettres bien liées ?
-4. Effort — l'élève a clairement essayé ?
+    const body = {
+      contents: [{
+        parts: [
+          { text: prompt },
+          { inline_data: { mime_type: mimeType ?? "image/jpeg", data: imageBase64 } },
+        ],
+      }],
+      generationConfig: { maxOutputTokens: 300, temperature: 0.4 },
+    };
 
-Réponds UNIQUEMENT en JSON valide :
-{
-  "score": <entier 0-10>,
-  "emoji": "<un emoji : 🌟 excellent, 👍 bien, 💪 courage, 🎯 presque>",
-  "feedback": "<2-3 phrases bienveillantes en français adaptées à l'âge>",
-  "encouragement": "<1 citation islamique très courte>"
-}`;
+    const errors: string[] = [];
 
-    // Essai avec plusieurs modèles en cascade
-    const MODELS = [
-      "gemini-2.0-flash-exp",
-      "gemini-1.5-flash-001",
-      "gemini-1.5-pro-001",
-      "gemini-pro-vision",
-    ];
-
-    let lastError = "";
-    for (const modelName of MODELS) {
-      const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
-      const body = {
-        contents: [{
-          parts: [
-            { text: prompt },
-            { inline_data: { mime_type: mimeType ?? "image/jpeg", data: imageBase64 } },
-          ],
-        }],
-        generationConfig: { maxOutputTokens: 300, temperature: 0.4 },
-      };
-
+    for (const { version, name } of MODELS) {
+      const url = `https://generativelanguage.googleapis.com/${version}/models/${name}:generateContent?key=${apiKey}`;
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -63,20 +63,24 @@ Réponds UNIQUEMENT en JSON valide :
       });
 
       if (!res.ok) {
-        const errText = await res.text();
-        lastError = `${modelName}: ${res.status} ${errText.slice(0, 200)}`;
-        continue; // essaie le modèle suivant
+        const txt = await res.text();
+        errors.push(`${name}(${version}): ${res.status}`);
+        if (res.status === 403) break; // clé invalide — inutile de continuer
+        continue;
       }
 
-      const data = await res.json();
-      const raw  = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+      const data  = await res.json();
+      const raw   = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
       const match = raw.match(/\{[\s\S]*\}/);
-      if (!match) { lastError = `${modelName}: réponse non-JSON`; continue; }
+      if (!match) { errors.push(`${name}: réponse non-JSON`); continue; }
 
       return NextResponse.json(JSON.parse(match[0]));
     }
 
-    return NextResponse.json({ error: `Tous les modèles ont échoué. Dernier: ${lastError}` }, { status: 500 });
+    return NextResponse.json({
+      error: `Aucun modèle disponible. Erreurs: ${errors.join(" | ")}. Va sur /api/arabe/analyser-ecriture (GET) pour voir tes modèles.`
+    }, { status: 500 });
+
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[analyser-ecriture]", msg);

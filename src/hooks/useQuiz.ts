@@ -132,16 +132,34 @@ export function useQuiz(locationId: string, themeCategory?: string) {
     if (!spent) { setNoEnergy(true); return; }
     setNoEnergy(false);
 
-    // Stage-aware difficulty — prestige overrides to max, kids to easy
+    // Stage-aware difficulty — prestige overrides to max, age group caps difficulty
+    const AGE_MAX_DIFF: Record<string, number> = {
+      "4-10":  1,
+      "11-17": 2,
+      "18-35": 4,
+      "36-55": 5,
+      "55+":   4,
+    };
+    const AGE_TIMER: Record<string, number> = {
+      "4-10":  40,
+      "11-17": 30,
+      "18-35": 20,
+      "36-55": 20,
+      "55+":   30,
+    };
     const currentIdx = currentStageIndex(freshState.locationStages ?? {}, locationId);
     const stageCfg   = getStageConfig(currentIdx);
     const isPrestige = (freshState.prestigeLevel ?? 0) > 0;
-    const isKids     = settings.ageGroup === "4-10";
+    const ageGroup   = settings.ageGroup ?? "18-35";
+    const ageMaxDiff = AGE_MAX_DIFF[ageGroup] ?? 5;
+    const ageTimer   = AGE_TIMER[ageGroup] ?? 20;
     const effectiveCfg = isPrestige
       ? { ...stageCfg, maxDiff: 5 as const, timer: 12 }
-      : isKids
-        ? { ...stageCfg, maxDiff: 2 as const, timer: 30 }
-        : stageCfg;
+      : {
+          ...stageCfg,
+          maxDiff: Math.min(stageCfg.maxDiff, ageMaxDiff) as 1 | 2 | 3 | 4 | 5,
+          timer: Math.max(stageCfg.timer, ageTimer),
+        };
     setStageIdx(currentIdx);
     setStageConfig(effectiveCfg);
 
@@ -162,8 +180,8 @@ export function useQuiz(locationId: string, themeCategory?: string) {
       freshState.level, startedStoryIds, effectiveCfg.maxDiff,
       locationId, themeCategory,
     );
-    // Pour les enfants : exclure types visuellement complexes
-    if (isKids) {
+    // Jeunes enfants : exclure types visuellement complexes
+    if (ageGroup === "4-10") {
       const filtered = questions.filter(q => !["calligraphy", "timeline", "scholars_match"].includes(q.type));
       if (filtered.length >= 5) questions = filtered;
     }

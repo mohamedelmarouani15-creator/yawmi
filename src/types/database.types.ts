@@ -834,6 +834,61 @@ export type Database = {
         Update: { id?: string; text_fr?: string; text_ar?: string; source?: string; reference?: string; category?: string; difficulty?: number; is_active?: boolean }
         Relationships: []
       }
+      quran_recitation: {
+        Row: {
+          id:              string
+          user_id:         string
+          surah:           number
+          ayah:            number
+          times_seen:      number
+          times_correct:   number
+          easiness_factor: number
+          interval_days:   number
+          next_due:        string
+          best_score:      number
+          last_score:      number
+          mastered:        boolean
+          tajwid_weak:     string[]
+          first_seen_at:   string
+          last_seen_at:    string
+        }
+        Insert: {
+          id?:             string
+          user_id:         string
+          surah:           number
+          ayah:            number
+          times_seen?:     number
+          times_correct?:  number
+          easiness_factor?: number
+          interval_days?:  number
+          next_due?:       string
+          best_score?:     number
+          last_score?:     number
+          mastered?:       boolean
+          tajwid_weak?:    string[]
+          first_seen_at?:  string
+          last_seen_at?:   string
+        }
+        Update: {
+          id?:             string
+          user_id?:        string
+          surah?:          number
+          ayah?:           number
+          times_seen?:     number
+          times_correct?:  number
+          easiness_factor?: number
+          interval_days?:  number
+          next_due?:       string
+          best_score?:     number
+          last_score?:     number
+          mastered?:       boolean
+          tajwid_weak?:    string[]
+          last_seen_at?:   string
+        }
+        Relationships: [
+          { foreignKeyName: "quran_recitation_user_id_fkey"; columns: ["user_id"]; referencedRelation: "users"; referencedColumns: ["id"] }
+        ]
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>

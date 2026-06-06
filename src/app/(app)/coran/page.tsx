@@ -10,6 +10,7 @@ import QuranPlayer from "@/components/QuranPlayer";
 import SleepModeOverlay, { type SleepOption } from "@/components/SleepModeOverlay";
 import HifzMode, { getTotalMasteredCount } from "@/components/HifzMode";
 import RecitationMode from "@/components/RecitationMode";
+import { getRecitationStats } from "@/lib/quran-recitation";
 import { gameStorage } from "@/lib/game/game-storage";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 
@@ -96,6 +97,7 @@ export default function CoranPage() {
   const [hifzMode,       setHifzMode]      = useState(false);
   const [recitationMode,  setRecitationMode]  = useState(false);
   const [recitationGuided, setRecitationGuided] = useState(false);
+  const [surahDueCount,   setSurahDueCount]   = useState(0);
 
   // ── Mode sommeil ──────────────────────────────────────────────
   const [nightMode,    setNightMode]   = useState(false);
@@ -267,6 +269,8 @@ export default function CoranPage() {
 
   async function openSurah(n: number) {
     setSelected(n); setAyahs([]); setTranslations([]); setLoading(true); setFetchError(false);
+    // Load SM-2 review count for this surah (non-blocking)
+    getRecitationStats(n).then(s => setSurahDueCount(s.dueToday)).catch(() => {});
     try {
       const [arCache, frCache] = await Promise.all([idbGet<QuranData>(IDB_AR), idbGet<QuranData>(IDB_FR)]);
       if (arCache && frCache) {
@@ -353,6 +357,12 @@ export default function CoranPage() {
             </h1>
             <p className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               {surah?.numberOfAyahs} versets · Juzz {currentJuzz}
+              {surahDueCount > 0 && (
+                <span className="ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-bold"
+                  style={{ background: "rgba(239,68,68,0.15)", color: "#ef4444" }}>
+                  {surahDueCount} à réviser
+                </span>
+              )}
             </p>
           </div>
           <button onClick={() => setShowTrans(v => !v)}

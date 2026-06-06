@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -16,6 +16,7 @@ import { CITIES } from "@/lib/cities";
 import { storage, todayKey } from "@/lib/storage";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
 import { Button, Card } from "@/components/ui";
+import { getRecitationStats, type RecitationStats } from "@/lib/quran-recitation";
 
 function getStats() {
   const log    = storage.getDhikrLog();
@@ -65,7 +66,12 @@ export default function ProfilPage() {
   const [deleting,        setDeleting]        = useState(false);
   const [deleteError,     setDeleteError]     = useState("");
   const [exporting,       setExporting]       = useState(false);
+  const [recitStats,      setRecitStats]      = useState<RecitationStats | null>(null);
   const stats = getStats();
+
+  useEffect(() => {
+    getRecitationStats().then(setRecitStats).catch(() => {});
+  }, []);
 
   const displayName = user?.user_metadata?.display_name as string | undefined;
   const initial = (displayName ?? user?.email ?? "?").charAt(0).toUpperCase();
@@ -254,6 +260,54 @@ export default function ProfilPage() {
           </Card>
         ))}
       </motion.div>
+
+      {/* ── Récitation coranique ────────────────────────────── */}
+      {recitStats && (recitStats.masteredTotal > 0 || recitStats.dueToday > 0) && (
+        <motion.div variants={itemVariants}>
+          <div className="flex items-center gap-2 mb-3">
+            <div className="h-px flex-1" style={{ background: "rgba(212,175,55,0.12)" }} />
+            <p className="text-xs font-semibold tracking-widest uppercase"
+              style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)", opacity: 0.7 }}>
+              Récitation
+            </p>
+            <div className="h-px flex-1" style={{ background: "rgba(212,175,55,0.12)" }} />
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <Card variant="gold" padding="none" className="flex flex-col items-center py-4">
+              <p className="text-xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
+                {recitStats.masteredTotal}
+              </p>
+              <p className="mt-1 text-center text-xs opacity-50 leading-tight"
+                style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                Versets{"\n"}maîtrisés
+              </p>
+            </Card>
+            {recitStats.dueToday > 0 ? (
+              <div className="flex flex-col items-center py-4 rounded-2xl border"
+                style={{ border: "1px solid rgba(239,68,68,0.2)", background: "rgba(239,68,68,0.05)" }}>
+                <p className="text-xl font-bold" style={{ color: "#ef4444", fontFamily: "var(--font-bricolage)" }}>
+                  {recitStats.dueToday}
+                </p>
+                <p className="mt-1 text-center text-xs opacity-50 leading-tight"
+                  style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  À réviser{"\n"}aujourd&apos;hui
+                </p>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center py-4 rounded-2xl border"
+                style={{ border: "1px solid rgba(34,197,94,0.2)", background: "rgba(34,197,94,0.05)" }}>
+                <p className="text-xl font-bold" style={{ color: "#22c55e", fontFamily: "var(--font-bricolage)" }}>
+                  ✓
+                </p>
+                <p className="mt-1 text-center text-xs opacity-50 leading-tight"
+                  style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Tout à jour
+                </p>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      )}
 
       {/* ── Section Mon expérience ──────────────────────────── */}
       <motion.div variants={itemVariants}>

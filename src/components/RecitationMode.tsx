@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Mic, Loader2, ChevronRight, RotateCcw, Volume2, Play } from "lucide-react";
+import { saveRecitation } from "@/lib/quran-recitation";
 import { storage } from "@/lib/storage";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 
@@ -529,6 +530,7 @@ function FullPhase({
   fontSize,
   isLast,
   onNext,
+  onResult,
 }: {
   ayah: Ayah;
   surahNumber: number;
@@ -539,6 +541,7 @@ function FullPhase({
   fontSize: number;
   isLast: boolean;
   onNext: () => void;
+  onResult?: (score: number, tajwidTypes: string[]) => void;
 }) {
   const [recState,   setRecState]   = useState<RecordingState>("idle");
   const [result,     setResult]     = useState<ReciteResult | null>(null);
@@ -605,11 +608,15 @@ function FullPhase({
       const data: ReciteResult = await res.json();
       setResult(data);
       setRecState("result");
+      // Persist SM-2 record — fire-and-forget, non-blocking
+      const types = [...new Set(data.tajwid_issues.map((t: TajwidIssue) => t.type))];
+      saveRecitation(surahNumber, ayah.numberInSurah, data.score, types).catch(() => {});
+      onResult?.(data.score, types);
     } catch (err) {
       console.error("[FullPhase]", err);
       setRecState("idle");
     }
-  }, [recState, ayah]);
+  }, [recState, ayah, surahNumber, onResult]);
 
   const fb = result ? feedbackConfig(result.score, isElder) : null;
 

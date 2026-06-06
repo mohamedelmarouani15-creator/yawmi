@@ -21,13 +21,19 @@ export const ENERGY_MAX    = 30;
 export const ENERGY_COST   = 10;  // per quiz
 
 /**
- * Regen : 15 min * (depletionCount + 1)
- * 1ère déplétion → 15 min, 2ème → 30 min, 3ème → 45 min…
- * Reset à minuit (depletionCount revient à 0 → 15 min).
+ * Regen par point d'énergie, calculé pour que la recharge de ENERGY_COST
+ * energy (= 1 quiz) prenne exactement (depletionCount + 1) × 15 minutes.
+ *
+ * 1ère déplétion → 15 min avant prochain quiz
+ * 2ème déplétion → 30 min, 3ème → 45 min… (cap 60 min)
+ * Reset à minuit → retour à 15 min.
  */
-const BASE_REGEN_MIN = 15;
+const BASE_WAIT_MIN = 15;
+const MAX_DEPLETION = 3; // cap à 60 min (4 × 15)
 export function getEnergyRegenMs(depletionCount: number): number {
-  return Math.max(1, depletionCount + 1) * BASE_REGEN_MIN * 60 * 1000;
+  const capped  = Math.min(depletionCount, MAX_DEPLETION);
+  const waitMin = (capped + 1) * BASE_WAIT_MIN;          // 15 / 30 / 45 / 60
+  return (waitMin * 60 * 1000) / ENERGY_COST;            // ms par point d'énergie
 }
 
 export const DEFAULT_STATE: GameState = {

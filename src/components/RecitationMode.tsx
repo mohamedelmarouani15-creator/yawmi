@@ -31,6 +31,7 @@ interface ReciteResult {
   score: number;
   errors: WordError[];
   tajwid_issues: TajwidIssue[];
+  debug?: { transcribed_normalized: string; expected_normalized: string };
 }
 
 interface CoachResponse {
@@ -492,8 +493,11 @@ function SegmentPhase({
                 ))}
               </div>
             )}
-            {process.env.NODE_ENV === "development" && (
-              <p className="text-xs opacity-25 mb-2 break-all" style={{ direction: "rtl", color: "var(--text)" }}>{result.transcribed}</p>
+            {result.score < 90 && result.transcribed && (
+              <div className="mb-2 rounded-lg p-2" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <p className="text-[10px] uppercase tracking-wide opacity-40 mb-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>Entendu :</p>
+                <p className="text-xs break-all text-right" style={{ color: "rgba(248,244,236,0.6)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>{result.transcribed}</p>
+              </div>
             )}
             <div className="flex gap-2">
               {!fb.autoNext && (
@@ -728,8 +732,21 @@ function FullPhase({
                 ))}
               </div>
             )}
-            {process.env.NODE_ENV === "development" && (
-              <p className="text-xs opacity-30 mb-3 break-all" style={{ color: "var(--text)", direction: "rtl" }}>{result.transcribed}</p>
+            {/* Ce que Whisper a entendu — toujours visible si score < 90 */}
+            {result.score < 90 && result.transcribed && (
+              <div className="mb-3 rounded-xl p-3" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <p className="text-[10px] uppercase tracking-wide opacity-40 mb-1" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Whisper a entendu :
+                </p>
+                <p className="text-sm break-all text-right" style={{ color: "rgba(248,244,236,0.6)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
+                  {result.transcribed}
+                </p>
+                {process.env.NODE_ENV === "development" && result.debug && (
+                  <p className="text-[10px] opacity-25 mt-1 break-all" style={{ color: "var(--text)", direction: "rtl" }}>
+                    norm: {result.debug.transcribed_normalized}
+                  </p>
+                )}
+              </div>
             )}
             <div className="flex gap-3">
               {!fb.autoNext && (

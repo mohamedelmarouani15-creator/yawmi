@@ -196,7 +196,9 @@ export function useQuiz(locationId: string, themeCategory?: string) {
       xpEarned: 0,
       coinsEarned: 0,
       startedAt: Date.now(),
-      timeLeft: stageCfg.timer as number,
+      timeLeft: questions[0] && ["drag_drop","memory","timeline","fill_verse","who_am_i","calligraphy","scholars_match"].includes(questions[0].type)
+        ? Math.max(effectiveCfg.timer, 45)
+        : effectiveCfg.timer as number,
       timerActive: true,
       hiddenOptions: [],
       bouclierActive: false,
@@ -320,6 +322,10 @@ export function useQuiz(locationId: string, themeCategory?: string) {
       }
     }
 
+    const nextQ = session.questions[session.currentIndex + 1];
+    const nextIsMinigame = nextQ && ["drag_drop","memory","timeline","fill_verse","who_am_i","calligraphy","scholars_match"].includes(nextQ.type);
+    const nextTime = nextIsMinigame ? Math.max(QUESTION_TIME, 45) : QUESTION_TIME;
+
     setSession(s => s ? {
       ...s,
       answers: newAnswers,
@@ -328,7 +334,7 @@ export function useQuiz(locationId: string, themeCategory?: string) {
       showResult: false,
       selectedOption: null,
       timerActive: !isLast,
-      timeLeft: QUESTION_TIME,
+      timeLeft: nextTime,
       currentIndex: isLast ? s.currentIndex : s.currentIndex + 1,
       finished: isLast,
       bouclierUsed: s.bouclierUsed || bouclierTriggered,

@@ -45,7 +45,8 @@ export default function VoiceInput({
   const [score, setScore]   = useState<number | null>(null);
   const [heard, setHeard]   = useState<string>("");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef  = useRef<any>(null);
+  const isListeningRef  = useRef(false); // avoid stale closure in onend
 
   const getSpeechAPI = useCallback(() => {
     if (typeof window === "undefined") return null;
@@ -68,6 +69,7 @@ export default function VoiceInput({
     recognition.maxAlternatives = 3;
     recognitionRef.current = recognition;
 
+    isListeningRef.current = true;
     setStatus("listening");
     setScore(null);
     setHeard("");
@@ -83,6 +85,7 @@ export default function VoiceInput({
         if (s > best) { best = s; bestTranscript = transcript; }
       }
       setHeard(bestTranscript);
+      isListeningRef.current = false;
       setScore(best);
       setStatus(best >= 60 ? "success" : "retry");
       onResult?.(best);
@@ -93,7 +96,7 @@ export default function VoiceInput({
     };
 
     recognition.onend = () => {
-      if (status === "listening") setStatus("idle");
+      if (isListeningRef.current) { isListeningRef.current = false; setStatus("idle"); }
     };
 
     recognition.start();

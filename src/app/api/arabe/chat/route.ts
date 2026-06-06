@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
       arabicLevel === "intermediate" ? "niveau intermédiaire en arabe" :
       "niveau avancé en arabe";
 
-    const performanceCtx = lastScore != null
+    const performanceCtx = lastScore !== undefined
       ? `L'élève vient d'obtenir ${lastScore}/10 à l'exercice. ${lastExerciseCorrect ? "Il a réussi" : "Il a fait une erreur"} — adapte ta réponse en conséquence (renforce si erreur, approfondis si succès).`
       : "";
 

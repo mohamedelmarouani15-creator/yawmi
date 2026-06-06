@@ -43,12 +43,14 @@ export async function GET(req: NextRequest) {
       .select("*")
       .eq("story_id", storyId)
       .eq("chapter_number", chapterN)
-      .single(),
+      .order("id")
+      .limit(1)
+      .maybeSingle(),
     supabase
       .from("stories")
       .select("total_chapters")
       .eq("id", storyId)
-      .single(),
+      .maybeSingle(),
   ]);
 
   if (error || !chapter) return NextResponse.json({ error: "chapter_not_found" }, { status: 404 });
@@ -59,7 +61,7 @@ export async function GET(req: NextRequest) {
     .select("current_chapter, completed_chapters")
     .eq("user_id", user.id)
     .eq("story_id", storyId)
-    .single();
+    .maybeSingle();
 
   // Apply language overlay — AR uses dedicated columns, others use translations JSONB
   let localizedChapter = chapter;

@@ -361,7 +361,9 @@ export function isUnlocked(locationId: string, xp: number, unlockedLocations: st
   if (unlockedLocations.includes(locationId)) return true;
   // Ère I: theme-completion chain — previous location must have all 7 themes validated
   const era1Idx = ERA1_ORDER.indexOf(locationId);
-  if (era1Idx > 0 && state) {
+  if (era1Idx > 0) {
+    // No state = fail safe (locked), never bypass theme chain
+    if (!state) return false;
     const prevLocation = ERA1_ORDER[era1Idx - 1];
     return isLocationCompleted(state, prevLocation);
   }

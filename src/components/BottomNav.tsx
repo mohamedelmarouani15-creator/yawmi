@@ -13,11 +13,11 @@ import type React from "react";
 type NavKey = { href: string; labelKey: string; Icon: React.ComponentType<{ size?: number; strokeWidth?: number }> };
 
 const NAV_DEFAULT: NavKey[] = [
-  { href: "/accueil",  labelKey: "nav.home",    Icon: Home          },
-  { href: "/prieres",  labelKey: "nav.prayers", Icon: CrescentStar  },
-  { href: "/oasis",    labelKey: "nav.oasis",   Icon: Compass       },
+  { href: "/accueil",  labelKey: "nav.home",    Icon: Home         },
+  { href: "/prieres",  labelKey: "nav.prayers", Icon: CrescentStar },
+  { href: "/oasis",    labelKey: "nav.oasis",   Icon: Compass      },
   { href: "/arabe",    labelKey: "nav.arabe",   Icon: GraduationCap },
-  { href: "/histoire", labelKey: "nav.history", Icon: BookOpen      },
+  { href: "/famille",  labelKey: "nav.family",  Icon: Users        },
 ];
 
 const NAV_KIDS: NavKey[] = [

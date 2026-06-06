@@ -36,16 +36,25 @@ export default function ArabicWritingCanvas({
     return ctx;
   }, [color]);
 
-  // Initialize canvas on mount
+  // Initialize canvas + resize observer (handles keyboard open on mobile)
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    // Set physical size = CSS size for sharpness
-    const rect = canvas.getBoundingClientRect();
-    canvas.width  = rect.width  * window.devicePixelRatio;
-    canvas.height = rect.height * window.devicePixelRatio;
-    const ctx = canvas.getContext("2d");
-    if (ctx) ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+    function resize() {
+      if (!canvas) return;
+      const rect = canvas.getBoundingClientRect();
+      const dpr  = window.devicePixelRatio ?? 1;
+      canvas.width  = rect.width  * dpr;
+      canvas.height = rect.height * dpr;
+      const ctx = canvas.getContext("2d");
+      if (ctx) ctx.scale(dpr, dpr);
+    }
+
+    resize();
+    const observer = new ResizeObserver(resize);
+    observer.observe(canvas);
+    return () => observer.disconnect();
   }, []);
 
   function getPos(e: React.TouchEvent | React.MouseEvent): { x: number; y: number } {

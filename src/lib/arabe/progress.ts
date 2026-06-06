@@ -80,8 +80,12 @@ export const arabeProgress = {
     const p = load();
     const prev = p.completedLessons[lessonId] ?? { completed: false, score: 0, attempts: 0, lastAt: "" };
     const newScore = correct ? Math.max(prev.score, 1) : prev.score;
+    // Require at least 1 correct answer AND minimum 1 attempt to mark complete
+    // Prevents marking complete on lucky first guess with no retry
+    const alreadyCompleted = prev.completed;
+    const nowCompleted = correct && (prev.attempts >= 1 || alreadyCompleted);
     p.completedLessons[lessonId] = {
-      completed: correct || prev.completed,
+      completed: nowCompleted || alreadyCompleted,
       score: newScore,
       attempts: prev.attempts + 1,
       lastAt: new Date().toISOString(),

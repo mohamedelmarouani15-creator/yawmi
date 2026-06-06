@@ -10,8 +10,14 @@ export function useGameState() {
 
   useEffect(() => {
     setState(gameStorage.get());
-    // Charge depuis Supabase au démarrage si connecté (Supabase = source de vérité)
     gameStorage.sync().then(() => setState(gameStorage.get()));
+
+    // Écoute les mises à jour cross-composant (ex: syncFromSupabase dans layout)
+    function onStorage(e: StorageEvent) {
+      if (e.key === "yawmi_game_state_v2") setState(gameStorage.get());
+    }
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
 
   const refresh = useCallback(() => {

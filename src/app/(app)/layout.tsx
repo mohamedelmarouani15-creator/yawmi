@@ -76,7 +76,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           localStorage.setItem("yawmi_onboarded", "1");
           const uid = data.session.user.id;
           // Sync progression jeu depuis Supabase (multi-device)
-          gameStorage.syncFromSupabase(uid).catch(() => {});
+          // Attendre la fin du sync avant setAuthReady pour éviter flash XP=0
+          gameStorage.syncFromSupabase(uid).catch(() => {}).finally(() => {
+            // Déclencher un storage event pour forcer les hooks useGameState à relire
+            window.dispatchEvent(new StorageEvent("storage", { key: "yawmi_game_state_v2" }));
+          });
           // Sync profil depuis Supabase → localStorage (langue, âge, objectif…)
           void (async () => {
             try {

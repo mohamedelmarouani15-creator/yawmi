@@ -1009,11 +1009,7 @@ export default function OasisPage() {
           );
         })}
 
-        {/* ── Avatar marocain — se positionne sur la ville actuelle ── */}
-        <AvatarMarocain
-          cx={CITY_POS[curLoc]?.cx ?? 195}
-          cy={(CITY_POS[curLoc]?.cy ?? 3050) - 185}
-        />
+        {/* Avatar supprimé — ne servait à rien */}
       </svg>
 
       <Toast msg={toast ?? ""} show={!!toast} />

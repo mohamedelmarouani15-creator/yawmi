@@ -37,7 +37,7 @@ Réponds UNIQUEMENT en JSON valide :
         "X-Title":       "Yawmi Arabic Learning",
       },
       body: JSON.stringify({
-        model: "qwen/qwen-2.5-vl-7b-instruct:free",
+        model: "meta-llama/llama-3.2-11b-vision-instruct:free",
         messages: [{
           role: "user",
           content: [

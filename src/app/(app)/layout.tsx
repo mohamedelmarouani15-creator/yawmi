@@ -20,12 +20,14 @@ import { gameStorage } from "@/lib/game/game-storage";
 function NotifScheduler() {
   useNotifications();
 
+  const { settings } = useSettingsHook();
+  const { lat, lng, method, madhab, adhanMode, adhanReciter } = settings;
+
   // ── Adhan automatique — recalcule si les settings changent (ville, méthode) ──
   useEffect(() => {
-    const s = storage.getSettings();
-    if (s.adhanMode !== "audio") return;
-    const reciterId = s.adhanReciter ?? "alafasy";
-    const times = computePrayerTimes(s.lat, s.lng, s.method, s.madhab);
+    if (adhanMode !== "audio") return;
+    const reciterId = adhanReciter ?? "alafasy";
+    const times = computePrayerTimes(lat, lng, method, madhab);
     const now   = new Date();
     const ids: ReturnType<typeof setTimeout>[] = [];
 
@@ -44,9 +46,7 @@ function NotifScheduler() {
     });
 
     return () => ids.forEach(clearTimeout);
-  // Recompute when settings change (city, method, adhan mode)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [storage.getSettings().lat, storage.getSettings().lng, storage.getSettings().method, storage.getSettings().adhanMode]);
+  }, [lat, lng, method, madhab, adhanMode, adhanReciter]);
 
   return null;
 }

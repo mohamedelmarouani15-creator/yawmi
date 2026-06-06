@@ -3,7 +3,7 @@ import type { Question, MinigameData, QuestionOption } from "./types";
 
 type ArabicLevel = "none" | "beginner" | "intermediate" | "advanced";
 
-const CACHE_KEY     = "yawmi_q_pool_v1";
+const CACHE_KEY     = "yawmi_q_pool_v2"; // v2: nouvelles catégories (theologie/histoire/coran/arabe)
 const CACHE_TTL     = 24 * 60 * 60 * 1000;   // 24h
 const CACHE_MAX_AGE = 7  * 24 * 60 * 60 * 1000; // 7 jours — seuil de purge
 

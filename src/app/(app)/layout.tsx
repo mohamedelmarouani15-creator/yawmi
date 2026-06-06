@@ -11,6 +11,7 @@ import { useAgeMode }      from "@/hooks/useAgeMode";
 import { usePrayerTheme }  from "@/hooks/usePrayerTheme";
 import { useCompanion }    from "@/hooks/useCompanion";
 import { useNotifications } from "@/hooks/useNotifications";
+import { useSettings } from "@/hooks/useSettings";
 import { supabase } from "@/lib/supabase";
 import { computePrayerTimes, PRAYER_ORDER, PRAYER_LABELS } from "@/lib/prayer";
 import { storage } from "@/lib/storage";
@@ -20,7 +21,7 @@ import { gameStorage } from "@/lib/game/game-storage";
 function NotifScheduler() {
   useNotifications();
 
-  const { settings } = useSettingsHook();
+  const { settings } = useSettings();
   const { lat, lng, method, madhab, adhanMode, adhanReciter } = settings;
 
   // ── Adhan automatique — recalcule si les settings changent (ville, méthode) ──

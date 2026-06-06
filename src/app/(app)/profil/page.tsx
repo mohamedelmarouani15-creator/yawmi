@@ -862,6 +862,44 @@ export default function ProfilPage() {
         </div>
       </motion.div>
 
+      {/* Partager l'application */}
+      <motion.div variants={itemVariants}>
+        <p className="mb-3 text-xs tracking-widest uppercase opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+          Partager
+        </p>
+        <motion.button
+          whileTap={{ scale: 0.97 }} transition={springTap}
+          onClick={async () => {
+            const shareData = {
+              title: "Yawmi — يومي",
+              text: "Découvre Yawmi, l'app islamique pour toute la famille : prières, Coran, quiz, cours d'arabe et bien plus !",
+              url: "https://yawmi-delta.vercel.app",
+            };
+            if (typeof navigator !== "undefined" && navigator.share) {
+              try { await navigator.share(shareData); } catch { /* annulé */ }
+            } else {
+              await navigator.clipboard.writeText(shareData.url);
+              alert("Lien copié !");
+            }
+          }}
+          className="flex w-full items-center gap-3 rounded-2xl border px-4 py-4"
+          style={{ background: "rgba(212,175,55,0.06)", borderColor: "rgba(212,175,55,0.25)" }}>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl text-lg shrink-0"
+            style={{ background: "rgba(212,175,55,0.12)" }}>
+            🕌
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+              Partager Yawmi
+            </p>
+            <p className="text-xs opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              WhatsApp, SMS, email…
+            </p>
+          </div>
+          <span className="text-lg">→</span>
+        </motion.button>
+      </motion.div>
+
       {/* Toast saved */}
       <AnimatePresence>
         {saved && (

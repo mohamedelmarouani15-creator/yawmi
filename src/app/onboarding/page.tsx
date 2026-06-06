@@ -14,6 +14,7 @@ import { CITIES } from "@/lib/cities";
 import { CALC_METHOD_LABELS, type CalcMethodKey } from "@/lib/prayer";
 import { storage, type YawmiSettings } from "@/lib/storage";
 import { supabase } from "@/lib/supabase";
+import { YawmiLogo } from "@/components/YawmiLogo";
 
 // ── Types ──────────────────────────────────────────────────────
 const STEPS = [
@@ -276,21 +277,14 @@ export default function OnboardingPage() {
                   <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--gold)" }} />
                   Application familiale musulmane
                 </div>
-                <h1 className="text-7xl font-extrabold leading-none tracking-tight"
-                  style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-                  Yawmi
-                </h1>
-                <div className="flex items-center gap-3">
+                <YawmiLogo size={96} />
+                <div className="flex items-center gap-3 mt-2">
                   <span className="block h-px w-12"
                     style={{ background: "linear-gradient(to right, transparent, #D4AF37)" }} />
                   <span className="text-xs" style={{ color: "rgba(212,175,55,0.5)" }}>✦</span>
                   <span className="block h-px w-12"
                     style={{ background: "linear-gradient(to left, transparent, #D4AF37)" }} />
                 </div>
-                <p className="text-5xl font-bold"
-                  style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)" }}>
-                  يومي
-                </p>
               </div>
               <p className="max-w-xs text-base leading-relaxed"
                 style={{ color: "var(--text-muted)", fontFamily: "var(--font-dm-sans)" }}>

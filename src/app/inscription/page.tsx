@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Eye, EyeOff, Loader2, Mail } from "lucide-react";
+import { YawmiLogo } from "@/components/YawmiLogo";
 
 export default function InscriptionPage() {
   const [name,     setName]     = useState("");
@@ -52,11 +53,8 @@ export default function InscriptionPage() {
         style={{ background: "radial-gradient(ellipse 70% 50% at 50% 30%, rgba(5,92,63,0.2) 0%, transparent 70%)" }} />
 
       <div className="relative z-10 w-full max-w-sm">
-        <div className="mb-10 text-center">
-          <h1 className="text-5xl font-extrabold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-            Yawmi
-          </h1>
-          <p className="mt-1 text-2xl" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)" }}>يومي</p>
+        <div className="mb-10 flex justify-center">
+          <YawmiLogo size={72} />
         </div>
 
         {emailSent ? (

@@ -2,7 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, CheckCircle2, Lock } from "lucide-react";
+import {
+  ArrowLeft, CheckCircle2, Lock, Volume2, PenLine, Flame, Mic,
+} from "lucide-react";
 import { LESSONS, LEVEL_META, getLessonsByLevel, type ArabeLevel } from "@/lib/arabe/curriculum";
 import { arabeProgress } from "@/lib/arabe/progress";
 import { storage } from "@/lib/storage";
@@ -14,24 +16,27 @@ export default function ArabePage() {
   const router = useRouter();
   const [progress, setProgress] = useState(() => arabeProgress.get());
   const [activeLevel, setActiveLevel] = useState<ArabeLevel>("debutant");
-  const settings = storage.getSettings();
-  const ageGroup = settings.ageGroup ?? "18-35";
+  const settings   = storage.getSettings();
+  const ageGroup   = settings.ageGroup   ?? "18-35";
   const arabicLevel = settings.arabicLevel ?? "none";
 
   useEffect(() => {
     setProgress(arabeProgress.get());
-    // Auto-select level based on arabicLevel
     if (arabicLevel === "intermediate") setActiveLevel("intermediaire");
     else if (arabicLevel === "advanced") setActiveLevel("avance");
   }, [arabicLevel]);
 
   const completedCount = arabeProgress.completedCount();
-  const totalLessons = LESSONS.length;
+  const totalLessons   = LESSONS.length;
+  const stats = arabeProgress.getStats();
 
-  // Age-based greeting
+  const pronouncePct = stats.pronunciationAttempts > 0
+    ? Math.round((stats.pronunciationSuccesses / stats.pronunciationAttempts) * 100)
+    : 0;
+
   const greeting =
-    ageGroup === "4-10"  ? "Apprends l'arabe en t'amusant ! 🌟" :
-    ageGroup === "11-17" ? "Maîtrise la langue du Coran 📖" :
+    ageGroup === "4-10"  ? "Apprends l'arabe en t'amusant !" :
+    ageGroup === "11-17" ? "Maîtrise la langue du Coran" :
     "Cours d'arabe islamique complet";
 
   return (
@@ -86,12 +91,55 @@ export default function ArabePage() {
           </p>
         </motion.div>
 
+        {/* Stats grid */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+          className="grid grid-cols-4 gap-2">
+          {[
+            {
+              icon: CheckCircle2,
+              value: completedCount,
+              label: "Leçons",
+              color: "#34d399",
+            },
+            {
+              icon: Mic,
+              value: `${pronouncePct}%`,
+              label: "Prononciation",
+              color: "#a78bfa",
+            },
+            {
+              icon: PenLine,
+              value: stats.writingValidations,
+              label: "Écritures",
+              color: "#D4AF37",
+            },
+            {
+              icon: Flame,
+              value: stats.streakDays,
+              label: "Jours",
+              color: "#f97316",
+            },
+          ].map(({ icon: Icon, value, label, color }) => (
+            <div key={label} className="flex flex-col items-center gap-1 rounded-2xl py-3"
+              style={{ background: "rgba(255,255,255,0.03)", border: `1px solid ${color}20` }}>
+              <Icon size={16} style={{ color }} />
+              <p className="text-base font-black leading-none" style={{ color, fontFamily: "var(--font-bricolage)" }}>
+                {value}
+              </p>
+              <p className="text-[9px] opacity-40 text-center leading-tight"
+                style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                {label}
+              </p>
+            </div>
+          ))}
+        </motion.div>
+
         {/* Level tabs */}
         <div className="flex gap-2">
           {LEVELS.map(level => {
-            const meta = LEVEL_META[level];
+            const meta    = LEVEL_META[level];
             const lessons = getLessonsByLevel(level);
-            const done = lessons.filter(l => arabeProgress.isCompleted(l.id)).length;
+            const done    = lessons.filter(l => arabeProgress.isCompleted(l.id)).length;
             const isActive = activeLevel === level;
             return (
               <motion.button key={level} onClick={() => setActiveLevel(level)}
@@ -117,11 +165,11 @@ export default function ArabePage() {
         {/* Lesson list */}
         <div className="flex flex-col gap-2.5">
           {getLessonsByLevel(activeLevel).map((lesson, i) => {
-            const meta = LEVEL_META[lesson.level];
-            const done = arabeProgress.isCompleted(lesson.id);
+            const meta     = LEVEL_META[lesson.level];
+            const done     = arabeProgress.isCompleted(lesson.id);
             const isCurrent = progress.currentLessonId === lesson.id;
-            const prevDone = i === 0 || arabeProgress.isCompleted(getLessonsByLevel(activeLevel)[i - 1]?.id ?? "");
-            const locked = !done && !prevDone && i > 0;
+            const prevDone  = i === 0 || arabeProgress.isCompleted(getLessonsByLevel(activeLevel)[i - 1]?.id ?? "");
+            const locked    = !done && !prevDone && i > 0;
 
             return (
               <motion.button key={lesson.id}
@@ -158,15 +206,25 @@ export default function ArabePage() {
                     {lesson.subtitle}
                   </p>
                 </div>
-                {isCurrent && !done && (
-                  <span className="text-[9px] font-bold uppercase tracking-widest shrink-0 rounded-full px-2 py-0.5"
-                    style={{ background: "rgba(212,175,55,0.15)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
-                    En cours
-                  </span>
-                )}
-                {done && (
-                  <span className="text-[9px] font-bold shrink-0" style={{ color: meta.color }}>✓</span>
-                )}
+                {/* Badges */}
+                <div className="flex flex-col items-end gap-1 shrink-0">
+                  {isCurrent && !done && (
+                    <span className="text-[9px] font-bold uppercase tracking-widest rounded-full px-2 py-0.5"
+                      style={{ background: "rgba(212,175,55,0.15)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+                      En cours
+                    </span>
+                  )}
+                  {done && (
+                    <span className="text-[9px] font-bold" style={{ color: meta.color }}>✓</span>
+                  )}
+                  {/* Pronunciation / writing badge for alphabet lessons */}
+                  {lesson.id.startsWith("alphabet") && (
+                    <div className="flex gap-1">
+                      <Volume2 size={9} style={{ color: "rgba(248,244,236,0.2)" }} />
+                      <PenLine size={9} style={{ color: "rgba(248,244,236,0.2)" }} />
+                    </div>
+                  )}
+                </div>
               </motion.button>
             );
           })}

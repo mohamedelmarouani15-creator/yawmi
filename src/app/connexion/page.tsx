@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { YawmiLogo } from "@/components/YawmiLogo";
 
 export default function ConnexionPage() {
   const router = useRouter();
@@ -30,11 +31,8 @@ export default function ConnexionPage() {
 
       <div className="relative z-10 w-full max-w-sm">
         {/* Logo */}
-        <div className="mb-10 text-center">
-          <h1 className="text-5xl font-extrabold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-            Yawmi
-          </h1>
-          <p className="mt-1 text-2xl" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)" }}>يومي</p>
+        <div className="mb-10 flex justify-center">
+          <YawmiLogo size={72} />
         </div>
 
         <h2 className="mb-6 text-xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>

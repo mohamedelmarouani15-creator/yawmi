@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Camera, RotateCcw, CheckCircle2, Check } from "lucide-react";
+import { Camera, RotateCcw, CheckCircle2, Check, Send, Loader2 } from "lucide-react";
 import { storage } from "@/lib/storage";
 import { arabeProgress } from "@/lib/arabe/progress";
 
@@ -39,8 +39,10 @@ export default function WritingPhotoCapture({
   const [imageB64, setImageB64]   = useState<string | null>(null);
   const [mimeType, setMimeType]   = useState("image/jpeg");
   const [checked, setChecked]     = useState<Set<string>>(new Set());
+  const [loading, setLoading]     = useState(false);
+  const [apiError, setApiError]   = useState<string | null>(null);
   const [result, setResult]       = useState<{
-    score: number; emoji: string; feedback: string;
+    score: number; emoji: string; feedback: string; encouragement?: string;
   } | null>(null);
 
   const settings = storage.getSettings();
@@ -74,6 +76,29 @@ export default function WritingPhotoCapture({
       setPhase("preview");
     };
     img.src = objectUrl;
+  }
+
+  async function analyseGemini() {
+    if (!imageB64) return;
+    setLoading(true);
+    setApiError(null);
+    try {
+      const res  = await fetch("/api/arabe/analyser-ecriture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ imageBase64: imageB64, mimeType, wordAr: letter, wordFr: french || transliteration, ageGroup }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? "Erreur");
+      setResult(data);
+      setPhase("result");
+      arabeProgress.recordWriting(lessonId);
+      onValidated?.(data.score ?? 0);
+    } catch (err) {
+      setApiError(err instanceof Error ? err.message : "Erreur serveur");
+    } finally {
+      setLoading(false);
+    }
   }
 
   function toggleCriterion(id: string) {
@@ -188,18 +213,31 @@ export default function WritingPhotoCapture({
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={preview} alt="Ton écriture" className="w-full object-contain max-h-52" />
             </div>
+            {apiError && (
+              <p className="text-xs text-center opacity-70" style={{ color: "#f87171", fontFamily: "var(--font-dm-sans)" }}>
+                {apiError}
+              </p>
+            )}
             <div className="flex gap-2">
               <motion.button whileTap={{ scale: 0.96 }} onClick={reset}
                 className="flex-1 flex items-center justify-center gap-2 rounded-2xl py-3 text-sm"
                 style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 <RotateCcw size={14} /> Reprendre
               </motion.button>
-              <motion.button whileTap={{ scale: 0.96 }} onClick={() => setPhase("evaluate")}
-                className="flex-1 flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-bold"
+              <motion.button whileTap={{ scale: 0.96 }} onClick={analyseGemini} disabled={loading}
+                className="flex-1 flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-bold disabled:opacity-50"
                 style={{ background: color, color: "#0a0f0d", fontFamily: "var(--font-bricolage)" }}>
-                <Check size={14} /> M'évaluer
+                {loading
+                  ? <><Loader2 size={14} className="animate-spin" /> Analyse…</>
+                  : <><Send size={14} /> Analyser avec IA</>
+                }
               </motion.button>
             </div>
+            <motion.button whileTap={{ scale: 0.96 }} onClick={() => setPhase("evaluate")}
+              className="text-xs text-center opacity-50 py-1"
+              style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+              → M'évaluer moi-même à la place
+            </motion.button>
           </motion.div>
         )}
       </AnimatePresence>
@@ -283,6 +321,12 @@ export default function WritingPhotoCapture({
                 style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                 {result.feedback}
               </p>
+              {result.encouragement && (
+                <p className="text-xs mt-2 italic opacity-60"
+                  style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)" }}>
+                  {result.encouragement}
+                </p>
+              )}
             </div>
 
             {/* Preview miniature */}

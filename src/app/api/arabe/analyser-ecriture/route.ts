@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import Anthropic from "@anthropic-ai/sdk";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function POST(req: NextRequest) {
   try {
@@ -9,71 +9,58 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Image ou mot manquant" }, { status: 400 });
     }
 
-    if (!process.env.ANTHROPIC_API_KEY) {
-      return NextResponse.json({ error: "ANTHROPIC_API_KEY non configurée" }, { status: 500 });
+    if (!process.env.GOOGLE_AI_API_KEY) {
+      return NextResponse.json({ error: "GOOGLE_AI_API_KEY non configurée" }, { status: 500 });
     }
 
-    const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+    const genAI  = new GoogleGenerativeAI(process.env.GOOGLE_AI_API_KEY);
+    const model  = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
     const ageCtx =
       ageGroup === "4-10"  ? "un enfant de 4-10 ans" :
       ageGroup === "11-17" ? "un adolescent de 11-17 ans" :
       "un adulte";
 
-    const systemPrompt = `Tu es un professeur bienveillant de calligraphie arabe islamique qui évalue l'écriture d'${ageCtx}.
-L'élève devait écrire en arabe : "${wordAr}" (${wordFr}).
+    const prompt = `Tu es un professeur bienveillant de calligraphie arabe islamique qui évalue l'écriture d'${ageCtx}.
+L'élève devait écrire en arabe : "${wordAr}" (${wordFr ?? ""}).
 
-Évalue l'écriture sur la photo selon ces critères :
-1. Lisibilité — peut-on reconnaître les lettres ?
-2. Forme des lettres — proportions correctes ?
-3. Connexions — les lettres sont-elles bien liées ?
-4. Effort — la personne a-t-elle vraiment essayé ?
+Regarde attentivement la photo et évalue l'écriture sur ces critères :
+1. Lisibilité — reconnaît-on les lettres ?
+2. Forme — proportions et tracé corrects ?
+3. Connexions — lettres bien liées ?
+4. Effort — l'élève a clairement essayé ?
 
-Réponds UNIQUEMENT en JSON avec ce format exact :
+Réponds UNIQUEMENT en JSON valide, sans texte autour :
 {
-  "score": <nombre entre 0 et 10>,
-  "emoji": "<emoji qui résume : 🌟 excellent, 👍 bien, 💪 courage, 🎯 presque>,
-  "feedback": "<2-3 phrases bienveillantes adaptées à l'âge, en français>",
-  "encouragement": "<1 phrase d'encouragement islamique courte>"
+  "score": <entier 0-10>,
+  "emoji": "<un seul emoji : 🌟 excellent, 👍 bien, 💪 courage, 🎯 presque>",
+  "feedback": "<2-3 phrases bienveillantes en français adaptées à l'âge>",
+  "encouragement": "<1 citation ou dua islamique très courte>"
 }
 
-Si l'image ne contient pas d'écriture arabe visible, score = 0 et explique gentiment.
-Pour les enfants (4-10 ans) : sois très encourageant même si c'est imparfait.`;
+Si pas d'écriture arabe visible : score 0, explique gentiment.
+Pour enfants (4-10 ans) : très encourageant même si imparfait.`;
 
-    const response = await client.messages.create({
-      model: "claude-haiku-4-5-20251001",
-      max_tokens: 300,
-      messages: [{
-        role: "user",
-        content: [
-          {
-            type: "image",
-            source: {
-              type: "base64",
-              media_type: (mimeType ?? "image/jpeg") as "image/jpeg" | "image/png" | "image/webp",
-              data: imageBase64,
-            },
-          },
-          {
-            type: "text",
-            text: `Voici la photo de l'écriture de l'élève. Évalue-la selon les critères demandés.`,
-          },
-        ],
-      }],
-      system: systemPrompt,
-    });
+    const result = await model.generateContent([
+      prompt,
+      {
+        inlineData: {
+          mimeType: (mimeType ?? "image/jpeg") as string,
+          data: imageBase64,
+        },
+      },
+    ]);
 
-    const raw = response.content[0]?.type === "text" ? response.content[0].text : "";
-    // Extract JSON from response
+    const raw = result.response.text();
     const match = raw.match(/\{[\s\S]*\}/);
     if (!match) {
       return NextResponse.json({ error: "Réponse IA invalide" }, { status: 500 });
     }
-    const result = JSON.parse(match[0]);
-    return NextResponse.json(result);
+    const parsed = JSON.parse(match[0]);
+    return NextResponse.json(parsed);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("[analyser-ecriture]", msg);
+    console.error("[analyser-ecriture/gemini]", msg);
     return NextResponse.json({ error: `Erreur: ${msg}` }, { status: 500 });
   }
 }

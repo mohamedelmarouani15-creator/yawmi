@@ -94,7 +94,8 @@ export default function CoranPage() {
   const [showPlayer,   setShowPlayer]  = useState(false);
   const [favs,         setFavs]        = useState<Set<string>>(new Set());
   const [hifzMode,       setHifzMode]      = useState(false);
-  const [recitationMode, setRecitationMode] = useState(false);
+  const [recitationMode,  setRecitationMode]  = useState(false);
+  const [recitationGuided, setRecitationGuided] = useState(false);
 
   // ── Mode sommeil ──────────────────────────────────────────────
   const [nightMode,    setNightMode]   = useState(false);
@@ -390,10 +391,10 @@ export default function CoranPage() {
             </button>
           )}
 
-          {/* Bouton Récitation guidée */}
+          {/* Bouton Récitation libre */}
           {ayahs.length > 0 && (
             <button
-              onClick={() => setRecitationMode(true)}
+              onClick={() => { setRecitationGuided(false); setRecitationMode(true); }}
               className="flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold"
               style={{
                 borderColor: "rgba(5,92,63,0.6)",
@@ -402,6 +403,21 @@ export default function CoranPage() {
                 fontFamily:  "var(--font-dm-sans)",
               }}>
               🎙 Réciter
+            </button>
+          )}
+
+          {/* Bouton Mode guidé (débutants / aînés) */}
+          {ayahs.length > 0 && (
+            <button
+              onClick={() => { setRecitationGuided(true); setRecitationMode(true); }}
+              className="flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold"
+              style={{
+                borderColor: "rgba(212,175,55,0.4)",
+                color:       "var(--gold)",
+                background:  "rgba(212,175,55,0.06)",
+                fontFamily:  "var(--font-dm-sans)",
+              }}>
+              📚 Guidé
             </button>
           )}
 
@@ -537,6 +553,7 @@ export default function CoranPage() {
               surahNameAr={surah?.name ?? ""}
               ayahs={ayahs}
               startIndex={0}
+              guided={recitationGuided}
               onClose={() => setRecitationMode(false)}
             />
           )}

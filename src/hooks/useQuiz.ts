@@ -86,7 +86,7 @@ async function updateLigaXP(xpGained: number): Promise<void> {
   }
 }
 
-export function useQuiz(locationId: string) {
+export function useQuiz(locationId: string, themeCategory?: string) {
   const [session,     setSession]     = useState<QuizSession | null>(null);
   const [noEnergy,    setNoEnergy]    = useState(false);
   const [stageIdx,    setStageIdx]    = useState(1);
@@ -160,6 +160,7 @@ export function useQuiz(locationId: string) {
     let questions = await getQuestionsAsync(
       10, freshState.questionHistory, settings.arabicLevel ?? "beginner",
       freshState.level, startedStoryIds, effectiveCfg.maxDiff,
+      locationId, themeCategory,
     );
     // Pour les enfants : exclure types visuellement complexes
     if (isKids) {
@@ -294,6 +295,11 @@ export function useQuiz(locationId: string) {
 
       // Liga: update weekly XP (fire-and-forget, non-blocking)
       if (totalXP > 0) updateLigaXP(totalXP).catch(() => {});
+
+      // Theme progress per location
+      if (themeCategory) {
+        gameStorage.recordThemeCorrect(locationId, themeCategory as import("@/lib/game/types").Category, totalCorrectCount);
+      }
     }
 
     setSession(s => s ? {

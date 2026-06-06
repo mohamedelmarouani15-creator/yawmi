@@ -38,7 +38,7 @@ export function useGameState() {
 
   const locationUnlocked = useCallback((locationId: string) => {
     if (!state) return locationId === "medine";
-    return isUnlocked(locationId, state.xp, state.unlockedLocations);
+    return isUnlocked(locationId, state.xp, state.unlockedLocations, state);
   }, [state]);
 
   const progress = state ? xpProgress(state.xp) : 0;

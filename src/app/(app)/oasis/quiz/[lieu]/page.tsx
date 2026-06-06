@@ -209,10 +209,17 @@ export default function QuizPage() {
   const lang = useLang();
   const isRtl = lang === "ar" || lang === "darija";
   const { state, refresh } = useGameState();
+
+  // Read ?theme= from URL (set by /oasis/[lieu] theme selection)
+  const searchParams = typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search)
+    : new URLSearchParams();
+  const themeCategory = searchParams.get("theme") ?? undefined;
+
   const {
     session, startQuiz, selectAnswer, selectAnswerResult, confirmAnswer, usePowerUp,
     currentQuestion, correctCount, score, QUESTION_TIME, noEnergy, stageIndex, stageConfig,
-  } = useQuiz(lieu);
+  } = useQuiz(lieu, themeCategory);
 
   const location = getLocation(lieu);
   const sage     = getSageForLocation(lieu);

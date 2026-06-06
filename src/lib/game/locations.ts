@@ -1,4 +1,18 @@
-import type { LocationDef } from "./types";
+import type { LocationDef, Category, GameState } from "./types";
+
+export const ALL_THEMES: Category[] = ["theologie", "histoire", "coran", "arabe", "ethique", "sira", "fiqh"];
+export const THEME_VALIDATE_MIN = 7; // correct answers needed to validate a theme
+
+export function isThemeValidated(state: GameState, locationId: string, category: Category): boolean {
+  return (state.locationThemeProgress?.[locationId]?.[category] ?? 0) >= THEME_VALIDATE_MIN;
+}
+
+export function isLocationCompleted(state: GameState, locationId: string): boolean {
+  return ALL_THEMES.every(cat => isThemeValidated(state, locationId, cat));
+}
+
+/** Ère I location order (index-based for unlock chain) */
+const ERA1_ORDER = ["medine", "fes", "cordoue", "marrakech", "damas", "bagdad", "samarcande", "tombouctou", "le_caire", "la_mecque"];
 
 export const LOCATIONS: LocationDef[] = [
   {
@@ -343,8 +357,15 @@ export function getLocation(id: string): LocationDef | undefined {
   return LOCATIONS.find(l => l.id === id);
 }
 
-export function isUnlocked(locationId: string, xp: number, unlockedLocations: string[]): boolean {
+export function isUnlocked(locationId: string, xp: number, unlockedLocations: string[], state?: GameState): boolean {
   if (unlockedLocations.includes(locationId)) return true;
+  // Ère I: theme-completion chain — previous location must have all 7 themes validated
+  const era1Idx = ERA1_ORDER.indexOf(locationId);
+  if (era1Idx > 0 && state) {
+    const prevLocation = ERA1_ORDER[era1Idx - 1];
+    return isLocationCompleted(state, prevLocation);
+  }
+  // Fallback: XP gate (used for Ère II+ locations)
   const loc = getLocation(locationId);
   return loc ? xp >= loc.requiredXP : false;
 }

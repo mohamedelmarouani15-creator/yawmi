@@ -173,21 +173,36 @@ export async function getQuestionsAsync(
   playerLevel: number = 1,
   startedStoryIds: string[] = [],
   forcedMaxDiff?: number,
+  filterLocationId?: string,
+  filterCategory?: string,
 ): Promise<Question[]> {
   // 1. Cache local valide → direct
   const cached = loadCache();
-  if (cached && cached.questions.length > 0) {
-    return pickQuestions(cached.questions, count, history, arabicLevel, playerLevel, startedStoryIds, forcedMaxDiff);
+  let pool = cached?.questions ?? [];
+
+  // 2. Supabase → rafraîchit le cache si pool vide
+  if (pool.length === 0) {
+    const remote = await fetchFromSupabase();
+    if (remote && remote.length > 0) {
+      saveCache(remote);
+      pool = remote;
+    }
   }
 
-  // 2. Supabase → rafraîchit le cache
-  const remote = await fetchFromSupabase();
-  if (remote && remote.length > 0) {
-    saveCache(remote);
-    return pickQuestions(remote, count, history, arabicLevel, playerLevel, startedStoryIds, forcedMaxDiff);
+  if (pool.length > 0) {
+    let filtered = pool;
+    if (filterLocationId) filtered = filtered.filter(q => q.locationId === filterLocationId);
+    if (filterCategory)   filtered = filtered.filter(q => q.category   === filterCategory);
+    // If enough questions match, use them; otherwise use full pool (fallback for sparse seeds)
+    if (filtered.length >= count) {
+      return pickQuestions(filtered, count, history, arabicLevel, playerLevel, startedStoryIds, forcedMaxDiff);
+    }
+    if (pool.length > 0) {
+      return pickQuestions(pool, count, history, arabicLevel, playerLevel, startedStoryIds, forcedMaxDiff);
+    }
   }
 
-  // 3. Fallback local — questions.ts (dynamic import to keep it out of initial bundle)
+  // 3. Fallback local — questions.ts
   const { getQuestions } = await import("./questions");
   return getQuestions(count, history, arabicLevel);
 }

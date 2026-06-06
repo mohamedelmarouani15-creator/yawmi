@@ -14,6 +14,18 @@ import { useLang } from "@/hooks/useLang";
 import { pick } from "@/lib/content-i18n";
 import { SagePortrait } from "@/components/SagePortrait";
 import staticT from "@/lib/static-translations.json";
+import { ALL_THEMES, isThemeValidated, THEME_VALIDATE_MIN } from "@/lib/game/locations";
+import type { Category } from "@/lib/game/types";
+
+const THEME_META: Record<Category, { label: string; icon: string; color: string }> = {
+  theologie: { label: "Théologie", icon: "🕌", color: "var(--gold)" },
+  histoire:  { label: "Histoire",  icon: "📜", color: "#60a5fa" },
+  coran:     { label: "Coran",     icon: "📖", color: "#a78bfa" },
+  arabe:     { label: "Arabe",     icon: "✍️", color: "#34d399" },
+  ethique:   { label: "Éthique",   icon: "🌿", color: "#f97316" },
+  sira:      { label: "Sira",      icon: "🌙", color: "#fb7185" },
+  fiqh:      { label: "Fiqh",      icon: "⚖️", color: "#38bdf8" },
+};
 
 export default function LieuPage() {
   const { lieu } = useParams() as { lieu: string };
@@ -131,26 +143,8 @@ export default function LieuPage() {
         </motion.h2>
         <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
           className="text-sm opacity-50 mb-8" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          {isRtl
-            ? `تحتاج ${location.requiredXP} نقطة خبرة`
-            : `${location.requiredXP} XP requis pour débloquer`}
+          Valide les 7 thèmes de la ville précédente pour débloquer
         </motion.p>
-        <div className="flex gap-2 mb-8">
-          <div className="rounded-2xl border px-5 py-3 text-center"
-            style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.08)" }}>
-            <p className="text-xl font-black" style={{ color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-bricolage)" }}>
-              {location.requiredXP}
-            </p>
-            <p className="text-xs opacity-40 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>XP requis</p>
-          </div>
-          <div className="rounded-2xl border px-5 py-3 text-center"
-            style={{ background: "rgba(255,255,255,0.03)", borderColor: "rgba(255,255,255,0.08)" }}>
-            <p className="text-xl font-black" style={{ color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-bricolage)" }}>
-              {state?.xp ?? 0}
-            </p>
-            <p className="text-xs opacity-40 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>Ton XP</p>
-          </div>
-        </div>
         <motion.button onClick={() => router.back()} whileTap={{ scale: 0.96 }} transition={springTap}
           className="rounded-full px-8 py-3.5 text-sm font-bold"
           style={{ background: "rgba(255,255,255,0.06)", color: "var(--text)", fontFamily: "var(--font-dm-sans)", border: "1px solid rgba(255,255,255,0.1)" }}>
@@ -311,46 +305,73 @@ export default function LieuPage() {
           </div>
         </motion.div>
 
-        {/* CTA */}
+        {/* Theme grid — 7 themes to validate before next city */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-          className="w-full max-w-xs flex flex-col gap-3">
-          {mastered ? (
-            <>
-              <div className="flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-bold"
-                style={{ background: `${color}15`, color, fontFamily: "var(--font-dm-sans)", border: `1px solid ${color}35` }}>
-                <Trophy size={16} /> Maîtrisé — {sage.name} vaincu
-              </div>
-              {hasEnergy ? (
-                <motion.button onClick={() => router.push(`/oasis/quiz/${lieu}`)} whileTap={{ scale: 0.96 }} transition={springTap}
-                  className="flex items-center justify-center gap-2 rounded-2xl py-3.5 text-sm font-black"
-                  style={{ background: "rgba(255,255,255,0.06)", color: "var(--text)", fontFamily: "var(--font-bricolage)", border: "1px solid rgba(255,255,255,0.1)" }}>
-                  <Swords size={16} /> {tt("lieu.replay")}
-                </motion.button>
-              ) : (
-                <div className="rounded-2xl py-3.5 text-sm text-center opacity-40"
-                  style={{ background: "rgba(255,255,255,0.04)", color: "var(--text)", border: "1px solid rgba(255,255,255,0.06)", fontFamily: "var(--font-dm-sans)" }}>
-                  ⚡ Énergie dans {waitMin} min
-                </div>
-              )}
-            </>
-          ) : hasEnergy ? (
-            <motion.button onClick={() => router.push(`/oasis/quiz/${lieu}`)}
-              whileTap={{ scale: 0.96 }} transition={springTap}
-              className="flex items-center justify-center gap-3 rounded-2xl py-5 text-base font-black relative overflow-hidden"
-              style={{ background: `linear-gradient(135deg,${color},#055C3F)`, color: "#0a0f0d",
-                fontFamily: "var(--font-bricolage)", boxShadow: `0 4px 32px ${color}55`, fontSize: 17 }}>
-              <motion.div className="absolute inset-0"
-                style={{ background: "linear-gradient(105deg,transparent 40%,rgba(255,255,255,0.15) 50%,transparent 60%)" }}
-                animate={{ x: ["-100%", "200%"] }}
-                transition={{ duration: 2.5, repeat: Infinity, delay: 1 }}
-              />
-              <Swords size={20} /> {stageCfg.name} — {tt("lieu.challenge")}
-            </motion.button>
-          ) : (
-            <div className="rounded-2xl py-5 text-base text-center"
+          className="w-full max-w-sm flex flex-col gap-3 pb-8">
+
+          {/* Energy indicator */}
+          {!hasEnergy && (
+            <div className="rounded-2xl py-2.5 text-sm text-center"
               style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.25)", fontFamily: "var(--font-dm-sans)" }}>
-              <p className="text-sm font-black" style={{ color: "#f87171" }}>⚡ Énergie épuisée</p>
-              <p className="text-xs opacity-60 mt-1" style={{ color: "var(--text)" }}>Recharge dans {waitMin} min</p>
+              <span className="text-xs font-black" style={{ color: "#f87171" }}>⚡ Énergie épuisée — recharge dans {waitMin} min</span>
+            </div>
+          )}
+
+          <p className="text-[10px] uppercase tracking-widest opacity-40 text-center"
+            style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            Valide les 7 thèmes pour débloquer la ville suivante
+          </p>
+
+          <div className="grid grid-cols-1 gap-2">
+            {ALL_THEMES.map((theme, i) => {
+              const meta      = THEME_META[theme];
+              const validated = state ? isThemeValidated(state, lieu, theme) : false;
+              const progress  = state?.locationThemeProgress?.[lieu]?.[theme] ?? 0;
+              const pct       = Math.min(100, Math.round((progress / THEME_VALIDATE_MIN) * 100));
+
+              return (
+                <motion.button key={theme}
+                  initial={{ opacity: 0, x: -12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.55 + i * 0.05 }}
+                  disabled={!hasEnergy}
+                  onClick={() => hasEnergy && router.push(`/oasis/quiz/${lieu}?theme=${theme}`)}
+                  whileTap={hasEnergy ? { scale: 0.97 } : {}}
+                  className="flex items-center gap-3 rounded-2xl px-4 py-3 text-left relative overflow-hidden"
+                  style={{
+                    background: validated ? `${meta.color}18` : "rgba(255,255,255,0.04)",
+                    border: `1px solid ${validated ? meta.color + "55" : "rgba(255,255,255,0.08)"}`,
+                    opacity: hasEnergy ? 1 : 0.6,
+                  }}>
+                  {/* Progress bar behind */}
+                  {!validated && pct > 0 && (
+                    <div className="absolute inset-0 pointer-events-none"
+                      style={{ background: `linear-gradient(90deg,${meta.color}12 ${pct}%,transparent ${pct}%)` }} />
+                  )}
+                  <span className="text-xl shrink-0">{meta.icon}</span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-bold leading-tight"
+                      style={{ color: validated ? meta.color : "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                      {meta.label}
+                    </p>
+                    <p className="text-[10px] opacity-50 mt-0.5"
+                      style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                      {validated ? "Validé ✓" : `${progress}/${THEME_VALIDATE_MIN} bonnes réponses`}
+                    </p>
+                  </div>
+                  {validated
+                    ? <span className="text-base shrink-0">✅</span>
+                    : <span className="text-xs opacity-30 shrink-0" style={{ color: "var(--text)" }}>▶</span>
+                  }
+                </motion.button>
+              );
+            })}
+          </div>
+
+          {mastered && (
+            <div className="flex items-center justify-center gap-2 rounded-2xl py-3 text-sm font-bold mt-1"
+              style={{ background: `${color}15`, color, fontFamily: "var(--font-dm-sans)", border: `1px solid ${color}35` }}>
+              <Trophy size={14} /> {sage.name} vaincu — Ville maîtrisée
             </div>
           )}
         </motion.div>

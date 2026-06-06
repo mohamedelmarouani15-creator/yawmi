@@ -46,6 +46,7 @@ export const DEFAULT_STATE: GameState = {
   locationStages: {},
   categoryMastery: { theologie: 0, histoire: 0, coran: 0, arabe: 0, ethique: 0, sira: 0, fiqh: 0 },
   categoryXP: {},
+  locationThemeProgress: {},
   manuscripts: {},
   completedArcs: [],
   dailyQuests: [],
@@ -407,6 +408,25 @@ export const gameStorage = {
     const updated = {
       ...state,
       locationStages: { ...state.locationStages, [locationId]: next },
+    };
+    this.save(updated);
+    return updated;
+  },
+
+  // ── Theme progress per location ──────────────────────────────
+  recordThemeCorrect(locationId: string, category: Category, correctCount: number): GameState {
+    const state = this.get();
+    const prev = state.locationThemeProgress?.[locationId]?.[category] ?? 0;
+    const next = Math.max(prev, correctCount); // keep best score
+    const updated = {
+      ...state,
+      locationThemeProgress: {
+        ...(state.locationThemeProgress ?? {}),
+        [locationId]: {
+          ...(state.locationThemeProgress?.[locationId] ?? {}),
+          [category]: next,
+        },
+      },
     };
     this.save(updated);
     return updated;

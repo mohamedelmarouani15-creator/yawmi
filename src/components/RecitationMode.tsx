@@ -33,6 +33,15 @@ interface ReciteResult {
   tajwid_issues: TajwidIssue[];
 }
 
+interface CoachResponse {
+  encouragement: string;
+  tajwid?:        string;
+  pronunciation?: string;
+  tafsir?:        string;
+  next_focus?:    string;
+  agents:         string[];
+}
+
 type RecordingState = "idle" | "recording" | "processing" | "result";
 type GuidedPhase   = "listen" | "segments" | "full";
 
@@ -543,15 +552,19 @@ function FullPhase({
   onNext: () => void;
   onResult?: (score: number, tajwidTypes: string[]) => void;
 }) {
-  const [recState,   setRecState]   = useState<RecordingState>("idle");
-  const [result,     setResult]     = useState<ReciteResult | null>(null);
-  const [wordIdx,    setWordIdx]     = useState(0);
-  const [showAudio,  setShowAudio]  = useState(false);
+  const [recState,     setRecState]     = useState<RecordingState>("idle");
+  const [result,       setResult]       = useState<ReciteResult | null>(null);
+  const [wordIdx,      setWordIdx]       = useState(0);
+  const [showAudio,    setShowAudio]    = useState(false);
+  const [coaching,     setCoaching]     = useState<CoachResponse | null>(null);
+  const [coachLoading, setCoachLoading] = useState(false);
+  const [showCoach,    setShowCoach]    = useState(true);
 
   const mediaRef   = useRef<MediaRecorder | null>(null);
   const chunksRef  = useRef<Blob[]>([]);
   const timerRef   = useRef<ReturnType<typeof setInterval> | null>(null);
   const audioUrl   = ayahAudioUrl(surahNumber, ayah.numberInSurah);
+  const settings   = storage.getSettings();
 
   useEffect(() => {
     if (recState !== "recording") {
@@ -608,15 +621,44 @@ function FullPhase({
       const data: ReciteResult = await res.json();
       setResult(data);
       setRecState("result");
-      // Persist SM-2 record — fire-and-forget, non-blocking
+      setCoaching(null);
+      setShowCoach(true);
+
+      // SM-2 persist — fire-and-forget
       const types = [...new Set(data.tajwid_issues.map((t: TajwidIssue) => t.type))];
       saveRecitation(surahNumber, ayah.numberInSurah, data.score, types).catch(() => {});
       onResult?.(data.score, types);
+
+      // ── Chef Agent coaching — parallel sub-agents ─────────────
+      setCoachLoading(true);
+      fetch("/api/quran/coach", {
+        method:  "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization:  `Bearer ${session?.access_token ?? ""}`,
+        },
+        body: JSON.stringify({
+          surahNumber,
+          ayahNumber:   ayah.numberInSurah,
+          ayahText:     ayah.text,
+          transcribed:  data.transcribed,
+          score:        data.score,
+          errors:       data.errors,
+          tajwidIssues: data.tajwid_issues,
+          ageGroup:     settings.ageGroup ?? "18-35",
+          arabicLevel:  settings.arabicLevel ?? "beginner",
+        }),
+      })
+        .then(r => r.ok ? r.json() : null)
+        .then((c: CoachResponse | null) => { if (c) setCoaching(c); })
+        .catch(() => {})
+        .finally(() => setCoachLoading(false));
+
     } catch (err) {
       console.error("[FullPhase]", err);
       setRecState("idle");
     }
-  }, [recState, ayah, surahNumber, onResult]);
+  }, [recState, ayah, surahNumber, onResult, settings.ageGroup, settings.arabicLevel]);
 
   const fb = result ? feedbackConfig(result.score, isElder) : null;
 
@@ -691,7 +733,7 @@ function FullPhase({
             )}
             <div className="flex gap-3">
               {!fb.autoNext && (
-                <button onClick={() => { setRecState("idle"); setResult(null); }}
+                <button onClick={() => { setRecState("idle"); setResult(null); setCoaching(null); }}
                   className="flex items-center gap-1.5 rounded-xl border px-4 py-2 text-sm font-semibold"
                   style={{ borderColor: "rgba(255,255,255,0.1)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
                   <RotateCcw size={14} /> Réessayer
@@ -707,6 +749,94 @@ function FullPhase({
         )}
       </AnimatePresence>
 
+      {/* ── Coaching IA panel ──────────────────────────────────── */}
+      <AnimatePresence>
+        {(coachLoading || coaching) && result && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}
+            className="rounded-2xl border overflow-hidden"
+            style={{ borderColor: "rgba(212,175,55,0.2)", background: "rgba(212,175,55,0.04)" }}>
+
+            {/* Header — collapsible */}
+            <button
+              onClick={() => setShowCoach(v => !v)}
+              className="flex w-full items-center justify-between px-4 py-3"
+              style={{ borderBottom: showCoach ? "1px solid rgba(212,175,55,0.1)" : "none" }}>
+              <div className="flex items-center gap-2">
+                <span style={{ fontSize: 14 }}>🤖</span>
+                <span className="text-xs font-semibold tracking-wide uppercase"
+                  style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)", opacity: 0.8 }}>
+                  Coaching IA
+                </span>
+                {!coachLoading && coaching && (
+                  <div className="flex gap-1 ml-1">
+                    {coaching.agents.slice(0, 3).map(a => (
+                      <span key={a} className="rounded-full px-1.5 py-0.5 text-[9px] uppercase font-bold"
+                        style={{ background: "rgba(212,175,55,0.15)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+                        {a}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {coachLoading
+                ? <Loader2 size={14} className="animate-spin" style={{ color: "var(--gold)", opacity: 0.6 }} />
+                : <span style={{ color: "rgba(255,255,255,0.3)", fontSize: 12 }}>{showCoach ? "▲" : "▼"}</span>
+              }
+            </button>
+
+            {showCoach && (
+              <div className="flex flex-col gap-3 px-4 py-3">
+                {coachLoading && !coaching && (
+                  <div className="flex items-center gap-2 py-2">
+                    <Loader2 size={14} className="animate-spin" style={{ color: "var(--gold)" }} />
+                    <p className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                      Vos coachs analysent votre récitation…
+                    </p>
+                  </div>
+                )}
+
+                {coaching && (
+                  <>
+                    {/* Encouragement — always */}
+                    {coaching.encouragement && (
+                      <CoachSection icon="💚" label="Encouragement" text={coaching.encouragement} color="#22c55e" isElder={isElder} />
+                    )}
+
+                    {/* Tajwid — when errors */}
+                    {coaching.tajwid && (
+                      <CoachSection icon="📖" label="Agent Tajwid" text={coaching.tajwid} color="var(--gold)" isElder={isElder} />
+                    )}
+
+                    {/* Makhraj — when score low */}
+                    {coaching.pronunciation && (
+                      <CoachSection icon="👄" label="Agent Makhraj" text={coaching.pronunciation} color="#3b82f6" isElder={isElder} />
+                    )}
+
+                    {/* Tafsir — reward for good score */}
+                    {coaching.tafsir && (
+                      <CoachSection icon="📚" label="Agent Tafsir" text={coaching.tafsir} color="rgba(212,175,55,0.9)" isElder={isElder} />
+                    )}
+
+                    {/* Next focus */}
+                    {coaching.next_focus && (
+                      <div className="pt-1" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                        <p className="text-xs opacity-40 mb-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                          Prochaine session →
+                        </p>
+                        <p className="text-xs" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)", opacity: 0.7 }}>
+                          {coaching.next_focus}
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="flex flex-col items-center gap-3">
         <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
           {recState === "idle" ? (isElder || isKids ? "Appuyez et maintenez pour réciter" : "Appuyez pour réciter")
@@ -716,6 +846,33 @@ function FullPhase({
         </p>
         <MicButton state={recState} onPress={startRec} onStop={stopRec} />
       </div>
+    </div>
+  );
+}
+
+// ── Coach section component ──────────────────────────────────────
+
+function CoachSection({ icon, label, text, color, isElder }: {
+  icon: string; label: string; text: string; color: string; isElder: boolean;
+}) {
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="flex items-center gap-1.5">
+        <span style={{ fontSize: 12 }}>{icon}</span>
+        <p className="text-[10px] font-bold uppercase tracking-wide"
+          style={{ color, fontFamily: "var(--font-dm-sans)", opacity: 0.8 }}>
+          {label}
+        </p>
+      </div>
+      <p style={{
+        color: "var(--text)",
+        fontFamily: "var(--font-dm-sans)",
+        fontSize: isElder ? 14 : 13,
+        lineHeight: 1.55,
+        opacity: 0.85,
+      }}>
+        {text}
+      </p>
     </div>
   );
 }

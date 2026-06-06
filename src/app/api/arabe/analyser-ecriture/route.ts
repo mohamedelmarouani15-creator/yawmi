@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 export async function GET() {
-  const apiKey = process.env.GOOGLE_AI_API_KEY;
-  if (!apiKey) return NextResponse.json({ error: "GOOGLE_AI_API_KEY manquante" });
-  const res  = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-  const data = await res.json();
-  const names = (data.models ?? []).map((m: { name: string }) => m.name);
-  return NextResponse.json({ models: names });
+  return NextResponse.json({ status: "ok", model: "Qwen/Qwen2.5-VL-7B-Instruct via HuggingFace" });
 }
 
 export async function POST(req: NextRequest) {
@@ -18,9 +12,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Image ou mot manquant" }, { status: 400 });
     }
 
-    const apiKey = process.env.GOOGLE_AI_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json({ error: "GOOGLE_AI_API_KEY non configurée" }, { status: 500 });
+    const hfToken = process.env.HF_TOKEN;
+    if (!hfToken) {
+      return NextResponse.json({ error: "HF_TOKEN non configuré" }, { status: 500 });
     }
 
     const ageCtx =
@@ -31,32 +25,57 @@ export async function POST(req: NextRequest) {
     const prompt = `Tu es un professeur bienveillant de calligraphie arabe islamique qui évalue l'écriture d'${ageCtx}.
 L'élève devait écrire en arabe : "${wordAr}" (${wordFr ?? ""}).
 Regarde la photo et évalue : lisibilité, forme des lettres, connexions, effort.
-Réponds UNIQUEMENT en JSON :
-{"score":<0-10>,"emoji":"<🌟👍💪🎯>","feedback":"<2-3 phrases fr>","encouragement":"<citation islamique courte>"}`;
+Réponds UNIQUEMENT en JSON valide sans aucun texte autour :
+{"score":<entier 0-10>,"emoji":"<un emoji parmi 🌟👍💪🎯>","feedback":"<2-3 phrases bienveillantes en français>","encouragement":"<1 phrase islamique courte>"}`;
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
+    const dataUrl = `data:${mimeType ?? "image/jpeg"};base64,${imageBase64}`;
 
-    const result = await model.generateContent([
-      prompt,
-      {
-        inlineData: {
-          mimeType: (mimeType ?? "image/jpeg") as string,
-          data: imageBase64,
+    const body = {
+      model: "Qwen/Qwen2.5-VL-7B-Instruct",
+      messages: [
+        {
+          role: "user",
+          content: [
+            { type: "image_url", image_url: { url: dataUrl } },
+            { type: "text",      text: prompt },
+          ],
         },
-      },
-    ]);
+      ],
+      max_tokens: 300,
+      temperature: 0.4,
+      stream: false,
+    };
 
-    const raw   = result.response.text();
+    const res = await fetch(
+      "https://api-inference.huggingface.co/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type":  "application/json",
+          "Authorization": `Bearer ${hfToken}`,
+        },
+        body: JSON.stringify(body),
+      }
+    );
+
+    if (!res.ok) {
+      const txt = await res.text();
+      return NextResponse.json({ error: `HuggingFace ${res.status}: ${txt.slice(0, 300)}` }, { status: res.status });
+    }
+
+    const data  = await res.json();
+    const raw   = data.choices?.[0]?.message?.content ?? "";
     const match = raw.match(/\{[\s\S]*\}/);
+
     if (!match) {
-      return NextResponse.json({ error: "Réponse IA non parseable", raw }, { status: 500 });
+      return NextResponse.json({ error: "Réponse non parseable", raw }, { status: 500 });
     }
 
     return NextResponse.json(JSON.parse(match[0]));
+
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    console.error("[analyser-ecriture]", msg);
+    console.error("[analyser-ecriture/hf]", msg);
     return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

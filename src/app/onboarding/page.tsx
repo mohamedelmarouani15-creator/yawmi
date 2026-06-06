@@ -184,9 +184,11 @@ export default function OnboardingPage() {
     storage.saveSettings(draft);
     localStorage.setItem("yawmi_onboarded", "1");
 
+    let hasSession = false;
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.access_token) {
+        hasSession = true;
         await fetch("/api/onboarding", {
           method: "POST",
           headers: {
@@ -204,7 +206,7 @@ export default function OnboardingPage() {
       }
     } catch { /* localStorage est la source de vérité */ }
 
-    router.replace("/accueil");
+    router.replace(hasSession ? "/accueil" : "/connexion");
   }
 
   const filteredCities = CITIES.filter(c =>

@@ -166,7 +166,7 @@ export default function HistoirePage() {
   const router = useRouter();
   const tt = useT();
   const lang = useLang();
-  const isAr = lang === "ar" || lang === "darija";
+  const isAr = lang === "ar";
   // Statuts lus depuis Supabase — écrase les valeurs hardcodées de ARCS
   const [arcStatuses, setArcStatuses]   = useState<Record<string, "published" | "draft">>({});
   const [arcProgress, setArcProgress]   = useState<Record<string, ArcProgress>>({});

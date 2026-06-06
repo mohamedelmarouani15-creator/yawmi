@@ -16,7 +16,7 @@ export interface YawmiSettings {
   // Profil onboarding (ajouté V1.1)
   ageGroup:      "4-10" | "11-17" | "18-35" | "36-55" | "55+" | null;
   mainObjective: "apprendre" | "pratiquer" | "explorer" | null;
-  motherTongue:  "français" | "arabe" | "darija" | "anglais" | "espagnol" | "turc" | null;
+  motherTongue:  "français" | "arabe" | "anglais" | "espagnol" | "turc" | null;
 }
 
 export interface PrayerLog {

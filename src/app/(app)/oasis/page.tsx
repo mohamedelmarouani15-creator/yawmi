@@ -445,7 +445,7 @@ function CityCard({
 }) {
   const tt = useT();
   const lang = useLang();
-  const isAr = lang === "ar" || lang === "darija";
+  const isAr = lang === "ar";
   const W_CARD = 148, H_CARD = 72, RX = 15;
   const x = -W_CARD / 2;
   const y = 18; // below front vertex
@@ -575,7 +575,7 @@ export default function OasisPage() {
   const { state, locationUnlocked } = useGameState();
   const tt = useT();
   const lang = useLang();
-  const isAr = lang === "ar" || lang === "darija";
+  const isAr = lang === "ar";
   const containerRef = useRef<HTMLDivElement>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [didScroll, setDidScroll] = useState(false);

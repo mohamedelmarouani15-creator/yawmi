@@ -445,7 +445,6 @@ export default function OnboardingPage() {
                 {[
                   { value: "français",  icon: <span style={{fontSize:26}}>🇫🇷</span>, label: "Français",  sub: "Ma langue principale" },
                   { value: "arabe",     icon: <span style={{fontSize:26}}>🌙</span>,  label: "العربية",  sub: "Arabic" },
-                  { value: "darija",    icon: <span style={{fontSize:26}}>🇲🇦</span>, label: "Darija",   sub: "Dialecte maghrébin" },
                   { value: "anglais",   icon: <span style={{fontSize:26}}>🇬🇧</span>, label: "English",  sub: "Anglais" },
                   { value: "espagnol",  icon: <span style={{fontSize:26}}>🇪🇸</span>, label: "Español",  sub: "Espagnol" },
                   { value: "turc",      icon: <span style={{fontSize:26}}>🇹🇷</span>, label: "Türkçe",   sub: "Turc" },

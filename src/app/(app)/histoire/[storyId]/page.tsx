@@ -25,7 +25,7 @@ export default function StoryChaptersPage() {
   const router = useRouter();
   const tt = useT();
   const lang = useLang();
-  const isAr = lang === "ar" || lang === "darija";
+  const isAr = lang === "ar";
 
   const [chapters,  setChapters]  = useState<ChapterMeta[]>([]);
   const [progress,  setProgress]  = useState<StoryProgress | null>(null);

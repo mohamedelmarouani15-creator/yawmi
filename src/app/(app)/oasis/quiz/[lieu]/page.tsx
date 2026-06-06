@@ -207,7 +207,7 @@ export default function QuizPage() {
   const router = useRouter();
   const tt = useT();
   const lang = useLang();
-  const isRtl = lang === "ar" || lang === "darija";
+  const isRtl = lang === "ar";
   const { state, refresh } = useGameState();
 
   // Read ?theme= from URL (set by /oasis/[lieu] theme selection)

@@ -358,7 +358,6 @@ export default function ProfilPage() {
           {([
             { id: "français"  as const, label: "Français",  sub: "Langue principale",        flag: "🇫🇷" },
             { id: "arabe"     as const, label: "العربية",   sub: "Arabic",                   flag: "🌙" },
-            { id: "darija"    as const, label: "Darija",    sub: "Dialecte maghrébin",        flag: "🇲🇦" },
             { id: "anglais"   as const, label: "English",   sub: "Anglais",                  flag: "🇬🇧" },
             { id: "espagnol"  as const, label: "Español",   sub: "Espagnol",                 flag: "🇪🇸" },
             { id: "turc"      as const, label: "Türkçe",    sub: "Turc",                     flag: "🇹🇷" },
@@ -368,7 +367,7 @@ export default function ProfilPage() {
               <motion.button key={id}
                 onClick={() => {
                   save({ ...settings, motherTongue: id });
-                  const isRTL = id === "arabe" || id === "darija";
+                  const isRTL = id === "arabe";
                   document.documentElement.lang = isRTL ? "ar" : "fr";
                   document.documentElement.dir  = isRTL ? "rtl" : "ltr";
                   flash();

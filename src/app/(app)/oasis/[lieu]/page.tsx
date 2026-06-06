@@ -32,7 +32,7 @@ export default function LieuPage() {
   const router   = useRouter();
   const tt       = useT();
   const lang     = useLang();
-  const isRtl    = lang === "ar" || lang === "darija";
+  const isRtl    = lang === "ar";
   const { state, locationUnlocked } = useGameState();
 
   const location    = getLocation(lieu);

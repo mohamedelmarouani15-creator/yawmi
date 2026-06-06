@@ -29,7 +29,7 @@ export default function TropheesPage() {
   const { state } = useGameState();
   const tt = useT();
   const lang = useLang();
-  const isRtl = lang === "ar" || lang === "darija";
+  const isRtl = lang === "ar";
   const [filter, setFilter] = useState<Filter>("Tous");
   const [lastUnlocked, setLastUnlocked] = useState<string | null>(null);
 

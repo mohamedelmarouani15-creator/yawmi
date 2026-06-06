@@ -435,7 +435,7 @@ function LockModal({ lock, onSolve, onClose, color, lang }: {
   color: string;
   lang: string;
 }) {
-  const isRtl = lang === "ar" || lang === "darija";
+  const isRtl = lang === "ar";
   const [selected, setSelected]   = useState<number | null>(null);
   const [revealed, setRevealed]   = useState(false);
   const [hintUsed, setHintUsed]   = useState(false);
@@ -562,7 +562,7 @@ export default function EscapeRoomPage() {
   const { room: roomId } = useParams() as { room: string };
   const router = useRouter();
   const lang = useLang();
-  const isRtl = lang === "ar" || lang === "darija";
+  const isRtl = lang === "ar";
 
   const room = roomId === "current" ? getCurrentEscapeRoom() : getEscapeRoom(roomId);
 

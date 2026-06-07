@@ -65,6 +65,27 @@ const TAJWID_LABELS: Record<string, { fr: string; ar: string; color: string }> =
 
 // ── Helpers ──────────────────────────────────────────────────────
 
+/**
+ * Returns the best supported audio mimeType for MediaRecorder.
+ * iOS Safari does not support audio/webm — it only supports audio/mp4.
+ * Passing an unsupported mimeType throws NotSupportedError before we even
+ * reach the microphone permission prompt, producing a misleading error.
+ */
+function getSupportedMimeType(): string {
+  if (typeof MediaRecorder === "undefined") return "";
+  if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) return "audio/webm;codecs=opus";
+  if (MediaRecorder.isTypeSupported("audio/webm")) return "audio/webm";
+  if (MediaRecorder.isTypeSupported("audio/mp4")) return "audio/mp4";
+  return "";
+}
+
+function createMediaRecorder(stream: MediaStream): MediaRecorder {
+  const mimeType = getSupportedMimeType();
+  return mimeType
+    ? new MediaRecorder(stream, { mimeType })
+    : new MediaRecorder(stream);
+}
+
 function chunkWords(words: string[], maxGroups = 4): string[][] {
   if (words.length === 0) return [];
   const size = Math.ceil(words.length / Math.min(maxGroups, words.length));
@@ -461,9 +482,10 @@ function SegmentPhase({
   const [showAudio, setShowAudio] = useState(false);
   const [wordIdx,   setWordIdx]   = useState(0);
 
-  const mediaRef  = useRef<MediaRecorder | null>(null);
-  const chunksRef = useRef<Blob[]>([]);
-  const timerRef  = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mediaRef    = useRef<MediaRecorder | null>(null);
+  const chunksRef   = useRef<Blob[]>([]);
+  const timerRef    = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mimeTypeRef = useRef<string>("");
 
   const segment  = segments[segmentIdx] ?? [];
   const expected = segment.join(" ");
@@ -502,13 +524,25 @@ function SegmentPhase({
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       chunksRef.current = [];
-      const mr = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      const mr = createMediaRecorder(stream);
+      mimeTypeRef.current = mr.mimeType;
       mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
       mr.start(500);
       mediaRef.current = mr;
       setRecState("recording");
       setResult(null);
-    } catch { alert("Microphone inaccessible."); }
+    } catch (err) {
+      const name = (err as Error)?.name ?? "";
+      if (name === "NotAllowedError") {
+        alert("Permission microphone refusée. Autorisez le micro dans les réglages de votre navigateur.");
+      } else if (name === "NotFoundError") {
+        alert("Aucun microphone détecté sur cet appareil.");
+      } else if (name === "NotSupportedError") {
+        alert("Votre navigateur ne supporte pas l'enregistrement audio. Essayez Chrome ou Safari récent.");
+      } else {
+        alert("Impossible d'accéder au microphone.");
+      }
+    }
   }, [recState]);
 
   const stopRec = useCallback(async () => {
@@ -520,9 +554,11 @@ function SegmentPhase({
       mediaRef.current!.stream.getTracks().forEach(t => t.stop());
     });
     try {
-      const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+      const recordedMime = mimeTypeRef.current || "audio/webm";
+      const blob = new Blob(chunksRef.current, { type: recordedMime });
+      const ext  = recordedMime.startsWith("audio/mp4") ? "m4a" : "webm";
       const fd = new FormData();
-      fd.append("audio", blob, "segment.webm");
+      fd.append("audio", blob, `segment.${ext}`);
       fd.append("expected", expected);
       const { supabase } = await import("@/lib/supabase");
       const { data: { session } } = await supabase.auth.getSession();
@@ -686,11 +722,12 @@ function FullPhase({
   const [showCoach,    setShowCoach]    = useState(true);
   const [accessToken,  setAccessToken]  = useState<string | null>(null);
 
-  const mediaRef   = useRef<MediaRecorder | null>(null);
-  const chunksRef  = useRef<Blob[]>([]);
-  const timerRef   = useRef<ReturnType<typeof setInterval> | null>(null);
-  const audioUrl   = ayahAudioUrl(surahNumber, ayah.numberInSurah);
-  const settings   = storage.getSettings();
+  const mediaRef    = useRef<MediaRecorder | null>(null);
+  const chunksRef   = useRef<Blob[]>([]);
+  const timerRef    = useRef<ReturnType<typeof setInterval> | null>(null);
+  const mimeTypeRef = useRef<string>("");
+  const audioUrl    = ayahAudioUrl(surahNumber, ayah.numberInSurah);
+  const settings    = storage.getSettings();
 
   useEffect(() => {
     import("@/lib/supabase").then(({ supabase }) => {
@@ -704,6 +741,7 @@ function FullPhase({
     words,
     isRecording: recState === "recording",
     accessToken,
+    mimeType: mimeTypeRef.current,
   });
 
   useEffect(() => {
@@ -730,7 +768,8 @@ function FullPhase({
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       chunksRef.current = [];
-      const mr = new MediaRecorder(stream, { mimeType: "audio/webm" });
+      const mr = createMediaRecorder(stream);
+      mimeTypeRef.current = mr.mimeType;
       mr.start(500);
       resetConfirmed();
       mr.ondataavailable = (e) => {
@@ -742,7 +781,18 @@ function FullPhase({
       mediaRef.current = mr;
       setRecState("recording");
       setResult(null);
-    } catch { alert("Microphone inaccessible."); }
+    } catch (err) {
+      const name = (err as Error)?.name ?? "";
+      if (name === "NotAllowedError") {
+        alert("Permission microphone refusée. Autorisez le micro dans les réglages de votre navigateur.");
+      } else if (name === "NotFoundError") {
+        alert("Aucun microphone détecté sur cet appareil.");
+      } else if (name === "NotSupportedError") {
+        alert("Votre navigateur ne supporte pas l'enregistrement audio. Essayez Chrome ou Safari récent.");
+      } else {
+        alert("Impossible d'accéder au microphone.");
+      }
+    }
   }, [recState, resetConfirmed, pushChunk]);
 
   const stopRec = useCallback(async () => {
@@ -754,9 +804,11 @@ function FullPhase({
       mediaRef.current!.stream.getTracks().forEach(t => t.stop());
     });
     try {
-      const blob = new Blob(chunksRef.current, { type: "audio/webm" });
+      const recordedMime = mimeTypeRef.current || "audio/webm";
+      const blob = new Blob(chunksRef.current, { type: recordedMime });
+      const ext  = recordedMime.startsWith("audio/mp4") ? "m4a" : "webm";
       const fd = new FormData();
-      fd.append("audio", blob, "recitation.webm");
+      fd.append("audio", blob, `recitation.${ext}`);
       fd.append("expected", ayah.text);
       const { supabase } = await import("@/lib/supabase");
       const { data: { session } } = await supabase.auth.getSession();

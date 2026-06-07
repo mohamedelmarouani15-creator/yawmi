@@ -106,6 +106,8 @@ export async function saveRecitation(
     last_score:      score,
     mastered:        score >= 85,
     tajwid_weak:     [...weakSet],
+    // Préserver first_seen_at : garder la valeur existante ou définir maintenant
+    first_seen_at:   existing?.first_seen_at ?? new Date().toISOString(),
     last_seen_at:    new Date().toISOString(),
   };
 

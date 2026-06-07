@@ -4,6 +4,7 @@ interface Options {
   words: string[];          // mots attendus (texte arabe)
   isRecording: boolean;
   accessToken: string | null;
+  mimeType?: string;        // mimeType du MediaRecorder parent (pour le Blob des chunks)
 }
 
 interface Result {
@@ -33,7 +34,7 @@ interface Result {
  *
  *   // Remplacer wordIdx par confirmedWordIdx dans WordHighlight.
  */
-export function useChunkedRecitation({ words, isRecording, accessToken }: Options): Result {
+export function useChunkedRecitation({ words, isRecording, accessToken, mimeType = "" }: Options): Result {
   const [confirmedWordIdx, setConfirmedWordIdx] = useState(-1);
   const chunksRef    = useRef<Blob[]>([]);
   const intervalRef  = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -53,9 +54,11 @@ export function useChunkedRecitation({ words, isRecording, accessToken }: Option
     chunksRef.current = [];
 
     try {
-      const blob = new Blob(chunksCopy, { type: "audio/webm" });
+      const blobType = mimeType || "audio/webm";
+      const blob = new Blob(chunksCopy, { type: blobType });
+      const ext  = blobType.startsWith("audio/mp4") ? "m4a" : "webm";
       const fd = new FormData();
-      fd.append("audio", blob, "chunk.webm");
+      fd.append("audio", blob, `chunk.${ext}`);
       fd.append("words", JSON.stringify(words));
       fd.append("offset", "0"); // toujours aligner depuis le début
 
@@ -75,7 +78,7 @@ export function useChunkedRecitation({ words, isRecording, accessToken }: Option
     } finally {
       isSendingRef.current = false;
     }
-  }, [words, accessToken]);
+  }, [words, accessToken, mimeType]);
 
   // Démarrer/arrêter l'intervalle selon isRecording
   useEffect(() => {

@@ -3,6 +3,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Eye, EyeOff, CheckCircle2, RotateCcw, ChevronLeft, ChevronRight } from "lucide-react";
+import { saveRecitation } from "@/lib/quran-recitation";
 
 /* ── Types ─────────────────────────────────────────────────── */
 
@@ -108,6 +109,9 @@ export default function HifzMode({
     };
     setHifzStore(updated);
     setJustMastered(true);
+
+    // Synchroniser avec Supabase (fire-and-forget)
+    saveRecitation(surahNumber, ayah.numberInSurah, 100, []).catch(() => {});
 
     // Update session mastered list (deduplicated)
     setSessionMastered((prev) =>

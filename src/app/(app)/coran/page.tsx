@@ -9,7 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, BookOpen, Bookmark, BookmarkCheck, Download, Loader2, Moon, RefreshCw, Trash2, WifiOff } from "lucide-react";
 import QuranPlayer from "@/components/QuranPlayer";
 import SleepModeOverlay, { type SleepOption } from "@/components/SleepModeOverlay";
-import HifzMode, { getTotalMasteredCount } from "@/components/HifzMode";
+import HifzMode from "@/components/HifzMode";
 import RecitationMode from "@/components/RecitationMode";
 import RecitationDashboard from "@/components/RecitationDashboard";
 import TajwidText, { TajwidLegend } from "@/components/TajwidText";

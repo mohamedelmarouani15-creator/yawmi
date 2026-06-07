@@ -614,12 +614,7 @@ export default function CoranPage() {
             ))}
           </motion.div>
         ) : (
-          <motion.div
-            variants={{ animate: { transition: { staggerChildren: 0.04 } } }}
-            initial="initial"
-            animate="animate"
-            className={`flex flex-col gap-4 ${showPlayer ? "pb-36" : ""}`}
-          >
+          <div className={`flex flex-col gap-4 ${showPlayer ? "pb-36" : ""}`}>
             {/* Bismillah — toutes les sourates sauf Al-Fatiha (1) et At-Tawbah (9) */}
             {selected !== 1 && selected !== 9 && (
               <motion.div
@@ -646,7 +641,6 @@ export default function CoranPage() {
                 /* ── Micro-animation 2 : changement de verset en lecture ── */
                 <motion.div
                   key={ayah.numberInSurah}
-                  variants={itemVariants}
                   animate={isPlaying
                     ? { scale: 1.01, transition: { duration: 0.25, ease: "easeOut" } }
                     : { scale: 1,    transition: { duration: 0.2 } }
@@ -707,7 +701,7 @@ export default function CoranPage() {
                 </motion.div>
               );
             })}
-          </motion.div>
+          </div>
         )}
 
         {showPlayer && (

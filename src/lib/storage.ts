@@ -11,8 +11,9 @@ export interface YawmiSettings {
   prayerModes:  Partial<Record<string, "audio" | "silencieux">>;
   appMode:      "pratiquant" | "explorateur";
   arabicLevel:  "none" | "beginner" | "intermediate" | "advanced";
-  sleepReciter?: string;
-  themeMode:     "night" | "day" | "auto";
+  sleepReciter?:  string;
+  quranReciter?:  string;
+  themeMode:      "night" | "day" | "auto";
   // Profil onboarding (ajouté V1.1)
   ageGroup:      "4-10" | "11-17" | "18-35" | "36-55" | "55+" | null;
   mainObjective: "apprendre" | "pratiquer" | "explorer" | null;

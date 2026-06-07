@@ -247,9 +247,10 @@ export default function PrieresPage() {
 
                 <p className="text-sm font-semibold tabular-nums"
                   style={{
-                    color: isPast && !donePrayers[key] ? "var(--text-dim)" : "var(--text)",
+                    color: "var(--text)",
                     fontFamily: "var(--font-dm-sans)",
-                    textDecoration: isPast && !donePrayers[key] && ageMode !== "kids" ? "line-through" : "none",
+                    textDecoration: "none",
+                    opacity: isPast && !donePrayers[key] && ageMode !== "kids" ? 0.45 : 1,
                   }}>
                   {formatTime(times[key])}
                 </p>

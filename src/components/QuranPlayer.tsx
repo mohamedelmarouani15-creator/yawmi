@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Volume2 } from "lucide-react";
+import { storage } from "@/lib/storage";
 
 const RECITERS = [
   { id: "Alafasy_128kbps",                name: "Mishary Alafasy"   },
@@ -29,7 +30,9 @@ export default function QuranPlayer({
   surah, totalAyahs, currentAyah, onAyahChange,
   volume = 1, defaultReciter, onSurahComplete,
 }: Props) {
-  const [reciter,  setReciter]  = useState(defaultReciter ?? RECITERS[0].id);
+  const [reciter,  setReciter]  = useState(
+    defaultReciter ?? storage.getSettings().quranReciter ?? RECITERS[0].id
+  );
   const [showRec,  setShowRec]  = useState(false);
   const [speed,    setSpeed]    = useState(1);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -74,7 +77,12 @@ export default function QuranPlayer({
           <div className="mb-3 flex flex-wrap gap-1.5">
             {RECITERS.map(r => (
               <button key={r.id}
-                onClick={() => { setReciter(r.id); setShowRec(false); }}
+                onClick={() => {
+                  setReciter(r.id);
+                  setShowRec(false);
+                  const s = storage.getSettings();
+                  storage.saveSettings({ ...s, quranReciter: r.id });
+                }}
                 className="rounded-full px-2.5 py-1 text-xs"
                 style={{
                   background: reciter === r.id ? "var(--border-gold)" : "rgba(255,255,255,0.06)",

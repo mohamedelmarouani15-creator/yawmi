@@ -254,6 +254,17 @@ function supabaseAdmin() {
   );
 }
 
+// ── Timeout helper ───────────────────────────────────────────────
+
+function withGlobalTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const id = setTimeout(() => reject(new Error("coach_timeout")), ms);
+    promise
+      .then(val => { clearTimeout(id); resolve(val); })
+      .catch(err => { clearTimeout(id); reject(err); });
+  });
+}
+
 // ── Chef Agent Route ─────────────────────────────────────────────
 // The chef decides which sub-agents to invoke based on score and
 // errors, runs them in parallel, and returns a unified response.
@@ -304,14 +315,35 @@ export async function POST(req: NextRequest) {
 
   const groq = new Groq({ apiKey });
 
-  // ── Sub-agents run in parallel ────────────────────────────────
-  const [encouragement, tajwid, makhrajResult, tafsir, next_focus] = await Promise.all([
-    agentEncouragement(groq, score, age, lang),
-    needsTajwid    ? agentTajwid(groq, ayahText, errors, tajwidTypes, age, score, lang, arabicLevel)   : Promise.resolve(""),
-    needsMakhraj   ? agentMakhraj(groq, errors, age, lang, arabicLevel)                               : Promise.resolve({ text: "", zone: null, letter: null }),
-    needsTafsir    ? agentTafsir(groq, ayahText, surahNumber, ayahNumber)                      : Promise.resolve(""),
-    needsNextFocus ? agentNextFocus(groq, score, errors, tajwidTypes, age, lang)               : Promise.resolve(""),
-  ]);
+  // ── Sub-agents run in parallel (9s timeout for Vercel Hobby) ─
+  let encouragement = "";
+  let tajwid        = "";
+  let makhrajResult: { text: string; zone: string | null; letter: string | null } = { text: "", zone: null, letter: null };
+  let tafsir        = "";
+  let next_focus    = "";
+
+  try {
+    [encouragement, tajwid, makhrajResult, tafsir, next_focus] = await withGlobalTimeout(
+      Promise.all([
+        agentEncouragement(groq, score, age, lang),
+        needsTajwid    ? agentTajwid(groq, ayahText, errors, tajwidTypes, age, score, lang, arabicLevel) : Promise.resolve(""),
+        needsMakhraj   ? agentMakhraj(groq, errors, age, lang, arabicLevel)                              : Promise.resolve({ text: "", zone: null, letter: null }),
+        needsTafsir    ? agentTafsir(groq, ayahText, surahNumber, ayahNumber)                            : Promise.resolve(""),
+        needsNextFocus ? agentNextFocus(groq, score, errors, tajwidTypes, age, lang)                     : Promise.resolve(""),
+      ]),
+      9000,
+    );
+  } catch (err) {
+    if ((err as Error).message === "coach_timeout") {
+      return NextResponse.json({
+        encouragement: score >= 70
+          ? "ما شاء الله ! Belle récitation, continuez ainsi."
+          : "Chaque tentative est une ibadah. Continuez à pratiquer !",
+        agents: ["encouragement"],
+      } satisfies CoachResponse);
+    }
+    throw err;
+  }
 
   // ── Chef synthesizes which agents ran ─────────────────────────
   const agents: string[] = ["encouragement"];

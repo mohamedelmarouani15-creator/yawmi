@@ -80,12 +80,6 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     icon: "🧙", condition: (s) => s.level >= 25,
   },
   {
-    id: "level_50",
-    title: "Grand maître", titleAr: "الأستاذ الأكبر",
-    description: "Atteindre le niveau 50", descriptionAr: "بلوغ المستوى 50",
-    icon: "⚡", condition: (s) => s.level >= 50,
-  },
-  {
     id: "coins_100",
     title: "Petit trésor", titleAr: "الكنز الصغير",
     description: "Accumuler 100 pièces d'or", descriptionAr: "جمع 100 قطعة ذهبية",

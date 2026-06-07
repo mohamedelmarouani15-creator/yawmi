@@ -97,9 +97,15 @@ async function agentTajwid(
   age: string,
   score: number,
   lang: string,
+  arabicLevel: string,
 ): Promise<string> {
   const errorList = errors.slice(0, 3).map(e => `"${e.word || "?"}" → "${e.suggestion}"`).join(", ");
   const rules     = tajwidTypes.length ? tajwidTypes.join(", ") : "non identifiées";
+  const levelNote =
+    arabicLevel === "none"         ? "Niveau arabe de l'élève : aucun, utiliser uniquement le français simple sans termes arabes." :
+    arabicLevel === "beginner"     ? "Niveau arabe de l'élève : débutant, expliquer les termes arabes en français." :
+    arabicLevel === "intermediate" ? "Niveau arabe de l'élève : intermédiaire, peut utiliser les termes techniques avec explication." :
+                                     "Niveau arabe de l'élève : avancé, niveau technique complet, termes savants bienvenus.";
 
   const res = await groq.chat.completions.create({
     model:       "llama-3.3-70b-versatile",
@@ -109,6 +115,7 @@ async function agentTajwid(
       role:    "user",
       content: `Tu es un maître en tajwid, professeur bienveillant.
 L'élève est ${age}. Score : ${score >= 90 ? "excellent" : score >= 70 ? "bien" : "à améliorer"}.
+${levelNote}
 Verset : « ${ayahText} »
 Erreurs détectées : ${errorList || "aucune erreur de mot"}
 Règles tajwid présentes : ${rules}
@@ -130,6 +137,7 @@ async function agentMakhraj(
   errors: WordError[],
   age: string,
   lang: string,
+  arabicLevel: string,
 ): Promise<{ text: string; zone: string | null; letter: string | null }> {
   const words = errors.slice(0, 3).map(e => e.suggestion).filter(Boolean).join("، ");
   if (!words) return { text: "", zone: null, letter: null };
@@ -137,6 +145,13 @@ async function agentMakhraj(
   const langSpecific = lang === "arabe"
     ? "الطلاب العرب أحياناً لا يتقنون مخارج الحروف الصحيحة — اشرح بدقة."
     : `Les ${lang === "anglais" ? "anglophones" : "francophones"} confondent souvent ض مع Z, ظ مع Z, ح مع H, ع مع A, غ مع R, ق مع K — identifie l'erreur probable.`;
+
+  const levelNote =
+    arabicLevel === "none" || arabicLevel === "beginner"
+      ? "Explication très simple, vocabulaire courant uniquement, éviter tout terme savant en arabe."
+      : arabicLevel === "intermediate"
+        ? "Tu peux utiliser les termes de base de la phonétique arabe (makhraj, sifa) avec une courte explication."
+        : "Terminologie savante complète (makhraj, sifa, huruf) appréciée.";
 
   const res = await groq.chat.completions.create({
     model:       "llama-3.3-70b-versatile",
@@ -147,6 +162,7 @@ async function agentMakhraj(
       content: `Tu es le meilleur professeur de phonétique arabe coranique au monde.
 L'élève est ${age}. Mots mal prononcés : ${words}
 ${langSpecific}
+${levelNote}
 
 Analyse et explique exactement où placer la langue/les lèvres/la gorge.
 Donne une astuce mnémotechnique simple.
@@ -271,7 +287,7 @@ export async function POST(req: NextRequest) {
   const {
     surahNumber, ayahNumber, ayahText,
     score, errors, tajwidIssues,
-    ageGroup, arabicLevel: _arabicLevel,
+    ageGroup, arabicLevel,
     motherTongue,
   } = body;
 
@@ -291,8 +307,8 @@ export async function POST(req: NextRequest) {
   // ── Sub-agents run in parallel ────────────────────────────────
   const [encouragement, tajwid, makhrajResult, tafsir, next_focus] = await Promise.all([
     agentEncouragement(groq, score, age, lang),
-    needsTajwid    ? agentTajwid(groq, ayahText, errors, tajwidTypes, age, score, lang)        : Promise.resolve(""),
-    needsMakhraj   ? agentMakhraj(groq, errors, age, lang)                                     : Promise.resolve({ text: "", zone: null, letter: null }),
+    needsTajwid    ? agentTajwid(groq, ayahText, errors, tajwidTypes, age, score, lang, arabicLevel)   : Promise.resolve(""),
+    needsMakhraj   ? agentMakhraj(groq, errors, age, lang, arabicLevel)                               : Promise.resolve({ text: "", zone: null, letter: null }),
     needsTafsir    ? agentTafsir(groq, ayahText, surahNumber, ayahNumber)                      : Promise.resolve(""),
     needsNextFocus ? agentNextFocus(groq, score, errors, tajwidTypes, age, lang)               : Promise.resolve(""),
   ]);

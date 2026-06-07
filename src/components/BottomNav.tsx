@@ -17,7 +17,7 @@ const NAV_DEFAULT: NavKey[] = [
   { href: "/prieres",  labelKey: "nav.prayers", Icon: CrescentStar },
   { href: "/oasis",    labelKey: "nav.oasis",   Icon: Compass      },
   { href: "/arabe",    labelKey: "nav.arabe",   Icon: GraduationCap },
-  { href: "/famille",  labelKey: "nav.family",  Icon: Users        },
+  { href: "/coran",    labelKey: "nav.quran",   Icon: BookOpen     },
 ];
 
 const NAV_KIDS: NavKey[] = [

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import Groq from "groq-sdk";
 import { createClient } from "@supabase/supabase-js";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 // ── Levenshtein (character level, used per word) ──────────────────
 function levenshtein(a: string, b: string): number {
@@ -232,6 +233,15 @@ export async function POST(req: NextRequest) {
   const supabase = supabaseAdmin();
   const { data: { user } } = await supabase.auth.getUser(auth.replace("Bearer ", ""));
   if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
+  // Rate limit : 50 récitations/heure par utilisateur
+  const rl = await checkRateLimit(user.id, "quran_recite", 50);
+  if (rl.limited) {
+    return NextResponse.json(
+      { error: `Limite atteinte. Réessayez dans ${rl.retryAfterSeconds ?? 60}s.` },
+      { status: 429 }
+    );
+  }
 
   try {
     const formData  = await req.formData();

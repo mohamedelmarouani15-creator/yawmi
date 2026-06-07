@@ -39,9 +39,9 @@ export async function checkRateLimit(
     .gte("created_at", windowStart);
 
   if (error) {
-    // En cas d'erreur Supabase, on laisse passer (fail open)
+    // Fail-closed : en cas d'erreur Supabase, bloquer par précaution
     console.warn("[rate-limit] Supabase error:", error.message);
-    return { limited: false };
+    return { limited: true, retryAfterSeconds: 60 };
   }
 
   if ((count ?? 0) >= maxPerHour) {

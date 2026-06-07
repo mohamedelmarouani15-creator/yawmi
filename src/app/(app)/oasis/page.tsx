@@ -4,7 +4,7 @@ import { useRef, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Swords, Lock, Flame, Coins, Package, ShoppingCart, BookOpen, Castle } from "lucide-react";
+import { Swords, Lock, Flame, Coins, Package, ShoppingCart, BookOpen } from "lucide-react";
 import { springTap } from "@/lib/motion";
 import { useGameState } from "@/hooks/useGameState";
 import { LOCATIONS } from "@/lib/game/locations";
@@ -800,37 +800,37 @@ export default function OasisPage() {
       {/* ── Événement islamique actif ── */}
       <EventBanner />
 
-      {/* ── Escape Game card ── */}
+      {/* ── Maison de la Sagesse Escape Game ── */}
       <div className="px-4 mb-2">
         <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={() => router.push("/oasis/escape")}
+          onClick={() => router.push("/oasis/maison-sagesse")}
           className="w-full rounded-2xl p-4 text-left flex items-center gap-4"
           style={{
-            background: "linear-gradient(135deg,rgba(5,92,63,0.45) 0%,rgba(4,6,8,0.92) 100%)",
-            border: "1px solid rgba(5,195,111,0.35)",
-            boxShadow: "0 0 24px rgba(5,195,111,0.08)",
+            background: "linear-gradient(135deg,rgba(30,15,5,0.95) 0%,rgba(100,70,10,0.3) 50%,rgba(4,6,8,0.95) 100%)",
+            border: "1px solid rgba(212,175,55,0.5)",
+            boxShadow: "0 0 32px rgba(212,175,55,0.12), inset 0 0 32px rgba(212,175,55,0.03)",
           }}
         >
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
-            style={{ background: "rgba(5,195,111,0.12)" }}>
-            <Castle size={24} style={{ color: "#05C36F" }} />
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl"
+            style={{ background: "rgba(212,175,55,0.12)" }}>
+            🏛️
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-0.5">
               <span className="text-[9px] font-semibold tracking-widest uppercase"
-                style={{ color: "#05C36F", fontFamily: "var(--font-dm-sans)" }}>
-                ✦ Escape Game 3D
+                style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
+                ✦ Escape Game • 3D Immersif • 45 min
               </span>
             </div>
             <p className="text-sm font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-              {tt("oasis.escape")}
+              Le Secret de la Maison de la Sagesse
             </p>
             <p className="text-[11px] mt-0.5" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
-              {tt("oasis.escapeSub")}
+              Bagdad, 830 apr. J.-C. • Solo ou famille • Dès 7 ans
             </p>
           </div>
-          <span style={{ color: "#05C36F", fontSize: 18, flexShrink: 0 }}>→</span>
+          <span style={{ color: "#D4AF37", fontSize: 18, flexShrink: 0 }}>→</span>
         </motion.button>
       </div>
 

@@ -157,8 +157,6 @@ export interface GameState {
 export interface LocationTranslation { description?: string; country?: string; }
 export interface SageTranslation { title?: string; dialogueIntro?: string; dialogueSuccess?: string; dialogueFailure?: string; }
 export interface AchievementTranslation { title?: string; description?: string; }
-export interface EscapeRoomTranslation { name?: string; description?: string; }
-export interface EscapeLockTranslation { question?: string; options?: { text: string; correct: boolean }[]; hint?: string; }
 
 export interface LocationDef {
   id: string;

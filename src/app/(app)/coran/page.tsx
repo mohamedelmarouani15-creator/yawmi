@@ -148,6 +148,7 @@ export default function CoranPage() {
   const [hifzMode,       setHifzMode]      = useState(false);
   const [recitationMode,  setRecitationMode]  = useState(false);
   const [recitationGuided, setRecitationGuided] = useState(false);
+  const [showSurahMenu,  setShowSurahMenu]   = useState(false);
   const [surahDueCount,   setSurahDueCount]   = useState(0);
   const [search,          setSearch]          = useState("");
   const [surahStats,      setSurahStats]      = useState<Map<number, { masteredCount: number; dueCount: number }>>(new Map());
@@ -429,16 +430,20 @@ export default function CoranPage() {
         animate="animate"
         className="flex flex-col gap-4 px-5 pt-12 pb-4"
       >
-        {/* ── Header : titre + nom arabe ──────────────────────── */}
+        {/* ── Header minimal : titre + audio + menu ─────────────── */}
         <motion.div variants={itemVariants} className="flex items-center gap-3">
           <button onClick={() => setSelected(null)}
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border"
             style={{ borderColor: "rgba(255,255,255,0.1)", color: "var(--text)" }}>
             <ArrowLeft size={16} />
           </button>
+
           <div className="flex-1 min-w-0">
-            <h1 className="text-xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+            <h1 className="text-lg font-bold leading-tight" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
               {surah?.englishName}
+              <span className="ml-2 text-base font-normal opacity-60" style={{ fontFamily: "var(--font-amiri)", color: "var(--gold)", direction: "rtl" }}>
+                {surah?.name}
+              </span>
             </h1>
             <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
               {surah?.numberOfAyahs} versets · Juzz {currentJuzz}
@@ -450,101 +455,111 @@ export default function CoranPage() {
               )}
             </p>
           </div>
-          <p className="text-2xl shrink-0" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
-            {surah?.name}
-          </p>
-        </motion.div>
 
-        {/* ── Actions principales : 3 grandes tuiles ───────────── */}
-        <motion.div variants={itemVariants} className="grid grid-cols-3 gap-2">
-          {/* Audio */}
+          {/* Bouton Audio rapide */}
           <button
             onClick={() => { setShowPlayer(v => !v); setPlayingAyah(1); }}
-            className="flex flex-col items-center gap-1.5 rounded-2xl py-3 border transition-all"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border"
             style={{
-              background:   showPlayer ? "rgba(212,175,55,0.12)" : "rgba(255,255,255,0.03)",
-              borderColor:  showPlayer ? "rgba(212,175,55,0.35)" : "rgba(255,255,255,0.08)",
+              borderColor: showPlayer ? "rgba(212,175,55,0.5)" : "rgba(255,255,255,0.12)",
+              background:  showPlayer ? "rgba(212,175,55,0.12)" : "rgba(5,92,63,0.2)",
+              color: showPlayer ? "var(--gold)" : "var(--text)",
             }}>
-            <span style={{ fontSize: 20 }}>{showPlayer ? "⏹" : "▶"}</span>
-            <span className="text-[11px] font-semibold"
-              style={{ color: showPlayer ? "var(--gold)" : "rgba(248,244,236,0.5)", fontFamily: "var(--font-dm-sans)" }}>
-              Audio
-            </span>
+            {showPlayer ? "⏹" : "▶"}
           </button>
 
-          {/* Réciter */}
-          <button
-            onClick={() => { setRecitationGuided(false); setRecitationMode(true); }}
-            className="flex flex-col items-center gap-1.5 rounded-2xl py-3 border transition-all"
-            style={{
-              background:  "rgba(5,92,63,0.15)",
-              borderColor: "rgba(5,92,63,0.4)",
-            }}>
-            <span style={{ fontSize: 20 }}>🎙</span>
-            <span className="text-[11px] font-semibold"
-              style={{ color: "var(--primary)", fontFamily: "var(--font-dm-sans)" }}>
-              Réciter
-            </span>
-          </button>
-
-          {/* Guidé */}
-          <button
-            onClick={() => { setRecitationGuided(true); setRecitationMode(true); }}
-            className="flex flex-col items-center gap-1.5 rounded-2xl py-3 border transition-all"
-            style={{
-              background:  "rgba(212,175,55,0.08)",
-              borderColor: "rgba(212,175,55,0.25)",
-            }}>
-            <span style={{ fontSize: 20 }}>📚</span>
-            <span className="text-[11px] font-semibold"
-              style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
-              Guidé
-            </span>
-          </button>
-        </motion.div>
-
-        {/* ── Actions secondaires : chips compactes ─────────────── */}
-        <motion.div variants={itemVariants} className="flex gap-2 flex-wrap">
-          <button onClick={() => setShowTrans(v => !v)}
-            className="rounded-full border px-3 py-1.5 text-xs font-medium"
-            style={{
-              borderColor: showTrans ? "rgba(212,175,55,0.4)" : "rgba(255,255,255,0.1)",
-              color:       showTrans ? "var(--gold)"          : "rgba(248,244,236,0.4)",
-              background:  showTrans ? "rgba(212,175,55,0.06)": "transparent",
-              fontFamily:  "var(--font-dm-sans)",
-            }}>
-            Traduction
-          </button>
-
-          {ayahs.length > 0 && (
-            <button onClick={() => setHifzMode(true)}
-              className="rounded-full border px-3 py-1.5 text-xs font-medium"
-              style={{ borderColor: "rgba(212,175,55,0.2)", color: "rgba(212,175,55,0.6)", background: "transparent", fontFamily: "var(--font-dm-sans)" }}>
-              Mémoriser
+          {/* Menu ⋮ */}
+          <div className="relative">
+            <button
+              onClick={() => setShowSurahMenu(v => !v)}
+              className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-lg font-bold"
+              style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(248,244,236,0.6)" }}>
+              ⋮
             </button>
-          )}
 
-          {!isKids && (
-            <button onClick={() => setTajwidEnabled(v => !v)}
-              className="rounded-full border px-3 py-1.5 text-xs font-medium"
-              style={{
-                borderColor: tajwidEnabled ? "rgba(59,130,246,0.4)" : "rgba(255,255,255,0.1)",
-                color:       tajwidEnabled ? "#3b82f6"              : "rgba(248,244,236,0.4)",
-                background:  tajwidEnabled ? "rgba(59,130,246,0.08)": "transparent",
-                fontFamily:  "var(--font-dm-sans)",
-              }}>
-              Tajwid
-            </button>
-          )}
+            <AnimatePresence>
+              {showSurahMenu && (
+                <>
+                  {/* Backdrop */}
+                  <div className="fixed inset-0 z-40" onClick={() => setShowSurahMenu(false)} />
+                  {/* Dropdown */}
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -8 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -8 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-11 z-50 flex flex-col rounded-2xl border overflow-hidden"
+                    style={{
+                      background: "rgba(10,15,13,0.97)",
+                      backdropFilter: "blur(20px)",
+                      borderColor: "rgba(255,255,255,0.1)",
+                      minWidth: 200,
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+                    }}>
 
-          {!isKids && (
-            <button onClick={() => { setNightMode(true); setShowPlayer(true); setSleepOption(null); }}
-              className="rounded-full border px-3 py-1.5 text-xs font-medium"
-              style={{ borderColor: "rgba(255,255,255,0.08)", color: "rgba(248,244,236,0.3)", background: "transparent", fontFamily: "var(--font-dm-sans)" }}>
-              <Moon size={11} style={{ display: "inline", marginRight: 4 }} />
-              Dormir
-            </button>
-          )}
+                    {/* Réciter */}
+                    <button onClick={() => { setRecitationGuided(false); setRecitationMode(true); setShowSurahMenu(false); }}
+                      className="flex items-center gap-3 px-4 py-3.5 text-sm font-semibold text-left"
+                      style={{ color: "var(--primary)", fontFamily: "var(--font-dm-sans)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                      <span style={{ fontSize: 18 }}>🎙</span> Réciter
+                    </button>
+
+                    {/* Guidé */}
+                    <button onClick={() => { setRecitationGuided(true); setRecitationMode(true); setShowSurahMenu(false); }}
+                      className="flex items-center gap-3 px-4 py-3.5 text-sm font-semibold text-left"
+                      style={{ color: "var(--gold)", fontFamily: "var(--font-dm-sans)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                      <span style={{ fontSize: 18 }}>📚</span> Mode guidé
+                    </button>
+
+                    {/* Mémoriser */}
+                    {ayahs.length > 0 && (
+                      <button onClick={() => { setHifzMode(true); setShowSurahMenu(false); }}
+                        className="flex items-center gap-3 px-4 py-3.5 text-sm font-semibold text-left"
+                        style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                        <span style={{ fontSize: 18 }}>📖</span> Mémoriser
+                      </button>
+                    )}
+
+                    {/* Séparateur */}
+                    <div style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
+
+                    {/* Traduction toggle */}
+                    <button onClick={() => { setShowTrans(v => !v); setShowSurahMenu(false); }}
+                      className="flex items-center justify-between px-4 py-3 text-sm text-left"
+                      style={{ color: "rgba(248,244,236,0.6)", fontFamily: "var(--font-dm-sans)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                      <span>Traduction</span>
+                      <span className="rounded-full px-2 py-0.5 text-xs font-bold"
+                        style={{ background: showTrans ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.06)", color: showTrans ? "#22c55e" : "rgba(248,244,236,0.3)" }}>
+                        {showTrans ? "ON" : "OFF"}
+                      </span>
+                    </button>
+
+                    {/* Tajwid toggle */}
+                    {!isKids && (
+                      <button onClick={() => { setTajwidEnabled(v => !v); setShowSurahMenu(false); }}
+                        className="flex items-center justify-between px-4 py-3 text-sm text-left"
+                        style={{ color: "rgba(248,244,236,0.6)", fontFamily: "var(--font-dm-sans)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                        <span>Tajwid couleurs</span>
+                        <span className="rounded-full px-2 py-0.5 text-xs font-bold"
+                          style={{ background: tajwidEnabled ? "rgba(59,130,246,0.15)" : "rgba(255,255,255,0.06)", color: tajwidEnabled ? "#3b82f6" : "rgba(248,244,236,0.3)" }}>
+                          {tajwidEnabled ? "ON" : "OFF"}
+                        </span>
+                      </button>
+                    )}
+
+                    {/* Mode Dormir */}
+                    {!isKids && (
+                      <button onClick={() => { setNightMode(true); setShowPlayer(true); setSleepOption(null); setShowSurahMenu(false); }}
+                        className="flex items-center gap-3 px-4 py-3.5 text-sm text-left"
+                        style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
+                        <Moon size={15} /> Mode Dormir
+                      </button>
+                    )}
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
         </motion.div>
 
         {fetchError ? (

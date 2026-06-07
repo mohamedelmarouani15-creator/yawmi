@@ -3,10 +3,12 @@ import { createClient } from "@supabase/supabase-js";
 import Groq from "groq-sdk";
 import { checkRateLimit } from "@/lib/rate-limit";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!,
-);
+function supabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -14,14 +16,19 @@ export async function POST(req: NextRequest) {
     if (!auth?.startsWith("Bearer ")) {
       return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
     }
-    const { data: { user } } = await supabase.auth.getUser(auth.replace("Bearer ", ""));
+    const { data: { user } } = await supabaseAdmin().auth.getUser(auth.replace("Bearer ", ""));
     if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
     const rl = await checkRateLimit(user.id, "arabe_chat", 30);
     if (rl.limited) return NextResponse.json({ error: "Limite atteinte (30/heure)" }, { status: 429 });
 
-    const { question, lessonId, lessonTitle, lessonContent, ageGroup, arabicLevel, lastExerciseCorrect, lastScore } = await req.json();
-    if (!question?.trim()) return NextResponse.json({ error: "Question vide" }, { status: 400 });
+    const body = await req.json();
+    const safeQuestion      = (body.question      ?? "").toString().slice(0, 1000);
+    const safeLessonTitle   = (body.lessonTitle   ?? "").toString().slice(0, 200);
+    const safeLessonContent = (body.lessonContent ?? "").toString().slice(0, 3000);
+    const _safeHistory      = Array.isArray(body.history) ? body.history.slice(0, 10) : []; // reserved for future multi-turn support
+    const { lessonId: _lessonId, ageGroup, arabicLevel, lastExerciseCorrect, lastScore } = body;
+    if (!safeQuestion.trim()) return NextResponse.json({ error: "Question vide" }, { status: 400 });
 
     const ageDesc =
       ageGroup === "4-10"  ? "un enfant de 4-10 ans" :
@@ -43,8 +50,8 @@ export async function POST(req: NextRequest) {
 
     const systemPrompt = `Tu es Ustadh Nour (أستاذ نور), un professeur d'arabe islamique bienveillant et expert.
 Tu enseignes à ${ageDesc} avec ${levelDesc}.
-Tu enseignes la leçon : "${lessonTitle}".
-Contenu de la leçon : ${lessonContent}
+Tu enseignes la leçon : "${safeLessonTitle}".
+Contenu de la leçon : ${safeLessonContent}
 
 ${performanceCtx}
 
@@ -65,7 +72,7 @@ Règles ABSOLUES :
       model: "llama-3.3-70b-versatile",
       messages: [
         { role: "system", content: systemPrompt },
-        { role: "user",   content: question.trim() },
+        { role: "user",   content: safeQuestion.trim() },
       ],
       max_tokens: 400,
       temperature: 0.7,

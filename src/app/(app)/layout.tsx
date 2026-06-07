@@ -70,11 +70,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   usePrayerTheme();  // bascule data-theme=day|night selon Fajr/Maghrib
 
   useEffect(() => {
-    supabase.auth.getSession()
+    supabase.auth.getUser()
       .then(({ data }) => {
-        if (data.session) {
+        if (data.user) {
           localStorage.setItem("yawmi_onboarded", "1");
-          const uid = data.session.user.id;
+          const uid = data.user.id;
           // Sync progression jeu depuis Supabase (multi-device)
           // Attendre la fin du sync avant setAuthReady pour éviter flash XP=0
           gameStorage.syncFromSupabase(uid).catch(() => {}).finally(() => {

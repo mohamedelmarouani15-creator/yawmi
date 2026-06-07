@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send } from "lucide-react";
 import { onRecitationContext, type RecitationContext } from "@/lib/recitation-context-bus";
+import { storage } from "@/lib/storage";
 
 // ── Ornement calligraphique SVG (coin) ────────────────────────
 function CornerOrnament({
@@ -139,6 +140,24 @@ export default function Parchemin({ onSend, initialMessages = [], remaining = 20
   const [lastRecitation, setLastRecitation] = useState<RecitationContext | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef       = useRef<HTMLInputElement>(null);
+
+  // Suggestions dynamiques selon le niveau arabe et le contexte récitation
+  const suggestions = useMemo(() => {
+    const arabicLevel = storage.getSettings().arabicLevel ?? "none";
+    return [
+      arabicLevel === "none"
+        ? "C'est quoi le sens de Bismillah ?"
+        : arabicLevel === "beginner"
+        ? "Explique-moi une règle de tajwid simple"
+        : "Quelle est la différence entre idghâm et ikhfâ ?",
+
+      lastRecitation
+        ? "Explique-moi le verset que je viens de réciter"
+        : "Raconte-moi une histoire du Prophète ﷺ",
+
+      "Comment améliorer ma concentration dans la prière ?",
+    ];
+  }, [lastRecitation]);
 
   // Écoute les récitations terminées depuis RecitationMode
   useEffect(() => {
@@ -426,13 +445,9 @@ export default function Parchemin({ onSend, initialMessages = [], remaining = 20
                       Pose-moi une question sur l&apos;arabe, le Coran,{" "}
                       la religion ou l&apos;histoire islamique.
                     </p>
-                    {/* Suggestions */}
+                    {/* Suggestions dynamiques selon le niveau */}
                     <div className="flex flex-wrap gap-2 justify-center mt-4">
-                      {[
-                        "Apprends-moi une lettre arabe",
-                        "Explique-moi Al-Fatiha",
-                        "C'est quoi le ihsan ?",
-                      ].map(s => (
+                      {suggestions.map(s => (
                         <motion.button
                           key={s}
                           onClick={() => setInput(s)}

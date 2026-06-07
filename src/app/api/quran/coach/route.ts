@@ -202,7 +202,7 @@ async function agentTafsir(
   const res = await groq.chat.completions.create({
     model:       "llama-3.3-70b-versatile",
     max_tokens:  200,
-    temperature: 0.6,
+    temperature: 0.2,
     messages: [{
       role:    "user",
       content: `Tu es un érudit islamique bienveillant.
@@ -210,7 +210,9 @@ Sourate ${surahNumber}, verset ${ayahNumber} : « ${ayahText} »
 En 2-3 phrases simples, explique :
 1. Le sens principal de ce verset
 2. Un bénéfice spirituel ou pratique pour le croyant aujourd'hui
-En français, accessible à tous. Maximum 90 mots.`,
+En français, accessible à tous. Maximum 90 mots.
+
+RÈGLE ABSOLUE : Ne cite JAMAIS un numéro de sourate ou de verset sauf celui fourni ci-dessus. Si tu n'es pas certain d'un détail, dis "il est rapporté que..." sans référence précise. L'exactitude prime sur la richesse.`,
     }],
   });
   return res.choices[0]?.message?.content?.trim() ?? "";

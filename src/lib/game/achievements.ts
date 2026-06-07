@@ -287,6 +287,43 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     description: "100 jours de suite", descriptionAr: "100 يوم متتالٍ",
     icon: "🏅", condition: (s) => s.gameStreak >= 100,
   },
+
+  // ── Récitation Coran ──────────────────────────────────────────
+  {
+    id: "recitation_first",
+    title: "Première récitation", titleAr: "أول تلاوة",
+    description: "Réciter un premier verset du Coran",
+    icon: "🎙",
+    condition: (s) => s.achievements.includes("recitation_first"),
+  },
+  {
+    id: "hafiz_fatiha",
+    title: "Hafiz Al-Fatiha", titleAr: "حافظ الفاتحة",
+    description: "Maîtriser les 7 versets d'Al-Fatiha",
+    icon: "📿",
+    condition: (s) => s.achievements.includes("hafiz_fatiha"),
+  },
+  {
+    id: "recitateur_jour",
+    title: "Récitateur du jour", titleAr: "تالي اليوم",
+    description: "Réciter 10 versets en une seule journée",
+    icon: "🌙",
+    condition: (s) => s.achievements.includes("recitateur_jour"),
+  },
+  {
+    id: "recitation_streak_7",
+    title: "Assidu du Coran", titleAr: "المواظب",
+    description: "Réciter 7 jours de suite",
+    icon: "🔥",
+    condition: (s) => (s.quranStreak ?? 0) >= 7,
+  },
+  {
+    id: "quran_bouclier",
+    title: "Bouclier du Bismillah", titleAr: "درع البسملة",
+    description: "Gagner ton premier bouclier de récitation (7 jours consécutifs)",
+    icon: "🛡️",
+    condition: (s) => (s.quranStreakShields ?? 0) >= 1 || (s.quranStreakShieldsEarnedAt ?? 0) >= 7,
+  },
 ];
 
 export function getAchievement(id: string): AchievementDef | undefined {

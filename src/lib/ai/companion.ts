@@ -4,6 +4,7 @@
 import { groqChat, groqSingle } from "./groq";
 import { buildContextBlock, buildContextualMessagePrompt } from "./prompts";
 import type { CompanionContext, AIMessage } from "./types";
+import type { RecitationContext } from "@/lib/recitation-context-bus";
 
 export type { CompanionContext, AIMessage };
 
@@ -12,8 +13,9 @@ export async function askCompanion(
   userMessage: string,
   context: CompanionContext,
   history: AIMessage[],
+  recitationContext?: RecitationContext | null,
 ): Promise<string> {
-  const contextBlock = buildContextBlock(context);
+  const contextBlock = buildContextBlock(context, recitationContext);
   return groqChat(contextBlock, history, userMessage);
 }
 

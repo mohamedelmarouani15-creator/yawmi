@@ -21,12 +21,14 @@ interface CoachRequest {
 }
 
 export interface CoachResponse {
-  encouragement: string;
-  tajwid?:       string;
+  encouragement:  string;
+  tajwid?:        string;
   pronunciation?: string;
-  tafsir?:       string;
-  next_focus?:   string;
-  agents:        string[];
+  makhraj_zone?:  "throat" | "back_tongue" | "mid_tongue" | "front_tongue" | "teeth" | "lips" | null;
+  makhraj_letter?: string;
+  tafsir?:        string;
+  next_focus?:    string;
+  agents:         string[];
 }
 
 // ── Age description ──────────────────────────────────────────────
@@ -96,24 +98,49 @@ async function agentMakhraj(
   groq: Groq,
   errors: WordError[],
   age: string,
-): Promise<string> {
+): Promise<{ text: string; zone: string | null; letter: string | null }> {
   const words = errors.slice(0, 3).map(e => e.suggestion).filter(Boolean).join("، ");
-  if (!words) return "";
+  if (!words) return { text: "", zone: null, letter: null };
 
   const res = await groq.chat.completions.create({
     model:       "llama-3.3-70b-versatile",
-    max_tokens:  180,
+    max_tokens:  220,
     temperature: 0.4,
     messages: [{
       role:    "user",
       content: `Tu es un professeur de phonétique arabe coranique. L'élève est ${age}.
 Mots à travailler : ${words}
-Explique en 2-3 phrases comment bien articuler ces lettres (makhraj — point d'articulation).
-Simple et concret — imagine que tu montres physiquement comment placer la langue ou les lèvres.
-Maximum 80 mots. En français.`,
+
+Réponds UNIQUEMENT avec un objet JSON valide (pas de texte avant/après) :
+{
+  "text": "2-3 phrases en français expliquant comment articuler ces lettres",
+  "zone": "throat|back_tongue|mid_tongue|front_tongue|teeth|lips",
+  "letter": "la lettre arabe la plus difficile parmi les mots"
+}
+
+Zone throat = lettres: ء ه ع غ خ ح
+Zone back_tongue = lettres: ق ك
+Zone mid_tongue = lettres: ج ش ي
+Zone front_tongue = lettres: ض ل ن ر
+Zone teeth = lettres: ذ ظ ث ص ز س
+Zone lips = lettres: ب م و ف`,
     }],
   });
-  return res.choices[0]?.message?.content?.trim() ?? "";
+
+  try {
+    const content = res.choices[0]?.message?.content?.trim() ?? "{}";
+    // Extraire le JSON même s'il y a du texte autour
+    const match = content.match(/\{[\s\S]*\}/);
+    if (!match) return { text: content, zone: null, letter: null };
+    const parsed = JSON.parse(match[0]);
+    return {
+      text:   parsed.text   ?? "",
+      zone:   parsed.zone   ?? null,
+      letter: parsed.letter ?? null,
+    };
+  } catch {
+    return { text: res.choices[0]?.message?.content?.trim() ?? "", zone: null, letter: null };
+  }
 }
 
 async function agentTafsir(
@@ -224,27 +251,29 @@ export async function POST(req: NextRequest) {
   const groq = new Groq({ apiKey });
 
   // ── Sub-agents run in parallel ────────────────────────────────
-  const [encouragement, tajwid, pronunciation, tafsir, next_focus] = await Promise.all([
+  const [encouragement, tajwid, makhrajResult, tafsir, next_focus] = await Promise.all([
     agentEncouragement(groq, score, age),
-    needsTajwid    ? agentTajwid(groq, ayahText, errors, tajwidTypes, age)           : Promise.resolve(""),
-    needsMakhraj   ? agentMakhraj(groq, errors, age)                                 : Promise.resolve(""),
-    needsTafsir    ? agentTafsir(groq, ayahText, surahNumber, ayahNumber)            : Promise.resolve(""),
-    needsNextFocus ? agentNextFocus(groq, score, errors, tajwidTypes, age)           : Promise.resolve(""),
+    needsTajwid    ? agentTajwid(groq, ayahText, errors, tajwidTypes, age)                    : Promise.resolve(""),
+    needsMakhraj   ? agentMakhraj(groq, errors, age)                                          : Promise.resolve({ text: "", zone: null, letter: null }),
+    needsTafsir    ? agentTafsir(groq, ayahText, surahNumber, ayahNumber)                     : Promise.resolve(""),
+    needsNextFocus ? agentNextFocus(groq, score, errors, tajwidTypes, age)                    : Promise.resolve(""),
   ]);
 
   // ── Chef synthesizes which agents ran ─────────────────────────
   const agents: string[] = ["encouragement"];
-  if (tajwid)       agents.push("tajwid");
-  if (pronunciation) agents.push("makhraj");
-  if (tafsir)       agents.push("tafsir");
-  if (next_focus)   agents.push("next_focus");
+  if (tajwid)                agents.push("tajwid");
+  if (makhrajResult?.text)   agents.push("makhraj");
+  if (tafsir)                agents.push("tafsir");
+  if (next_focus)            agents.push("next_focus");
 
   const response: CoachResponse = {
     encouragement,
-    ...(tajwid       && { tajwid }),
-    ...(pronunciation && { pronunciation }),
-    ...(tafsir       && { tafsir }),
-    ...(next_focus   && { next_focus }),
+    ...(tajwid                && { tajwid }),
+    ...(makhrajResult?.text   && { pronunciation: makhrajResult.text }),
+    ...(makhrajResult?.zone   && { makhraj_zone: makhrajResult.zone as CoachResponse["makhraj_zone"] }),
+    ...(makhrajResult?.letter && { makhraj_letter: makhrajResult.letter }),
+    ...(tafsir                && { tafsir }),
+    ...(next_focus            && { next_focus }),
     agents,
   };
 

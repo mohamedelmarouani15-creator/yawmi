@@ -16,7 +16,7 @@ import { CITIES } from "@/lib/cities";
 import { storage, todayKey } from "@/lib/storage";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
 import { Button, Card } from "@/components/ui";
-import { getRecitationStats, type RecitationStats } from "@/lib/quran-recitation";
+import { getRecitationStats, getLifetimeStats, type RecitationStats, type LifetimeRecitationStats } from "@/lib/quran-recitation";
 
 function getStats() {
   const log    = storage.getDhikrLog();
@@ -67,10 +67,12 @@ export default function ProfilPage() {
   const [deleteError,     setDeleteError]     = useState("");
   const [exporting,       setExporting]       = useState(false);
   const [recitStats,      setRecitStats]      = useState<RecitationStats | null>(null);
+  const [lifetimeStats,   setLifetimeStats]   = useState<LifetimeRecitationStats | null>(null);
   const stats = getStats();
 
   useEffect(() => {
     getRecitationStats().then(setRecitStats).catch(() => {});
+    getLifetimeStats().then(setLifetimeStats).catch(() => {});
   }, []);
 
   const displayName = user?.user_metadata?.display_name as string | undefined;
@@ -262,7 +264,7 @@ export default function ProfilPage() {
       </motion.div>
 
       {/* ── Récitation coranique ────────────────────────────── */}
-      {recitStats && (recitStats.masteredTotal > 0 || recitStats.dueToday > 0) && (
+      {((recitStats && (recitStats.masteredTotal > 0 || recitStats.dueToday > 0)) || (lifetimeStats?.totalSessions ?? 0) > 0) && (
         <motion.div variants={itemVariants}>
           <div className="flex items-center gap-2 mb-3">
             <div className="h-px flex-1" style={{ background: "rgba(212,175,55,0.12)" }} />
@@ -272,40 +274,72 @@ export default function ProfilPage() {
             </p>
             <div className="h-px flex-1" style={{ background: "rgba(212,175,55,0.12)" }} />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Card variant="gold" padding="none" className="flex flex-col items-center py-4">
-              <p className="text-xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
-                {recitStats.masteredTotal}
-              </p>
-              <p className="mt-1 text-center text-xs opacity-50 leading-tight"
-                style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                Versets{"\n"}maîtrisés
-              </p>
-            </Card>
-            {recitStats.dueToday > 0 ? (
+
+          {/* 4 métriques lifetime */}
+          {lifetimeStats && lifetimeStats.totalSessions > 0 && (
+            <div className="grid grid-cols-2 gap-3 mb-3">
+              {/* Sessions totales */}
               <div className="flex flex-col items-center py-4 rounded-2xl border"
-                style={{ border: "1px solid rgba(239,68,68,0.2)", background: "rgba(239,68,68,0.05)" }}>
-                <p className="text-xl font-bold" style={{ color: "#ef4444", fontFamily: "var(--font-bricolage)" }}>
-                  {recitStats.dueToday}
+                style={{ borderColor: "rgba(212,175,55,0.15)", background: "rgba(212,175,55,0.04)" }}>
+                <p className="text-xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
+                  {lifetimeStats.totalSessions}
                 </p>
                 <p className="mt-1 text-center text-xs opacity-50 leading-tight"
                   style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                  À réviser{"\n"}aujourd&apos;hui
+                  Sessions{"\n"}de récitation
                 </p>
               </div>
-            ) : (
+
+              {/* Versets maîtrisés */}
               <div className="flex flex-col items-center py-4 rounded-2xl border"
-                style={{ border: "1px solid rgba(34,197,94,0.2)", background: "rgba(34,197,94,0.05)" }}>
+                style={{ borderColor: "rgba(34,197,94,0.15)", background: "rgba(34,197,94,0.04)" }}>
                 <p className="text-xl font-bold" style={{ color: "#22c55e", fontFamily: "var(--font-bricolage)" }}>
-                  ✓
+                  {lifetimeStats.masteredCount}
                 </p>
                 <p className="mt-1 text-center text-xs opacity-50 leading-tight"
                   style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                  Tout à jour
+                  Versets{"\n"}maîtrisés
                 </p>
               </div>
-            )}
-          </div>
+
+              {/* Score moyen */}
+              <div className="flex flex-col items-center py-4 rounded-2xl border"
+                style={{ borderColor: "rgba(59,130,246,0.15)", background: "rgba(59,130,246,0.04)" }}>
+                <p className="text-xl font-bold" style={{ color: "#3b82f6", fontFamily: "var(--font-bricolage)" }}>
+                  {lifetimeStats.avgBestScore > 0 ? `${lifetimeStats.avgBestScore}%` : "—"}
+                </p>
+                <p className="mt-1 text-center text-xs opacity-50 leading-tight"
+                  style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Score{"\n"}moyen
+                </p>
+              </div>
+
+              {/* Sourates commencées */}
+              <div className="flex flex-col items-center py-4 rounded-2xl border"
+                style={{ borderColor: "rgba(212,175,55,0.15)", background: "rgba(212,175,55,0.04)" }}>
+                <p className="text-xl font-bold" style={{ color: "var(--gold)", fontFamily: "var(--font-bricolage)" }}>
+                  {lifetimeStats.surahsStarted}
+                  <span className="text-sm opacity-50">/114</span>
+                </p>
+                <p className="mt-1 text-center text-xs opacity-50 leading-tight"
+                  style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                  Sourates{"\n"}commencées
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Badge "À réviser" si applicable */}
+          {recitStats && recitStats.dueToday > 0 && (
+            <div className="flex items-center gap-3 rounded-xl border px-4 py-3"
+              style={{ borderColor: "rgba(239,68,68,0.2)", background: "rgba(239,68,68,0.05)" }}>
+              <div className="w-2 h-2 rounded-full animate-pulse" style={{ background: "#ef4444" }} />
+              <p className="text-sm font-semibold" style={{ color: "#ef4444", fontFamily: "var(--font-dm-sans)" }}>
+                {recitStats.dueToday} verset{recitStats.dueToday > 1 ? "s" : ""} à réviser aujourd&apos;hui
+              </p>
+              <span className="ml-auto text-xs opacity-40" style={{ color: "var(--text)" }}>SM-2</span>
+            </div>
+          )}
         </motion.div>
       )}
 

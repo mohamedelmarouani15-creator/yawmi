@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { askCompanion } from "@/lib/ai/companion";
 import type { CompanionContext, AIMessage } from "@/lib/ai/companion";
+import type { RecitationContext } from "@/lib/recitation-context-bus";
 import { logger } from "@/lib/logger";
 
 const DAILY_LIMIT = 20; // requêtes/jour/utilisateur
@@ -49,6 +50,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "message_required" }, { status: 400 });
   }
   const userMessage: string = body.message.slice(0, 2000); // limite longueur
+  // Contexte récitation optionnel — transmis uniquement sur le 1er message après récitation
+  const recitationContext: RecitationContext | null = body.recitationContext ?? null;
 
   // ── Récupère le profil, la progression et l'histoire en cours ──
   const [{ data: profile }, { data: progress }, { data: storyRows }] = await Promise.all([
@@ -119,7 +122,7 @@ export async function POST(req: NextRequest) {
   // ── Appel Groq ──────────────────────────────────────────────
   let reply: string;
   try {
-    reply = await askCompanion(userMessage, context, history);
+    reply = await askCompanion(userMessage, context, history, recitationContext);
   } catch (err) {
     logger.error("companion/chat", "AI error:", err);
     return NextResponse.json(

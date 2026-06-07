@@ -4,22 +4,61 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { storage } from "@/lib/storage";
 import { idbSet, idbGet, idbDel } from "@/lib/idb";
 import { favorites } from "@/lib/favorites";
+import { getLocalChallengeStatus, getSurahRangeForJuzz } from "@/lib/juzz-challenge";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, BookOpen, Bookmark, BookmarkCheck, Download, Loader2, Moon, RefreshCw, Trash2, WifiOff } from "lucide-react";
 import QuranPlayer from "@/components/QuranPlayer";
 import SleepModeOverlay, { type SleepOption } from "@/components/SleepModeOverlay";
 import HifzMode, { getTotalMasteredCount } from "@/components/HifzMode";
 import RecitationMode from "@/components/RecitationMode";
-import { getRecitationStats } from "@/lib/quran-recitation";
+import RecitationDashboard from "@/components/RecitationDashboard";
+import TajwidText, { TajwidLegend } from "@/components/TajwidText";
+import QuranProgressMap from "@/components/QuranProgressMap";
+import { getRecitationStats, getAllSurahStats } from "@/lib/quran-recitation";
 import { gameStorage } from "@/lib/game/game-storage";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
+import { pageVariants, itemVariants, slideUp, tapScale, springTap } from "@/lib/motion";
+
+// ── Waqf markers renderer ─────────────────────────────────────────────────
+function AyahWithWaqf({ text, fontSize }: { text: string; fontSize: number }) {
+  const parts: { text: string; isWaqf: boolean }[] = [];
+  let last = 0;
+  const regex = /[ۖ-ۜ۞۩]/g;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > last) {
+      parts.push({ text: text.slice(last, match.index), isWaqf: false });
+    }
+    parts.push({ text: match[0], isWaqf: true });
+    last = match.index + 1;
+  }
+  if (last < text.length) parts.push({ text: text.slice(last), isWaqf: false });
+
+  return (
+    <p
+      className="text-right leading-loose"
+      style={{ fontSize, color: "var(--text)", fontFamily: "var(--font-amiri)", direction: "rtl" }}
+    >
+      {parts.map((p, i) =>
+        p.isWaqf ? (
+          <span key={i} style={{ color: "#f59e0b", fontSize: fontSize * 0.7, verticalAlign: "super", opacity: 0.9 }}>
+            {p.text}
+          </span>
+        ) : (
+          <span key={i}>{p.text}</span>
+        )
+      )}
+    </p>
+  );
+}
 
 interface Surah { number: number; name: string; englishName: string; numberOfAyahs: number; }
 interface Ayah  { numberInSurah: number; text: string; }
 interface QuranData { surahs: { number: number; name: string; englishName: string; numberOfAyahs: number; ayahs: Ayah[] }[] }
 
-const IDB_AR = "quran_ar";
-const IDB_FR = "quran_fr"; // clé générique — stocke la traduction active
+const IDB_AR   = "quran_ar";
+const IDB_FR   = "quran_fr";   // clé générique — stocke la traduction active
+const IDB_META = "quran_meta"; // cache léger : liste des 114 sourates sans ayahs
 
 const QURAN_EDITIONS: Record<string, { key: string; label: string }> = {
   anglais:  { key: "en.pickthall",  label: "Pickthall (EN)" },
@@ -65,6 +104,12 @@ const JUZZ_ENDS: { surah: number; ayah: number }[] = [
   { surah: 114, ayah:   6 }, // Juzz 30
 ];
 
+const JUZZ_FIRST_SURAH: number[] = [
+  1, 2, 2, 3, 4, 4, 5, 6, 7, 8,
+  9, 11, 12, 15, 17, 18, 21, 23, 25, 27,
+  29, 33, 36, 39, 41, 46, 51, 58, 67, 78,
+];
+
 function getJuzz(surah: number, ayah: number): number {
   for (let i = 0; i < JUZZ_ENDS.length; i++) {
     const e = JUZZ_ENDS[i];
@@ -80,11 +125,17 @@ export default function CoranPage() {
   const [translations, setTranslations] = useState<Ayah[]>([]);
   const [loading,      setLoading]      = useState(false);
   const [fetchError,   setFetchError]   = useState(false);
-  const settings = storage.getSettings();
-  const ageMode  = ageGroupToMode(settings.ageGroup);
-  const isKids   = ageMode === "kids";
-  const isElder  = ageMode === "elder";
-  const edition  = getEdition(settings.motherTongue);
+  const settings           = storage.getSettings();
+  const ageMode            = ageGroupToMode(settings.ageGroup);
+  const isKids             = ageMode === "kids";
+  const isElder            = ageMode === "elder";
+  const edition            = getEdition(settings.motherTongue);
+  const gameState          = gameStorage.get();
+  const juzzChallenge      = getLocalChallengeStatus();
+  const juzzRange          = getSurahRangeForJuzz(juzzChallenge.juzz);
+  const quranStreak        = gameState.quranStreak        ?? 0;
+  const quranBestStreak    = gameState.quranBestStreak    ?? 0;
+  const quranStreakShields = gameState.quranStreakShields  ?? 0;
   // Kids et aînés voient la traduction par défaut (aide à la compréhension)
   const [showTrans, setShowTrans] = useState(isKids || isElder);
   const [offline,      setOffline]      = useState(false);
@@ -98,6 +149,12 @@ export default function CoranPage() {
   const [recitationMode,  setRecitationMode]  = useState(false);
   const [recitationGuided, setRecitationGuided] = useState(false);
   const [surahDueCount,   setSurahDueCount]   = useState(0);
+  const [search,          setSearch]          = useState("");
+  const [surahStats,      setSurahStats]      = useState<Map<number, { masteredCount: number; dueCount: number }>>(new Map());
+  const surahRowRefs  = useRef<Map<number, HTMLDivElement>>(new Map());
+  const surahListRef  = useRef<HTMLDivElement>(null);
+  const [tajwidEnabled, setTajwidEnabled] = useState(!isKids);
+  const [viewMode,      setViewMode]      = useState<"list" | "map">("list");
 
   // ── Mode sommeil ──────────────────────────────────────────────
   const [nightMode,    setNightMode]   = useState(false);
@@ -245,26 +302,39 @@ export default function CoranPage() {
 
   useEffect(() => {
     async function load() {
-      const cached = await idbGet<QuranData>(IDB_AR);
-      if (cached) {
+      // 1. Vérifier d'abord si le Coran complet est disponible offline (IDB_AR)
+      const arFull = await idbGet<QuranData>(IDB_AR);
+      if (arFull && arFull.surahs.length === 114) {
         setOffline(true);
-        setSurahs(cached.surahs.map(s => ({
+        setSurahs(arFull.surahs.map(s => ({
           number: s.number, name: s.name,
           englishName: s.englishName, numberOfAyahs: s.numberOfAyahs,
         })));
         return;
       }
+      // 2. Sinon, essayer le cache léger de la liste (IDB_META)
+      const metaCached = await idbGet<Surah[]>(IDB_META);
+      if (metaCached && metaCached.length === 114) {
+        setSurahs(metaCached);
+        return;
+      }
+      // 3. Appeler l'API meta et mettre en cache IDB_META
       try {
-        // Utiliser le proxy pour la liste des sourates (sourate 1 pour récupérer la liste)
         const r = await fetch("https://api.alquran.cloud/v1/meta");
         const d = await r.json();
-        setSurahs(d.data.surahs.references as Surah[]);
+        const list = d.data.surahs.references as Surah[];
+        setSurahs(list);
         setFetchError(false);
+        await idbSet(IDB_META, list);
       } catch {
         setFetchError(true);
       }
     }
     load();
+  }, []);
+
+  useEffect(() => {
+    getAllSurahStats().then(setSurahStats).catch(() => {});
   }, []);
 
   async function openSurah(n: number, mode: "read" | "recite" | "guided" = "read") {
@@ -314,12 +384,17 @@ export default function CoranPage() {
         fetch(`https://api.alquran.cloud/v1/quran/${edition.key}`).then(r => r.json()),
       ]);
       setDlProgress(80);
-      await Promise.all([idbSet(IDB_AR, arRes.data), idbSet(IDB_FR, frRes.data)]);
+      const metaList: Surah[] = arRes.data.surahs.map((s: QuranData["surahs"][number]) => ({
+        number: s.number, name: s.name, englishName: s.englishName, numberOfAyahs: s.numberOfAyahs,
+      }));
+      await Promise.all([
+        idbSet(IDB_AR, arRes.data),
+        idbSet(IDB_FR, frRes.data),
+        idbSet(IDB_META, metaList),
+      ]);
       setDlProgress(100);
       setOffline(true);
-      setSurahs(arRes.data.surahs.map((s: QuranData["surahs"][number]) => ({
-        number: s.number, name: s.name, englishName: s.englishName, numberOfAyahs: s.numberOfAyahs,
-      })));
+      setSurahs(metaList);
     } catch { /* erreur réseau */ }
     setDownloading(false);
   }
@@ -347,8 +422,14 @@ export default function CoranPage() {
     const currentJuzz = getJuzz(selected, playingAyah);
 
     return (
-      <main className="flex flex-col gap-4 px-5 pt-12 pb-4">
-        <div className="flex items-center gap-3">
+      <motion.main
+        key={`surah-${selected}`}
+        variants={pageVariants}
+        initial="initial"
+        animate="animate"
+        className="flex flex-col gap-4 px-5 pt-12 pb-4"
+      >
+        <motion.div variants={itemVariants} className="flex items-center gap-3">
           <button onClick={() => setSelected(null)}
             className="flex h-9 w-9 items-center justify-center rounded-full border"
             style={{ borderColor: "rgba(255,255,255,0.1)", color: "var(--text)" }}>
@@ -448,7 +529,22 @@ export default function CoranPage() {
               <Moon size={11} /> Dormir
             </button>
           )}
-        </div>
+
+          {/* Tajwid toggle — hidden for kids */}
+          {!isKids && (
+            <button
+              onClick={() => setTajwidEnabled(v => !v)}
+              className="rounded-full border px-3 py-1 text-xs font-semibold"
+              style={{
+                borderColor: tajwidEnabled ? "rgba(212,175,55,0.4)" : "rgba(255,255,255,0.1)",
+                color:       tajwidEnabled ? "var(--gold)"          : "rgba(248,244,236,0.4)",
+                background:  tajwidEnabled ? "rgba(212,175,55,0.07)": "transparent",
+                fontFamily:  "var(--font-dm-sans)",
+              }}>
+              Tajwid
+            </button>
+          )}
+        </motion.div>
 
         {fetchError ? (
           <div className="flex flex-col items-center gap-4 py-16 text-center px-4">
@@ -467,49 +563,135 @@ export default function CoranPage() {
             </button>
           </div>
         ) : loading ? (
-          <div className="flex justify-center py-16">
-            <Loader2 size={24} className="animate-spin" style={{ color: "var(--gold)" }} />
-          </div>
-        ) : (
-          <div className={`flex flex-col gap-4 ${showPlayer ? "pb-36" : ""}`}>
-            {ayahs.map((ayah, i) => (
-              <div key={ayah.numberInSurah}
-                className="rounded-xl border p-4 transition-all"
-                style={{
-                  background:  showPlayer && playingAyah === ayah.numberInSurah ? "rgba(5,92,63,0.2)" : "rgba(255,255,255,0.02)",
-                  borderColor: showPlayer && playingAyah === ayah.numberInSurah ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.06)",
-                }}>
-                <div className="flex items-center justify-between">
-                  <div className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
-                    style={{ background: "rgba(5,92,63,0.5)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
-                    {ayah.numberInSurah}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {showPlayer && (
-                      <button onClick={() => setPlayingAyah(ayah.numberInSurah)}
-                        className="text-xs opacity-40" style={{ color: "var(--gold)" }}>▶</button>
-                    )}
-                    <button onClick={() => toggleFav(selected!, surah?.englishName ?? "", ayah.numberInSurah, ayah.text)}
-                      style={{ color: favs.has(`${selected}-${ayah.numberInSurah}`) ? "var(--gold)" : "rgba(255,255,255,0.2)" }}>
-                      {favs.has(`${selected}-${ayah.numberInSurah}`)
-                        ? <BookmarkCheck size={15} />
-                        : <Bookmark size={15} />}
-                    </button>
-                  </div>
-                </div>
-                <p className="mt-3 text-right leading-loose"
-                  style={{ fontSize: isKids || isElder ? 26 : 21, color: "var(--text)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
-                  {ayah.text}
-                </p>
-                {showTrans && translations[i] && (
-                  <p className="mt-2 leading-relaxed opacity-60"
-                    style={{ fontSize: isElder ? 15 : 14, color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-                    {translations[i].text}
-                  </p>
-                )}
+          /* ── Micro-animation 1 : skeleton shimmer au chargement d'une sourate ── */
+          <motion.div
+            variants={slideUp}
+            initial="initial"
+            animate="animate"
+            className="flex flex-col gap-3"
+          >
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div
+                key={i}
+                className="rounded-xl border p-4"
+                style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}
+              >
+                {/* Ayah number skeleton */}
+                <div
+                  className="mb-3 h-6 w-6 rounded-full"
+                  style={{ background: "rgba(212,175,55,0.07)", animation: "shimmer 1.5s infinite" }}
+                />
+                {/* Arabic text skeleton — 3 lines decreasing width */}
+                {[100, 85, 60].map((w, j) => (
+                  <div
+                    key={j}
+                    className="mb-2 h-5 rounded-lg"
+                    style={{
+                      width: `${w}%`,
+                      background: "rgba(255,255,255,0.05)",
+                      animation: `shimmer 1.5s infinite ${j * 0.15}s`,
+                      marginLeft: "auto",
+                    }}
+                  />
+                ))}
               </div>
             ))}
-          </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            variants={{ animate: { transition: { staggerChildren: 0.04 } } }}
+            initial="initial"
+            animate="animate"
+            className={`flex flex-col gap-4 ${showPlayer ? "pb-36" : ""}`}
+          >
+            {/* Bismillah — toutes les sourates sauf Al-Fatiha (1) et At-Tawbah (9) */}
+            {selected !== 1 && selected !== 9 && (
+              <motion.div
+                variants={slideUp}
+                className="text-center py-4"
+              >
+                <p style={{
+                  fontFamily: "var(--font-amiri)",
+                  fontSize: isKids || isElder ? 28 : 24,
+                  color: "var(--gold)",
+                  direction: "rtl",
+                  letterSpacing: "0.02em",
+                  lineHeight: 1.9,
+                  opacity: 0.85,
+                }}>
+                  بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ
+                </p>
+                <div className="mt-3 mx-auto" style={{ width: 60, height: 1, background: "rgba(212,175,55,0.2)" }} />
+              </motion.div>
+            )}
+            {ayahs.map((ayah, i) => {
+              const isPlaying = showPlayer && playingAyah === ayah.numberInSurah;
+              return (
+                /* ── Micro-animation 2 : changement de verset en lecture ── */
+                <motion.div
+                  key={ayah.numberInSurah}
+                  variants={itemVariants}
+                  animate={isPlaying
+                    ? { scale: 1.01, transition: { duration: 0.25, ease: "easeOut" } }
+                    : { scale: 1,    transition: { duration: 0.2 } }
+                  }
+                  className="rounded-xl border p-4"
+                  style={{
+                    background:  isPlaying ? "rgba(5,92,63,0.2)"    : "rgba(255,255,255,0.02)",
+                    borderColor: isPlaying ? "rgba(212,175,55,0.3)" : "rgba(255,255,255,0.06)",
+                    // Subtle left glow on active verse
+                    boxShadow:   isPlaying ? "0 0 0 1px rgba(212,175,55,0.12), 0 4px 24px rgba(5,92,63,0.18)" : "none",
+                    transition:  "background 0.4s, border-color 0.4s, box-shadow 0.4s",
+                  }}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold"
+                      style={{ background: "rgba(5,92,63,0.5)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
+                      {ayah.numberInSurah}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {showPlayer && (
+                        <button onClick={() => setPlayingAyah(ayah.numberInSurah)}
+                          className="text-xs opacity-40" style={{ color: "var(--gold)" }}>▶</button>
+                      )}
+                      <button onClick={() => toggleFav(selected!, surah?.englishName ?? "", ayah.numberInSurah, ayah.text)}
+                        style={{ color: favs.has(`${selected}-${ayah.numberInSurah}`) ? "var(--gold)" : "rgba(255,255,255,0.2)" }}>
+                        {favs.has(`${selected}-${ayah.numberInSurah}`)
+                          ? <BookmarkCheck size={15} />
+                          : <Bookmark size={15} />}
+                      </button>
+                    </div>
+                  </div>
+                  {/* ── Tajwid-aware text renderer / Waqf markers fallback ── */}
+                  {tajwidEnabled ? (
+                    <TajwidText
+                      text={ayah.text}
+                      fontSize={isKids || isElder ? 26 : 21}
+                      enabled={tajwidEnabled}
+                      className="mt-3"
+                    />
+                  ) : (
+                    <div className="mt-3">
+                      <AyahWithWaqf
+                        text={ayah.text}
+                        fontSize={isKids || isElder ? 26 : 21}
+                      />
+                    </div>
+                  )}
+                  {/* Tajwid legend under each verse when enabled */}
+                  {tajwidEnabled && !isKids && (
+                    <TajwidLegend text={ayah.text} isElder={isElder} />
+                  )}
+                  {showTrans && translations[i] && (
+                    <p className="mt-2 leading-relaxed opacity-60"
+                      style={{ fontSize: isElder ? 15 : 14, color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                      {translations[i].text}
+                    </p>
+                  )}
+                </motion.div>
+              );
+            })}
+          </motion.div>
         )}
 
         {showPlayer && (
@@ -565,13 +747,14 @@ export default function CoranPage() {
               surahName={surah?.englishName ?? ""}
               surahNameAr={surah?.name ?? ""}
               ayahs={ayahs}
+              translations={translations}
               startIndex={0}
               guided={recitationGuided}
               onClose={() => setRecitationMode(false)}
             />
           )}
         </AnimatePresence>
-      </main>
+      </motion.main>
     );
   }
 
@@ -587,6 +770,34 @@ export default function CoranPage() {
             Coran
           </h1>
         </div>
+        <div className="flex items-center gap-2">
+        {/* Toggle Carte / Liste */}
+        {surahs.length > 0 && (
+          <div className="flex rounded-full border overflow-hidden" style={{ borderColor: "rgba(255,255,255,0.1)" }}>
+            <button
+              onClick={() => setViewMode("list")}
+              className="px-3 py-1.5 text-xs font-semibold"
+              style={{
+                background: viewMode === "list" ? "rgba(5,92,63,0.5)" : "transparent",
+                color: viewMode === "list" ? "var(--gold)" : "rgba(248,244,236,0.3)",
+                fontFamily: "var(--font-dm-sans)",
+              }}
+            >
+              Liste
+            </button>
+            <button
+              onClick={() => setViewMode("map")}
+              className="px-3 py-1.5 text-xs font-semibold"
+              style={{
+                background: viewMode === "map" ? "rgba(5,92,63,0.5)" : "transparent",
+                color: viewMode === "map" ? "var(--gold)" : "rgba(248,244,236,0.3)",
+                fontFamily: "var(--font-dm-sans)",
+              }}
+            >
+              Carte
+            </button>
+          </div>
+        )}
         {!isKids && offline ? (
           <button onClick={deleteOffline}
             className="flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs"
@@ -616,7 +827,15 @@ export default function CoranPage() {
             </button>
           )
         )}
+        </div>
       </div>
+
+      {/* ── Recitation dashboard (hidden for kids) ───────────────── */}
+      {!isKids && (
+        <RecitationDashboard
+          onScrollToList={() => surahListRef.current?.scrollIntoView({ behavior: "smooth" })}
+        />
+      )}
 
       {downloading && (
         <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
@@ -624,6 +843,74 @@ export default function CoranPage() {
             style={{ width: `${dlProgress}%`, background: "var(--gradient-bar)" }} />
         </div>
       )}
+
+      {/* Streak récitation */}
+      {quranStreak > 0 && (
+        <div className="flex items-center gap-3 rounded-2xl border px-4 py-3"
+          style={{ borderColor: "rgba(212,175,55,0.15)", background: "rgba(5,92,63,0.08)" }}>
+          <span style={{ fontSize: 22 }}>🔥</span>
+          <div>
+            <p className="text-sm font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+              {quranStreak} jour{quranStreak > 1 ? "s" : ""} de récitation
+            </p>
+            {quranBestStreak > quranStreak && (
+              <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+                Record : {quranBestStreak} jours
+              </p>
+            )}
+          </div>
+          <div className="ml-auto flex gap-1">
+            {[0, 1, 2].map(i => (
+              <span key={i} style={{ fontSize: 16, opacity: i < quranStreakShields ? 1 : 0.15 }}>🛡️</span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="relative">
+        <input
+          type="text"
+          placeholder="Sourate, numéro ou nom arabe…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="w-full rounded-2xl border px-4 py-3 pr-10 text-sm outline-none"
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            borderColor: search ? "rgba(212,175,55,0.4)" : "rgba(255,255,255,0.08)",
+            color: "var(--text)",
+            fontFamily: "var(--font-dm-sans)",
+          }}
+        />
+        {search && (
+          <button onClick={() => setSearch("")}
+            className="absolute right-3 top-1/2 -translate-y-1/2 opacity-40"
+            style={{ color: "var(--text)" }}>
+            ✕
+          </button>
+        )}
+      </div>
+
+      <div className="flex gap-2 overflow-x-auto pb-1 hide-scrollbar">
+        {JUZZ_FIRST_SURAH.map((_, idx) => (
+          <button
+            key={idx + 1}
+            onClick={() => {
+              const targetSurah = JUZZ_FIRST_SURAH[idx];
+              const el = surahRowRefs.current.get(targetSurah);
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+            className="flex-shrink-0 rounded-full border px-3 py-1 text-xs font-semibold"
+            style={{
+              borderColor: "rgba(212,175,55,0.2)",
+              color: "rgba(212,175,55,0.6)",
+              background: "rgba(212,175,55,0.04)",
+              fontFamily: "var(--font-dm-sans)",
+            }}
+          >
+            J{idx + 1}
+          </button>
+        ))}
+      </div>
 
       {(() => {
         const favList = favorites.getAll();
@@ -651,6 +938,50 @@ export default function CoranPage() {
           </div>
         );
       })()}
+
+      {/* ── Challenge Juzz du Jour ────────────────────────────────── */}
+      <div
+        className="rounded-2xl border p-4"
+        style={{
+          background: juzzChallenge.completed
+            ? "linear-gradient(135deg, rgba(5,92,63,0.25), rgba(34,197,94,0.1))"
+            : "linear-gradient(135deg, rgba(5,92,63,0.15), rgba(212,175,55,0.07))",
+          borderColor: juzzChallenge.completed
+            ? "rgba(34,197,94,0.3)"
+            : "rgba(212,175,55,0.2)",
+        }}
+      >
+        <div className="flex items-center justify-between mb-1">
+          <p className="text-xs uppercase tracking-widest opacity-50"
+            style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            Challenge du jour
+          </p>
+          {juzzChallenge.completed && (
+            <span className="text-xs font-bold" style={{ color: "#22c55e", fontFamily: "var(--font-dm-sans)" }}>
+              ✓ Complété
+            </span>
+          )}
+        </div>
+        <p className="font-bold text-sm" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+          Juzz {juzzChallenge.juzz} · Sourates {juzzRange.first}–{juzzRange.last}
+        </p>
+        <p className="text-xs opacity-50 mt-0.5" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+          {juzzChallenge.completed
+            ? "+20 XP · +5 pièces gagnés"
+            : `${juzzChallenge.ayahsToday}/5 versets · Récite pour débloquer +20 XP`}
+        </p>
+        {!juzzChallenge.completed && (
+          <div className="mt-2 h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+            <div
+              className="h-full rounded-full transition-all"
+              style={{
+                width: `${Math.min(juzzChallenge.ayahsToday / 5 * 100, 100)}%`,
+                background: "var(--gradient-bar)",
+              }}
+            />
+          </div>
+        )}
+      </div>
 
       {reading.surah > 1 && (
         <button onClick={() => openSurah(reading.surah)}
@@ -694,10 +1025,28 @@ export default function CoranPage() {
             </p>
           </div>
         )
+      ) : viewMode === "map" ? (
+        <QuranProgressMap
+          surahs={surahs.map(s => ({
+            ...s,
+            masteredCount: surahStats.get(s.number)?.masteredCount ?? 0,
+            dueCount:      surahStats.get(s.number)?.dueCount      ?? 0,
+          }))}
+          onSelect={(n) => openSurah(n)}
+        />
       ) : (
-        <div className="flex flex-col gap-2">
-          {surahs.map(s => (
+        <div ref={surahListRef} className="flex flex-col gap-2">
+          {(() => {
+            const filteredSurahs = search.trim()
+              ? surahs.filter(s =>
+                  s.number.toString().includes(search.trim()) ||
+                  s.englishName.toLowerCase().includes(search.trim().toLowerCase()) ||
+                  s.name.includes(search.trim())
+                )
+              : surahs;
+            return filteredSurahs.map(s => (
             <div key={s.number}
+              ref={el => { if (el) surahRowRefs.current.set(s.number, el); }}
               className="flex items-center gap-2 rounded-xl border"
               style={{ background: "rgba(255,255,255,0.02)", borderColor: "rgba(255,255,255,0.06)" }}>
               {/* Main tap area — opens for reading */}
@@ -705,9 +1054,23 @@ export default function CoranPage() {
                 onClick={() => openSurah(s.number)}
                 className="flex flex-1 items-center gap-4 px-4 py-3 text-left active:opacity-70"
               >
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
+                <div className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-xs font-bold"
                   style={{ background: "var(--border-primary)", color: "var(--gold)", fontFamily: "var(--font-dm-sans)" }}>
                   {s.number}
+                  {/* Dot progression récitation */}
+                  {(() => {
+                    const stats = surahStats.get(s.number);
+                    if (!stats) return null;
+                    const color = stats.dueCount > 0 ? "#f59e0b" : stats.masteredCount > 0 ? "#22c55e" : null;
+                    if (!color) return null;
+                    return (
+                      <div style={{
+                        width: 6, height: 6, borderRadius: "50%",
+                        background: color,
+                        position: "absolute", top: 2, right: 2,
+                      }} />
+                    );
+                  })()}
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-semibold" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
@@ -721,12 +1084,15 @@ export default function CoranPage() {
                   {s.name}
                 </p>
               </button>
-              {/* Mic button — opens directly for recitation */}
-              <button
+              {/* ── Micro-animation 3 : bouton réciter (idle → press → release) ── */}
+              <motion.button
                 onClick={(e) => { e.stopPropagation(); openSurah(s.number, isElder ? "guided" : "recite"); }}
                 className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg mr-2"
                 style={{ background: "rgba(5,92,63,0.15)", border: "1px solid rgba(5,92,63,0.3)" }}
                 title="Pratiquer la récitation"
+                whileHover={{ scale: 1.08, background: "rgba(5,92,63,0.28)" }}
+                whileTap={tapScale}
+                transition={springTap}
               >
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                   stroke="var(--gold)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -734,9 +1100,10 @@ export default function CoranPage() {
                   <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
                   <line x1="12" y1="19" x2="12" y2="22"/>
                 </svg>
-              </button>
+              </motion.button>
             </div>
-          ))}
+          ));
+          })()}
         </div>
       )}
     </main>

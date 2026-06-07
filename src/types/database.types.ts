@@ -337,48 +337,66 @@ export type Database = {
 
       duels: {
         Row: {
-          id:                 string
-          challenger_id:      string
-          challenged_id:      string
-          family_id:          string | null
-          question_ids:       string[]
-          challenger_score:   number | null
-          challenged_score:   number | null
-          challenger_answers: Json | null
-          challenged_answers: Json | null
-          status:             "pending" | "completed" | "expired"
-          winner_id:          string | null
-          created_at:         string
-          expires_at:         string
+          id:                              string
+          challenger_id:                   string
+          challenged_id:                   string
+          family_id:                       string | null
+          question_ids:                    string[]
+          challenger_score:                number | null
+          challenged_score:                number | null
+          challenger_answers:              Json | null
+          challenged_answers:              Json | null
+          status:                          "pending" | "completed" | "expired"
+          winner_id:                       string | null
+          created_at:                      string
+          expires_at:                      string
+          duel_type:                       string
+          recitation_surah:                number | null
+          recitation_ayah_start:           number | null
+          recitation_ayah_end:             number | null
+          challenger_recitation_score:     number | null
+          challenged_recitation_score:     number | null
         }
         Insert: {
-          id?:                 string
-          challenger_id:       string
-          challenged_id:       string
-          family_id?:          string | null
-          question_ids:        string[]
-          challenger_score?:   number | null
-          challenged_score?:   number | null
-          challenger_answers?: Json | null
-          challenged_answers?: Json | null
-          status?:             "pending" | "completed" | "expired"
-          winner_id?:          string | null
-          created_at?:         string
-          expires_at?:         string
+          id?:                              string
+          challenger_id:                    string
+          challenged_id:                    string
+          family_id?:                       string | null
+          question_ids?:                    string[]
+          challenger_score?:                number | null
+          challenged_score?:                number | null
+          challenger_answers?:              Json | null
+          challenged_answers?:              Json | null
+          status?:                          "pending" | "completed" | "expired"
+          winner_id?:                       string | null
+          created_at?:                      string
+          expires_at?:                      string
+          duel_type?:                       string
+          recitation_surah?:                number | null
+          recitation_ayah_start?:           number | null
+          recitation_ayah_end?:             number | null
+          challenger_recitation_score?:     number | null
+          challenged_recitation_score?:     number | null
         }
         Update: {
-          id?:                 string
-          challenger_id?:      string
-          challenged_id?:      string
-          family_id?:          string | null
-          question_ids?:       string[]
-          challenger_score?:   number | null
-          challenged_score?:   number | null
-          challenger_answers?: Json | null
-          challenged_answers?: Json | null
-          status?:             "pending" | "completed" | "expired"
-          winner_id?:          string | null
-          expires_at?:         string
+          id?:                              string
+          challenger_id?:                   string
+          challenged_id?:                   string
+          family_id?:                       string | null
+          question_ids?:                    string[]
+          challenger_score?:                number | null
+          challenged_score?:                number | null
+          challenger_answers?:              Json | null
+          challenged_answers?:              Json | null
+          status?:                          "pending" | "completed" | "expired"
+          winner_id?:                       string | null
+          expires_at?:                      string
+          duel_type?:                       string
+          recitation_surah?:                number | null
+          recitation_ayah_start?:           number | null
+          recitation_ayah_end?:             number | null
+          challenger_recitation_score?:     number | null
+          challenged_recitation_score?:     number | null
         }
         Relationships: [
           { foreignKeyName: "duels_challenger_id_fkey"; columns: ["challenger_id"]; referencedRelation: "users"; referencedColumns: ["id"] },

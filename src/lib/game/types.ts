@@ -152,6 +152,14 @@ export interface GameState {
   locationThemeProgress: Record<string, Partial<Record<Category, ThemeProgress>>>;
   // sync metadata
   lastUpdatedAt: string | null;                // ISO timestamp — détermine l'état le plus récent en cas de conflit multi-appareil
+  // ── Streak récitation Coran ──────────────────────────────────────
+  quranStreak:                  number;
+  lastQuranDate:                string | null;
+  quranStreakShields:            number;   // 0-3 boucliers disponibles
+  quranBestStreak:              number;
+  quranStreakShieldsEarnedAt:   number;   // valeur streak au dernier shield gagné
+  quranAyahsToday:              number;   // versets récités aujourd'hui
+  quranAyahsTodayDate:          string | null;
 }
 
 export interface LocationTranslation { description?: string; country?: string; }

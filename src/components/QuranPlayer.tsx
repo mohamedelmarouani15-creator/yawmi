@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { Volume2 } from "lucide-react";
 
 const RECITERS = [
-  { id: "Alafasy_128kbps",              name: "Mishary Alafasy"   },
-  { id: "Husary_128kbps",               name: "Mahmoud Al-Husary" },
-  { id: "Abdul_Basit_Murattal_192kbps", name: "Abdul Basit"       },
-  { id: "Minshawy_Murattal_128kbps",    name: "Minshawy"          },
+  { id: "Alafasy_128kbps",                name: "Mishary Alafasy"   },
+  { id: "Husary_128kbps",                 name: "Mahmoud Al-Husary" },
+  { id: "Abdul_Basit_Murattal_192kbps",  name: "Abdul Basit"       },
+  { id: "Minshawy_Murattal_128kbps",     name: "Minshawy"          },
+  { id: "Abdul_Rahman_Al-Sudais_192kbps", name: "Al-Sudais"         },
 ];
 
 function ayahUrl(reciter: string, surah: number, ayah: number) {
@@ -30,12 +31,18 @@ export default function QuranPlayer({
 }: Props) {
   const [reciter,  setReciter]  = useState(defaultReciter ?? RECITERS[0].id);
   const [showRec,  setShowRec]  = useState(false);
+  const [speed,    setSpeed]    = useState(1);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   // Applique le volume dès qu'il change (fondu progressif mode sommeil)
   useEffect(() => {
     if (audioRef.current) audioRef.current.volume = Math.max(0, Math.min(1, volume));
   }, [volume]);
+
+  // Applique la vitesse de lecture dès qu'elle change
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.playbackRate = speed;
+  }, [speed]);
 
   const src = ayahUrl(reciter, surah, currentAyah);
 
@@ -81,6 +88,28 @@ export default function QuranPlayer({
           </div>
         )}
 
+        {/* Speed chips */}
+        <div className="mb-3 flex items-center gap-1.5">
+          <span className="text-xs opacity-40 mr-1" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+            Vitesse :
+          </span>
+          {[0.75, 1, 1.25, 1.5].map(s => (
+            <button
+              key={s}
+              onClick={() => setSpeed(s)}
+              className="rounded-full px-2.5 py-1 text-xs font-semibold"
+              style={{
+                background: speed === s ? "rgba(212,175,55,0.15)" : "rgba(255,255,255,0.04)",
+                color: speed === s ? "var(--gold)" : "rgba(248,244,236,0.4)",
+                border: `1px solid ${speed === s ? "rgba(212,175,55,0.3)" : "transparent"}`,
+                fontFamily: "var(--font-dm-sans)",
+              }}
+            >
+              {s}x
+            </button>
+          ))}
+        </div>
+
         <audio
           ref={audioRef}
           key={src}
@@ -92,7 +121,10 @@ export default function QuranPlayer({
           className="w-full"
           style={{ height: 36, borderRadius: 10 }}
           onLoadedData={() => {
-            if (audioRef.current) audioRef.current.volume = Math.max(0, Math.min(1, volume));
+            if (audioRef.current) {
+              audioRef.current.volume = Math.max(0, Math.min(1, volume));
+              audioRef.current.playbackRate = speed;
+            }
           }}
           onEnded={() => {
             if (currentAyah < totalAyahs) {

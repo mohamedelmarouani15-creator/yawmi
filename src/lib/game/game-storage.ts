@@ -71,6 +71,13 @@ export const DEFAULT_STATE: GameState = {
   weeklyChallenge: null,
   prestigeLevel: 0,
   lastUpdatedAt: null,
+  quranStreak:                0,
+  lastQuranDate:              null,
+  quranStreakShields:         0,
+  quranBestStreak:            0,
+  quranStreakShieldsEarnedAt: 0,
+  quranAyahsToday:            0,
+  quranAyahsTodayDate:        null,
 };
 
 // ── Weekly challenge pool ──────────────────────────────────────
@@ -296,6 +303,57 @@ export const gameStorage = {
     const updated = { ...state, gameStreak: streak, lastGameDate: today };
     this.save(this._checkAchievements(updated));
     return updated;
+  },
+
+  // ── Streak récitation Coran ──────────────────────────────────
+  updateQuranStreak(): void {
+    const state     = this.get();
+    const today     = new Date().toISOString().split("T")[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+    const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString().split("T")[0];
+
+    if (state.lastQuranDate === today) return; // déjà mis à jour aujourd'hui
+
+    let streak  = state.quranStreak ?? 0;
+    let shields = state.quranStreakShields ?? 0;
+
+    if (state.lastQuranDate === yesterday) {
+      streak += 1;
+    } else if (state.lastQuranDate === twoDaysAgo && shields > 0) {
+      shields -= 1;
+      streak  += 1;
+    } else {
+      streak = 1;
+    }
+
+    // Gagner un bouclier tous les 7 jours de streak (max 3)
+    const prevThreshold = state.quranStreakShieldsEarnedAt ?? 0;
+    const newThreshold  = Math.floor(streak / 7) * 7;
+    if (newThreshold > prevThreshold && shields < 3) {
+      shields += 1;
+    }
+
+    const bestStreak = Math.max(state.quranBestStreak ?? 0, streak);
+
+    this.save({
+      ...state,
+      quranStreak:                streak,
+      lastQuranDate:              today,
+      quranStreakShields:         shields,
+      quranBestStreak:            bestStreak,
+      quranStreakShieldsEarnedAt: newThreshold,
+    });
+  },
+
+  incrementQuranAyahsToday(): void {
+    const state = this.get();
+    const today = new Date().toISOString().split("T")[0];
+    const isToday = state.quranAyahsTodayDate === today;
+    this.save({
+      ...state,
+      quranAyahsToday:     isToday ? (state.quranAyahsToday ?? 0) + 1 : 1,
+      quranAyahsTodayDate: today,
+    });
   },
 
   // ── Energy ───────────────────────────────────────────────────

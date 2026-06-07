@@ -1,4 +1,5 @@
 import type { CompanionContext } from "./types";
+import type { RecitationContext } from "@/lib/recitation-context-bus";
 
 // ── System prompt validé (30 mai 2026) ────────────────────────
 export const SYSTEM_PROMPT = `Tu es le Compagnon de Yawmi, un professeur bienveillant qui accompagne chaque personne dans son apprentissage de l'islam, de l'arabe et de l'histoire islamique. Tu t'adaptes à chaque personne de façon unique.
@@ -40,7 +41,10 @@ FORMAT
 - En français, avec des mots arabes naturellement intégrés.`;
 
 // ── Builder du contexte apprenant (injecté au début de chaque conv) ──
-export function buildContextBlock(ctx: CompanionContext): string {
+export function buildContextBlock(
+  ctx: CompanionContext,
+  recitationCtx?: RecitationContext | null
+): string {
   const parts: string[] = ["[CONTEXTE APPRENANT — confidentiel, ne pas afficher à l'utilisateur]"];
 
   if (ctx.firstName) parts.push(`Prénom : ${ctx.firstName}`);
@@ -77,6 +81,24 @@ export function buildContextBlock(ctx: CompanionContext): string {
     else parts.push(`Dernière session : il y a ${days} jours`);
   } else {
     parts.push("Première session");
+  }
+
+  // Contexte récitation (transmis uniquement sur le premier message après récitation)
+  if (recitationCtx) {
+    parts.push("");
+    parts.push("[CONTEXTE RÉCITATION — vient de se terminer]");
+    parts.push(`Sourate : ${recitationCtx.surahName} (n°${recitationCtx.surahNumber}), verset ${recitationCtx.ayahNumber}`);
+    parts.push(`Texte du verset : ${recitationCtx.ayahText}`);
+    parts.push(`Score obtenu : ${recitationCtx.score.toFixed(1)}%`);
+    if (recitationCtx.errors.length > 0) {
+      const errList = recitationCtx.errors
+        .map(e => `"${e.word}" → "${e.suggestion}"`)
+        .join(", ");
+      parts.push(`Mots à corriger : ${errList}`);
+    } else {
+      parts.push("Aucune erreur détectée.");
+    }
+    parts.push("L'utilisateur ouvre le Compagnon juste après cette récitation. Il cherche probablement une explication ou de l'aide sur ce verset.");
   }
 
   return parts.join("\n");

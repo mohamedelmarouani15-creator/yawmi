@@ -5,7 +5,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Mic, Loader2, ChevronRight, RotateCcw, Volume2, Play } from "lucide-react";
 import { saveRecitation } from "@/lib/quran-recitation";
 import { storage } from "@/lib/storage";
+import MakhrajDiagram from "@/components/MakhrajDiagram";
+import { gameStorage } from "@/lib/game/game-storage";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
+import { detectTajwid, buildTajwidMap, TAJWID_STYLE } from "@/lib/tajwid";
+import { useChunkedRecitation } from "@/hooks/useChunkedRecitation";
+import { emitRecitationContext } from "@/lib/recitation-context-bus";
 
 // ── Types ────────────────────────────────────────────────────────
 
@@ -36,12 +41,14 @@ interface ReciteResult {
 }
 
 interface CoachResponse {
-  encouragement: string;
-  tajwid?:        string;
-  pronunciation?: string;
-  tafsir?:        string;
-  next_focus?:    string;
-  agents:         string[];
+  encouragement:   string;
+  tajwid?:         string;
+  pronunciation?:  string;
+  makhraj_zone?:   "throat" | "back_tongue" | "mid_tongue" | "front_tongue" | "teeth" | "lips" | null;
+  makhraj_letter?: string;
+  tafsir?:         string;
+  next_focus?:     string;
+  agents:          string[];
 }
 
 type RecordingState = "idle" | "recording" | "processing" | "result";
@@ -49,11 +56,11 @@ type GuidedPhase   = "listen" | "segments" | "full";
 
 // ── Constants ────────────────────────────────────────────────────
 
-const TAJWID_LABELS: Record<string, { fr: string; ar: string; color: string }> = {
-  qalqala: { fr: "Léger écho",    ar: "قلقلة", color: "#ef4444" },
-  ghunna:  { fr: "Nasalisation",  ar: "غُنَّة",  color: "#22c55e" },
-  madd:    { fr: "Allongement",   ar: "مَدّ",    color: "#3b82f6" },
-};
+// TAJWID_LABELS is now derived from the shared TAJWID_STYLE palette in @/lib/tajwid.
+// Kept as a local alias for backwards compatibility within this file.
+const TAJWID_LABELS: Record<string, { fr: string; ar: string; color: string }> = Object.fromEntries(
+  Object.entries(TAJWID_STYLE).map(([k, v]) => [k, { fr: v.labelFr, ar: v.labelAr, color: v.color }]),
+);
 
 // ── Helpers ──────────────────────────────────────────────────────
 
@@ -82,22 +89,23 @@ function feedbackConfig(score: number, isElder: boolean) {
   };
 }
 
-function detectLocalTajwid(text: string) {
-  const issues: { type: string; position: number }[] = [];
-  const words = text.split(/\s+/);
-  words.forEach((word, idx) => {
-    if (/[قطبجد]/.test(word)) issues.push({ type: "qalqala", position: idx });
-    if (/[نم]ّ/.test(word))   issues.push({ type: "ghunna",  position: idx });
-    if (/[آأإا][َُِ]|[وي](?=ْ)/.test(word)) issues.push({ type: "madd", position: idx });
-  });
-  return issues;
+// detectLocalTajwid — now delegates to the shared helper in @/lib/tajwid.
+// The return type is kept identical so all call-sites remain unchanged.
+function detectLocalTajwid(text: string): { type: string; position: number }[] {
+  return detectTajwid(text);
 }
 
 function ayahAudioUrl(surahNumber: number, ayahNumber: number) {
-  return `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${surahNumber}${String(ayahNumber).padStart(3, "0")}.mp3`;
+  return `https://everyayah.com/data/Alafasy_128kbps/${String(surahNumber).padStart(3, "0")}${String(ayahNumber).padStart(3, "0")}.mp3`;
 }
 
 // ── Sub-components ───────────────────────────────────────────────
+
+// TAJWID_COLORS — derived from shared palette so RecitationMode and the
+// main reader always use the same hues for every rule.
+const TAJWID_COLORS: Record<string, string> = Object.fromEntries(
+  Object.entries(TAJWID_STYLE).map(([k, v]) => [k, v.color]),
+);
 
 function WordHighlight({
   words,
@@ -106,6 +114,8 @@ function WordHighlight({
   state,
   highlightRange,
   fontSize = 26,
+  tajwidMap,
+  confirmedUpTo,
 }: {
   words: string[];
   errors: WordError[];
@@ -113,6 +123,8 @@ function WordHighlight({
   state: RecordingState;
   highlightRange?: [number, number]; // [start, end] inclusive — for segment mode
   fontSize?: number;
+  tajwidMap?: Map<number, string>;
+  confirmedUpTo?: number;
 }) {
   const errorPositions = new Set(errors.map(e => e.position));
 
@@ -128,13 +140,34 @@ function WordHighlight({
 
         if (state === "result" && inRange) {
           color = errorPositions.has(i) ? "#ef4444" : "#22c55e";
-        } else if (state === "recording" && i === currentWordIdx && inRange) {
-          color = "var(--gold)";
-          bg    = "rgba(212,175,55,0.15)";
+        } else if (state === "recording" && inRange) {
+          if (confirmedUpTo !== undefined && i <= confirmedUpTo) {
+            color = "#22c55e"; // confirmé par Whisper
+            bg    = "rgba(34,197,94,0.08)";
+          } else if (i === currentWordIdx) {
+            color = "var(--gold)"; // estimation courante
+            bg    = "rgba(212,175,55,0.15)";
+          }
         }
 
+        const tajwidType = tajwidMap?.get(i);
+        const showTajwid = tajwidType && state !== "result";
+
         return (
-          <span key={i} style={{ color, background: bg, borderRadius: 4, padding: "0 2px", transition: "color 0.3s, background 0.3s" }}>
+          <span
+            key={i}
+            style={{
+              color,
+              background: bg,
+              borderRadius: 4,
+              padding: "0 2px",
+              transition: "color 0.3s, background 0.3s",
+              textDecoration: showTajwid ? "underline" : "none",
+              textDecorationColor: showTajwid ? TAJWID_COLORS[tajwidType] : undefined,
+              textDecorationThickness: showTajwid ? 2 : undefined,
+              textUnderlineOffset: showTajwid ? 3 : undefined,
+            }}
+          >
             {word}{" "}
           </span>
         );
@@ -235,6 +268,7 @@ function ListenPhase({
   isElder,
   tajwidTypes,
   fontSize,
+  translation,
   onNext,
 }: {
   ayah: Ayah;
@@ -243,24 +277,54 @@ function ListenPhase({
   isElder: boolean;
   tajwidTypes: string[];
   fontSize: number;
+  translation?: string;
   onNext: () => void;
 }) {
   const [playing, setPlaying] = useState(false);
+  const [speed, setSpeed] = useState(1);
+  const [currentWordIdxL, setCurrentWordIdxL] = useState(-1);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const wordTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const url = ayahAudioUrl(surahNumber, ayah.numberInSurah);
 
   function play() {
+    if (wordTimerRef.current) clearInterval(wordTimerRef.current);
+    setCurrentWordIdxL(-1);
+
     if (!audioRef.current) {
       audioRef.current = new Audio(url);
-      audioRef.current.onended = () => setPlaying(false);
+      audioRef.current.onended = () => {
+        setPlaying(false);
+        setCurrentWordIdxL(-1);
+        if (wordTimerRef.current) clearInterval(wordTimerRef.current);
+      };
     }
     audioRef.current.currentTime = 0;
+    audioRef.current.playbackRate = speed;
     audioRef.current.play();
     setPlaying(true);
+
+    // Tracker mot par mot via polling du currentTime
+    const wordCount = words.length;
+    wordTimerRef.current = setInterval(() => {
+      if (!audioRef.current) return;
+      const progress = audioRef.current.currentTime / (audioRef.current.duration || 1);
+      const idx = Math.min(Math.floor(progress * wordCount), wordCount - 1);
+      setCurrentWordIdxL(idx);
+      if (audioRef.current.ended) {
+        clearInterval(wordTimerRef.current!);
+      }
+    }, 100);
   }
 
   // Auto-play on mount
-  useEffect(() => { play(); return () => { audioRef.current?.pause(); }; }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    play();
+    return () => {
+      audioRef.current?.pause();
+      if (wordTimerRef.current) clearInterval(wordTimerRef.current);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="flex flex-col items-center gap-6">
@@ -283,8 +347,25 @@ function ListenPhase({
         )}
         <p className="text-right leading-loose"
           style={{ fontFamily: "var(--font-amiri)", direction: "rtl", fontSize, color: "var(--text)" }}>
-          {words.join(" ")}
+          {words.map((word, i) => (
+            <span key={i} style={{
+              color: i === currentWordIdxL ? "var(--gold)" : i < currentWordIdxL ? "#22c55e" : "var(--text)",
+              background: i === currentWordIdxL ? "rgba(212,175,55,0.12)" : "transparent",
+              borderRadius: 4,
+              padding: "0 2px",
+              transition: "color 0.2s, background 0.2s",
+            }}>
+              {word}{" "}
+            </span>
+          ))}
         </p>
+        {/* Traduction — affichée pendant la lecture */}
+        {playing && currentWordIdxL >= 0 && translation && (
+          <p className="mt-3 text-sm leading-relaxed"
+            style={{ color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-dm-sans)" }}>
+            {translation}
+          </p>
+        )}
       </div>
 
       {/* Play controls */}
@@ -311,6 +392,30 @@ function ListenPhase({
         </button>
       </div>
 
+      <div className="flex items-center gap-2">
+        {[0.75, 1].map(s => (
+          <button
+            key={s}
+            onClick={() => {
+              setSpeed(s);
+              if (audioRef.current) audioRef.current.playbackRate = s;
+            }}
+            className="rounded-full border px-3 py-1 text-xs font-semibold"
+            style={{
+              borderColor: speed === s ? "rgba(212,175,55,0.4)" : "rgba(255,255,255,0.1)",
+              color: speed === s ? "var(--gold)" : "rgba(248,244,236,0.35)",
+              background: speed === s ? "rgba(212,175,55,0.07)" : "transparent",
+              fontFamily: "var(--font-dm-sans)",
+            }}
+          >
+            {s}x
+          </button>
+        ))}
+        <span className="text-xs opacity-30" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+          vitesse
+        </span>
+      </div>
+
       <button onClick={onNext}
         className="flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-semibold"
         style={{ background: "rgba(5,92,63,0.5)", border: "1px solid rgba(5,92,63,0.8)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
@@ -330,6 +435,7 @@ function SegmentPhase({
   ayahNumber,
   isElder,
   fontSize,
+  tajwidMap,
   onSegmentDone,
 }: {
   words: string[];
@@ -339,6 +445,7 @@ function SegmentPhase({
   ayahNumber: number;
   isElder: boolean;
   fontSize: number;
+  tajwidMap?: Map<number, string>;
   onSegmentDone: (score: number) => void;
 }) {
   const [recState,  setRecState]  = useState<RecordingState>("idle");
@@ -445,6 +552,7 @@ function SegmentPhase({
           state={recState}
           highlightRange={range}
           fontSize={fontSize}
+          tajwidMap={tajwidMap}
         />
         {/* Segment isolated display */}
         <div className="mt-3 rounded-xl p-3"
@@ -537,23 +645,27 @@ function SegmentPhase({
 function FullPhase({
   ayah,
   surahNumber,
+  surahName,
   words,
   isElder,
   isKids,
   tajwidTypes,
   fontSize,
   isLast,
+  tajwidMap,
   onNext,
   onResult,
 }: {
   ayah: Ayah;
   surahNumber: number;
+  surahName: string;
   words: string[];
   isElder: boolean;
   isKids: boolean;
   tajwidTypes: string[];
   fontSize: number;
   isLast: boolean;
+  tajwidMap?: Map<number, string>;
   onNext: () => void;
   onResult?: (score: number, tajwidTypes: string[]) => void;
 }) {
@@ -564,6 +676,7 @@ function FullPhase({
   const [coaching,     setCoaching]     = useState<CoachResponse | null>(null);
   const [coachLoading, setCoachLoading] = useState(false);
   const [showCoach,    setShowCoach]    = useState(true);
+  const [accessToken,  setAccessToken]  = useState<string | null>(null);
 
   const mediaRef   = useRef<MediaRecorder | null>(null);
   const chunksRef  = useRef<Blob[]>([]);
@@ -572,21 +685,37 @@ function FullPhase({
   const settings   = storage.getSettings();
 
   useEffect(() => {
+    import("@/lib/supabase").then(({ supabase }) => {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setAccessToken(session?.access_token ?? null);
+      });
+    });
+  }, []);
+
+  const { pushChunk, confirmedWordIdx, resetConfirmed } = useChunkedRecitation({
+    words,
+    isRecording: recState === "recording",
+    accessToken,
+  });
+
+  useEffect(() => {
     if (recState !== "recording") {
       if (timerRef.current) clearInterval(timerRef.current);
       setWordIdx(0);
       return;
     }
     const ms = Math.max(800, 3000 / Math.max(words.length, 1));
+    let localIdx = 0;
     timerRef.current = setInterval(() => {
       setWordIdx(prev => {
-        if (prev < words.length - 1) return prev + 1;
-        clearInterval(timerRef.current!);
-        return prev;
+        const timerNext = Math.min(localIdx + 1, words.length - 1);
+        localIdx = timerNext;
+        // Prendre le MAX entre le timer et ce que Whisper a confirmé
+        return Math.max(timerNext, confirmedWordIdx);
       });
     }, ms);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [recState, words.length]);
+  }, [recState, words.length, confirmedWordIdx]);
 
   const startRec = useCallback(async () => {
     if (recState !== "idle") return;
@@ -594,13 +723,19 @@ function FullPhase({
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       chunksRef.current = [];
       const mr = new MediaRecorder(stream, { mimeType: "audio/webm" });
-      mr.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data); };
       mr.start(500);
+      resetConfirmed();
+      mr.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunksRef.current.push(e.data);
+          pushChunk(e.data); // envoyer aussi au chunked ASR
+        }
+      };
       mediaRef.current = mr;
       setRecState("recording");
       setResult(null);
     } catch { alert("Microphone inaccessible."); }
-  }, [recState]);
+  }, [recState, resetConfirmed, pushChunk]);
 
   const stopRec = useCallback(async () => {
     if (recState !== "recording" || !mediaRef.current) return;
@@ -629,9 +764,43 @@ function FullPhase({
       setCoaching(null);
       setShowCoach(true);
 
-      // SM-2 persist — fire-and-forget (Supabase stores integer, round float score)
+      // Notifie le Parchemin du résultat de récitation
+      emitRecitationContext({
+        surahNumber,
+        surahName,
+        ayahNumber: ayah.numberInSurah,
+        ayahText:   ayah.text,
+        score:      data.score,
+        errors:     data.errors.slice(0, 3).map((e: WordError) => ({
+          word: e.word, suggestion: e.suggestion,
+        })),
+        timestamp: Date.now(),
+      });
+
+      // SM-2 persist + XP/coins rewards
       const types = [...new Set(data.tajwid_issues.map((t: TajwidIssue) => t.type))];
-      saveRecitation(surahNumber, ayah.numberInSurah, Math.round(data.score), types).catch(() => {});
+      saveRecitation(surahNumber, ayah.numberInSurah, Math.round(data.score), types)
+        .then(reward => {
+          if (reward.xp > 0) {
+            gameStorage.addXP(reward.xp);
+            gameStorage.addCoins(reward.coins);
+            gameStorage.updateQuranStreak();
+            gameStorage.incrementQuranAyahsToday();
+            gameStorage.push().catch(() => {});
+          }
+          // Débloquer achievement première récitation
+          if (!gameStorage.get().achievements.includes("recitation_first")) {
+            gameStorage.unlockAchievement("recitation_first");
+            gameStorage.push().catch(() => {});
+          }
+          // Débloquer achievement récitateur du jour si 10 versets
+          const ayahsToday = gameStorage.get().quranAyahsToday ?? 0;
+          if (ayahsToday >= 10 && !gameStorage.get().achievements.includes("recitateur_jour")) {
+            gameStorage.unlockAchievement("recitateur_jour");
+            gameStorage.push().catch(() => {});
+          }
+        })
+        .catch(() => {});
       onResult?.(data.score, types);
 
       // ── Chef Agent coaching — parallel sub-agents ─────────────
@@ -663,7 +832,7 @@ function FullPhase({
       console.error("[FullPhase]", err);
       setRecState("idle");
     }
-  }, [recState, ayah, surahNumber, onResult, settings.ageGroup, settings.arabicLevel]);
+  }, [recState, ayah, surahNumber, surahName, onResult, settings.ageGroup, settings.arabicLevel]);
 
   const fb = result ? feedbackConfig(result.score, isElder) : null;
 
@@ -691,6 +860,8 @@ function FullPhase({
           currentWordIdx={wordIdx}
           state={recState}
           fontSize={fontSize}
+          tajwidMap={tajwidMap}
+          confirmedUpTo={confirmedWordIdx}
         />
         {(isElder || (result && result.score < 70)) && (
           <div className="mt-4">
@@ -840,6 +1011,12 @@ function FullPhase({
                     {coaching.pronunciation && (
                       <CoachSection icon="👄" label="Agent Makhraj" text={coaching.pronunciation} color="#3b82f6" isElder={isElder} />
                     )}
+                    {coaching.makhraj_zone && (
+                      <MakhrajDiagram
+                        zone={coaching.makhraj_zone}
+                        letter={coaching.makhraj_letter}
+                      />
+                    )}
 
                     {/* Tafsir — reward for good score */}
                     {coaching.tafsir && (
@@ -912,6 +1089,7 @@ export interface RecitationModeProps {
   surahName: string;
   surahNameAr: string;
   ayahs: Ayah[];
+  translations?: Ayah[]; // traductions parallèles (même indexation que ayahs)
   startIndex?: number;
   guided?: boolean;
   onClose: () => void;
@@ -922,6 +1100,7 @@ export default function RecitationMode({
   surahName,
   surahNameAr,
   ayahs,
+  translations,
   startIndex = 0,
   guided = false,
   onClose,
@@ -941,7 +1120,10 @@ export default function RecitationMode({
   const isLast  = currentIdx >= ayahs.length - 1;
   const segments = chunkWords(words, 4);
 
-  const tajwidTypes = [...new Set(detectLocalTajwid(ayah?.text ?? "").map(t => t.type))];
+  const tajwidIssues  = detectLocalTajwid(ayah?.text ?? "");
+  const tajwidTypes   = [...new Set(tajwidIssues.map(t => t.type))];
+  // buildTajwidMap applies first-match-per-word priority — consistent with TajwidText renderer.
+  const tajwidWordMap = buildTajwidMap(ayah?.text ?? "") as Map<number, string>;
 
   function nextAyah() {
     if (isLast) { onClose(); return; }
@@ -1007,12 +1189,14 @@ export default function RecitationMode({
           <FullPhase
             ayah={ayah}
             surahNumber={surahNumber}
+            surahName={surahName}
             words={words}
             isElder={isElder}
             isKids={isKids}
             tajwidTypes={tajwidTypes}
             fontSize={fontSize}
             isLast={isLast}
+            tajwidMap={tajwidWordMap}
             onNext={nextAyah}
           />
         ) : guidedPhase === "listen" ? (
@@ -1023,6 +1207,7 @@ export default function RecitationMode({
             isElder={isElder}
             tajwidTypes={tajwidTypes}
             fontSize={fontSize}
+            translation={translations?.[currentIdx]?.text}
             onNext={() => setGuidedPhase("segments")}
           />
         ) : guidedPhase === "segments" ? (
@@ -1034,18 +1219,21 @@ export default function RecitationMode({
             ayahNumber={ayah?.numberInSurah ?? 1}
             isElder={isElder}
             fontSize={fontSize}
+            tajwidMap={tajwidWordMap}
             onSegmentDone={handleSegmentDone}
           />
         ) : (
           <FullPhase
             ayah={ayah}
             surahNumber={surahNumber}
+            surahName={surahName}
             words={words}
             isElder={isElder}
             isKids={isKids}
             tajwidTypes={tajwidTypes}
             fontSize={fontSize}
             isLast={isLast}
+            tajwidMap={tajwidWordMap}
             onNext={nextAyah}
           />
         )}

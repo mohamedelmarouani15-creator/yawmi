@@ -3,9 +3,10 @@
 import { useState, useCallback, useEffect } from "react";
 import { supabase } from "@/lib/supabase";
 import type { ParcheminMessage } from "@/components/Parchemin";
+import type { RecitationContext } from "@/lib/recitation-context-bus";
 
 interface UseCompanionReturn {
-  send:      (message: string) => Promise<string>;
+  send:      (message: string, recitationContext?: RecitationContext | null) => Promise<string>;
   messages:  ParcheminMessage[];
   remaining: number;
   error:     string | null;
@@ -34,7 +35,7 @@ export function useCompanion(): UseCompanionReturn {
     });
   }, []);
 
-  const send = useCallback(async (message: string): Promise<string> => {
+  const send = useCallback(async (message: string, recitationContext?: RecitationContext | null): Promise<string> => {
     setError(null);
 
     const { data: { session } } = await supabase.auth.getSession();
@@ -59,7 +60,10 @@ export function useCompanion(): UseCompanionReturn {
         "Content-Type":  "application/json",
         "Authorization": `Bearer ${token}`,
       },
-      body: JSON.stringify({ message }),
+      body: JSON.stringify({
+        message,
+        ...(recitationContext ? { recitationContext } : {}),
+      }),
     });
 
     if (res.status === 429) {

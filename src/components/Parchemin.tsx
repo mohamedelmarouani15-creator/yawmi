@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Send } from "lucide-react";
+import { onRecitationContext, type RecitationContext } from "@/lib/recitation-context-bus";
 
 // ── Ornement calligraphique SVG (coin) ────────────────────────
 function CornerOrnament({
@@ -124,19 +125,25 @@ export interface ParcheminMessage {
 }
 
 interface Props {
-  onSend?: (message: string) => Promise<string>;
+  onSend?: (message: string, recitationContext?: RecitationContext | null) => Promise<string>;
   initialMessages?: ParcheminMessage[];
   remaining?: number;
 }
 
 // ── Composant principal ────────────────────────────────────────
 export default function Parchemin({ onSend, initialMessages = [], remaining = 20 }: Props) {
-  const [isOpen,    setIsOpen]    = useState(false);
-  const [messages,  setMessages]  = useState<ParcheminMessage[]>(initialMessages);
-  const [input,     setInput]     = useState("");
-  const [loading,   setLoading]   = useState(false);
+  const [isOpen,         setIsOpen]         = useState(false);
+  const [messages,       setMessages]       = useState<ParcheminMessage[]>(initialMessages);
+  const [input,          setInput]          = useState("");
+  const [loading,        setLoading]        = useState(false);
+  const [lastRecitation, setLastRecitation] = useState<RecitationContext | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef       = useRef<HTMLInputElement>(null);
+
+  // Écoute les récitations terminées depuis RecitationMode
+  useEffect(() => {
+    return onRecitationContext(setLastRecitation);
+  }, []);
 
   // Scroll en bas à chaque nouveau message
   useEffect(() => {
@@ -154,13 +161,17 @@ export default function Parchemin({ onSend, initialMessages = [], remaining = 20
     const text = input.trim();
     if (!text || loading) return;
 
+    // Capture et efface le contexte récitation — utilisé une seule fois
+    const ctx = lastRecitation;
+    setLastRecitation(null);
+
     setInput("");
     setMessages(prev => [...prev, { role: "user", content: text }]);
     setLoading(true);
 
     try {
       const reply = onSend
-        ? await onSend(text)
+        ? await onSend(text, ctx)
         : "Je suis en cours de connexion… reviens dans un instant.";
       setMessages(prev => [...prev, { role: "assistant", content: reply }]);
     } catch {
@@ -171,7 +182,7 @@ export default function Parchemin({ onSend, initialMessages = [], remaining = 20
     } finally {
       setLoading(false);
     }
-  }, [input, loading, onSend]);
+  }, [input, loading, onSend, lastRecitation]);
 
   const handleKey = useCallback((e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -231,6 +242,24 @@ export default function Parchemin({ onSend, initialMessages = [], remaining = 20
               aria-label="Ouvrir le Compagnon"
             >
               <ScrollIcon />
+              {/* Point doré — indique un contexte récitation disponible */}
+              {lastRecitation && (
+                <motion.span
+                  aria-hidden="true"
+                  style={{
+                    position: "absolute",
+                    top: -2,
+                    left: -2,
+                    width: 14,
+                    height: 14,
+                    borderRadius: "50%",
+                    background: "var(--gold)",
+                    border: "2px solid rgba(20,14,3,0.97)",
+                  }}
+                  animate={{ opacity: [1, 0.5, 1], scale: [1, 1.15, 1] }}
+                  transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+                />
+              )}
             </motion.button>
           </motion.div>
         )}

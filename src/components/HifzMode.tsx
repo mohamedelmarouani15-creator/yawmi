@@ -72,6 +72,8 @@ export default function HifzMode({
 }: HifzModeProps) {
   const [currentIdx, setCurrentIdx]     = useState(startIndex);
   const [hidden, setHidden]             = useState(false);
+  const [revealMode, setRevealMode]     = useState(false);
+  const [revealedCount, setRevealedCount] = useState(0);
   const [sessionMastered, setSessionMastered] = useState<number[]>([]); // numberInSurah values
   const [hifzStore, setHifzStore]       = useState<HifzStore>(() => loadHifzStore());
   const [showAudio, setShowAudio]       = useState(false);
@@ -93,6 +95,8 @@ export default function HifzMode({
     setHidden(false);
     setJustMastered(false);
     setShowAudio(false);
+    setRevealMode(false);
+    setRevealedCount(0);
   }, [currentIdx]);
 
   const markMastered = useCallback(() => {
@@ -231,26 +235,56 @@ export default function HifzMode({
                 transition: "all 0.3s ease",
               }}
             >
-              {hidden ? (
+              {hidden && !revealMode ? (
                 /* Hidden state — dots mask */
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className="flex flex-wrap justify-center gap-2 py-4"
                 >
-                  {ayah.text.split(" ").map((_, wi) => (
+                  {ayah.text.split(" ").map((w, wi) => (
                     <div
                       key={wi}
                       className="rounded-full"
                       style={{
                         height: 8,
-                        width: Math.max(24, Math.min(64, (ayah.text.split(" ")[wi]?.length ?? 4) * 7)),
+                        width: Math.max(24, Math.min(64, w.length * 7)),
                         background: "rgba(212,175,55,0.25)",
                       }}
                     />
                   ))}
                 </motion.div>
+              ) : revealMode ? (
+                /* Révélation progressive mot par mot */
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-right leading-loose"
+                  style={{
+                    fontSize,
+                    color: "var(--text)",
+                    fontFamily: "var(--font-amiri)",
+                    direction: "rtl",
+                  }}
+                >
+                  {ayah.text.split(" ").map((word, wi) => (
+                    <span
+                      key={wi}
+                      style={{
+                        opacity: wi < revealedCount ? 1 : 0.08,
+                        transition: "opacity 0.3s ease",
+                        background: wi === revealedCount - 1 ? "rgba(212,175,55,0.12)" : "transparent",
+                        borderRadius: 4,
+                        padding: "0 2px",
+                        color: wi < revealedCount ? "var(--text)" : "rgba(255,255,255,0.15)",
+                      }}
+                    >
+                      {word}{" "}
+                    </span>
+                  ))}
+                </motion.p>
               ) : (
+                /* Texte complet visible */
                 <motion.p
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -313,10 +347,11 @@ export default function HifzMode({
 
       {/* ── Action buttons ────────────────────────────────────── */}
       <div className="px-5 pb-8 pt-3 flex flex-col gap-3" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-        {/* Row 1 — hide/reveal + repeat audio */}
+        {/* Row 1 — cacher | révélation progressive | audio */}
         <div className="flex gap-2">
+          {/* Bouton tout cacher / tout révéler */}
           <button
-            onClick={() => setHidden((v) => !v)}
+            onClick={() => { setHidden((v) => !v); setRevealMode(false); setRevealedCount(0); }}
             className="flex-1 flex items-center justify-center gap-2 rounded-xl border py-3 text-sm font-semibold"
             style={{
               borderColor: hidden ? "rgba(212,175,55,0.4)" : "rgba(255,255,255,0.1)",
@@ -329,6 +364,42 @@ export default function HifzMode({
             {hidden ? "Révéler" : "Cacher"}
           </button>
 
+          {/* Bouton mode révélation mot par mot */}
+          <button
+            onClick={() => {
+              if (revealMode) {
+                const words = ayah.text.split(" ").filter(Boolean);
+                setRevealedCount((prev) => Math.min(prev + 1, words.length));
+              } else {
+                setRevealMode(true);
+                setHidden(false);
+                setRevealedCount(1);
+              }
+            }}
+            className="flex items-center justify-center gap-1.5 rounded-xl border px-3 py-3 text-sm font-semibold"
+            style={{
+              borderColor: revealMode ? "rgba(34,197,94,0.4)" : "rgba(255,255,255,0.1)",
+              color: revealMode ? "#22c55e" : "rgba(248,244,236,0.5)",
+              background: revealMode ? "rgba(34,197,94,0.08)" : "transparent",
+              fontFamily: "var(--font-dm-sans)",
+              minWidth: 44,
+            }}
+            title={revealMode ? "Mot suivant" : "Mode dictée"}
+          >
+            {revealMode ? (
+              <>
+                <ChevronRight size={15} />
+                <span className="text-xs">
+                  {Math.min(revealedCount, ayah.text.split(" ").filter(Boolean).length)}/
+                  {ayah.text.split(" ").filter(Boolean).length}
+                </span>
+              </>
+            ) : (
+              <span className="text-xs">Dictée</span>
+            )}
+          </button>
+
+          {/* Bouton repeat audio */}
           <button
             onClick={repeatAudio}
             className="flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold"

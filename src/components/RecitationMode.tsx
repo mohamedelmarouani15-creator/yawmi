@@ -187,9 +187,7 @@ function MicButton({ state, onPress, onStop, size = 80 }: {
 
   return (
     <motion.button
-      onPointerDown={onPress}
-      onPointerUp={isRecording ? onStop : undefined}
-      onPointerLeave={isRecording ? onStop : undefined}
+      onClick={() => isRecording ? onStop() : onPress()}
       disabled={isProcessing}
       className="relative flex items-center justify-center rounded-full"
       style={{
@@ -629,8 +627,8 @@ function SegmentPhase({
       {/* Mic */}
       <div className="flex flex-col items-center gap-3 pt-2">
         <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          {recState === "idle" ? "Maintenez pour répéter ce segment"
-           : recState === "recording" ? "Relâchez quand vous avez terminé…"
+          {recState === "idle" ? "Appuyez pour répéter ce segment"
+           : recState === "recording" ? "Appuyez à nouveau pour arrêter…"
            : recState === "processing" ? "Analyse…"
            : ""}
         </p>
@@ -1044,8 +1042,8 @@ function FullPhase({
 
       <div className="flex flex-col items-center gap-3">
         <p className="text-xs opacity-40" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          {recState === "idle" ? (isElder || isKids ? "Appuyez et maintenez pour réciter" : "Appuyez pour réciter")
-           : recState === "recording" ? "Relâchez quand vous avez terminé…"
+          {recState === "idle" ? "Appuyez pour commencer"
+           : recState === "recording" ? "Appuyez à nouveau pour arrêter…"
            : recState === "processing" ? "Analyse en cours…"
            : ""}
         </p>

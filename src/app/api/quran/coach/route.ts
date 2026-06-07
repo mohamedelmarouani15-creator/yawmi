@@ -72,6 +72,7 @@ async function agentTajwid(
   errors: WordError[],
   tajwidTypes: string[],
   age: string,
+  score: number,
 ): Promise<string> {
   const errorList = errors.slice(0, 3).map(e => `"${e.word || "?"}" → "${e.suggestion}"`).join(", ");
   const rules     = tajwidTypes.length ? tajwidTypes.join(", ") : "non identifiées";
@@ -82,13 +83,18 @@ async function agentTajwid(
     temperature: 0.4,
     messages: [{
       role:    "user",
-      content: `Tu es un expert en tajwid. L'élève est ${age}.
+      content: `Tu es un maître en tajwid, professeur bienveillant pour les familles françaises.
+L'élève est ${age}. Score : ${score >= 90 ? "excellent" : score >= 70 ? "bien" : "à améliorer"}.
 Verset : « ${ayahText} »
-Mots à corriger : ${errorList || "aucun mot identifié"}
-Règles concernées : ${rules}
+Erreurs détectées : ${errorList || "aucune erreur de mot"}
+Règles tajwid présentes : ${rules}
 
-Donne 2-3 conseils tajwid précis. Utilise les termes arabes suivis de leur traduction (ex : إدغام — assimilation).
-Ton bienveillant. Maximum 100 mots. En français.`,
+Explique en 2-3 phrases :
+- Quelle règle s'applique ici (nom arabe + traduction)
+- Comment la prononcer concrètement
+- Un exemple du quotidien pour s'en souvenir
+
+Ton chaleureux, comme un professeur patient. En français. Maximum 80 mots.`,
     }],
   });
   return res.choices[0]?.message?.content?.trim() ?? "";
@@ -108,22 +114,32 @@ async function agentMakhraj(
     temperature: 0.4,
     messages: [{
       role:    "user",
-      content: `Tu es un professeur de phonétique arabe coranique. L'élève est ${age}.
-Mots à travailler : ${words}
+      content: `Tu es le meilleur professeur de phonétique arabe coranique au monde, spécialisé pour les francophones.
+L'élève est ${age}.
+Mots mal prononcés : ${words}
 
-Réponds UNIQUEMENT avec un objet JSON valide (pas de texte avant/après) :
+Les francophones confondent souvent :
+- ض (dad) avec Z ou D
+- ظ (dhad) avec Z
+- ح (ha) avec H aspiré
+- ع (ain) avec A simple
+- غ (ghain) avec R français
+- خ (kha) avec CH ou K
+- ق (qaf) avec K normal
+- ص (sad) avec S normal
+- ط (ta) avec T normal
+
+Analyse les mots donnés et :
+1. Identifie l'erreur probable d'un francophone
+2. Explique exactement où placer la langue/les lèvres/la gorge
+3. Donne une astuce mnémotechnique simple
+
+Réponds en JSON valide UNIQUEMENT :
 {
-  "text": "2-3 phrases en français expliquant comment articuler ces lettres",
+  "text": "2-3 phrases claires en français, très pédagogiques",
   "zone": "throat|back_tongue|mid_tongue|front_tongue|teeth|lips",
-  "letter": "la lettre arabe la plus difficile parmi les mots"
-}
-
-Zone throat = lettres: ء ه ع غ خ ح
-Zone back_tongue = lettres: ق ك
-Zone mid_tongue = lettres: ج ش ي
-Zone front_tongue = lettres: ض ل ن ر
-Zone teeth = lettres: ذ ظ ث ص ز س
-Zone lips = lettres: ب م و ف`,
+  "letter": "la lettre arabe principale à travailler"
+}`,
     }],
   });
 
@@ -253,7 +269,7 @@ export async function POST(req: NextRequest) {
   // ── Sub-agents run in parallel ────────────────────────────────
   const [encouragement, tajwid, makhrajResult, tafsir, next_focus] = await Promise.all([
     agentEncouragement(groq, score, age),
-    needsTajwid    ? agentTajwid(groq, ayahText, errors, tajwidTypes, age)                    : Promise.resolve(""),
+    needsTajwid    ? agentTajwid(groq, ayahText, errors, tajwidTypes, age, score)              : Promise.resolve(""),
     needsMakhraj   ? agentMakhraj(groq, errors, age)                                          : Promise.resolve({ text: "", zone: null, letter: null }),
     needsTafsir    ? agentTafsir(groq, ayahText, surahNumber, ayahNumber)                     : Promise.resolve(""),
     needsNextFocus ? agentNextFocus(groq, score, errors, tajwidTypes, age)                    : Promise.resolve(""),

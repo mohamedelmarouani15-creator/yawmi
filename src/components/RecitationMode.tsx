@@ -6,6 +6,7 @@ import { X, Mic, Loader2, ChevronRight, RotateCcw, Volume2, Play } from "lucide-
 import { saveRecitation } from "@/lib/quran-recitation";
 import { storage } from "@/lib/storage";
 import MakhrajDiagram from "@/components/MakhrajDiagram";
+import VoiceCoach from "@/components/VoiceCoach";
 import { gameStorage } from "@/lib/game/game-storage";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 import { detectTajwid, buildTajwidMap, TAJWID_STYLE } from "@/lib/tajwid";
@@ -1042,6 +1043,22 @@ function FullPhase({
                       </div>
                     )}
                   </>
+                )}
+
+                {/* Coaching vocal — lecture à haute voix + référence audio */}
+                {coaching && (
+                  <div style={{ borderTop: "1px solid rgba(255,255,255,0.06)", paddingTop: 12 }}>
+                    <VoiceCoach
+                      encouragement={coaching.encouragement}
+                      tajwid={coaching.tajwid}
+                      pronunciation={coaching.pronunciation}
+                      nextFocus={coaching.next_focus}
+                      errors={result?.errors ?? []}
+                      surahNumber={surahNumber}
+                      ayahNumber={ayah.numberInSurah}
+                      score={result?.score ?? 0}
+                    />
+                  </div>
                 )}
               </div>
             )}

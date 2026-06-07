@@ -345,11 +345,11 @@ export default function CoranPage() {
     getRecitationStats(n).then(s => setSurahDueCount(s.dueToday)).catch(() => {});
     try {
       const [arCache, frCache] = await Promise.all([idbGet<QuranData>(IDB_AR), idbGet<QuranData>(IDB_FR)]);
-      if (arCache && frCache) {
-        const arS = arCache.surahs.find(s => s.number === n);
-        const frS = frCache.surahs.find(s => s.number === n);
-        if (arS) setAyahs(arS.ayahs);
-        if (frS) setTranslations(frS.ayahs);
+      const arS = arCache?.surahs.find(s => s.number === n);
+      const frS = frCache?.surahs.find(s => s.number === n);
+      if (arS && frS) {
+        setAyahs(arS.ayahs);
+        setTranslations(frS.ayahs);
       } else {
         // Appels via le proxy interne /api/quran (avec cache serveur)
         const [arRes, frRes] = await Promise.all([

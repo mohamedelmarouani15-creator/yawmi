@@ -17,18 +17,19 @@ function ayahUrl(reciter: string, surah: number, ayah: number) {
 }
 
 interface Props {
-  surah:             number;
-  totalAyahs:        number;
-  currentAyah:       number;
-  onAyahChange:      (n: number) => void;
-  volume?:           number;           // 0–1 pour le fondu sommeil
-  defaultReciter?:   string;           // récitateur préféré mode sommeil
-  onSurahComplete?:  () => void;       // appelé quand le dernier verset se termine
+  surah:               number;
+  totalAyahs:          number;
+  currentAyah:         number;
+  onAyahChange:        (n: number) => void;
+  volume?:             number;           // 0–1 pour le fondu sommeil
+  defaultReciter?:     string;           // récitateur préféré mode sommeil
+  onSurahComplete?:    () => void;       // appelé quand le dernier verset se termine
+  onRequestNextSurah?: () => void;       // lecture continue : demande au parent de passer à la sourate suivante
 }
 
 export default function QuranPlayer({
   surah, totalAyahs, currentAyah, onAyahChange,
-  volume = 1, defaultReciter, onSurahComplete,
+  volume = 1, defaultReciter, onSurahComplete, onRequestNextSurah,
 }: Props) {
   const [reciter,  setReciter]  = useState(
     defaultReciter ?? storage.getSettings().quranReciter ?? RECITERS[0].id
@@ -139,6 +140,7 @@ export default function QuranPlayer({
               onAyahChange(currentAyah + 1);
             } else {
               onSurahComplete?.();
+              onRequestNextSurah?.();
             }
           }}
         />

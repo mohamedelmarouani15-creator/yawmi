@@ -36,6 +36,7 @@ function AyahWithWaqf({ text, fontSize }: { text: string; fontSize: number }) {
 
   return (
     <p
+      lang="ar"
       className="text-right leading-loose"
       style={{ fontSize, color: "var(--text)", fontFamily: "var(--font-amiri)", direction: "rtl" }}
     >
@@ -149,6 +150,7 @@ export default function CoranPage() {
   const [recitationMode,  setRecitationMode]  = useState(false);
   const [recitationGuided, setRecitationGuided] = useState(false);
   const [showSurahMenu,  setShowSurahMenu]   = useState(false);
+  const [autoNext,       setAutoNext]        = useState(false);
   const [surahDueCount,   setSurahDueCount]   = useState(0);
   const [search,          setSearch]          = useState("");
   const [surahStats,      setSurahStats]      = useState<Map<number, { masteredCount: number; dueCount: number }>>(new Map());
@@ -441,7 +443,7 @@ export default function CoranPage() {
           <div className="flex-1 min-w-0">
             <h1 className="text-lg font-bold leading-tight" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
               {surah?.englishName}
-              <span className="ml-2 text-base font-normal opacity-60" style={{ fontFamily: "var(--font-amiri)", color: "var(--gold)", direction: "rtl" }}>
+              <span lang="ar" className="ml-2 text-base font-normal opacity-60" style={{ fontFamily: "var(--font-amiri)", color: "var(--gold)", direction: "rtl" }}>
                 {surah?.name}
               </span>
             </h1>
@@ -546,6 +548,17 @@ export default function CoranPage() {
                         </span>
                       </button>
                     )}
+
+                    {/* Lecture auto */}
+                    <button onClick={() => { setAutoNext(v => !v); setShowSurahMenu(false); }}
+                      className="flex items-center justify-between px-4 py-3 text-sm text-left"
+                      style={{ color: "rgba(248,244,236,0.6)", fontFamily: "var(--font-dm-sans)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                      <span>Lecture auto</span>
+                      <span className="rounded-full px-2 py-0.5 text-xs font-bold"
+                        style={{ background: autoNext ? "rgba(34,197,94,0.15)" : "rgba(255,255,255,0.06)", color: autoNext ? "#22c55e" : "rgba(248,244,236,0.3)" }}>
+                        {autoNext ? "ON" : "OFF"}
+                      </span>
+                    </button>
 
                     {/* Mode Dormir */}
                     {!isKids && (
@@ -713,6 +726,7 @@ export default function CoranPage() {
             volume={sleepVolume}
             defaultReciter={nightMode ? sleepReciter : undefined}
             onSurahComplete={handleSurahComplete}
+            onRequestNextSurah={autoNext ? () => { if (selected !== null && selected < 114) openSurah(selected + 1); } : undefined}
           />
         )}
 
@@ -1090,7 +1104,7 @@ export default function CoranPage() {
                     {s.numberOfAyahs} versets
                   </p>
                 </div>
-                <p className="text-base" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
+                <p lang="ar" className="text-base" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
                   {s.name}
                 </p>
               </button>

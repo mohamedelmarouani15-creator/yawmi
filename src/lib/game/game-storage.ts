@@ -78,6 +78,9 @@ export const DEFAULT_STATE: GameState = {
   quranStreakShieldsEarnedAt: 0,
   quranAyahsToday:            0,
   quranAyahsTodayDate:        null,
+  gameStreakShields:          0,
+  gameStreakShieldsEarnedAt:  0,
+  gameBestStreak:             0,
 };
 
 // ── Weekly challenge pool ──────────────────────────────────────
@@ -293,14 +296,44 @@ export const gameStorage = {
 
   // ── Streak ───────────────────────────────────────────────────
   updateStreak(): GameState {
-    const state = this.get();
-    const today = new Date().toISOString().split("T")[0];
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
-    const streak =
-      state.lastGameDate === yesterday ? state.gameStreak + 1
-      : state.lastGameDate === today   ? state.gameStreak
-      : 1;
-    const updated = { ...state, gameStreak: streak, lastGameDate: today };
+    const state      = this.get();
+    const today      = new Date().toISOString().split("T")[0];
+    const yesterday  = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+    const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString().split("T")[0];
+
+    // Déjà mis à jour aujourd'hui → rien à faire
+    if (state.lastGameDate === today) return state;
+
+    let streak  = state.gameStreak ?? 0;
+    let shields = state.gameStreakShields ?? 0;
+
+    if (state.lastGameDate === yesterday) {
+      streak += 1;
+    } else if (state.lastGameDate === twoDaysAgo && shields > 0) {
+      // Un jour de gap + bouclier disponible → bouclier consommé, streak continue
+      shields -= 1;
+      streak  += 1;
+    } else {
+      streak = 1;
+    }
+
+    // Gagner un bouclier tous les 7 jours de streak (max 2)
+    const prevThreshold = state.gameStreakShieldsEarnedAt ?? 0;
+    const newThreshold  = Math.floor(streak / 7) * 7;
+    if (newThreshold > prevThreshold && shields < 2) {
+      shields += 1;
+    }
+
+    const bestStreak = Math.max(state.gameBestStreak ?? 0, streak);
+
+    const updated: GameState = {
+      ...state,
+      gameStreak:               streak,
+      lastGameDate:             today,
+      gameStreakShields:         shields,
+      gameStreakShieldsEarnedAt: newThreshold > prevThreshold ? newThreshold : prevThreshold,
+      gameBestStreak:            bestStreak,
+    };
     this.save(this._checkAchievements(updated));
     return updated;
   },

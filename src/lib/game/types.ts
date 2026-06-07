@@ -160,6 +160,10 @@ export interface GameState {
   quranStreakShieldsEarnedAt:   number;   // valeur streak au dernier shield gagné
   quranAyahsToday:              number;   // versets récités aujourd'hui
   quranAyahsTodayDate:          string | null;
+  // ── Streak jeu avec boucliers ────────────────────────────────────
+  gameStreakShields:             number;   // 0-2 boucliers disponibles
+  gameStreakShieldsEarnedAt:     number;   // valeur streak au dernier shield gagné
+  gameBestStreak:                number;   // meilleur streak historique
 }
 
 export interface LocationTranslation { description?: string; country?: string; }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useSettings }    from "@/hooks/useSettings";
@@ -36,6 +36,60 @@ function getQibla(lat: number, lng: number) {
   const dLng = (39.8262 - lng) * Math.PI / 180;
   const a = Math.sin(dLat/2)**2 + Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2;
   return { bearing: Math.round(bearing), dist: Math.round(6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))) };
+}
+
+function MinimalAudioPlayer({ src }: { src: string }) {
+  const [playing, setPlaying] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  return (
+    <div
+      className="flex items-center gap-3 rounded-xl border px-3 py-2.5 mt-2"
+      style={{ borderColor: "rgba(212,175,55,0.2)", background: "rgba(212,175,55,0.04)" }}
+    >
+      <button
+        onClick={() => {
+          if (!audioRef.current) return;
+          if (playing) { audioRef.current.pause(); } else { void audioRef.current.play(); }
+          setPlaying(!playing);
+        }}
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+        style={{
+          background: playing ? "rgba(212,175,55,0.2)" : "rgba(5,92,63,0.4)",
+          color: "var(--gold)",
+          border: "1px solid rgba(212,175,55,0.3)",
+        }}
+      >
+        {playing ? "⏸" : "▶"}
+      </button>
+      <div
+        className="flex-1 h-1.5 rounded-full overflow-hidden cursor-pointer"
+        style={{ background: "rgba(255,255,255,0.08)" }}
+        onClick={(e) => {
+          if (!audioRef.current) return;
+          const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+          const ratio = (e.clientX - rect.left) / rect.width;
+          audioRef.current.currentTime = ratio * (audioRef.current.duration || 0);
+        }}
+      >
+        <div
+          className="h-full rounded-full transition-all"
+          style={{ width: `${progress}%`, background: "var(--gold)" }}
+        />
+      </div>
+      <audio
+        ref={audioRef}
+        src={src}
+        preload="none"
+        onTimeUpdate={() => {
+          if (!audioRef.current) return;
+          setProgress((audioRef.current.currentTime / (audioRef.current.duration || 1)) * 100);
+        }}
+        onEnded={() => setPlaying(false)}
+      />
+    </div>
+  );
 }
 
 export default function PrieresPage() {
@@ -192,8 +246,7 @@ export default function PrieresPage() {
               </motion.div>
             )}
           </AnimatePresence>
-          <audio key={reciter.src} src={reciter.src} controls playsInline preload="auto"
-            className="w-full" style={{ height: 36, borderRadius: 10 }} />
+          <MinimalAudioPlayer key={reciter.src} src={reciter.src} />
         </motion.div>
       )}
 

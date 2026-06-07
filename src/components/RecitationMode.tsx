@@ -268,6 +268,7 @@ function ListenPhase({
   fontSize,
   translation,
   onNext,
+  onSegments,
 }: {
   ayah: Ayah;
   surahNumber: number;
@@ -277,6 +278,7 @@ function ListenPhase({
   fontSize: number;
   translation?: string;
   onNext: () => void;
+  onSegments: () => void;
 }) {
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
@@ -414,11 +416,18 @@ function ListenPhase({
         </span>
       </div>
 
-      <button onClick={onNext}
-        className="flex items-center gap-2 rounded-2xl px-6 py-3 text-sm font-semibold"
-        style={{ background: "rgba(5,92,63,0.5)", border: "1px solid rgba(5,92,63,0.8)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-        Répéter mot par mot <ChevronRight size={16} />
-      </button>
+      <div className="flex flex-col gap-2 w-full">
+        <button onClick={onNext}
+          className="flex items-center justify-center gap-2 rounded-2xl px-6 py-3.5 text-sm font-bold w-full"
+          style={{ background: "rgba(5,92,63,0.6)", border: "1px solid rgba(5,92,63,0.9)", color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
+          🎙 Réciter maintenant <ChevronRight size={16} />
+        </button>
+        <button onClick={onSegments}
+          className="flex items-center justify-center gap-2 rounded-2xl px-6 py-2 text-xs w-full"
+          style={{ border: "1px solid rgba(255,255,255,0.08)", color: "rgba(248,244,236,0.35)", fontFamily: "var(--font-dm-sans)" }}>
+          Par segments (avancé) <ChevronRight size={14} />
+        </button>
+      </div>
     </div>
   );
 }
@@ -1206,7 +1215,8 @@ export default function RecitationMode({
             tajwidTypes={tajwidTypes}
             fontSize={fontSize}
             translation={translations?.[currentIdx]?.text}
-            onNext={() => setGuidedPhase("segments")}
+            onNext={() => setGuidedPhase("full")}
+            onSegments={() => setGuidedPhase("segments")}
           />
         ) : guidedPhase === "segments" ? (
           <SegmentPhase

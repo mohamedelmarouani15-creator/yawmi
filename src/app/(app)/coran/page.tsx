@@ -431,12 +431,12 @@ export default function CoranPage() {
       >
         <motion.div variants={itemVariants} className="flex items-center gap-3">
           <button onClick={() => setSelected(null)}
-            className="flex h-9 w-9 items-center justify-center rounded-full border"
+            className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border"
             style={{ borderColor: "rgba(255,255,255,0.1)", color: "var(--text)" }}>
             <ArrowLeft size={16} />
           </button>
-          <div className="flex-1">
-            <h1 className="text-xl font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+          <div className="flex-1 min-w-0">
+            <h1 className="text-xl font-bold truncate" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
               {surah?.englishName}
             </h1>
             <p className="text-xs opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
@@ -449,8 +449,14 @@ export default function CoranPage() {
               )}
             </p>
           </div>
+          <p className="text-xl shrink-0" style={{ color: "var(--gold)", fontFamily: "var(--font-amiri)", direction: "rtl" }}>
+            {surah?.name}
+          </p>
+        </motion.div>
+
+        <motion.div variants={itemVariants} className="flex gap-2 overflow-x-auto pb-1" style={{ scrollbarWidth: "none" }}>
           <button onClick={() => setShowTrans(v => !v)}
-            className="rounded-full border px-3 py-1 text-xs"
+            className="shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold"
             style={{
               borderColor: showTrans ? "rgba(212,175,55,0.4)" : "rgba(255,255,255,0.1)",
               color: showTrans ? "var(--gold)" : "rgba(248,244,236,0.4)",
@@ -458,88 +464,58 @@ export default function CoranPage() {
             }}>
             Traduction
           </button>
-          <button
-            onClick={() => { setShowPlayer(v => !v); setPlayingAyah(1); }}
-            className="rounded-full border px-3 py-1 text-xs font-semibold"
+
+          <button onClick={() => { setShowPlayer(v => !v); setPlayingAyah(1); }}
+            className="shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold"
             style={{
               borderColor: showPlayer ? "rgba(212,175,55,0.4)" : "var(--border-primary)",
-              color:  showPlayer ? "var(--gold)" : "var(--text)",
+              color: showPlayer ? "var(--gold)" : "var(--text)",
               background: showPlayer ? "rgba(212,175,55,0.1)" : "rgba(5,92,63,0.3)",
               fontFamily: "var(--font-dm-sans)",
             }}>
             {showPlayer ? "⏹" : "▶"} Audio
           </button>
 
-          {/* Bouton Mode Hifz */}
           {ayahs.length > 0 && (
-            <button
-              onClick={() => setHifzMode(true)}
-              className="rounded-full border px-3 py-1 text-xs font-semibold"
-              style={{
-                borderColor: "rgba(212,175,55,0.3)",
-                color:       "var(--gold)",
-                background:  "rgba(212,175,55,0.07)",
-                fontFamily:  "var(--font-dm-sans)",
-              }}>
-              Memoriser
+            <button onClick={() => setHifzMode(true)}
+              className="shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold"
+              style={{ borderColor: "rgba(212,175,55,0.3)", color: "var(--gold)", background: "rgba(212,175,55,0.07)", fontFamily: "var(--font-dm-sans)" }}>
+              Mémoriser
             </button>
           )}
 
-          {/* Bouton Récitation libre */}
           {ayahs.length > 0 && (
-            <button
-              onClick={() => { setRecitationGuided(false); setRecitationMode(true); }}
-              className="flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold"
-              style={{
-                borderColor: "rgba(5,92,63,0.6)",
-                color:       "var(--primary)",
-                background:  "rgba(5,92,63,0.12)",
-                fontFamily:  "var(--font-dm-sans)",
-              }}>
+            <button onClick={() => { setRecitationGuided(false); setRecitationMode(true); }}
+              className="shrink-0 flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-semibold"
+              style={{ borderColor: "rgba(5,92,63,0.6)", color: "var(--primary)", background: "rgba(5,92,63,0.12)", fontFamily: "var(--font-dm-sans)" }}>
               🎙 Réciter
             </button>
           )}
 
-          {/* Bouton Mode guidé (débutants / aînés) */}
           {ayahs.length > 0 && (
-            <button
-              onClick={() => { setRecitationGuided(true); setRecitationMode(true); }}
-              className="flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold"
-              style={{
-                borderColor: "rgba(212,175,55,0.4)",
-                color:       "var(--gold)",
-                background:  "rgba(212,175,55,0.06)",
-                fontFamily:  "var(--font-dm-sans)",
-              }}>
+            <button onClick={() => { setRecitationGuided(true); setRecitationMode(true); }}
+              className="shrink-0 flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-semibold"
+              style={{ borderColor: "rgba(212,175,55,0.4)", color: "var(--gold)", background: "rgba(212,175,55,0.06)", fontFamily: "var(--font-dm-sans)" }}>
               📚 Guidé
             </button>
           )}
 
-          {/* Bouton Mode Sommeil — masqué pour les enfants */}
           {!isKids && (
-            <button
-              onClick={() => { setNightMode(true); setShowPlayer(true); setSleepOption(null); }}
-              className="flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-semibold"
-              style={{
-                borderColor: "rgba(212,175,55,0.25)",
-                color:       "rgba(212,175,55,0.7)",
-                background:  "rgba(0,0,0,0.3)",
-                fontFamily:  "var(--font-dm-sans)",
-              }}>
+            <button onClick={() => { setNightMode(true); setShowPlayer(true); setSleepOption(null); }}
+              className="shrink-0 flex items-center gap-1 rounded-full border px-3 py-1.5 text-xs font-semibold"
+              style={{ borderColor: "rgba(212,175,55,0.25)", color: "rgba(212,175,55,0.7)", background: "rgba(0,0,0,0.3)", fontFamily: "var(--font-dm-sans)" }}>
               <Moon size={11} /> Dormir
             </button>
           )}
 
-          {/* Tajwid toggle — hidden for kids */}
           {!isKids && (
-            <button
-              onClick={() => setTajwidEnabled(v => !v)}
-              className="rounded-full border px-3 py-1 text-xs font-semibold"
+            <button onClick={() => setTajwidEnabled(v => !v)}
+              className="shrink-0 rounded-full border px-3 py-1.5 text-xs font-semibold"
               style={{
                 borderColor: tajwidEnabled ? "rgba(212,175,55,0.4)" : "rgba(255,255,255,0.1)",
-                color:       tajwidEnabled ? "var(--gold)"          : "rgba(248,244,236,0.4)",
-                background:  tajwidEnabled ? "rgba(212,175,55,0.07)": "transparent",
-                fontFamily:  "var(--font-dm-sans)",
+                color: tajwidEnabled ? "var(--gold)" : "rgba(248,244,236,0.4)",
+                background: tajwidEnabled ? "rgba(212,175,55,0.07)" : "transparent",
+                fontFamily: "var(--font-dm-sans)",
               }}>
               Tajwid
             </button>

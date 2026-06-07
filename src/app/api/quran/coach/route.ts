@@ -18,6 +18,7 @@ interface CoachRequest {
   tajwidIssues: TajwidIssue[];
   ageGroup:     string;
   arabicLevel:  string;
+  motherTongue?: string;
 }
 
 export interface CoachResponse {
@@ -33,11 +34,31 @@ export interface CoachResponse {
 
 // ── Age description ──────────────────────────────────────────────
 
-function ageDesc(ageGroup: string): string {
+function ageDesc(ageGroup: string, lang: string): string {
+  if (lang === "arabe") {
+    if (ageGroup === "4-10")  return "طفل بين 4 و 10 سنوات";
+    if (ageGroup === "11-17") return "مراهق بين 11 و 17 سنة";
+    if (ageGroup === "55+")   return "شخص كبير في السن";
+    return "بالغ";
+  }
+  if (lang === "anglais") {
+    if (ageGroup === "4-10")  return "a child aged 4-10";
+    if (ageGroup === "11-17") return "a teenager aged 11-17";
+    if (ageGroup === "55+")   return "an elderly person (55+)";
+    return "an adult";
+  }
   if (ageGroup === "4-10")  return "un enfant de 4-10 ans";
   if (ageGroup === "11-17") return "un adolescent de 11-17 ans";
   if (ageGroup === "55+")   return "une personne âgée (55+)";
   return "un adulte";
+}
+
+function langInstruction(lang: string): string {
+  if (lang === "arabe")    return "أجب باللغة العربية الفصحى البسيطة. أسلوب دافئ ومشجع.";
+  if (lang === "anglais")  return "Respond in English. Warm, encouraging tone.";
+  if (lang === "espagnol") return "Responde en español. Tono cálido y alentador.";
+  if (lang === "turc")     return "Türkçe yanıt ver. Sıcak ve teşvik edici bir ton.";
+  return "Réponds en français. Ton chaleureux et bienveillant.";
 }
 
 // ── Sub-agents ───────────────────────────────────────────────────
@@ -46,6 +67,7 @@ async function agentEncouragement(
   groq: Groq,
   score: number,
   age: string,
+  lang: string,
 ): Promise<string> {
   const tier =
     score >= 90 ? "Félicite chaleureusement — c'est excellent ! Ajoute une courte dua de gratitude." :
@@ -54,13 +76,14 @@ async function agentEncouragement(
 
   const res = await groq.chat.completions.create({
     model:       "llama-3.3-70b-versatile",
-    max_tokens:  100,
+    max_tokens:  120,
     temperature: 0.75,
     messages: [{
       role:    "user",
       content: `Tu es un imam bienveillant. L'élève est ${age}. Score : ${score}/100.
 ${tier}
-Réponds en 1-2 phrases, en français, ton chaleureux et sincère. Pas de longueur excessive.`,
+Réponds en 1-2 phrases, ton chaleureux et sincère. Pas de longueur excessive.
+${langInstruction(lang)}`,
     }],
   });
   return res.choices[0]?.message?.content?.trim() ?? "";
@@ -73,6 +96,7 @@ async function agentTajwid(
   tajwidTypes: string[],
   age: string,
   score: number,
+  lang: string,
 ): Promise<string> {
   const errorList = errors.slice(0, 3).map(e => `"${e.word || "?"}" → "${e.suggestion}"`).join(", ");
   const rules     = tajwidTypes.length ? tajwidTypes.join(", ") : "non identifiées";
@@ -83,7 +107,7 @@ async function agentTajwid(
     temperature: 0.4,
     messages: [{
       role:    "user",
-      content: `Tu es un maître en tajwid, professeur bienveillant pour les familles françaises.
+      content: `Tu es un maître en tajwid, professeur bienveillant.
 L'élève est ${age}. Score : ${score >= 90 ? "excellent" : score >= 70 ? "bien" : "à améliorer"}.
 Verset : « ${ayahText} »
 Erreurs détectées : ${errorList || "aucune erreur de mot"}
@@ -94,7 +118,8 @@ Explique en 2-3 phrases :
 - Comment la prononcer concrètement
 - Un exemple du quotidien pour s'en souvenir
 
-Ton chaleureux, comme un professeur patient. En français. Maximum 80 mots.`,
+Ton chaleureux, comme un professeur patient. Maximum 80 mots.
+${langInstruction(lang)}`,
     }],
   });
   return res.choices[0]?.message?.content?.trim() ?? "";
@@ -104,9 +129,14 @@ async function agentMakhraj(
   groq: Groq,
   errors: WordError[],
   age: string,
+  lang: string,
 ): Promise<{ text: string; zone: string | null; letter: string | null }> {
   const words = errors.slice(0, 3).map(e => e.suggestion).filter(Boolean).join("، ");
   if (!words) return { text: "", zone: null, letter: null };
+
+  const langSpecific = lang === "arabe"
+    ? "الطلاب العرب أحياناً لا يتقنون مخارج الحروف الصحيحة — اشرح بدقة."
+    : `Les ${lang === "anglais" ? "anglophones" : "francophones"} confondent souvent ض مع Z, ظ مع Z, ح مع H, ع مع A, غ مع R, ق مع K — identifie l'erreur probable.`;
 
   const res = await groq.chat.completions.create({
     model:       "llama-3.3-70b-versatile",
@@ -114,32 +144,20 @@ async function agentMakhraj(
     temperature: 0.4,
     messages: [{
       role:    "user",
-      content: `Tu es le meilleur professeur de phonétique arabe coranique au monde, spécialisé pour les francophones.
-L'élève est ${age}.
-Mots mal prononcés : ${words}
+      content: `Tu es le meilleur professeur de phonétique arabe coranique au monde.
+L'élève est ${age}. Mots mal prononcés : ${words}
+${langSpecific}
 
-Les francophones confondent souvent :
-- ض (dad) avec Z ou D
-- ظ (dhad) avec Z
-- ح (ha) avec H aspiré
-- ع (ain) avec A simple
-- غ (ghain) avec R français
-- خ (kha) avec CH ou K
-- ق (qaf) avec K normal
-- ص (sad) avec S normal
-- ط (ta) avec T normal
-
-Analyse les mots donnés et :
-1. Identifie l'erreur probable d'un francophone
-2. Explique exactement où placer la langue/les lèvres/la gorge
-3. Donne une astuce mnémotechnique simple
+Analyse et explique exactement où placer la langue/les lèvres/la gorge.
+Donne une astuce mnémotechnique simple.
 
 Réponds en JSON valide UNIQUEMENT :
 {
-  "text": "2-3 phrases claires en français, très pédagogiques",
+  "text": "2-3 phrases pédagogiques",
   "zone": "throat|back_tongue|mid_tongue|front_tongue|teeth|lips",
-  "letter": "la lettre arabe principale à travailler"
-}`,
+  "letter": "la lettre arabe principale"
+}
+${langInstruction(lang)}`,
     }],
   });
 
@@ -188,6 +206,7 @@ async function agentNextFocus(
   errors: WordError[],
   tajwidTypes: string[],
   age: string,
+  lang: string,
 ): Promise<string> {
   const context =
     score >= 90 ? "Récitation quasi-parfaite." :
@@ -203,8 +222,8 @@ async function agentNextFocus(
       role:    "user",
       content: `Tu es un coach de récitation coranique. L'élève est ${age}. Score : ${score}/100.
 ${context}
-En 1 phrase courte, dis ce sur quoi se concentrer pour la prochaine session.
-En français. Maximum 25 mots.`,
+En 1 phrase courte, dis ce sur quoi se concentrer pour la prochaine session. Maximum 25 mots.
+${langInstruction(lang)}`,
     }],
   });
   return res.choices[0]?.message?.content?.trim() ?? "";
@@ -253,26 +272,29 @@ export async function POST(req: NextRequest) {
     surahNumber, ayahNumber, ayahText,
     score, errors, tajwidIssues,
     ageGroup, arabicLevel: _arabicLevel,
+    motherTongue,
   } = body;
 
+  const lang = motherTongue ?? "français";
+
   // ── Chef routing decision ─────────────────────────────────────
-  const age        = ageDesc(ageGroup);
+  const age        = ageDesc(ageGroup, lang);
   const tajwidTypes = [...new Set(tajwidIssues.map(t => t.type))];
 
   const needsTajwid     = score < 90 && (errors.length > 0 || tajwidTypes.length > 0);
   const needsMakhraj    = score < 70 && errors.length > 0;
   const needsTafsir     = score >= 85;
-  const needsNextFocus  = true; // always
+  const needsNextFocus  = true;
 
   const groq = new Groq({ apiKey });
 
   // ── Sub-agents run in parallel ────────────────────────────────
   const [encouragement, tajwid, makhrajResult, tafsir, next_focus] = await Promise.all([
-    agentEncouragement(groq, score, age),
-    needsTajwid    ? agentTajwid(groq, ayahText, errors, tajwidTypes, age, score)              : Promise.resolve(""),
-    needsMakhraj   ? agentMakhraj(groq, errors, age)                                          : Promise.resolve({ text: "", zone: null, letter: null }),
-    needsTafsir    ? agentTafsir(groq, ayahText, surahNumber, ayahNumber)                     : Promise.resolve(""),
-    needsNextFocus ? agentNextFocus(groq, score, errors, tajwidTypes, age)                    : Promise.resolve(""),
+    agentEncouragement(groq, score, age, lang),
+    needsTajwid    ? agentTajwid(groq, ayahText, errors, tajwidTypes, age, score, lang)        : Promise.resolve(""),
+    needsMakhraj   ? agentMakhraj(groq, errors, age, lang)                                     : Promise.resolve({ text: "", zone: null, letter: null }),
+    needsTafsir    ? agentTafsir(groq, ayahText, surahNumber, ayahNumber)                      : Promise.resolve(""),
+    needsNextFocus ? agentNextFocus(groq, score, errors, tajwidTypes, age, lang)               : Promise.resolve(""),
   ]);
 
   // ── Chef synthesizes which agents ran ─────────────────────────

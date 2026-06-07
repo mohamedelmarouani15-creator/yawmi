@@ -12,6 +12,22 @@ interface VoiceCoachProps {
   surahNumber:    number;
   ayahNumber:     number;
   score:          number;
+  motherTongue?:  string;
+}
+
+function ttsLang(motherTongue?: string): string {
+  if (motherTongue === "arabe")    return "ar-SA";
+  if (motherTongue === "anglais")  return "en-US";
+  if (motherTongue === "espagnol") return "es-ES";
+  if (motherTongue === "turc")     return "tr-TR";
+  return "fr-FR";
+}
+
+function pickVoice(voices: SpeechSynthesisVoice[], lang: string): SpeechSynthesisVoice | null {
+  const exact = voices.find(v => v.lang === lang);
+  if (exact) return exact;
+  const prefix = voices.find(v => v.lang.startsWith(lang.split("-")[0]));
+  return prefix ?? null;
 }
 
 // Waveform visual pendant la lecture
@@ -41,8 +57,9 @@ function SpeakingWave({ active }: { active: boolean }) {
 
 export default function VoiceCoach({
   encouragement, tajwid, pronunciation, nextFocus,
-  errors = [], surahNumber, ayahNumber, score,
+  errors = [], surahNumber, ayahNumber, score, motherTongue,
 }: VoiceCoachProps) {
+  const speechLang = ttsLang(motherTongue);
   const [speaking,    setSpeaking]    = useState(false);
   const [supported,   setSupported]   = useState(false);
   const [playingWord, setPlayingWord] = useState<string | null>(null);
@@ -87,15 +104,12 @@ export default function VoiceCoach({
 
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang  = "fr-FR";
-    utterance.rate  = 0.88;
+    utterance.lang  = speechLang;
+    utterance.rate  = speechLang.startsWith("ar") ? 0.82 : 0.88;
     utterance.pitch = 1.05;
-    // Préférer une voix féminine si disponible (plus pédagogique)
     const voices = window.speechSynthesis.getVoices();
-    const frVoice = voices.find(v => v.lang === "fr-FR" && v.name.toLowerCase().includes("amélie"))
-                 || voices.find(v => v.lang === "fr-FR" && !v.name.toLowerCase().includes("thomas"))
-                 || voices.find(v => v.lang.startsWith("fr"));
-    if (frVoice) utterance.voice = frVoice;
+    const voice = pickVoice(voices, speechLang);
+    if (voice) utterance.voice = voice;
 
     utterance.onstart = () => setSpeaking(true);
     utterance.onend   = () => setSpeaking(false);

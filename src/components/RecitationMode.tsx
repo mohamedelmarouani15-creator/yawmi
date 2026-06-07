@@ -827,8 +827,9 @@ function FullPhase({
           score:        data.score,
           errors:       data.errors,
           tajwidIssues: data.tajwid_issues,
-          ageGroup:     settings.ageGroup ?? "18-35",
-          arabicLevel:  settings.arabicLevel ?? "beginner",
+          ageGroup:      settings.ageGroup     ?? "18-35",
+          arabicLevel:   settings.arabicLevel  ?? "beginner",
+          motherTongue:  settings.motherTongue ?? "français",
         }),
       })
         .then(r => r.ok ? r.json() : null)
@@ -1057,6 +1058,7 @@ function FullPhase({
                       surahNumber={surahNumber}
                       ayahNumber={ayah.numberInSurah}
                       score={result?.score ?? 0}
+                      motherTongue={settings.motherTongue ?? "français"}
                     />
                   </div>
                 )}

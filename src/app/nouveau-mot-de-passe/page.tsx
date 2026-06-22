@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Eye, EyeOff, Loader2, CheckCircle2 } from "lucide-react";
@@ -12,15 +12,12 @@ export default function NouveauMotDePassePage() {
   const [show,     setShow]     = useState(false);
   const [loading,  setLoading]  = useState(false);
   const [done,     setDone]     = useState(false);
-  const [error,    setError]    = useState("");
-
   // Supabase met le token dans le hash de l'URL après le clic sur le lien
-  useEffect(() => {
-    const hash = window.location.hash;
-    if (!hash.includes("access_token")) {
-      setError("Lien invalide ou expiré. Demande un nouveau lien.");
-    }
-  }, []);
+  const [error,    setError]    = useState(() =>
+    typeof window !== "undefined" && !window.location.hash.includes("access_token")
+      ? "Lien invalide ou expiré. Demande un nouveau lien."
+      : ""
+  );
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

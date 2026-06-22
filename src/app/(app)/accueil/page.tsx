@@ -14,7 +14,7 @@ import { PRAYER_LABELS, computePrayerStreak }  from "@/lib/prayer";
 import { storage, todayKey } from "@/lib/storage";
 import { getHijriDate, formatHijri } from "@/lib/hijri";
 import { getUpcomingEvents, formatGregorian } from "@/lib/islamic-events";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { pageVariants, itemVariants, tapScale, springTap } from "@/lib/motion";
 import { Card } from "@/components/ui";
 import type { ComputedPrayerTimes } from "@/lib/prayer";
@@ -142,9 +142,15 @@ export default function AccueilPage() {
   const tt           = useT();
   const { message: ctxMsg, dismiss: dismissCtx } = useContextualMessage();
   useMosqueeGameLink(); // Connexion mosquée ↔ jeu : octroie les récompenses de streak
-  const [stats,       setStats]      = useState({ totalDhikr: 0, tasksDone: 0, tasksTotal: 0, prayersDoneToday: 0 });
-  const [azkarStatus, setAzkarStatus] = useState({ showMatin: false, showSoir: false, matinDone: false, soirDone: false });
-  const [mosqueData,  setMosqueData]  = useState<{ stage: MosqueStage; streak: number }>({ stage: 1, streak: 0 });
+  const [taskOverride, setTaskOverride] = useState<{ tasksDone: number; tasksTotal: number } | null>(null);
+  const baseStats = useMemo(() => getTodayStats(), []);
+  const stats = taskOverride ? { ...baseStats, ...taskOverride } : baseStats;
+  const azkarStatus = useMemo(() => getAzkarStatus(times), [times]);
+  const mosqueData = useMemo<{ stage: MosqueStage; streak: number }>(() => {
+    const streak = computePrayerStreak(storage.getPrayerLog());
+    const stage: MosqueStage = streak >= 30 ? 3 : streak >= 7 ? 2 : 1;
+    return { stage, streak };
+  }, []);
   const ageMode       = ageGroupToMode(settings.ageGroup);
   const isPratiquant  = (settings.appMode ?? "pratiquant") === "pratiquant";
   const mainObjective = settings.mainObjective;
@@ -155,13 +161,6 @@ export default function AccueilPage() {
   const upcomingEvents = getUpcomingEvents(3);
 
   useEffect(() => {
-    const base = getTodayStats();
-    setStats(base);
-    setAzkarStatus(getAzkarStatus(times));
-    const streak = computePrayerStreak(storage.getPrayerLog());
-    const stage: MosqueStage = streak >= 30 ? 3 : streak >= 7 ? 2 : 1;
-    setMosqueData({ stage, streak });
-
     // Sync tâches famille depuis Supabase si l'utilisateur est dans une famille
     void (async () => {
       const { data: { user: u } } = await supabase.auth.getUser();
@@ -170,7 +169,7 @@ export default function AccueilPage() {
       if (!prof?.family_id) return;
       const { data: tasks } = await supabase.from("tasks").select("done").eq("family_id", prof.family_id);
       if (!tasks) return;
-      setStats(s => ({ ...s, tasksDone: tasks.filter(t => t.done).length, tasksTotal: tasks.length }));
+      setTaskOverride({ tasksDone: tasks.filter(t => t.done).length, tasksTotal: tasks.length });
     })();
   }, [times]);
 

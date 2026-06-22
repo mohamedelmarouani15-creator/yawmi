@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sun, Moon, RotateCcw, Volume2, VolumeX } from "lucide-react";
@@ -17,18 +17,22 @@ const SESSION_KEY = (s: Session) => `azkar_${s}_${todayKey()}`;
 export default function AzkarPage() {
   const params = useSearchParams();
   const [session, setSession] = useState<Session>(params.get("session") === "soir" ? "soir" : "matin");
-  const [counts,  setCounts]  = useState<Record<string, number>>({});
+  const [counts,  setCounts]  = useState<Record<string, number>>(() => {
+    const saved = localStorage.getItem(SESSION_KEY(session));
+    return saved ? JSON.parse(saved) : {};
+  });
+  const [loadedSession, setLoadedSession] = useState(session);
   const { playingId, toggle, stop } = useZikrAudio();
 
   const ageMode = ageGroupToMode(storage.getSettings().ageGroup);
   const isKids  = ageMode === "kids";
-  const isElder = ageMode === "elder";
   const azkar   = session === "matin" ? AZKAR_MATIN : AZKAR_SOIR;
 
-  useEffect(() => {
+  if (session !== loadedSession) {
     const saved = localStorage.getItem(SESSION_KEY(session));
     setCounts(saved ? JSON.parse(saved) : {});
-  }, [session]);
+    setLoadedSession(session);
+  }
 
   const tap = useCallback((zikr: Zikr) => {
     setCounts(prev => {

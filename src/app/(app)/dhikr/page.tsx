@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, RotateCcw, Leaf, Sparkles, PartyPopper } from "lucide-react";
 import { TasbihIcon, Star8 } from "@/components/IslamicIcons";
@@ -50,16 +50,11 @@ function getStreak(): number {
 
 export default function DhikrPage() {
   const [current,   setCurrent]   = useState(0);
-  const [counts,    setCounts]    = useState<Record<string, number>>({});
-  const [streak,    setStreak]    = useState(0);
+  const [counts,    setCounts]    = useState<Record<string, number>>(() => loadCounts());
+  const [streak,    setStreak]    = useState(() => getStreak());
   const [showBurst, setShowBurst] = useState(false);
   const { settings } = useSettings();
   const ageMode = ageGroupToMode(settings.ageGroup);
-
-  useEffect(() => {
-    setCounts(loadCounts());
-    setStreak(getStreak());
-  }, []);
 
   const dhikr   = DHIKRS[current];
   const taps    = counts[dhikr.id] ?? 0;

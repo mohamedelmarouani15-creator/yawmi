@@ -61,13 +61,12 @@ export default function VoiceCoach({
 }: VoiceCoachProps) {
   const speechLang = ttsLang(motherTongue);
   const [speaking,    setSpeaking]    = useState(false);
-  const [supported,   setSupported]   = useState(false);
+  const [supported]                   = useState(() => typeof window !== "undefined" && "speechSynthesis" in window);
   const [playingWord, setPlayingWord] = useState<string | null>(null);
   const wordAudioRef = useRef<HTMLAudioElement | null>(null);
   const utteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
-    setSupported(typeof window !== "undefined" && "speechSynthesis" in window);
     return () => {
       if (typeof window !== "undefined") window.speechSynthesis?.cancel();
     };
@@ -117,7 +116,7 @@ export default function VoiceCoach({
 
     utteranceRef.current = utterance;
     window.speechSynthesis.speak(utterance);
-  }, [supported, speaking, buildSpeechText]);
+  }, [supported, speaking, buildSpeechText, speechLang]);
 
   // Joue le verset de référence (audio Alafasy) au mot erroné
   const playReferenceAudio = useCallback(() => {

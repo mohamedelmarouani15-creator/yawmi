@@ -15,13 +15,12 @@ interface Props {
 }
 
 export default function PrayerStats({ log }: Props) {
-  const now   = new Date();
+  const now   = useMemo(() => new Date(), []);
   const year  = now.getFullYear();
   const month = now.getMonth();
 
   // ── Taux de complétion du mois ─────────────────────────────
   const { completed, possible } = useMemo(() => {
-    const daysInMonth = new Date(year, month + 1, 0).getDate();
     const today = now.getDate();
     let comp = 0;
     let poss = 0;

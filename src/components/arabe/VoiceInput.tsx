@@ -54,8 +54,6 @@ export default function VoiceInput({
     return (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition || null;
   }, []);
 
-  const isSupported = useCallback(() => !!getSpeechAPI(), [getSpeechAPI]);
-
   const startListening = useCallback(() => {
     const SpeechRecognitionAPI = getSpeechAPI();
     if (!SpeechRecognitionAPI) {
@@ -100,7 +98,7 @@ export default function VoiceInput({
     };
 
     recognition.start();
-  }, [expectedText, isSupported, onResult, status]);
+  }, [expectedText, onResult, getSpeechAPI]);
 
   const stop = useCallback(() => {
     recognitionRef.current?.stop();

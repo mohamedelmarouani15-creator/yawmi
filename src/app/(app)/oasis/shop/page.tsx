@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Scissors, Shield, Zap, Snowflake } from "lucide-react";
 import { useGameState } from "@/hooks/useGameState";
-import { gameStorage, computeCurrentEnergy, computeCurrentEnergyFromState, ENERGY_MAX } from "@/lib/game/game-storage";
+import { gameStorage, computeCurrentEnergyFromState, ENERGY_MAX } from "@/lib/game/game-storage";
 import { POWERUPS } from "@/lib/game/powerups";
 import { springTap } from "@/lib/motion";
 import type { PowerUpType } from "@/lib/game/types";
@@ -140,14 +140,19 @@ function ChestModal({ onClose, reward }: {
 }
 
 // ── Gold particles ─────────────────────────────────────────────
-function GoldParticles({ show }: { show: boolean }) {
-  if (!show) return null;
-  const p = Array.from({ length: 24 }, (_, i) => ({
+function makeGoldParticles() {
+  return Array.from({ length: 24 }, (_, i) => ({
     x: 20 + Math.random() * 350, delay: Math.random() * 0.4,
     color: ["var(--gold)","#FFD700","var(--text)"][i % 3],
     size: 3 + Math.random() * 5,
     rot: Math.random() * 720 * (Math.random() > 0.5 ? 1 : -1),
+    duration: 1.6 + Math.random() * 0.9,
   }));
+}
+
+function GoldParticles({ particles }: { particles: ReturnType<typeof makeGoldParticles> | null }) {
+  if (!particles) return null;
+  const p = particles;
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
       {p.map((pt, i) => (
@@ -155,7 +160,7 @@ function GoldParticles({ show }: { show: boolean }) {
           style={{ left: pt.x, top: -8, width: pt.size, height: pt.size, background: pt.color }}
           initial={{ y: -8, opacity: 1, rotate: 0 }}
           animate={{ y: 750, opacity: 0, rotate: pt.rot }}
-          transition={{ duration: 1.6 + Math.random() * 0.9, delay: pt.delay, ease: "easeIn" }}
+          transition={{ duration: pt.duration, delay: pt.delay, ease: "easeIn" }}
         />
       ))}
     </div>
@@ -168,12 +173,17 @@ export default function ShopPage() {
   const tt = useT();
   const [toast,   setToast]   = useState<string | null>(null);
   const [chest,   setChest]   = useState<{ coins: number; powerup: PowerUpType | null; object: string | null } | null>(null);
-  const [showParticles, setShowParticles] = useState(false);
+  const [particles, setParticles] = useState<ReturnType<typeof makeGoldParticles> | null>(null);
 
   const coins    = state?.coins ?? 0;
   const chests   = state?.chestsAvailable ?? 0;
   const powerups = state?.powerupCounts ?? {};
   const energy   = computeCurrentEnergyFromState({ energy: state?.energy ?? ENERGY_MAX, lastEnergyUpdate: state?.lastEnergyUpdate ?? null, energyDepletionCount: state?.energyDepletionCount });
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2500);
+  };
 
   const buyEnergy = useCallback((amount: number, cost: number) => {
     if (coins < cost) { showToast("Pièces insuffisantes"); return; }
@@ -182,12 +192,7 @@ export default function ShopPage() {
     gameStorage.addEnergy(amount);
     refresh?.();
     showToast(`+${amount} ⚡ énergie !`);
-  }, [coins, refresh]); // eslint-disable-line
-
-  const showToast = (msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 2500);
-  };
+  }, [coins, refresh]);
 
   const buyPowerUp = useCallback((id: PowerUpType, cost: number) => {
     if (coins < cost) { showToast(tt("shop.notEnough")); return; }
@@ -197,15 +202,15 @@ export default function ShopPage() {
     gameStorage.push(); // sync vers Supabase après achat
     refresh?.();
     showToast(tt("shop.success"));
-  }, [coins, refresh, tt]); // eslint-disable-line
+  }, [coins, refresh, tt]);
 
   const openChest = useCallback(() => {
     const reward = gameStorage.openChest();
     if (!reward) return;
     gameStorage.push(); // sync vers Supabase après ouverture coffre
     refresh?.();
-    setShowParticles(true);
-    setTimeout(() => setShowParticles(false), 2200);
+    setParticles(makeGoldParticles());
+    setTimeout(() => setParticles(null), 2200);
     setChest(reward);
   }, [refresh]);
 
@@ -215,7 +220,7 @@ export default function ShopPage() {
       className="flex flex-col px-5 pt-11 pb-32 min-h-screen"
       style={{ background: "linear-gradient(180deg,#020a05 0%,#061A12 55%)" }}
     >
-      <GoldParticles show={showParticles} />
+      <GoldParticles particles={particles} />
 
       {/* Header */}
       <div className="flex items-center gap-3 mb-6">

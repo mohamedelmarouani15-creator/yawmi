@@ -7,6 +7,9 @@ export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
 
   useEffect(() => {
+    // Hydratation depuis localStorage au montage — tableau recréé à chaque lecture,
+    // pas de référence stable utilisable avec useSyncExternalStore.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTasks(storage.getTasks());
   }, []);
 

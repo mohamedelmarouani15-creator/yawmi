@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Lock, Star, Flame, Waves, Leaf, Moon, Shield, Route, Heart, Sparkles, Crown, type LucideIcon } from "lucide-react";
+import { Lock, Star, Flame, Waves, Leaf, Moon, Shield, Route, Heart, Sparkles, Crown } from "lucide-react";
 import { pageVariants, itemVariants } from "@/lib/motion";
 import { supabase } from "@/lib/supabase";
 import { useT } from "@/hooks/useT";

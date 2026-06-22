@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useRef, useState, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -10,7 +10,7 @@ export default function AmbientParticles() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
 
   // Pre-compute random seeds per particle so they stay stable
-  const seeds = useMemo(() => {
+  const [seeds] = useState(() => {
     const arr = new Float32Array(PARTICLE_COUNT * 4); // x, y, z, phase
     for (let i = 0; i < PARTICLE_COUNT; i++) {
       arr[i * 4 + 0] = (Math.random() - 0.5) * 8;   // x  [-4, 4]
@@ -19,7 +19,7 @@ export default function AmbientParticles() {
       arr[i * 4 + 3] = Math.random() * Math.PI * 2;  // random phase
     }
     return arr;
-  }, []);
+  });
 
   const dummy = useMemo(() => new THREE.Object3D(), []);
 

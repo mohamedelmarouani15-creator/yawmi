@@ -53,7 +53,7 @@ export default function MotDePasseOubliePage() {
               Mot de passe oublié
             </h2>
             <p className="mb-6 text-sm opacity-50" style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-              Entre ton email et on t'envoie un lien de réinitialisation.
+              Entre ton email et on t&apos;envoie un lien de réinitialisation.
             </p>
 
             <form onSubmit={submit} className="flex flex-col gap-4">

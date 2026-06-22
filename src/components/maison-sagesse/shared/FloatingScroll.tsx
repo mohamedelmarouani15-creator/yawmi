@@ -26,7 +26,7 @@ export default function FloatingScroll({
 
   // Stable base Y for the oscillation
   const baseY = position[1];
-  const phase = useMemo(() => Math.random() * Math.PI * 2, []);
+  const [phase] = useState(() => Math.random() * Math.PI * 2);
 
   useFrame(({ clock }) => {
     const group = groupRef.current;

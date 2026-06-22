@@ -26,8 +26,7 @@ export async function POST(req: NextRequest) {
     const safeQuestion      = (body.question      ?? "").toString().slice(0, 1000);
     const safeLessonTitle   = (body.lessonTitle   ?? "").toString().slice(0, 200);
     const safeLessonContent = (body.lessonContent ?? "").toString().slice(0, 3000);
-    const _safeHistory      = Array.isArray(body.history) ? body.history.slice(0, 10) : []; // reserved for future multi-turn support
-    const { lessonId: _lessonId, ageGroup, arabicLevel, lastExerciseCorrect, lastScore } = body;
+    const { ageGroup, arabicLevel, lastExerciseCorrect, lastScore } = body;
     if (!safeQuestion.trim()) return NextResponse.json({ error: "Question vide" }, { status: 400 });
 
     const ageDesc =

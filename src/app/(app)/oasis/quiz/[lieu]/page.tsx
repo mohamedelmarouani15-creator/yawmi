@@ -23,7 +23,6 @@ import { getQuestionLang } from "@/lib/content-i18n";
 import LevelUpCinematic from "@/components/LevelUpCinematic";
 import { pick } from "@/lib/content-i18n";
 import staticT from "@/lib/static-translations.json";
-import { currentStageIndex, getStageConfig, LOCATION_STORY_ARCS } from "@/lib/game/stages";
 import DragDropGame    from "@/components/minigames/DragDropGame";
 import MemoryGame      from "@/components/minigames/MemoryGame";
 import FillVerseGame   from "@/components/minigames/FillVerseGame";
@@ -44,15 +43,21 @@ const STORY_TITLES: Record<string, string> = {
 };
 
 // ── Confetti on victory ──────────────────────────────────────────
-function GoldParticles({ show }: { show: boolean }) {
-  if (!show) return null;
-  const particles = Array.from({ length: 32 }, (_, i) => ({
+interface GoldParticle { x: number; delay: number; color: string; size: number; rotation: number; duration: number }
+
+function makeGoldParticles(): GoldParticle[] {
+  return Array.from({ length: 32 }, (_, i) => ({
     x: 20 + Math.random() * 340,
     delay: Math.random() * 0.6,
     color: ["#D4AF37","#FFD700","#22c55e","#60a5fa","#f87171"][i % 5],
     size: 4 + Math.random() * 6,
     rotation: Math.random() * 720 * (Math.random() > 0.5 ? 1 : -1),
+    duration: 2 + Math.random() * 0.8,
   }));
+}
+
+function GoldParticles({ particles }: { particles: GoldParticle[] | null }) {
+  if (!particles) return null;
   return (
     <div className="pointer-events-none fixed inset-0 z-50 overflow-hidden">
       {particles.map((p, i) => (
@@ -60,7 +65,7 @@ function GoldParticles({ show }: { show: boolean }) {
           style={{ left: p.x, top: -8, width: p.size, height: p.size, background: p.color }}
           initial={{ y: -8, opacity: 1, rotate: 0 }}
           animate={{ y: 900, opacity: 0, rotate: p.rotation }}
-          transition={{ duration: 2 + Math.random() * 0.8, delay: p.delay, ease: "easeIn" }}
+          transition={{ duration: p.duration, delay: p.delay, ease: "easeIn" }}
         />
       ))}
     </div>
@@ -215,7 +220,7 @@ export default function QuizPage() {
   const themeCategory = searchParams.get("theme") ?? undefined;
 
   const {
-    session, startQuiz, selectAnswer, selectAnswerResult, confirmAnswer, usePowerUp,
+    session, startQuiz, selectAnswer, selectAnswerResult, confirmAnswer, usePowerUp: triggerPowerUp,
     currentQuestion, correctCount, score, QUESTION_TIME, noEnergy, stageIndex, stageConfig,
   } = useQuiz(lieu, themeCategory);
 
@@ -226,13 +231,14 @@ export default function QuizPage() {
   const [showResult,    setShowResult]    = useState(false);
   const [rewardSaved,   setRewardSaved]   = useState(false);
   const [chestOpen,     setChestOpen]     = useState(false);
-  const [showParticles, setShowParticles] = useState(false);
+  const [goldParticles, setGoldParticles] = useState<GoldParticle[] | null>(null);
   const [newAchievements, setNewAchievements] = useState<string[]>([]);
   const [prologueDone,  setPrologueDone]  = useState<boolean | null>(null);
   const [levelUpLevel,  setLevelUpLevel]  = useState<number | null>(null);
 
   // Battle effects
   const [screenFlash, setScreenFlash] = useState<"hit" | "miss" | null>(null);
+  const [flashSeq, setFlashSeq] = useState(0);
   const [sageShaking, setSageShaking] = useState(false);
   const [damageNums, setDamageNums]   = useState<Array<{id: string; text: string; type: "damage"|"miss"|"combo"}>>([]);
   const [combo, setCombo]             = useState(0);
@@ -243,6 +249,8 @@ export default function QuizPage() {
   useEffect(() => {
     const s = storage.getSettings();
     const mode = ageGroupToMode(s.ageGroup);
+    // Hydratation depuis localStorage au montage (SSR-safe par design).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPrologueDone(mode !== "kids");
   }, []);
 
@@ -251,6 +259,8 @@ export default function QuizPage() {
   // Save rewards
   useEffect(() => {
     if (!session?.finished || rewardSaved) return;
+    // Garde anti-double-exécution avant le bloc de récompenses ci-dessous.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setRewardSaved(true);
     const stageVictoryReq = stageConfig.victoryReq / 10;
     const victory = (score ?? 0) >= stageVictoryReq;
@@ -324,12 +334,12 @@ export default function QuizPage() {
     const result = gameStorage.openChest();
     if (!result) return;
     setChestOpen(true);
-    setShowParticles(true);
+    setGoldParticles(makeGoldParticles());
     refresh();
-    setTimeout(() => setShowParticles(false), 3000);
+    setTimeout(() => setGoldParticles(null), 3000);
   }, [refresh]);
 
-  const handlePowerUp = (type: PowerUpType) => { if (!state) return; usePowerUp(type); refresh(); };
+  const handlePowerUp = (type: PowerUpType) => { if (!state) return; triggerPowerUp(type); refresh(); };
 
   // Battle confirm — wraps confirmAnswer with effects
   const handleBattleConfirm = useCallback(() => {
@@ -348,6 +358,7 @@ export default function QuizPage() {
       const text = newCombo >= 3 ? `🔥 COMBO ×${newCombo}` : "+DÉGÂT";
       const type = newCombo >= 3 ? "combo" : "damage";
       setCombo(newCombo);
+      setFlashSeq(s => s + 1);
       setScreenFlash("hit");
       setSageShaking(true);
       setDamageNums(d => [...d, { id: Date.now().toString(), text, type }]);
@@ -355,6 +366,7 @@ export default function QuizPage() {
       if (navigator.vibrate) navigator.vibrate(30);
     } else {
       setCombo(0);
+      setFlashSeq(s => s + 1);
       setScreenFlash("miss");
       setDamageNums(d => [...d, { id: Date.now().toString(), text: "ESQUIVÉ!", type: "miss" }]);
       setTimeout(() => setScreenFlash(null), 450);
@@ -439,7 +451,7 @@ export default function QuizPage() {
         className="relative flex flex-col items-center px-5 pt-0 pb-10 text-center overflow-hidden"
         style={{ minHeight: "100dvh", background: "linear-gradient(180deg, #020a05 0%, #061A12 100%)" }}
       >
-        <GoldParticles show={showParticles} />
+        <GoldParticles particles={goldParticles} />
 
         {/* Atmospheric background glow */}
         <div className="pointer-events-none absolute inset-0"
@@ -600,8 +612,8 @@ export default function QuizPage() {
   return (
     <div className="relative flex flex-col" style={{ minHeight: "100dvh", background: "#020a05", overflow: "hidden" }}>
       {/* Effects layer */}
-      <AnimatePresence>{screenFlash && <ScreenFlash key={screenFlash + Date.now()} type={screenFlash} />}</AnimatePresence>
-      <GoldParticles show={showParticles} />
+      <AnimatePresence>{screenFlash && <ScreenFlash key={`${screenFlash}-${flashSeq}`} type={screenFlash} />}</AnimatePresence>
+      <GoldParticles particles={goldParticles} />
       <div className="pointer-events-none absolute inset-0" style={{
         background: `radial-gradient(ellipse 100% 45% at 50% 0%, ${color}20 0%, transparent 70%)`,
       }} />

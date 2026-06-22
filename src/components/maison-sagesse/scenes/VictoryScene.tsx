@@ -15,7 +15,7 @@ function GoldenConfetti() {
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
   // Each confetti piece: initial x, z, speed, phase, rotation speed
-  const confettiData = useMemo(() => {
+  const [confettiData] = useState(() => {
     const data = new Float32Array(CONFETTI_COUNT * 6);
     for (let i = 0; i < CONFETTI_COUNT; i++) {
       data[i * 6 + 0] = (Math.random() - 0.5) * 18;   // x
@@ -26,7 +26,7 @@ function GoldenConfetti() {
       data[i * 6 + 5] = (Math.random() - 0.5) * 4;    // sway speed
     }
     return data;
-  }, []);
+  });
 
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
@@ -249,8 +249,11 @@ function OrbitCamera() {
   const { camera } = useThree();
   const angle = useRef(0);
 
+  // useFrame mute la caméra à chaque frame — pattern imposé par r3f.
+  // eslint-disable-next-line react-hooks/immutability
   useFrame((_, delta) => {
     angle.current += delta * 0.15;
+    // eslint-disable-next-line react-hooks/immutability
     camera.position.x = Math.sin(angle.current) * 10;
     camera.position.z = Math.cos(angle.current) * 10;
     camera.position.y = 4;

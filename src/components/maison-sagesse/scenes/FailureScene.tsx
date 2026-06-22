@@ -4,7 +4,6 @@ import { useRef, useMemo, useEffect, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
-import FloatingScroll from "../shared/FloatingScroll";
 
 // Candle that dims progressively to darkness
 function DimmingCandle({
@@ -155,8 +154,10 @@ function DollyCamera() {
     startZ.current = 8;
   }, [camera]);
 
+  // useFrame mute la caméra à chaque frame — pattern imposé par r3f.
   useFrame((_, delta) => {
     if (camera.position.z < 16) {
+      // eslint-disable-next-line react-hooks/immutability
       camera.position.z += delta * 0.6;
       camera.position.y += delta * 0.05;
       camera.lookAt(0, 2, 0);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, Mic, PenLine, CheckCircle2, ChevronRight, RotateCcw } from "lucide-react";
 import type { Lesson } from "@/lib/arabe/curriculum";
@@ -25,7 +25,7 @@ interface PracticeModeProps {
 export default function PracticeMode({ lesson, color }: PracticeModeProps) {
   const [step, setStep]               = useState<Step>("listen");
   const [wordIdx, setWordIdx]         = useState(0);
-  const [listenDone, setListenDone]   = useState<Set<number>>(new Set());
+  const [, setListenDone]             = useState<Set<number>>(new Set());
   const [repeatScores, setRepeatScores] = useState<Record<number, number>>({});
   const [writeDone, setWriteDone]     = useState<Set<number>>(new Set());
   const [practiceComplete, setPracticeComplete] = useState(false);
@@ -38,7 +38,6 @@ export default function PracticeMode({ lesson, color }: PracticeModeProps) {
   const availableSteps = isAlphabetLesson ? STEPS : STEPS.filter(s => s.id !== "write");
 
   const stepIndex  = availableSteps.findIndex(s => s.id === step);
-  const totalSteps = availableSteps.length;
 
   function markListenDone(idx: number) {
     setListenDone(prev => {

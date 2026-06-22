@@ -57,7 +57,7 @@ async function translate(text, targetLang) {
     const res  = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
     const data = await res.json();
     return data[0]?.map(c => c[0]).join("").trim() ?? "";
-  } catch (e) {
+  } catch {
     process.stdout.write(`⚠`);
     return "";
   }

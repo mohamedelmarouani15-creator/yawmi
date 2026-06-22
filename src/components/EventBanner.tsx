@@ -1,19 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Link from "next/link";
 import { getActiveGameEvent, type GameEvent } from "@/lib/game/game-events";
 
 // ── Gold confetti for Aïd ──────────────────────────────────────
 function AidConfetti({ show }: { show: boolean }) {
-  if (!show) return null;
-  const particles = Array.from({ length: 30 }, (_, i) => ({
+  const [particles] = useState(() => Array.from({ length: 30 }, (_, i) => ({
     x: Math.random() * 400, delay: Math.random() * 1.5,
     color: ["var(--gold)","#FFD700","#22c55e","#f87171","#60a5fa"][i % 5],
     size: 4 + Math.random() * 6,
     rot: Math.random() * 720 * (Math.random() > 0.5 ? 1 : -1),
-  }));
+    duration: 2 + Math.random(),
+  })));
+  if (!show) return null;
   return (
     <div className="pointer-events-none fixed inset-0 z-40 overflow-hidden">
       {particles.map((p, i) => (
@@ -21,7 +21,7 @@ function AidConfetti({ show }: { show: boolean }) {
           style={{ left: p.x, top: -8, width: p.size, height: p.size, background: p.color }}
           initial={{ y: -8, opacity: 1, rotate: 0 }}
           animate={{ y: 900, opacity: 0, rotate: p.rot }}
-          transition={{ duration: 2 + Math.random(), delay: p.delay, ease: "easeIn" }}
+          transition={{ duration: p.duration, delay: p.delay, ease: "easeIn" }}
         />
       ))}
     </div>
@@ -74,17 +74,17 @@ function ShimmerStars() {
   );
 }
 
-export function EventBanner() {
-  const [event, setEvent] = useState<GameEvent | null>(null);
-  const [dismissed, setDismissed] = useState(false);
+function getInitialEvent(): GameEvent | null {
+  const active = getActiveGameEvent();
+  if (!active) return null;
+  const key = `event_banner_dismissed_${active.id}_${new Date().toISOString().split("T")[0]}`;
+  if (localStorage.getItem(key)) return null;
+  return active;
+}
 
-  useEffect(() => {
-    const active = getActiveGameEvent();
-    if (!active) return;
-    const key = `event_banner_dismissed_${active.id}_${new Date().toISOString().split("T")[0]}`;
-    if (localStorage.getItem(key)) return;
-    setEvent(active);
-  }, []);
+export function EventBanner() {
+  const [event] = useState<GameEvent | null>(getInitialEvent);
+  const [dismissed, setDismissed] = useState(false);
 
   const dismiss = () => {
     if (event) {

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { CheckCircle2, Circle, ArrowRight, Sparkles } from "lucide-react";
+import { CheckCircle2, ArrowRight, Sparkles } from "lucide-react";
 
 // 3 questions statiques de catégorie religion, niveau facile
 // tirées de src/lib/game/questions.ts

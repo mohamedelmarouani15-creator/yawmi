@@ -78,6 +78,7 @@ export default function HifzMode({
   const [sessionMastered, setSessionMastered] = useState<number[]>([]); // numberInSurah values
   const [hifzStore, setHifzStore]       = useState<HifzStore>(() => loadHifzStore());
   const [showAudio, setShowAudio]       = useState(false);
+  const [audioSeq, setAudioSeq]         = useState(0);
   const [justMastered, setJustMastered] = useState(false);
 
   const ayah        = ayahs[currentIdx];
@@ -93,6 +94,7 @@ export default function HifzMode({
 
   /* Reset hidden state when navigating */
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setHidden(false);
     setJustMastered(false);
     setShowAudio(false);
@@ -132,6 +134,7 @@ export default function HifzMode({
 
   const repeatAudio = useCallback(() => {
     setShowAudio(false);
+    setAudioSeq(s => s + 1);
     // Force re-mount of audio element by toggling
     setTimeout(() => setShowAudio(true), 50);
   }, []);
@@ -336,7 +339,7 @@ export default function HifzMode({
             {/* Audio (lazy mount) */}
             {showAudio && (
               <audio
-                key={audioSrc + Date.now()}
+                key={`${audioSrc}-${audioSeq}`}
                 src={audioSrc}
                 autoPlay
                 playsInline

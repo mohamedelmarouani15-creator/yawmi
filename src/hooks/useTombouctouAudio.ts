@@ -166,7 +166,7 @@ export function useTombouctouAudio() {
     tensionOsc1.start(); tensionOsc2.start();
 
     // 5. Feuilletage ─ toutes les 10-22 secondes
-    const schedulePage = () => { // eslint-disable-line prefer-const
+    const schedulePage = () => {
       const delay = 10000 + Math.random() * 12000;
       setTimeout(() => {
         if (ctxRef.current) { playPageTurn(ctx, master); schedulePage(); }

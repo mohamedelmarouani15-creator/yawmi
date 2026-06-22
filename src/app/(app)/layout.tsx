@@ -13,7 +13,7 @@ import { useCompanion }    from "@/hooks/useCompanion";
 import { useNotifications } from "@/hooks/useNotifications";
 import { useSettings } from "@/hooks/useSettings";
 import { supabase } from "@/lib/supabase";
-import { computePrayerTimes, PRAYER_ORDER, PRAYER_LABELS } from "@/lib/prayer";
+import { computePrayerTimes, PRAYER_ORDER } from "@/lib/prayer";
 import { storage } from "@/lib/storage";
 import type { YawmiSettings } from "@/lib/storage";
 import { gameStorage } from "@/lib/game/game-storage";

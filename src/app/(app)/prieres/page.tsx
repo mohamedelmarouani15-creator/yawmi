@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePrayerTimes } from "@/hooks/usePrayerTimes";
 import { useSettings }    from "@/hooks/useSettings";
@@ -12,7 +12,7 @@ import { Settings2, Volume2, VolumeX, ChevronDown, CheckCircle2, Circle, Moon, S
 import { MosqueIcon, CrescentStar } from "@/components/IslamicIcons";
 import { ageGroupToMode } from "@/hooks/useAgeMode";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
-import { Button, Card } from "@/components/ui";
+import { Button } from "@/components/ui";
 import { useT } from "@/hooks/useT";
 import PrayerStats from "@/components/PrayerStats";
 
@@ -99,13 +99,11 @@ export default function PrieresPage() {
   const ageMode = ageGroupToMode(settings.ageGroup);
   const { bearing, dist } = getQibla(settings.lat, settings.lng);
   const [showReciters, setShowReciters] = useState(false);
-  const [donePrayers,  setDonePrayers]  = useState<Partial<Record<string, boolean>>>({});
-
-  useEffect(() => {
+  const [donePrayers,  setDonePrayers]  = useState<Partial<Record<string, boolean>>>(() => {
     const log = storage.getPrayerLog();
     const today = log.find(l => l.date === todayKey());
-    setDonePrayers(today?.done ?? {});
-  }, []);
+    return today?.done ?? {};
+  });
 
   const togglePrayerDone = useCallback((key: string) => {
     const next = { ...donePrayers, [key]: !donePrayers[key] };

@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef, useState, useEffect, useMemo } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Stars, Text, Billboard, Float } from "@react-three/drei";
+import { OrbitControls, Stars, Text, Billboard } from "@react-three/drei";
 import * as THREE from "three";
 import type { LocationDef } from "@/lib/game/types";
 
@@ -170,7 +170,7 @@ function CityModel({
 }
 
 // ── Glowing path ─────────────────────────────────────────────────
-function PathLine({ unlockedIds }: { unlockedIds: string[] }) {
+function PathLine() {
   const matRef = useRef<THREE.MeshStandardMaterial>(null);
   useFrame((state) => {
     if (matRef.current) {
@@ -253,7 +253,10 @@ function Ground() {
 function CameraController({ targetZ }: { targetZ: number }) {
   const { camera } = useThree();
   const targetRef = useRef(targetZ);
-  targetRef.current = targetZ;
+
+  useEffect(() => {
+    targetRef.current = targetZ;
+  }, [targetZ]);
 
   useFrame((_, dt) => {
     const targetPos = new THREE.Vector3(0, 9, targetRef.current + 5.5);
@@ -297,7 +300,7 @@ function Scene({
       <Ground />
 
       {/* Path */}
-      <PathLine unlockedIds={unlockedIds} />
+      <PathLine />
       <PathParticles />
 
       {/* Cities */}

@@ -104,13 +104,12 @@ export default function WritingPhotoCapture({
   function toggleCriterion(id: string) {
     setChecked(prev => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) next.delete(id); else next.add(id);
       return next;
     });
   }
 
   function submitEvaluation() {
-    const total  = CRITERIA.reduce((s, c) => s + c.points, 0); // 10
     const earned = CRITERIA.filter(c => checked.has(c.id)).reduce((s, c) => s + c.points, 0);
     const score  = earned;
     const emoji  = score >= 8 ? "🌟" : score >= 6 ? "👍" : score >= 4 ? "💪" : "🎯";
@@ -236,7 +235,7 @@ export default function WritingPhotoCapture({
             <motion.button whileTap={{ scale: 0.96 }} onClick={() => setPhase("evaluate")}
               className="text-xs text-center opacity-50 py-1"
               style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-              → M'évaluer moi-même à la place
+              → M&apos;évaluer moi-même à la place
             </motion.button>
           </motion.div>
         )}

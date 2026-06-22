@@ -51,7 +51,6 @@ function PlanetaryBody({ data, index, orbitSpeed, orbitY, onClick }: PlanetaryBo
         roughness: data.nameAr === "الشمس" ? 0.2 : 0.8,
         metalness: data.nameAr === "الشمس" ? 0 : 0.1,
       }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, hovered]
   );
 
@@ -109,6 +108,15 @@ function PlanetaryBody({ data, index, orbitSpeed, orbitY, onClick }: PlanetaryBo
   );
 }
 
+function Ring({ rx = 0, ry = 0, rz = 0, r = 1.1, material }: { rx?: number; ry?: number; rz?: number; r?: number; material: THREE.Material }) {
+  return (
+    <mesh rotation={[rx, ry, rz]}>
+      <torusGeometry args={[r, 0.03, 6, 40]} />
+      <primitive object={material} attach="material" />
+    </mesh>
+  );
+}
+
 // Armillary sphere — nested rotating rings
 function ArmillarySphere() {
   const outerRef = useRef<THREE.Group>(null);
@@ -134,13 +142,6 @@ function ArmillarySphere() {
     []
   );
 
-  const Ring = ({ rx = 0, ry = 0, rz = 0, r = 1.1 }) => (
-    <mesh rotation={[rx, ry, rz]}>
-      <torusGeometry args={[r, 0.03, 6, 40]} />
-      <primitive object={ringMat} attach="material" />
-    </mesh>
-  );
-
   return (
     <group position={[0, 1.2, 3]}>
       {/* Stand */}
@@ -154,17 +155,17 @@ function ArmillarySphere() {
       </mesh>
 
       <group ref={outerRef}>
-        <Ring rx={0} ry={0} rz={0} r={1.1} />
-        <Ring rx={0} ry={Math.PI / 3} rz={0} r={1.05} />
-        <Ring rx={0} ry={-Math.PI / 3} rz={0} r={1.05} />
+        <Ring rx={0} ry={0} rz={0} r={1.1} material={ringMat} />
+        <Ring rx={0} ry={Math.PI / 3} rz={0} r={1.05} material={ringMat} />
+        <Ring rx={0} ry={-Math.PI / 3} rz={0} r={1.05} material={ringMat} />
       </group>
       <group ref={middleRef}>
-        <Ring rx={Math.PI / 4} ry={0} rz={0} r={0.9} />
-        <Ring rx={-Math.PI / 4} ry={0} rz={0} r={0.88} />
+        <Ring rx={Math.PI / 4} ry={0} rz={0} r={0.9} material={ringMat} />
+        <Ring rx={-Math.PI / 4} ry={0} rz={0} r={0.88} material={ringMat} />
       </group>
       <group ref={innerRef}>
-        <Ring rx={0} ry={0} rz={Math.PI / 6} r={0.7} />
-        <Ring rx={0} ry={0} rz={-Math.PI / 6} r={0.68} />
+        <Ring rx={0} ry={0} rz={Math.PI / 6} r={0.7} material={ringMat} />
+        <Ring rx={0} ry={0} rz={-Math.PI / 6} r={0.68} material={ringMat} />
       </group>
       {/* Central celestial sphere */}
       <mesh>

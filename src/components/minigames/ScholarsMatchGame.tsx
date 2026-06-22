@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, XCircle } from "lucide-react";
 import type { Question } from "@/lib/game/types";
@@ -12,9 +12,9 @@ interface Props {
 }
 
 export default function ScholarsMatchGame({ question, onComplete, color }: Props) {
-  const pairs = question.minigameData?.matchPairs ?? [];
+  const pairs = useMemo(() => question.minigameData?.matchPairs ?? [], [question.minigameData]);
   const scholars = pairs.map(p => p.scholar);
-  const works    = [...pairs.map(p => p.work)].sort(() => Math.random() - 0.5); // shuffle works
+  const [works] = useState(() => [...pairs.map(p => p.work)].sort(() => Math.random() - 0.5)); // shuffle works
 
   const [selectedScholar, setSelectedScholar] = useState<number | null>(null);
   const [matched,  setMatched]  = useState<Record<number, number>>({}); // scholarIdx → workIdx
@@ -22,7 +22,7 @@ export default function ScholarsMatchGame({ question, onComplete, color }: Props
   const [submitted, setSubmitted] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
 
-  const matchedWorks = new Set(Object.values(matched));
+  const matchedWorks = useMemo(() => new Set(Object.values(matched)), [matched]);
 
   const handleScholar = useCallback((idx: number) => {
     if (submitted || matched[idx] !== undefined) return;

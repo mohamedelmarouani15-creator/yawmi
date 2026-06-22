@@ -18,7 +18,10 @@ export function usePrayerTimes() {
   const [countdown, setCountdown] = useState("");
 
   useEffect(() => {
+    // computePrayerTimes dépend de l'heure courante (impur) — calcul volontairement
+    // déporté dans un effet plutôt qu'en render/useMemo.
     const t = computePrayerTimes(settings.lat, settings.lng, settings.method, settings.madhab);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setTimes(t);
     setNext(getNextPrayer(t));
   }, [settings]);

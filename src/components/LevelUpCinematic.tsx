@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const LEVEL_TITLES: Record<number, string> = {
   2:  "Voyageur Éveillé",  5:  "Chercheur",       10: "Savant",
@@ -18,28 +18,34 @@ function getTitleForLevel(level: number): string {
 }
 
 function Particle({ delay, color }: { delay: number; color: string }) {
-  const angle  = Math.random() * Math.PI * 2;
-  const radius = 80 + Math.random() * 180;
-  const size   = 4 + Math.random() * 7;
-  const tx = Math.cos(angle) * radius;
-  const ty = Math.sin(angle) * radius - 60;
+  const [{ tx, ty, size, rotate, duration }] = useState(() => {
+    const angle  = Math.random() * Math.PI * 2;
+    const radius = 80 + Math.random() * 180;
+    return {
+      tx: Math.cos(angle) * radius,
+      ty: Math.sin(angle) * radius - 60,
+      size: 4 + Math.random() * 7,
+      rotate: Math.random() * 720,
+      duration: 1.2 + Math.random() * 0.6,
+    };
+  });
   return (
     <motion.div
       className="absolute rounded-sm"
       style={{ width: size, height: size, background: color, left: "50%", top: "50%", marginLeft: -size/2, marginTop: -size/2 }}
       initial={{ x: 0, y: 0, opacity: 1, rotate: 0, scale: 1 }}
-      animate={{ x: tx, y: ty, opacity: 0, rotate: Math.random() * 720, scale: 0.3 }}
-      transition={{ duration: 1.2 + Math.random() * 0.6, delay, ease: "easeOut" }}
+      animate={{ x: tx, y: ty, opacity: 0, rotate, scale: 0.3 }}
+      transition={{ duration, delay, ease: "easeOut" }}
     />
   );
 }
 
 function Particles() {
-  const particles = Array.from({ length: 40 }, (_, i) => ({
+  const [particles] = useState(() => Array.from({ length: 40 }, (_, i) => ({
     id:    i,
     delay: 0.1 + Math.random() * 0.3,
     color: ["#D4AF37","#FFD700","#22c55e","#f97316","#60a5fa"][i % 5],
-  }));
+  })));
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       {particles.map(p => <Particle key={p.id} delay={p.delay} color={p.color} />)}

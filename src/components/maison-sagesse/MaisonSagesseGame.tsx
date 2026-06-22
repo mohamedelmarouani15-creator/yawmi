@@ -32,6 +32,8 @@ const PITCH_LIMIT = Math.PI / 2.8;
 function ToneMappingSetup() {
   const { gl } = useThree();
   useEffect(() => {
+    // Mutation impérative du renderer Three.js — API native r3f, pas un état React.
+    // eslint-disable-next-line react-hooks/immutability
     gl.toneMapping = THREE.ACESFilmicToneMapping;
     gl.toneMappingExposure = 1.4;
   }, [gl]);
@@ -50,6 +52,9 @@ function CameraController({ joystickRef, yawRef, pitchRef }: CameraControllerPro
   const velX = useRef(0);
   const velZ = useRef(0);
 
+  // useFrame mute la caméra à chaque frame (60fps) — pattern imposé par r3f,
+  // passer par du state React ici déclencherait un re-render par frame.
+  // eslint-disable-next-line react-hooks/immutability
   useFrame((_, delta) => {
     const joy = joystickRef.current;
     const dt  = Math.min(delta, 0.1);
@@ -74,6 +79,7 @@ function CameraController({ joystickRef, yawRef, pitchRef }: CameraControllerPro
     velX.current += (fx * SPEED - velX.current) * ACCEL * dt;
     velZ.current += (fz * SPEED - velZ.current) * ACCEL * dt;
 
+    // eslint-disable-next-line react-hooks/immutability
     camera.position.x = Math.max(-9, Math.min(9, camera.position.x + velX.current * dt));
     camera.position.z = Math.max(-7, Math.min(7, camera.position.z + velZ.current * dt));
     camera.position.y = 1.7;

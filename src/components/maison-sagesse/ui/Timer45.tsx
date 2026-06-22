@@ -19,7 +19,6 @@ export default function Timer45() {
   const isCritical = timeLeft <= 300;  // 5 min
   const isWarning  = timeLeft <= 600;  // 10 min
   const progress   = timeLeft / GAME_DURATION;
-  const dashOffset = CIRCUMFERENCE * (1 - progress);
 
   const timeColor = isCritical
     ? "#ef4444"

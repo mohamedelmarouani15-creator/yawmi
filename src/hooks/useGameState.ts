@@ -9,6 +9,10 @@ export function useGameState() {
   const [state, setState] = useState<GameState | null>(null);
 
   useEffect(() => {
+    // Hydratation depuis localStorage au montage — setState volontairement synchrone
+    // (gameStorage.get() crée un nouvel objet à chaque appel, donc pas de snapshot
+    // stable utilisable avec useSyncExternalStore sans cache dédié dans game-storage.ts)
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setState(gameStorage.get());
     gameStorage.sync().then(() => setState(gameStorage.get()));
 

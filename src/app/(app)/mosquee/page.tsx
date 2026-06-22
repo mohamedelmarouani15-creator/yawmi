@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { motion } from "framer-motion";
 import { MosqueIcon } from "@/components/IslamicIcons";
 import { Construction, Sparkles } from "lucide-react";
@@ -19,27 +19,20 @@ const MILESTONES = [
   { streak: 30, stade: 3, label: "Mosquée complète",      desc: "30 jours — deux minarets, une fontaine." },
 ];
 
+function computeMosqueeInitialState() {
+  const log     = storage.getPrayerLog();
+  const tracked = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
+
+  const streak = computePrayerStreak(log);
+  const total  = log.filter(l => tracked.every(k => l.done[k])).length;
+  const stage: MosqueStage = streak >= 30 ? 3 : streak >= 7 ? 2 : 1;
+
+  const gameState = gameStorage.get();
+  return { streak, allDays: total, stage, mosqueObjects: gameState.mosqueObjects, sageCards: gameState.sageCards };
+}
+
 export default function MosqueePage() {
-  const [streak,  setStreak]  = useState(0);
-  const [stage,   setStage]   = useState<MosqueStage>(1);
-  const [allDays, setAllDays] = useState(0);
-  const [mosqueObjects, setMosqueObjects] = useState<string[]>([]);
-  const [sageCards,     setSageCards]     = useState<string[]>([]);
-
-  useEffect(() => {
-    const log     = storage.getPrayerLog();
-    const tracked = ["fajr", "dhuhr", "asr", "maghrib", "isha"];
-
-    const streak = computePrayerStreak(log);
-    const total  = log.filter(l => tracked.every(k => l.done[k])).length;
-    setStreak(streak);
-    setAllDays(total);
-    setStage(streak >= 30 ? 3 : streak >= 7 ? 2 : 1);
-
-    const gameState = gameStorage.get();
-    setMosqueObjects(gameState.mosqueObjects);
-    setSageCards(gameState.sageCards);
-  }, []);
+  const [{ streak, stage, allDays, mosqueObjects, sageCards }] = useState(computeMosqueeInitialState);
 
   return (
     <motion.main variants={pageVariants} initial="initial" animate="animate"
@@ -83,7 +76,7 @@ export default function MosqueePage() {
       <motion.div variants={itemVariants}>
         <p className="text-xs tracking-widest uppercase opacity-40 mb-3"
           style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          Jalons d'évolution
+          Jalons d&apos;évolution
         </p>
         <div className="flex flex-col gap-3">
           {MILESTONES.map((m, idx) => {

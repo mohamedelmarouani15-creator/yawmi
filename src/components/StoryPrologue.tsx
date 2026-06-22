@@ -60,7 +60,7 @@ interface Props {
 }
 
 export default function StoryPrologue({
-  narrative, storyId, chapterN, themeColor, themeEmoji, label, onComplete,
+  narrative, storyId, chapterN, themeColor, label, onComplete,
 }: Props) {
   const slides = splitIntoSlides(narrative);
   const color   = themeColor ?? (storyId ? (ARC_COLOR[storyId] ?? "#D4AF37") : "#D4AF37");
@@ -92,11 +92,11 @@ export default function StoryPrologue({
   // ── Narration automatique par slide ───────────────────────────────
   useEffect(() => {
     cancelRef.current = false;
-    setIsLoading(true);
-    setIsPlaying(false);
     let timeoutId: ReturnType<typeof setTimeout>;
 
     async function narrate() {
+      setIsLoading(true);
+      setIsPlaying(false);
       const text = slides[index];
       if (!text) { setIsLoading(false); return; }
       try {
@@ -141,12 +141,12 @@ export default function StoryPrologue({
   // ── Image de fond IA (Replicate) en parallèle ─────────────────────
   useEffect(() => {
     if (!storyId) return;
-    setBgImage(null);
-    setImgVisible(false);
 
     let cancelled = false;
 
     async function fetchImage() {
+      setBgImage(null);
+      setImgVisible(false);
       try {
         const { data: { session } } = await supabase.auth.getSession();
         if (!session || cancelled) return;

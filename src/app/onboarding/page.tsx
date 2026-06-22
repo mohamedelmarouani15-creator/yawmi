@@ -8,7 +8,6 @@ import {
   Star, Zap, Moon, Home, Crown,
   Minus, Leaf, BookOpen,
   Heart, Compass, Map,
-  Globe, Type, MessageCircle, Languages,
 } from "lucide-react";
 import { CITIES } from "@/lib/cities";
 import { CALC_METHOD_LABELS, type CalcMethodKey } from "@/lib/prayer";
@@ -303,7 +302,7 @@ export default function OnboardingPage() {
                   Commencer <ChevronRight size={16} />
                 </button>
                 <p className="text-xs" style={{ color: "rgba(248,244,236,0.25)", fontFamily: "var(--font-dm-sans)" }}>
-                  5 questions rapides pour personnaliser l'expérience
+                  5 questions rapides pour personnaliser l&apos;expérience
                 </p>
               </div>
             </div>

@@ -8,23 +8,21 @@ import {
 import { LESSONS, LEVEL_META, getLessonsByLevel, type ArabeLevel } from "@/lib/arabe/curriculum";
 import { arabeProgress } from "@/lib/arabe/progress";
 import { storage } from "@/lib/storage";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 const LEVELS: ArabeLevel[] = ["debutant", "intermediaire", "avance"];
 
 export default function ArabePage() {
   const router = useRouter();
-  const [progress, setProgress] = useState(() => arabeProgress.get());
-  const [activeLevel, setActiveLevel] = useState<ArabeLevel>("debutant");
+  const [progress] = useState(() => arabeProgress.get());
   const settings   = storage.getSettings();
   const ageGroup   = settings.ageGroup   ?? "18-35";
   const arabicLevel = settings.arabicLevel ?? "none";
-
-  useEffect(() => {
-    setProgress(arabeProgress.get());
-    if (arabicLevel === "intermediate") setActiveLevel("intermediaire");
-    else if (arabicLevel === "advanced") setActiveLevel("avance");
-  }, [arabicLevel]);
+  const [activeLevel, setActiveLevel] = useState<ArabeLevel>(() =>
+    arabicLevel === "intermediate" ? "intermediaire" :
+    arabicLevel === "advanced"     ? "avance" :
+    "debutant"
+  );
 
   const completedCount = arabeProgress.completedCount();
   const totalLessons   = LESSONS.length;

@@ -13,8 +13,10 @@ export function useSettings() {
   useEffect(() => {
     mountedRef.current = true;
 
-    // Lecture localStorage immédiate
+    // Lecture localStorage immédiate — objet recréé à chaque lecture,
+    // pas de référence stable utilisable avec useSyncExternalStore.
     const local = storage.getSettings();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSettings(local);
 
     // Lecture Supabase en arrière-plan — écrase localStorage si données présentes
@@ -46,7 +48,7 @@ export function useSettings() {
     });
 
     return () => { mountedRef.current = false; };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   const save = useCallback((next: YawmiSettings) => {
     // Écriture localStorage immédiate

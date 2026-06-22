@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -9,12 +9,9 @@ const CONSENT_KEY = "cookie_consent";
 type ConsentValue = "accepted" | "rejected" | null;
 
 export default function CookieBanner() {
-  const [consent, setConsent] = useState<ConsentValue | "loading">("loading");
-
-  useEffect(() => {
-    const stored = localStorage.getItem(CONSENT_KEY) as ConsentValue | null;
-    setConsent(stored);
-  }, []);
+  const [consent, setConsent] = useState<ConsentValue | "loading">(
+    () => localStorage.getItem(CONSENT_KEY) as ConsentValue | null
+  );
 
   function accept() {
     localStorage.setItem(CONSENT_KEY, "accepted");

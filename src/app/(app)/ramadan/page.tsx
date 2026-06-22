@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CheckCircle2, Circle, ChevronDown, ChevronUp, BookOpen, Moon, Heart, Star } from "lucide-react";
 import Link from "next/link";
@@ -71,17 +71,11 @@ const CATEGORY_COLORS: Record<string, string> = {
 // ── Main page ─────────────────────────────────────────────────
 export default function RamadanPage() {
   const { times } = usePrayerTimes();
-  const [defis,        setDefis]        = useState<DefisState>({});
-  const [juzz,         setJuzz]         = useState<JuzzState>({});
+  const [defis,        setDefis]        = useState<DefisState>(() => getDefis());
+  const [juzz,         setJuzz]         = useState<JuzzState>(() => getJuzz());
   const [openSection,  setOpenSection]  = useState<SectionKey | null>("iftar");
-  const [bonnesActions, setBonnesActions] = useState(0);
+  const [bonnesActions] = useState(() => getBonnesActions());
   const [expandedDua,  setExpandedDua]  = useState<string | null>(null);
-
-  useEffect(() => {
-    setDefis(getDefis());
-    setJuzz(getJuzz());
-    setBonnesActions(getBonnesActions());
-  }, []);
 
   const toggleDefi = useCallback((day: number) => {
     setDefis(prev => {

@@ -77,10 +77,11 @@ export function useFamily() {
     const localAnswerRaw = typeof window !== "undefined" ? localStorage.getItem(localKey) : null;
     const localAnswer: LocalAnswer | null = localAnswerRaw ? JSON.parse(localAnswerRaw) : null;
     try {
-      let { data: dc, error: fetchErr } = await supabase
+      const { data: dcInitial, error: fetchErr } = await supabase
         .from("daily_challenges").select("*")
         .eq("family_id", familyId).eq("date", today).maybeSingle();
       if (fetchErr) throw fetchErr;
+      let dc = dcInitial;
       if (!dc) {
         const { data: created, error: insertErr } = await supabase
           .from("daily_challenges")
@@ -223,6 +224,8 @@ export function useFamily() {
 
   // ── init ──────────────────────────────────────────────────────
   useEffect(() => {
+    // Pas d'utilisateur → on arrête le chargement immédiatement, avant le fetch async.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!user) { setLoading(false); return; }
     let cleanup: (() => void) | undefined;
 

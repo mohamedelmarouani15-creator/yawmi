@@ -341,8 +341,9 @@ function ListenPhase({
 
   // Auto-play on mount
   useEffect(() => {
-    play();
+    const id = setTimeout(play, 0);
     return () => {
+      clearTimeout(id);
       audioRef.current?.pause();
       if (wordTimerRef.current) clearInterval(wordTimerRef.current);
     };
@@ -495,18 +496,21 @@ function SegmentPhase({
 
   // Reset on segment change
   useEffect(() => {
-    setRecState("idle");
-    setResult(null);
-    setShowAudio(false);
-    setWordIdx(0);
+    const id = setTimeout(() => {
+      setRecState("idle");
+      setResult(null);
+      setShowAudio(false);
+      setWordIdx(0);
+    }, 0);
+    return () => clearTimeout(id);
   }, [segmentIdx]);
 
   // Word advance during recording (within segment)
   useEffect(() => {
     if (recState !== "recording") {
       if (timerRef.current) clearInterval(timerRef.current);
-      setWordIdx(0);
-      return;
+      const id = setTimeout(() => setWordIdx(0), 0);
+      return () => clearTimeout(id);
     }
     const ms = Math.max(700, 2500 / Math.max(segment.length, 1));
     let localIdx = 0;
@@ -515,9 +519,12 @@ function SegmentPhase({
       if (localIdx < segment.length) setWordIdx(offset + localIdx);
       else { clearInterval(timerRef.current!); }
     }, ms);
-    setWordIdx(offset);
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [recState, segment.length, offset]); // eslint-disable-line react-hooks/exhaustive-deps
+    const id = setTimeout(() => setWordIdx(offset), 0);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      clearTimeout(id);
+    };
+  }, [recState, segment.length, offset]);
 
   const startRec = useCallback(async () => {
     if (recState !== "idle") return;
@@ -692,7 +699,6 @@ function FullPhase({
   surahName,
   words,
   isElder,
-  isKids,
   tajwidTypes,
   fontSize,
   isLast,
@@ -705,7 +711,6 @@ function FullPhase({
   surahName: string;
   words: string[];
   isElder: boolean;
-  isKids: boolean;
   tajwidTypes: string[];
   fontSize: number;
   isLast: boolean;
@@ -721,6 +726,7 @@ function FullPhase({
   const [coachLoading, setCoachLoading] = useState(false);
   const [showCoach,    setShowCoach]    = useState(true);
   const [accessToken,  setAccessToken]  = useState<string | null>(null);
+  const [mimeType,     setMimeType]     = useState("");
 
   const mediaRef    = useRef<MediaRecorder | null>(null);
   const chunksRef   = useRef<Blob[]>([]);
@@ -741,19 +747,19 @@ function FullPhase({
     words,
     isRecording: recState === "recording",
     accessToken,
-    mimeType: mimeTypeRef.current,
+    mimeType,
   });
 
   useEffect(() => {
     if (recState !== "recording") {
       if (timerRef.current) clearInterval(timerRef.current);
-      setWordIdx(0);
-      return;
+      const id = setTimeout(() => setWordIdx(0), 0);
+      return () => clearTimeout(id);
     }
     const ms = Math.max(800, 3000 / Math.max(words.length, 1));
     let localIdx = 0;
     timerRef.current = setInterval(() => {
-      setWordIdx(prev => {
+      setWordIdx(() => {
         const timerNext = Math.min(localIdx + 1, words.length - 1);
         localIdx = timerNext;
         // Prendre le MAX entre le timer et ce que Whisper a confirmé
@@ -770,6 +776,7 @@ function FullPhase({
       chunksRef.current = [];
       const mr = createMediaRecorder(stream);
       mimeTypeRef.current = mr.mimeType;
+      setMimeType(mr.mimeType);
       mr.start(500);
       resetConfirmed();
       mr.ondataavailable = (e) => {
@@ -893,7 +900,7 @@ function FullPhase({
       console.error("[FullPhase]", err);
       setRecState("idle");
     }
-  }, [recState, ayah, surahNumber, surahName, onResult, settings.ageGroup, settings.arabicLevel]);
+  }, [recState, ayah, surahNumber, surahName, onResult, settings.ageGroup, settings.arabicLevel, settings.motherTongue]);
 
   const fb = result ? feedbackConfig(result.score, isElder) : null;
 
@@ -1223,8 +1230,11 @@ export default function RecitationMode({
 
   // Reset guided state when ayah changes
   useEffect(() => {
-    setGuidedPhase("listen");
-    setSegmentIdx(0);
+    const id = setTimeout(() => {
+      setGuidedPhase("listen");
+      setSegmentIdx(0);
+    }, 0);
+    return () => clearTimeout(id);
   }, [currentIdx]);
 
   return (
@@ -1270,7 +1280,6 @@ export default function RecitationMode({
             surahName={surahName}
             words={words}
             isElder={isElder}
-            isKids={isKids}
             tajwidTypes={tajwidTypes}
             fontSize={fontSize}
             isLast={isLast}
@@ -1308,7 +1317,6 @@ export default function RecitationMode({
             surahName={surahName}
             words={words}
             isElder={isElder}
-            isKids={isKids}
             tajwidTypes={tajwidTypes}
             fontSize={fontSize}
             isLast={isLast}

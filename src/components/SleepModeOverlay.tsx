@@ -46,20 +46,22 @@ export default function SleepModeOverlay({
   sleepOption, secondsLeft, reciter, onReciter,
   onSelect, onExtend, onStop,
 }: Props) {
-  const [dim,      setDim]      = useState(1);
-  const [showRec,  setShowRec]  = useState(false);
+  const [dimFactor, setDimFactor] = useState(1);
+  const [showRec,   setShowRec]   = useState(false);
 
   // Dimming progressif sur 4 minutes après que le timer démarre
   useEffect(() => {
-    if (sleepOption === null) { setDim(1); return; }
+    if (sleepOption === null) return;
     const start = Date.now();
     const DUR   = 4 * 60 * 1000;
     const id = setInterval(() => {
       const factor = Math.max(0.10, 1 - ((Date.now() - start) / DUR) * 0.90);
-      setDim(factor);
+      setDimFactor(factor);
     }, 3000);
     return () => clearInterval(id);
   }, [sleepOption]);
+
+  const dim = sleepOption === null ? 1 : dimFactor;
 
   // Wake Lock (garde l'écran allumé)
   useEffect(() => {

@@ -31,7 +31,7 @@ export default function TropheesPage() {
   const lang = useLang();
   const isRtl = lang === "ar";
   const [filter, setFilter] = useState<Filter>("Tous");
-  const [lastUnlocked, setLastUnlocked] = useState<string | null>(null);
+  const [lastUnlocked] = useState<string | null>(null);
 
   const unlockedIds = state?.achievements ?? [];
   const totalUnlocked = unlockedIds.length;

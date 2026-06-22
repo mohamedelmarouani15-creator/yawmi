@@ -53,7 +53,7 @@ export function useLiveDuel(duelId: string | null) {
   }, [stopTimer]);
 
   // ── Create a new live duel ──────────────────────────────────────
-  const createDuel = useCallback(async (opponentId: string, opponentName: string): Promise<string | null> => {
+  const createDuel = useCallback(async (opponentId: string): Promise<string | null> => {
     if (!user) return null;
     try {
       const gameState = gameStorage.get();
@@ -245,6 +245,9 @@ export function useLiveDuel(duelId: string | null) {
   }, [stopTimer]);
 
   useEffect(() => {
+    // joinDuel est async — son setState n'intervient qu'après le premier await,
+    // pas de façon synchrone dans le corps de cet effet.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (duelId) joinDuel(duelId);
   }, [duelId, joinDuel]);
 

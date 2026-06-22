@@ -30,6 +30,12 @@ export default function MemoryGame({ question, onComplete, color }: Props) {
     return deck.sort(() => Math.random() - 0.5);
   });
 
+  const [sparkleDelays] = useState<Record<string, number>>(() => {
+    const map: Record<string, number> = {};
+    cards.forEach(c => { map[c.id] = Math.random() * 2; });
+    return map;
+  });
+
   const [flipped,   setFlipped]   = useState<string[]>([]);
   const [matched,   setMatched]   = useState<string[]>([]);
   const [locked,    setLocked]    = useState(false);
@@ -130,7 +136,7 @@ export default function MemoryGame({ question, onComplete, color }: Props) {
                   }}>
                   <motion.span
                     animate={{ scale: [1, 1.1, 1] }}
-                    transition={{ duration: 2, repeat: Infinity, delay: Math.random() * 2 }}
+                    transition={{ duration: 2, repeat: Infinity, delay: sparkleDelays[card.id] }}
                     style={{ color, fontSize: 22, opacity: 0.8 }}>✦</motion.span>
                 </div>
 

@@ -145,7 +145,8 @@ export default function CoranPage() {
   const [dlConfirm,    setDlConfirm]   = useState(false);
   const [playingAyah,  setPlayingAyah] = useState(1);
   const [showPlayer,   setShowPlayer]  = useState(false);
-  const [favs,         setFavs]        = useState<Set<string>>(new Set());
+  const [favs,         setFavs]        = useState<Set<string>>(() => new Set(favorites.getAll().map(f => `${f.surah}-${f.ayah}`)));
+  const [favsSyncedFor, setFavsSyncedFor] = useState<number | null>(null);
   const [hifzMode,       setHifzMode]      = useState(false);
   const [recitationMode,  setRecitationMode]  = useState(false);
   const [recitationGuided, setRecitationGuided] = useState(false);
@@ -287,10 +288,11 @@ export default function CoranPage() {
     if (sleepIntervalRef.current) clearInterval(sleepIntervalRef.current);
   }, []);
 
-  useEffect(() => {
+  if (selected !== favsSyncedFor) {
     const all = favorites.getAll();
     setFavs(new Set(all.map(f => `${f.surah}-${f.ayah}`)));
-  }, [selected]);
+    setFavsSyncedFor(selected);
+  }
 
   const toggleFav = useCallback((surahNum: number, surahName: string, ayahNum: number, text: string) => {
     const key = `${surahNum}-${ayahNum}`;

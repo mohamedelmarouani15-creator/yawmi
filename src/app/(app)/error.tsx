@@ -94,7 +94,7 @@ export default function AppError({
             fontFamily: "inherit",
           }}
         >
-          Retour à l'accueil
+          Retour à l&apos;accueil
         </button>
       </div>
     </div>

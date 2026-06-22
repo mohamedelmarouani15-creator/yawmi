@@ -23,10 +23,10 @@ interface DashboardData {
 // ── Animated counter ─────────────────────────────────────────────
 
 function AnimatedNumber({ target, suffix = "" }: { target: number; suffix?: string }) {
-  const [display, setDisplay] = useState(0);
+  const [animated, setAnimated] = useState(0);
 
   useEffect(() => {
-    if (target === 0) { setDisplay(0); return; }
+    if (target === 0) return;
     let start: number | null = null;
     const duration = 900; // ms
 
@@ -35,12 +35,14 @@ function AnimatedNumber({ target, suffix = "" }: { target: number; suffix?: stri
       const progress = Math.min((ts - start) / duration, 1);
       // Ease-out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
-      setDisplay(Math.round(eased * target));
+      setAnimated(Math.round(eased * target));
       if (progress < 1) requestAnimationFrame(step);
     }
 
     requestAnimationFrame(step);
   }, [target]);
+
+  const display = target === 0 ? 0 : animated;
 
   return (
     <span>

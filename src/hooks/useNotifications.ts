@@ -37,6 +37,9 @@ export function useNotifications() {
   const [standalone,   setStandalone]   = useState(true);
 
   useEffect(() => {
+    // Hydratation depuis les API navigateur/localStorage au montage (non disponibles
+    // côté SSR) — converti en lazy initializer côté client casserait l'hydratation.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSupported(typeof Notification !== "undefined" && "serviceWorker" in navigator);
     setStandalone(isStandaloneMode());
     if (typeof Notification !== "undefined") setPermission(Notification.permission);

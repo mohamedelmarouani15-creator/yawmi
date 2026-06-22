@@ -284,16 +284,6 @@ export default function ChapterPage() {
     load();
   }, [storyId, chapterN, router, settings.motherTongue]);
 
-  const handleAnswer = useCallback((isCorrect: boolean) => {
-    if (isCorrect) setCorrectCount(c => c + 1);
-    const questions = data?.questions ?? [];
-    if (qIndex < questions.length - 1) {
-      setQIndex(q => q + 1);
-    } else {
-      completeChapter();
-    }
-  }, [qIndex, data]); // eslint-disable-line
-
   const completeChapter = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session || !data) return;
@@ -320,6 +310,16 @@ export default function ChapterPage() {
     gameStorage.push(); // sync vers Supabase après récompenses de chapitre
     setPhase("reward");
   }, [data, storyId, chapterN]); // eslint-disable-line
+
+  const handleAnswer = useCallback((isCorrect: boolean) => {
+    if (isCorrect) setCorrectCount(c => c + 1);
+    const questions = data?.questions ?? [];
+    if (qIndex < questions.length - 1) {
+      setQIndex(q => q + 1);
+    } else {
+      completeChapter();
+    }
+  }, [qIndex, data, completeChapter]);
 
   // ⚠️ useEffect DOIT être avant tout return conditionnel (Rules of Hooks)
   // Meta SEO — data peut être null (gardé avant les returns conditionnels)

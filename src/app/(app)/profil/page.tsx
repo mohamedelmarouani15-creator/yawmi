@@ -13,7 +13,7 @@ import { useT }           from "@/hooks/useT";
 import { useNotifications } from "@/hooks/useNotifications";
 import { CALC_METHOD_LABELS, MADHAB_LABELS, computePrayerTimes, type CalcMethodKey, type MadhabKey } from "@/lib/prayer";
 import { CITIES } from "@/lib/cities";
-import { storage, todayKey } from "@/lib/storage";
+import { storage } from "@/lib/storage";
 import { pageVariants, itemVariants, springTap } from "@/lib/motion";
 import { Button, Card } from "@/components/ui";
 import { getRecitationStats, getLifetimeStats, type RecitationStats, type LifetimeRecitationStats } from "@/lib/quran-recitation";
@@ -21,7 +21,6 @@ import { getRecitationStats, getLifetimeStats, type RecitationStats, type Lifeti
 function getStats() {
   const log    = storage.getDhikrLog();
   const tasks  = storage.getTasks();
-  const today  = log.find(s => s.date === todayKey());
   let streak = 0;
   const DHIKR_IDS = ["subhan", "hamdou", "akbar"];
   const TARGETS   = { subhan: 33, hamdou: 33, akbar: 34 };
@@ -53,7 +52,7 @@ export default function ProfilPage() {
   const { user, signOut }   = useAuth();
   const { settings, save }  = useSettings();
   const tt = useT();
-  const { permission, prefs, toggle } = useNotifications();
+  const { prefs, toggle } = useNotifications();
   const [citySearch,   setCitySearch]   = useState("");
   const [showCities,   setShowCities]   = useState(false);
   const [saved,        setSaved]        = useState(false);
@@ -355,7 +354,7 @@ export default function ProfilPage() {
         </div>
         <p className="mb-4 text-xs opacity-30 text-center leading-relaxed"
           style={{ color: "var(--text)", fontFamily: "var(--font-dm-sans)" }}>
-          Ces réglages personnalisent le Compagnon IA, les contenus et l'interface.
+          Ces réglages personnalisent le Compagnon IA, les contenus et l&apos;interface.
           Aucun onboarding requis — le changement est immédiat.
         </p>
       </motion.div>

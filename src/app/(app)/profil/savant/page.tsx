@@ -3,9 +3,8 @@
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, BookOpen, Star, Trophy } from "lucide-react";
-import { gameStorage, computeCurrentEnergy, computeCurrentEnergyFromState, ENERGY_MAX } from "@/lib/game/game-storage";
+import { gameStorage, computeCurrentEnergyFromState, ENERGY_MAX } from "@/lib/game/game-storage";
 import { getEraForLevel, ERA_CONDITIONS, MANUSCRIPTS, getCurrentEraIndex } from "@/lib/game/stages";
-import { ACHIEVEMENTS } from "@/lib/game/achievements";
 import { springTap } from "@/lib/motion";
 import type { Category } from "@/lib/game/types";
 

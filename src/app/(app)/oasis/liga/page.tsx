@@ -80,34 +80,6 @@ export default function LigaPage() {
 
   // ── Ensure season + placement exist ───────────────────────────
 
-  const ensureSeasonAndPlacement = useCallback(async (userId: string): Promise<{
-    season: LigaSeason;
-    placement: LigaPlacement;
-  } | null> => {
-    const weekStart = getMondayOf(new Date());
-    const weekEnd   = getSundayOf(weekStart);
-
-    // Upsert season
-    const { data: seasonData, error: seasonErr } = await supabase
-      .from("liga_seasons")
-      .upsert({ week_start: weekStart, week_end: weekEnd }, { onConflict: "week_start" })
-      .select("id, week_start, week_end")
-      .single();
-
-    if (seasonErr || !seasonData) {
-      // If upsert failed (e.g. RLS), try select
-      const { data: existing } = await supabase
-        .from("liga_seasons")
-        .select("id, week_start, week_end")
-        .eq("week_start", weekStart)
-        .single();
-      if (!existing) return null;
-      return ensurePlacement(userId, existing as LigaSeason);
-    }
-
-    return ensurePlacement(userId, seasonData as LigaSeason);
-  }, []); // eslint-disable-line
-
   async function ensurePlacement(userId: string, s: LigaSeason): Promise<{
     season: LigaSeason;
     placement: LigaPlacement;
@@ -151,6 +123,34 @@ export default function LigaPage() {
 
     return { season: s, placement: placed as LigaPlacement };
   }
+
+  const ensureSeasonAndPlacement = useCallback(async (userId: string): Promise<{
+    season: LigaSeason;
+    placement: LigaPlacement;
+  } | null> => {
+    const weekStart = getMondayOf(new Date());
+    const weekEnd   = getSundayOf(weekStart);
+
+    // Upsert season
+    const { data: seasonData, error: seasonErr } = await supabase
+      .from("liga_seasons")
+      .upsert({ week_start: weekStart, week_end: weekEnd }, { onConflict: "week_start" })
+      .select("id, week_start, week_end")
+      .single();
+
+    if (seasonErr || !seasonData) {
+      // If upsert failed (e.g. RLS), try select
+      const { data: existing } = await supabase
+        .from("liga_seasons")
+        .select("id, week_start, week_end")
+        .eq("week_start", weekStart)
+        .single();
+      if (!existing) return null;
+      return ensurePlacement(userId, existing as LigaSeason);
+    }
+
+    return ensurePlacement(userId, seasonData as LigaSeason);
+  }, []);
 
   // ── Load leaderboard ───────────────────────────────────────────
 

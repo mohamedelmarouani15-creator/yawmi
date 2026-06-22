@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSettings } from "@/hooks/useSettings";
 import { Qibla, Coordinates } from "adhan";
 import { ArrowLeft } from "lucide-react";
@@ -144,7 +144,7 @@ export default function QiblaPage() {
   const { settings }    = useSettings();
   const [heading,   setHeading]   = useState<number | null>(null);
   const [permitted, setPermitted] = useState(false);
-  const [aligned,   setAligned]   = useState(false);
+  const wasOnRef = useRef(false);
 
   const bearing = Math.round(Qibla(new Coordinates(settings.lat, settings.lng)));
   const dist    = haversine(settings.lat, settings.lng);
@@ -155,15 +155,14 @@ export default function QiblaPage() {
   // angle to rotate needle so it points toward Qibla relative to device orientation
   const rotation = heading !== null ? (bearing - heading + 360) % 360 : 0;
 
-  // Vibration + state
+  // Vibration on alignment transition
   useEffect(() => {
-    if (isOn && !aligned) {
+    if (isOn && !wasOnRef.current) {
       if (typeof navigator !== "undefined" && navigator.vibrate)
         navigator.vibrate([40, 60, 120, 60, 200]);
-      setAligned(true);
     }
-    if (!isOn) setAligned(false);
-  }, [isOn, aligned]);
+    wasOnRef.current = isOn;
+  }, [isOn]);
 
   // Permission + orientation
   const activate = useCallback(async () => {
@@ -210,6 +209,15 @@ export default function QiblaPage() {
   const ARCH_W = 260, ARCH_H = 380;
 
   const RAYS = Array.from({ length: 12 }, (_, i) => i * 30);
+
+  const [STARS] = useState(() => ([
+    [80,60],[120,40],[200,55],[240,35],[160,25],[60,90],
+    [280,70],[40,120],[260,100],[170,80],[100,110],[220,90],
+  ] as const).map(([x, y]) => ({
+    x, y,
+    r: Math.random() > 0.5 ? 1 : 0.6,
+    opacity: 0.15 + Math.random() * 0.3,
+  })));
 
   return (
     <main className="relative flex min-h-screen flex-col items-center overflow-hidden bg-[#020a05]">
@@ -290,12 +298,9 @@ export default function QiblaPage() {
             <rect width={W} height={H} fill="url(#skyGrad)" />
 
             {/* Stars */}
-            {[
-              [80,60],[120,40],[200,55],[240,35],[160,25],[60,90],
-              [280,70],[40,120],[260,100],[170,80],[100,110],[220,90],
-            ].map(([x,y], i) => (
-              <circle key={i} cx={x} cy={y} r={Math.random() > 0.5 ? 1 : 0.6}
-                fill="white" opacity={0.15 + Math.random()*0.3} />
+            {STARS.map((star, i) => (
+              <circle key={i} cx={star.x} cy={star.y} r={star.r}
+                fill="white" opacity={star.opacity} />
             ))}
 
             {/* Atmospheric glow */}

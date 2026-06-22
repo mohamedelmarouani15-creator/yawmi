@@ -161,7 +161,7 @@ function BookShelf({ position, rotation }: { position: [number, number, number];
 
   const bookColors = ["#6B2020", "#204060", "#206030", "#604020", "#402060", "#205050", "#603020"];
 
-  const books = useMemo(() => {
+  const [books] = useState(() => {
     const result: { x: number; w: number; h: number; color: string }[] = [];
     let x = -1.6;
     while (x < 1.6) {
@@ -172,8 +172,7 @@ function BookShelf({ position, rotation }: { position: [number, number, number];
       x += w + 0.01;
     }
     return result;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  });
 
   const shelves = [0.5, 1.5, 2.5, 3.5];
 

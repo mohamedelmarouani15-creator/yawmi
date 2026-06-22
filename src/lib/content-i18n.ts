@@ -43,7 +43,6 @@ export function getChapterLang(
 
 // ── Static content (sages, locations, achievements, escape rooms) ──
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function pick(t: unknown, lang: string, field: string, fallback: string): string {
   if (lang === "fr" || !t) return fallback;
   return (t as Record<string, Record<string, string>>)[lang]?.[field] ?? fallback;

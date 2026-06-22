@@ -1,4 +1,5 @@
 import type { AchievementDef, GameState } from "./types";
+import { MANUSCRIPTS, ERA_CONDITIONS } from "./stages";
 
 export const ACHIEVEMENTS: AchievementDef[] = [
   {
@@ -178,7 +179,6 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     title: "Archiviste", titleAr: "الأرشيفي",
     description: "Compléter un manuscrit entier", descriptionAr: "أكمل مخطوطة كاملة",
     icon: "📕", condition: (s) => {
-      const { MANUSCRIPTS } = require("./stages") as typeof import("./stages");
       return MANUSCRIPTS.some(m => (s.manuscripts?.[m.id] ?? 0) >= m.pages);
     },
   },
@@ -187,7 +187,6 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     title: "Ibn al-Nadim", titleAr: "ابن النديم",
     description: "Compléter les 5 manuscrits", descriptionAr: "أكمل الخمس المخطوطات",
     icon: "📚", condition: (s) => {
-      const { MANUSCRIPTS } = require("./stages") as typeof import("./stages");
       return MANUSCRIPTS.every(m => (s.manuscripts?.[m.id] ?? 0) >= m.pages);
     },
   },
@@ -224,7 +223,6 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     title: "Compagnon du Prophète", titleAr: "رفيق النبي",
     description: "Débloquer l'Ère II — L'Aube de l'Islam", descriptionAr: "افتح الحقبة الثانية",
     icon: "🌙", condition: (s) => {
-      const { ERA_CONDITIONS } = require("./stages") as typeof import("./stages");
       const c = ERA_CONDITIONS.find((e: { eraIndex: number }) => e.eraIndex === 2);
       if (!c) return false;
       const avg = Math.round(Object.values(s.categoryMastery ?? {}).reduce((a: number, b: number) => a + b, 0) / 5);

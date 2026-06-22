@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   }
 
   const body = await req.json().catch(() => null);
-  const { storyId, chapterNumber, questionId, answerIdx, isCorrect, chapterCompleted } = body ?? {};
+  const { storyId, chapterNumber, questionId, chapterCompleted } = body ?? {};
 
   // Validation des entrées
   if (!storyId || !isSafeId(storyId) || chapterNumber == null || !questionId || !isSafeId(questionId)) {

@@ -2,7 +2,7 @@
 
 import { useParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Swords, Trophy, Lock, Star, BookOpen } from "lucide-react";
+import { ArrowLeft, Trophy, Lock, Star, BookOpen } from "lucide-react";
 import { useGameState } from "@/hooks/useGameState";
 import { getLocation } from "@/lib/game/locations";
 import { getSageForLocation } from "@/lib/game/sages";

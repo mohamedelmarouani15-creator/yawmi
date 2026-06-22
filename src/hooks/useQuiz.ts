@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { getQuestionsAsync } from "@/lib/game/questions-loader";
 import { updateSM2 } from "@/lib/game/sm2";
-import { gameStorage, ENERGY_COST } from "@/lib/game/game-storage";
+import { gameStorage } from "@/lib/game/game-storage";
 import { getJoker50Eliminations } from "@/lib/game/powerups";
 import { getActiveGameEvent } from "@/lib/game/game-events";
 import { getEventBonuses } from "@/lib/game/events";
@@ -338,7 +338,7 @@ export function useQuiz(locationId: string, themeCategory?: string) {
       doubleXpActive: false, // resets per question
       hiddenOptions: [],     // reset per question
     } : s);
-  }, [session]);
+  }, [session, locationId, themeCategory, QUESTION_TIME]);
 
   // ── Power-ups ─────────────────────────────────────────────────
   const usePowerUp = useCallback((type: PowerUpType): boolean => {

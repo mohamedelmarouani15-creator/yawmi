@@ -2,14 +2,15 @@
 
 import { useRef, useMemo, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Html, Stars } from "@react-three/drei";
+import { Html, Stars, MeshReflectorMaterial } from "@react-three/drei";
 import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import AmbientParticles from "../../maison-sagesse/shared/AmbientParticles";
 import IslamicArch from "../../maison-sagesse/shared/IslamicArch";
+import BookshelfWall from "./BookshelfWall";
 
 const W = 18;
-const H = 7;
+const H = 11; // salle haute — sensation de tour de livres vertigineuse
 const D = 14;
 
 interface DoorwayPortalProps {
@@ -89,15 +90,21 @@ interface MainHallProps {
 
 export default function MainHall({ onOpenTemoignage, onOpenRasm, onOpenRoute }: MainHallProps) {
   const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#221A10", roughness: 0.92 }), []);
-  // Sol "miroir sombre" — surface très lisse et légèrement métallique pour
-  // réfléchir les bougies et la lumière dorée du plafond (effet surréaliste
-  // discret, sans coût de post-processing).
-  const floorMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#0B0E12", roughness: 0.12, metalness: 0.75 }), []);
 
   return (
     <group>
-      <ambientLight color="#1a1408" intensity={0.32} />
-      <pointLight color="#D4AF37" intensity={1.8} distance={16} decay={1.8} position={[0, H - 0.5, 0]} castShadow shadow-mapSize-width={512} shadow-mapSize-height={512} />
+      {/* Ambiance froide teal en base, chaleur ambrée portée par les bougies
+          et les étagères — contraste assumé façon bibliothèque surréaliste. */}
+      <ambientLight color="#0C2A2E" intensity={0.4} />
+      <hemisphereLight color="#1c4d52" groundColor="#0a0604" intensity={0.35} />
+      {/* Lumière centrale volontairement courte portée : le haut des
+          étagères reste sombre, façon tour qui se perd dans l'obscurité. */}
+      <pointLight color="#D4AF37" intensity={1.4} distance={9} decay={2} position={[0, 5.5, 0]} castShadow shadow-mapSize-width={512} shadow-mapSize-height={512} />
+      {/* Spots chauds rasants sur les étagères latérales, à hauteur de regard */}
+      <pointLight color="#E8A33D" intensity={2.6} distance={8} decay={2} position={[-W / 2 + 2, 3.2, -2]} />
+      <pointLight color="#E8A33D" intensity={2.6} distance={8} decay={2} position={[W / 2 - 2, 3.2, -2]} />
+      <pointLight color="#E8A33D" intensity={1.8} distance={7} decay={2} position={[0, 5.8, D / 2 - 2]} />
+      <pointLight color="#5EEAD4" intensity={0.5} distance={10} decay={2} position={[0, 1.5, 4]} />
 
       {/* Accent surréaliste discret au plafond — quelques points lumineux,
           aucun coût de post-processing (juste des points, pas de Bloom). */}
@@ -112,39 +119,52 @@ export default function MainHall({ onOpenTemoignage, onOpenRasm, onOpenRoute }: 
         <meshBasicMaterial color="#D4AF37" wireframe transparent opacity={0.25} />
       </mesh>
 
-      {/* Floor & ceiling */}
+      {/* Sol miroir — vrai reflet de l'avatar et des étagères, façon
+          bibliothèque surréaliste. */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[W, D]} />
-        <primitive object={floorMat} attach="material" />
+        <MeshReflectorMaterial
+          blur={[0, 0]}
+          resolution={1024}
+          mixBlur={0}
+          mixStrength={1.4}
+          roughness={0.05}
+          depthScale={0}
+          color="#0B0F16"
+          metalness={0.6}
+          mirror={1}
+        />
       </mesh>
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, H, 0]}>
+      {/* Plafond très haut et sombre — se perd dans le noir, jamais
+          vraiment vu, pour laisser les étagères grimper sans limite visible. */}
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, H + 6, 0]}>
         <planeGeometry args={[W, D]} />
-        <meshStandardMaterial color="#120D08" roughness={0.95} />
+        <meshStandardMaterial color="#050302" roughness={1} />
       </mesh>
 
-      {/* Walls */}
+      {/* Murs d'étagères — gauche, droite, et derrière le joueur */}
+      <BookshelfWall position={[-W / 2 + 0.08, (H + 5) / 2, 0]} rotation={[0, Math.PI / 2, 0]} width={D} height={H + 5} rows={16} booksPerRow={32} />
+      <BookshelfWall position={[W / 2 - 0.08, (H + 5) / 2, 0]} rotation={[0, -Math.PI / 2, 0]} width={D} height={H + 5} rows={16} booksPerRow={32} />
+      <BookshelfWall position={[0, (H + 5) / 2, D / 2 - 0.08]} rotation={[0, Math.PI, 0]} width={W} height={H + 5} rows={16} booksPerRow={40} />
+
+      {/* Back wall (portes) */}
       <mesh position={[0, H / 2, -D / 2]} receiveShadow castShadow>
         <boxGeometry args={[W, H, 0.3]} />
         <primitive object={wallMat} attach="material" />
       </mesh>
-      <mesh position={[0, H / 2, D / 2]} receiveShadow castShadow>
-        <boxGeometry args={[W, H, 0.3]} />
-        <primitive object={wallMat} attach="material" />
-      </mesh>
-      <mesh position={[-W / 2, H / 2, 0]} receiveShadow castShadow>
-        <boxGeometry args={[0.3, H, D]} />
-        <primitive object={wallMat} attach="material" />
-      </mesh>
-      <mesh position={[W / 2, H / 2, 0]} receiveShadow castShadow>
-        <boxGeometry args={[0.3, H, D]} />
-        <primitive object={wallMat} attach="material" />
-      </mesh>
 
-      {/* Columns + arches */}
+      {/* Columns + arches — répétées en profondeur pour l'effet de
+          couloir d'arches façon référence */}
       <OctagonalColumn position={[-4.5, 0, -3.5]} />
       <OctagonalColumn position={[4.5, 0, -3.5]} />
       <group position={[0, 0, -3.5]}>
         <IslamicArch width={3.5} height={5} depth={0.3} />
+      </group>
+      <group position={[-6.2, 0, -0.5]}>
+        <IslamicArch width={2.4} height={4.2} depth={0.25} color="#6B5740" />
+      </group>
+      <group position={[6.2, 0, -0.5]}>
+        <IslamicArch width={2.4} height={4.2} depth={0.25} color="#6B5740" />
       </group>
 
       {/* Candles */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { forwardRef, useImperativeHandle, useRef } from "react";
+import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
@@ -11,17 +11,68 @@ interface WePlayAvatarProps {
   bounds: { x: number; z: number };
 }
 
+const GLOW_COLOR = "#5EEAD4"; // teal/cyan, assorti à l'ambiance de la bibliothèque
+
+// Coque de halo : même géométrie qu'un membre du corps, légèrement agrandie,
+// faces arrière, additive — imite un glow/bloom sans EffectComposer (coûteux
+// sur mobile).
+const haloMat = new THREE.MeshBasicMaterial({
+  color: GLOW_COLOR,
+  transparent: true,
+  opacity: 0.35,
+  side: THREE.BackSide,
+  blending: THREE.AdditiveBlending,
+  depthWrite: false,
+});
+
+interface BodyPartProps {
+  geometry: THREE.BufferGeometry;
+  material: THREE.Material;
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  glowScale?: number;
+}
+
+function BodyPart({ geometry, material, position, rotation, glowScale = 1.18 }: BodyPartProps) {
+  return (
+    <group position={position} rotation={rotation}>
+      <mesh geometry={geometry} material={material} castShadow />
+      <mesh geometry={geometry} material={haloMat} scale={glowScale} />
+    </group>
+  );
+}
+
 /**
- * Silhouette bleue type "WePlay" — sans visage par choix éthique, simple
- * figurine chibi (tête sphère, buste capsule, pieds). Avance dans la
- * direction où regarde la caméra (yawRef), pilotée par le joystick tactile.
- * Le ref exposé est le THREE.Group lui-même, lu directement par le
- * contrôleur de caméra à chaque frame pour le suivi en 3e personne.
+ * Silhouette humanoïde lumineuse, sans visage par choix éthique : tête,
+ * torse effilé, deux bras, deux jambes — rendu en émissif cyan plein avec un
+ * halo (coque additive) pour un effet "néon hologramme" sans coût de
+ * post-processing. Avance dans la direction du regard (yawRef), piloté par
+ * le joystick tactile. Le ref exposé est le THREE.Group lui-même, lu
+ * directement par le contrôleur de caméra à chaque frame pour le suivi en
+ * 3e personne.
  */
 const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
   ({ joystickRef, yawRef, speed = 4, bounds }, ref) => {
     const groupRef = useRef<THREE.Group>(null);
     useImperativeHandle(ref, () => groupRef.current as THREE.Group);
+
+    const bodyMat = useMemo(
+      () =>
+        new THREE.MeshStandardMaterial({
+          color: GLOW_COLOR,
+          emissive: GLOW_COLOR,
+          emissiveIntensity: 2.2,
+          roughness: 0.25,
+          metalness: 0.1,
+          toneMapped: false,
+        }),
+      []
+    );
+
+    const headGeo = useMemo(() => new THREE.SphereGeometry(0.16, 24, 24), []);
+    const torsoGeo = useMemo(() => new THREE.CylinderGeometry(0.1, 0.16, 0.62, 12), []);
+    const armGeo = useMemo(() => new THREE.CapsuleGeometry(0.045, 0.46, 4, 8), []);
+    const legGeo = useMemo(() => new THREE.CapsuleGeometry(0.07, 0.58, 4, 8), []);
 
     useFrame((_, delta) => {
       const group = groupRef.current;
@@ -47,30 +98,15 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
 
     return (
       <group ref={groupRef}>
-        {/* Tête : sphère sans visage, respect du choix éthique */}
-        <mesh position={[0, 1.5, 0]} castShadow>
-          <sphereGeometry args={[0.25, 32, 32]} />
-          <meshStandardMaterial color="#38bdf8" emissive="#0284c7" emissiveIntensity={1.2} roughness={0.1} metalness={0.1} />
-        </mesh>
+        <BodyPart geometry={headGeo} material={bodyMat} position={[0, 1.5, 0]} />
+        <BodyPart geometry={torsoGeo} material={bodyMat} position={[0, 1.12, 0]} />
+        <BodyPart geometry={armGeo} material={bodyMat} position={[-0.21, 1.1, 0]} rotation={[0, 0, 0.08]} glowScale={1.3} />
+        <BodyPart geometry={armGeo} material={bodyMat} position={[0.21, 1.1, 0]} rotation={[0, 0, -0.08]} glowScale={1.3} />
+        <BodyPart geometry={legGeo} material={bodyMat} position={[-0.09, 0.43, 0]} glowScale={1.22} />
+        <BodyPart geometry={legGeo} material={bodyMat} position={[0.09, 0.43, 0]} glowScale={1.22} />
 
-        {/* Buste */}
-        <mesh position={[0, 0.9, 0]} castShadow>
-          <capsuleGeometry args={[0.2, 0.6, 16, 32]} />
-          <meshStandardMaterial color="#0284c7" emissive="#0369a1" emissiveIntensity={0.8} roughness={0.2} />
-        </mesh>
-
-        {/* Pieds */}
-        <mesh position={[-0.15, 0.2, 0]} castShadow>
-          <sphereGeometry args={[0.1, 16, 16]} />
-          <meshStandardMaterial color="#0369a1" />
-        </mesh>
-        <mesh position={[0.15, 0.2, 0]} castShadow>
-          <sphereGeometry args={[0.1, 16, 16]} />
-          <meshStandardMaterial color="#0369a1" />
-        </mesh>
-
-        {/* Lueur de contact bleue discrète au sol */}
-        <pointLight position={[0, 0.1, 0]} intensity={0.6} color="#38bdf8" distance={2} />
+        {/* Lueur de contact cyan discrète au sol */}
+        <pointLight position={[0, 0.1, 0]} intensity={0.8} color={GLOW_COLOR} distance={2.4} />
       </group>
     );
   }

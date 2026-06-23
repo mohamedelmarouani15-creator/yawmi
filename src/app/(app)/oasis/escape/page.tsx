@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Lock } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { pageVariants, itemVariants } from "@/lib/motion";
 
 export default function EscapeGamesPage() {
@@ -74,28 +74,38 @@ export default function EscapeGamesPage() {
         <span style={{ color: "#D4AF37", fontSize: 18, flexShrink: 0 }}>→</span>
       </motion.button>
 
-      {/* ── Prochaine aventure (à venir) ── */}
-      <motion.div
+      {/* ── Al-Bayan — Le Secret des Manuscrits ── */}
+      <motion.button
         variants={itemVariants}
-        className="w-full rounded-2xl p-4 flex items-center gap-4"
+        whileTap={{ scale: 0.97 }}
+        onClick={() => router.push("/oasis/al-bayan")}
+        className="w-full rounded-2xl p-4 text-left flex items-center gap-4"
         style={{
-          background: "rgba(255,255,255,0.02)",
-          border: "1px solid rgba(255,255,255,0.08)",
+          background: "linear-gradient(135deg,rgba(8,14,25,0.95) 0%,rgba(20,50,90,0.3) 50%,rgba(4,6,8,0.95) 100%)",
+          border: "1px solid rgba(96,165,250,0.5)",
+          boxShadow: "0 0 32px rgba(96,165,250,0.12), inset 0 0 32px rgba(96,165,250,0.03)",
         }}
       >
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl"
-          style={{ background: "rgba(255,255,255,0.04)" }}>
-          <Lock size={18} style={{ color: "rgba(248,244,236,0.3)" }} />
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl text-2xl"
+          style={{ background: "rgba(96,165,250,0.12)" }}>
+          📜
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold" style={{ color: "rgba(248,244,236,0.45)", fontFamily: "var(--font-bricolage)" }}>
-            Prochaine aventure
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-[9px] font-semibold tracking-widest uppercase"
+              style={{ color: "#60a5fa", fontFamily: "var(--font-dm-sans)" }}>
+              ✦ 3D Immersif • 45 min
+            </span>
+          </div>
+          <p className="text-sm font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
+            Al-Bayân — Le Secret des Manuscrits
           </p>
-          <p className="text-[11px] mt-0.5" style={{ color: "rgba(248,244,236,0.3)", fontFamily: "var(--font-dm-sans)" }}>
-            Une nouvelle salle arrive bientôt dans l&apos;Oasis.
+          <p className="text-[11px] mt-0.5" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
+            Médine • Compilation du Coran • Solo ou famille • Dès 7 ans
           </p>
         </div>
-      </motion.div>
+        <span style={{ color: "#60a5fa", fontSize: 18, flexShrink: 0 }}>→</span>
+      </motion.button>
     </motion.main>
   );
 }

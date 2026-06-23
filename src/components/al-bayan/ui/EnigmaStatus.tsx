@@ -69,7 +69,7 @@ export default function EnigmaStatus() {
   const enigmaC = useAlBayanStore((s) => s.enigmaC);
   const phase = useAlBayanStore((s) => s.phase);
 
-  if (phase === "idle" || phase === "intro") return null;
+  if (phase === "idle") return null;
 
   return (
     <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none" style={{ width: "calc(100% - 32px)", maxWidth: 420 }}>

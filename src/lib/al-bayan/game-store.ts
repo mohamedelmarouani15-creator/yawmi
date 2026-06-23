@@ -57,7 +57,7 @@ export const useAlBayanStore = create<AlBayanState>()(
       startGame: (playerCount: number) => {
         set({
           ...initialState,
-          phase: 'intro',
+          phase: 'playing',
           isRunning: true,
           timeLeft: GAME_DURATION,
           startedAt: Date.now(),

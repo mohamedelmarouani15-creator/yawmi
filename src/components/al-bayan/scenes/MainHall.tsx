@@ -2,12 +2,11 @@
 
 import { useRef, useMemo, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Html } from "@react-three/drei";
+import { Html, Stars } from "@react-three/drei";
 import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import AmbientParticles from "../../maison-sagesse/shared/AmbientParticles";
 import IslamicArch from "../../maison-sagesse/shared/IslamicArch";
-import type { GamePhase } from "@/lib/al-bayan/types";
 
 const W = 18;
 const H = 7;
@@ -18,11 +17,10 @@ interface DoorwayPortalProps {
   glowColor: string;
   arabicLabel: string;
   frenchLabel: string;
-  targetPhase: GamePhase;
-  onPhaseChange: (phase: GamePhase) => void;
+  onOpen: () => void;
 }
 
-function DoorwayPortal({ position, glowColor, arabicLabel, frenchLabel, targetPhase, onPhaseChange }: DoorwayPortalProps) {
+function DoorwayPortal({ position, glowColor, arabicLabel, frenchLabel, onOpen }: DoorwayPortalProps) {
   const matRef = useRef<THREE.MeshStandardMaterial>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -43,7 +41,7 @@ function DoorwayPortal({ position, glowColor, arabicLabel, frenchLabel, targetPh
         position={[0, 0, 0.1]}
         onPointerOver={() => { setHovered(true); document.body.style.cursor = "pointer"; }}
         onPointerOut={() => { setHovered(false); document.body.style.cursor = "default"; }}
-        onClick={(e) => { e.stopPropagation(); onPhaseChange(targetPhase); }}
+        onClick={(e) => { e.stopPropagation(); onOpen(); }}
       >
         <planeGeometry args={[3, 4.5]} />
         <meshStandardMaterial
@@ -84,17 +82,35 @@ function OctagonalColumn({ position }: { position: [number, number, number] }) {
 }
 
 interface MainHallProps {
-  onPhaseChange: (phase: GamePhase) => void;
+  onOpenTemoignage: () => void;
+  onOpenRasm: () => void;
+  onOpenRoute: () => void;
 }
 
-export default function MainHall({ onPhaseChange }: MainHallProps) {
+export default function MainHall({ onOpenTemoignage, onOpenRasm, onOpenRoute }: MainHallProps) {
   const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#221A10", roughness: 0.92 }), []);
-  const floorMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#171210", roughness: 0.6, metalness: 0.1 }), []);
+  // Sol "miroir sombre" — surface très lisse et légèrement métallique pour
+  // réfléchir les bougies et la lumière dorée du plafond (effet surréaliste
+  // discret, sans coût de post-processing).
+  const floorMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#0B0E12", roughness: 0.12, metalness: 0.75 }), []);
 
   return (
     <group>
       <ambientLight color="#1a1408" intensity={0.32} />
       <pointLight color="#D4AF37" intensity={1.8} distance={16} decay={1.8} position={[0, H - 0.5, 0]} castShadow shadow-mapSize-width={512} shadow-mapSize-height={512} />
+
+      {/* Accent surréaliste discret au plafond — quelques points lumineux,
+          aucun coût de post-processing (juste des points, pas de Bloom). */}
+      <group position={[0, H + 8, 0]}>
+        <Stars radius={40} depth={5} count={150} factor={1.5} fade speed={0.4} />
+      </group>
+
+      {/* Cible de chargement future : dès que public/models/*.glb existe et
+          est passé à gltfjsx, remplacer ce bloc par <ScriptoriumModel />. */}
+      <mesh position={[0, 1.4, -1]}>
+        <boxGeometry args={[1.4, 2.8, 1.4]} />
+        <meshBasicMaterial color="#D4AF37" wireframe transparent opacity={0.25} />
+      </mesh>
 
       {/* Floor & ceiling */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
@@ -143,24 +159,21 @@ export default function MainHall({ onPhaseChange }: MainHallProps) {
         glowColor="#C8A84B"
         arabicLabel="ميزان الشهادة"
         frenchLabel="Le Poids du Témoignage"
-        targetPhase="enigma-temoignage"
-        onPhaseChange={onPhaseChange}
+        onOpen={onOpenTemoignage}
       />
       <DoorwayPortal
         position={[0, 2.3, -D / 2 + 0.2]}
         glowColor="#60a5fa"
         arabicLabel="الرسم البدائي"
         frenchLabel="Le Rasm Primitif"
-        targetPhase="enigma-rasm"
-        onPhaseChange={onPhaseChange}
+        onOpen={onOpenRasm}
       />
       <DoorwayPortal
         position={[5.2, 2.3, -D / 2 + 0.2]}
         glowColor="#34d399"
         arabicLabel="طريق النسخ"
         frenchLabel="La Route des Codicilles"
-        targetPhase="enigma-route"
-        onPhaseChange={onPhaseChange}
+        onOpen={onOpenRoute}
       />
 
       <AmbientParticles />

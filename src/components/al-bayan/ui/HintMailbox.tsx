@@ -113,7 +113,7 @@ export default function HintMailbox() {
 
   const [open, setOpen] = useState(false);
 
-  if (phase === "idle" || phase === "intro" || phase === "victory" || phase === "failure") return null;
+  if (phase === "idle" || phase === "victory" || phase === "failure") return null;
 
   return (
     <div className="pointer-events-auto">

@@ -78,8 +78,6 @@ export default function CodeLock() {
 
   const disabled = lockOpen || phase === "victory" || phase === "failure";
 
-  if (phase !== "code-lock" && phase !== "victory" && phase !== "failure") return null;
-
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="pointer-events-auto">
       <motion.div

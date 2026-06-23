@@ -1,14 +1,7 @@
-// Phase de jeu
-export type GamePhase =
-  | 'idle'
-  | 'intro'
-  | 'main-hall'
-  | 'enigma-temoignage'
-  | 'enigma-rasm'
-  | 'enigma-route'
-  | 'code-lock'
-  | 'victory'
-  | 'failure';
+// Phase de jeu — les "salles" sont maintenant gérées par les routes Next.js
+// (/oasis/al-bayan, /temoignage, /rasm, /codicilles, /coffret) ; le store ne
+// garde que les états transverses qui ne sont pas une salle navigable.
+export type GamePhase = 'idle' | 'playing' | 'victory' | 'failure';
 
 // Progression d'une énigme
 export interface EnigmaState {

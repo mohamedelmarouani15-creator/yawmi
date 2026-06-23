@@ -711,11 +711,11 @@ export default function OasisPage() {
       {/* ── Événement islamique actif ── */}
       <EventBanner />
 
-      {/* ── Maison de la Sagesse Escape Game ── */}
+      {/* ── Escape Games ── */}
       <div className="px-4 mb-2">
         <motion.button
           whileTap={{ scale: 0.97 }}
-          onClick={() => router.push("/oasis/maison-sagesse")}
+          onClick={() => router.push("/oasis/escape")}
           className="w-full rounded-2xl p-4 text-left flex items-center gap-4"
           style={{
             background: "linear-gradient(135deg,rgba(30,15,5,0.95) 0%,rgba(100,70,10,0.3) 50%,rgba(4,6,8,0.95) 100%)",
@@ -731,14 +731,14 @@ export default function OasisPage() {
             <div className="flex items-center gap-2 mb-0.5">
               <span className="text-[9px] font-semibold tracking-widest uppercase"
                 style={{ color: "#D4AF37", fontFamily: "var(--font-dm-sans)" }}>
-                ✦ Escape Game • 3D Immersif • 45 min
+                ✦ Escape Games • 3D Immersif
               </span>
             </div>
             <p className="text-sm font-bold" style={{ color: "var(--text)", fontFamily: "var(--font-bricolage)" }}>
-              Le Secret de la Maison de la Sagesse
+              Aventures immersives
             </p>
             <p className="text-[11px] mt-0.5" style={{ color: "rgba(248,244,236,0.4)", fontFamily: "var(--font-dm-sans)" }}>
-              Bagdad, 830 apr. J.-C. • Solo ou famille • Dès 7 ans
+              Le Secret de la Maison de la Sagesse, et bientôt d&apos;autres salles
             </p>
           </div>
           <span style={{ color: "#D4AF37", fontSize: 18, flexShrink: 0 }}>→</span>

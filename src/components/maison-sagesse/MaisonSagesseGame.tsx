@@ -254,6 +254,7 @@ export function MaisonSagesseGame() {
       style={{
         position: "fixed",
         inset: 0,
+        zIndex: 60, // couvre la BottomNav de l'app (z-50)
         width: "100dvw",
         height: "100dvh",
         background: "#0A0F0D",

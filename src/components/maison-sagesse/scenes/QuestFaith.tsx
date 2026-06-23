@@ -3,18 +3,97 @@
 import { useRef, useMemo, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
+import { motion, AnimatePresence } from "framer-motion";
 import * as THREE from "three";
 import FloatingScroll from "../shared/FloatingScroll";
 import CandleLight from "../shared/CandleLight";
 import AmbientParticles from "../shared/AmbientParticles";
+import { PILLAR_RIDDLES, PILLAR_LIFE_ORDER } from "@/lib/maison-sagesse/puzzle-logic";
 
-const PILLARS_OF_ISLAM = [
-  { label: "Shahada", arabic: "الشهادة", position: [-4, 1.6, -3] as [number, number, number] },
-  { label: "Salat", arabic: "الصلاة", position: [3, 1.8, -2] as [number, number, number] },
-  { label: "Zakat", arabic: "الزكاة", position: [-2.5, 1.4, 2] as [number, number, number] },
-  { label: "Sawm", arabic: "الصوم", position: [4, 1.5, 2.5] as [number, number, number] },
-  { label: "Hajj", arabic: "الحج", position: [0, 1.7, -4] as [number, number, number] },
-];
+const SCROLL_POSITIONS: Record<string, [number, number, number]> = {
+  shahada: [-4, 1.6, -3],
+  salat: [3, 1.8, -2],
+  zakat: [-2.5, 1.4, 2],
+  sawm: [4, 1.5, 2.5],
+  hajj: [0, 1.7, -4],
+};
+
+const PILLARS_OF_ISLAM = PILLAR_LIFE_ORDER.map((id) => ({
+  ...PILLAR_RIDDLES[id],
+  position: SCROLL_POSITIONS[id],
+}));
+
+// Riddle reading modal — appears when a scroll is clicked
+function RiddleModal({
+  pillarId,
+  position,
+  onClose,
+}: {
+  pillarId: string;
+  position: number | null;
+  onClose: () => void;
+}) {
+  const pillar = PILLAR_RIDDLES[pillarId];
+  return (
+    <Html fullscreen>
+      <motion.div
+        className="w-full h-full flex items-center justify-center p-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        style={{ background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)", pointerEvents: "auto" }}
+      >
+        <motion.div
+          initial={{ scale: 0.85, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.85, opacity: 0 }}
+          onClick={(e) => e.stopPropagation()}
+          className="max-w-sm w-full rounded-2xl p-5"
+          style={{
+            background: "linear-gradient(135deg, rgba(13,32,24,0.98) 0%, rgba(6,16,10,0.99) 100%)",
+            border: "1px solid rgba(52,211,153,0.35)",
+            boxShadow: "0 0 40px rgba(52,211,153,0.12)",
+          }}
+        >
+          <p className="text-center mb-2" style={{ fontSize: 20, direction: "rtl", color: "#D4AF37", fontFamily: "serif" }}>
+            {pillar.arabic}
+          </p>
+          <p
+            className="rounded-xl p-3 mb-4"
+            style={{
+              fontSize: 12,
+              lineHeight: 1.65,
+              color: "rgba(248,244,236,0.85)",
+              fontFamily: "var(--font-dm-sans)",
+              background: "rgba(248,244,236,0.04)",
+              border: "1px solid rgba(248,244,236,0.08)",
+            }}
+          >
+            {pillar.riddle}
+          </p>
+          <p className="text-center mb-3" style={{ fontSize: 10, color: "rgba(212,175,55,0.6)", fontFamily: "var(--font-dm-sans)" }}>
+            {position !== null ? `Placé en position ${position + 1} dans la rangée.` : "Retiré de la rangée."}
+          </p>
+          <button
+            onClick={onClose}
+            className="w-full rounded-xl py-2"
+            style={{
+              background: "rgba(52,211,153,0.15)",
+              border: "1px solid rgba(52,211,153,0.3)",
+              color: "#34d399",
+              fontSize: 11,
+              fontFamily: "var(--font-dm-sans)",
+              fontWeight: 700,
+            }}
+          >
+            Refermer le parchemin
+          </button>
+        </motion.div>
+      </motion.div>
+    </Html>
+  );
+}
 
 // Central pedestal where scrolls are placed in order
 function Pedestal() {
@@ -127,7 +206,7 @@ function WallNiche({ position }: { position: [number, number, number] }) {
 }
 
 // Confirmation stone tablet
-function ConfirmationTablet({ onConfirm }: { onConfirm?: () => void }) {
+function ConfirmationTablet({ onConfirm, feedback }: { onConfirm?: () => void; feedback: string | null }) {
   const matRef = useRef<THREE.MeshStandardMaterial>(null);
   const [hovered, setHovered] = useState(false);
 
@@ -149,7 +228,7 @@ function ConfirmationTablet({ onConfirm }: { onConfirm?: () => void }) {
         setHovered(false);
         document.body.style.cursor = "default";
       }}
-      onClick={onConfirm}
+      onClick={(e) => { e.stopPropagation(); onConfirm?.(); }}
     >
       {/* Stone slab */}
       <mesh castShadow receiveShadow rotation={[-Math.PI * 0.08, 0, 0]}>
@@ -176,16 +255,50 @@ function ConfirmationTablet({ onConfirm }: { onConfirm?: () => void }) {
           Valider l&apos;ordre
         </span>
       </Html>
+      {feedback && (
+        <Html position={[0, 0.7, 0.07]} center>
+          <span style={{ color: "#f87171", fontSize: "10px", fontFamily: "var(--font-dm-sans)", fontWeight: 700, whiteSpace: "nowrap", textShadow: "0 0 8px rgba(0,0,0,0.8)", pointerEvents: "none" }}>
+            {feedback}
+          </span>
+        </Html>
+      )}
     </group>
   );
 }
 
 interface QuestFaithProps {
-  onScrollClick?: (pilllarIndex: number) => void;
   onConfirm?: () => void;
 }
 
-export default function QuestFaith({ onScrollClick, onConfirm }: QuestFaithProps) {
+export default function QuestFaith({ onConfirm }: QuestFaithProps) {
+  const [order, setOrder] = useState<string[]>([]);
+  const [modalPillar, setModalPillar] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  const handleScrollClick = (pillarId: string) => {
+    setOrder((prev) => {
+      if (prev.includes(pillarId)) return prev.filter((id) => id !== pillarId);
+      if (prev.length >= 5) return prev;
+      return [...prev, pillarId];
+    });
+    setModalPillar(pillarId);
+    setFeedback(null);
+  };
+
+  const handleConfirm = () => {
+    if (order.length < 5) {
+      setFeedback("Il manque encore des parchemins dans la rangée...");
+      setTimeout(() => setFeedback(null), 2500);
+      return;
+    }
+    const isCorrect = order.every((id, i) => id === PILLAR_LIFE_ORDER[i]);
+    if (isCorrect) {
+      onConfirm?.();
+    } else {
+      setFeedback("Cet ordre n'est pas le bon... reconsidérez la rangée.");
+      setTimeout(() => setFeedback(null), 2500);
+    }
+  };
   const wallMat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
@@ -246,22 +359,36 @@ export default function QuestFaith({ onScrollClick, onConfirm }: QuestFaithProps
         </span>
       </Html>
 
-      {/* ── 5 Floating scrolls (pillar topics) ── */}
-      {PILLARS_OF_ISLAM.map((pillar, i) => (
-        <FloatingScroll
-          key={pillar.label}
-          position={pillar.position}
-          glowing={true}
-          label={pillar.label}
-          onClick={() => onScrollClick?.(i)}
-        />
-      ))}
+      {/* ── 5 Floating scrolls (pillar riddles) ── */}
+      {PILLARS_OF_ISLAM.map((pillar) => {
+        const pos = order.indexOf(pillar.id);
+        return (
+          <FloatingScroll
+            key={pillar.id}
+            position={pillar.position}
+            glowing={true}
+            label={pos !== -1 ? String(pos + 1) : undefined}
+            onClick={() => handleScrollClick(pillar.id)}
+          />
+        );
+      })}
 
       {/* ── Central pedestal ── */}
       <Pedestal />
 
       {/* ── Confirmation tablet ── */}
-      <ConfirmationTablet onConfirm={onConfirm} />
+      <ConfirmationTablet onConfirm={handleConfirm} feedback={feedback} />
+
+      {/* ── Riddle reading modal ── */}
+      <AnimatePresence>
+        {modalPillar && (
+          <RiddleModal
+            pillarId={modalPillar}
+            position={order.indexOf(modalPillar) !== -1 ? order.indexOf(modalPillar) : null}
+            onClose={() => setModalPillar(null)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── Candles ── */}
       <CandleLight position={[-4.5, 0.4, -4.5]} intensity={1.0} />

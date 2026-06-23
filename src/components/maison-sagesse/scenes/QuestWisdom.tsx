@@ -3,9 +3,11 @@
 import { useRef, useMemo, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
+import { AnimatePresence } from "framer-motion";
 import * as THREE from "three";
 import CandleLight from "../shared/CandleLight";
 import AmbientParticles from "../shared/AmbientParticles";
+import GrillePercee from "../ui/GrillePercee";
 
 // 6 pillars of faith (Arkan al-Iman)
 const PILLARS_OF_FAITH = [
@@ -196,25 +198,13 @@ function LibraryShelf({ posX, posZ, rotY }: { posX: number; posZ: number; rotY: 
   );
 }
 
-// Central open book with reveal animation
-function CentralBook({
-  revealedPillars,
-  onRevealNext,
-}: {
-  revealedPillars: number;
-  onRevealNext?: () => void;
-}) {
-  const curtainRef = useRef<THREE.Mesh>(null);
+// Central open book — examine to open the grille percée overlay
+function CentralBook({ onExamine }: { onExamine?: () => void }) {
   const particleRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
   useFrame(({ clock }) => {
-    // Curtain (perforated card) descends over time, or lifts when revealed
-    if (curtainRef.current) {
-      const targetY = revealedPillars > 0 ? 2.0 + revealedPillars * 0.35 : 1.2;
-      curtainRef.current.position.y += (targetY - curtainRef.current.position.y) * 0.06;
-    }
-    // Particle burst effect
+    // Ambient particle burst effect around the book
     if (particleRef.current) {
       const t = clock.getElapsedTime();
       for (let i = 0; i < 40; i++) {
@@ -285,31 +275,17 @@ function CentralBook({
         <boxGeometry args={[0.08, 0.04, 2.05]} />
       </mesh>
 
-      {/* Revealed pillar text columns */}
-      {PILLARS_OF_FAITH.slice(0, revealedPillars).map((pillar, i) => {
-        const col = i % 2;
-        const row = Math.floor(i / 2);
-        const x = col === 0 ? -0.85 : 0.85;
-        const z = -0.65 + row * 0.65;
-        return (
-          <Html key={pillar.label} position={[x, 0.04, z]} center>
-            <span style={{ color: "#3D2010", fontSize: "9px", fontFamily: "serif", whiteSpace: "nowrap", textShadow: "none", pointerEvents: "none", direction: "rtl" }}>
-              {pillar.arabic}
-            </span>
-          </Html>
-        );
-      })}
-
-      {/* Animated curtain / perforated card */}
-      <mesh ref={curtainRef} material={curtainMat} position={[0, 1.2, 0]}>
+      {/* Perforated card (grille percée), resting over the pages */}
+      <mesh material={curtainMat} position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <boxGeometry args={[3.5, 2, 0.06]} />
       </mesh>
-      {/* Curtain holes pattern */}
+      {/* Card holes pattern */}
       {[...Array(4)].map((_, row) =>
         [...Array(6)].map((_, col) => (
           <mesh
             key={`${row}${col}`}
-            position={[-1.25 + col * 0.5, 1.2 + 0.15 + row * 0.4 - 0.6, 0.035]}
+            position={[-1.25 + col * 0.5, 0.05, -0.75 + row * 0.4]}
+            rotation={[-Math.PI / 2, 0, 0]}
           >
             <circleGeometry args={[0.06, 8]} />
             <meshStandardMaterial color="#1C0E08" roughness={1} />
@@ -317,33 +293,34 @@ function CentralBook({
         ))
       )}
 
-      {/* Gold particle burst when pillar revealed */}
-      {revealedPillars > 0 && (
-        <instancedMesh ref={particleRef} args={[undefined, undefined, 40]}>
-          <sphereGeometry args={[0.025, 4, 4]} />
-          <meshStandardMaterial color="#D4AF37" emissive="#D4AF37" emissiveIntensity={0.8} />
-        </instancedMesh>
-      )}
+      {/* Ambient gold particles around the book */}
+      <instancedMesh ref={particleRef} args={[undefined, undefined, 40]}>
+        <sphereGeometry args={[0.025, 4, 4]} />
+        <meshStandardMaterial color="#D4AF37" emissive="#D4AF37" emissiveIntensity={0.8} />
+      </instancedMesh>
 
-      {/* Reveal button */}
-      {revealedPillars < PILLARS_OF_FAITH.length && (
-        <mesh
-          position={[0, -0.17, 1.2]}
-          castShadow
-          onClick={onRevealNext}
-          onPointerOver={() => (document.body.style.cursor = "pointer")}
-          onPointerOut={() => (document.body.style.cursor = "default")}
-        >
-          <boxGeometry args={[1.5, 0.1, 0.4]} />
-          <meshStandardMaterial
-            color="#D4AF37"
-            emissive="#8B6914"
-            emissiveIntensity={0.4}
-            roughness={0.5}
-            metalness={0.6}
-          />
-        </mesh>
-      )}
+      {/* Examine button */}
+      <mesh
+        position={[0, -0.17, 1.2]}
+        castShadow
+        onClick={onExamine}
+        onPointerOver={() => (document.body.style.cursor = "pointer")}
+        onPointerOut={() => (document.body.style.cursor = "default")}
+      >
+        <boxGeometry args={[1.5, 0.1, 0.4]} />
+        <meshStandardMaterial
+          color="#D4AF37"
+          emissive="#8B6914"
+          emissiveIntensity={0.4}
+          roughness={0.5}
+          metalness={0.6}
+        />
+      </mesh>
+      <Html position={[0, -0.1, 1.2]} center>
+        <span style={{ color: "#0A0F0D", fontSize: "9px", fontFamily: "serif", whiteSpace: "nowrap", pointerEvents: "none" }}>
+          Examiner la grille
+        </span>
+      </Html>
     </group>
   );
 }
@@ -368,16 +345,12 @@ function MonumentalCandle() {
 }
 
 interface QuestWisdomProps {
-  revealedPillars?: number;
-  onRevealNext?: () => void;
-  onBookClick?: () => void;
+  onConfirm?: () => void;
 }
 
-export default function QuestWisdom({
-  revealedPillars = 0,
-  onRevealNext,
-  onBookClick,
-}: QuestWisdomProps) {
+export default function QuestWisdom({ onConfirm }: QuestWisdomProps) {
+  const [showGrille, setShowGrille] = useState(false);
+
   const wallMat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({ color: "#1C1008", roughness: 0.92, metalness: 0.02 }),
@@ -425,7 +398,7 @@ export default function QuestWisdom({
       <LibraryShelf posX={-5.5} posZ={0} rotY={Math.PI / 2} />
       <LibraryShelf posX={5.5} posZ={0} rotY={-Math.PI / 2} />
 
-      {/* ── Clickable feature books ── */}
+      {/* ── Decorative feature books ── */}
       {PILLARS_OF_FAITH.map((pillar, i) => (
         <Book
           key={pillar.label}
@@ -433,14 +406,26 @@ export default function QuestWisdom({
           colorIndex={i}
           width={0.22}
           height={0.55}
-          onClick={onBookClick}
-          revealed={i < revealedPillars}
-          pillarsLabel={pillar.arabic}
         />
       ))}
 
-      {/* ── Central open book with curtain reveal ── */}
-      <CentralBook revealedPillars={revealedPillars} onRevealNext={onRevealNext} />
+      {/* ── Central open book — examine to reveal the grille percée ── */}
+      <CentralBook onExamine={() => setShowGrille(true)} />
+
+      {/* ── Grille percée overlay ── */}
+      <AnimatePresence>
+        {showGrille && (
+          <Html fullscreen>
+            <GrillePercee
+              onClose={() => setShowGrille(false)}
+              onSolved={() => {
+                setShowGrille(false);
+                onConfirm?.();
+              }}
+            />
+          </Html>
+        )}
+      </AnimatePresence>
 
       {/* ── Monumental candle ── */}
       <MonumentalCandle />

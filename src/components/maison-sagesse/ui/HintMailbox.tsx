@@ -3,39 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMaisonSagesseStore } from "@/lib/maison-sagesse/game-store";
-
-// Fallback hints in case of import issues
-const HINTS_FOI_FALLBACK: [string, string, string] = [
-  "Les fondations de l'Islam se comptent sur les doigts d'une seule main.",
-  "Cherchez les cinq piliers dans l'ordre : Shahada, Salat, Zakat, Sawm, Hajj.",
-  "Il y a exactement CINQ piliers. Le chiffre A est 5.",
-];
-
-const HINTS_SCIENCE_FALLBACK: [string, string, string] = [
-  "Cherchez les astres qui se déplacent différemment des étoiles fixes.",
-  "Les astronomes anciens comptaient 7 astres errants : Soleil, Lune, et 5 planètes.",
-  "SEPT astres errants. Le chiffre B est 7.",
-];
-
-const HINTS_SAGESSE_FALLBACK: [string, string, string] = [
-  "Jibrîl interrogea le Prophète ﷺ sur les fondements de la Foi.",
-  "Le carton perforé révèle les colonnes — lisez chaque colonne de haut en bas.",
-  "SIX piliers de la Foi. Le chiffre C est 6. Combinaison : 5-7-6.",
-];
-
-let HINTS_FOI: [string, string, string] = HINTS_FOI_FALLBACK;
-let HINTS_SCIENCE: [string, string, string] = HINTS_SCIENCE_FALLBACK;
-let HINTS_SAGESSE: [string, string, string] = HINTS_SAGESSE_FALLBACK;
-
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const pl = require("@/lib/maison-sagesse/puzzle-logic");
-  HINTS_FOI     = pl.HINTS_FOI     ?? HINTS_FOI_FALLBACK;
-  HINTS_SCIENCE = pl.HINTS_SCIENCE ?? HINTS_SCIENCE_FALLBACK;
-  HINTS_SAGESSE = pl.HINTS_SAGESSE ?? HINTS_SAGESSE_FALLBACK;
-} catch {
-  // use fallbacks
-}
+import { HINTS_FOI, HINTS_SCIENCE, HINTS_SAGESSE } from "@/lib/maison-sagesse/puzzle-logic";
 
 type EnigmaKey = "A" | "B" | "C";
 

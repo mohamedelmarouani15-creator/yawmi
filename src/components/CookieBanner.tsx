@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -9,9 +9,14 @@ const CONSENT_KEY = "cookie_consent";
 type ConsentValue = "accepted" | "rejected" | null;
 
 export default function CookieBanner() {
-  const [consent, setConsent] = useState<ConsentValue | "loading">(
-    () => localStorage.getItem(CONSENT_KEY) as ConsentValue | null
-  );
+  const [consent, setConsent] = useState<ConsentValue>(null);
+
+  useEffect(() => {
+    // Hydratation depuis localStorage au montage — indisponible côté SSR,
+    // donc volontairement lu après montage plutôt que via un lazy initializer.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setConsent(localStorage.getItem(CONSENT_KEY) as ConsentValue);
+  }, []);
 
   function accept() {
     localStorage.setItem(CONSENT_KEY, "accepted");

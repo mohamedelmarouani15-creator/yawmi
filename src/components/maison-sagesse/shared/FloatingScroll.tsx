@@ -82,7 +82,7 @@ export default function FloatingScroll({
       ref={groupRef}
       position={position}
       rotation={rotation}
-      onClick={onClick}
+      onClick={(e) => { e.stopPropagation(); onClick?.(); }}
       onPointerOver={() => {
         if (onClick) {
           setHovered(true);

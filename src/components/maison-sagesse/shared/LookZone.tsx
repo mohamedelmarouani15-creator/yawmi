@@ -4,12 +4,13 @@ import { useRef, useEffect, useCallback } from "react";
 
 interface Props {
   onChange: (dx: number, dy: number) => void;
+  isTouchDevice: boolean;
 }
 
 const DRAG_THRESHOLD = 8;
 const SENS = 0.004;
 
-export default function LookZone({ onChange }: Props) {
+export default function LookZone({ onChange, isTouchDevice }: Props) {
   const touchId    = useRef<number | null>(null);
   const startPos   = useRef({ x: 0, y: 0 });
   const lastPos    = useRef({ x: 0, y: 0 });
@@ -58,10 +59,18 @@ export default function LookZone({ onChange }: Props) {
 
     function onEnd(e: TouchEvent) {
       for (let i = 0; i < e.changedTouches.length; i++) {
-        if (e.changedTouches[i].identifier === touchId.current) {
+        const t = e.changedTouches[i];
+        if (t.identifier === touchId.current) {
+          const wasDragging = isDragging.current;
           touchId.current = null;
           isDragging.current = false;
           showDot(0, 0, false);
+          if (!wasDragging) {
+            el!.style.pointerEvents = "none";
+            const target = document.elementFromPoint(t.clientX, t.clientY);
+            el!.style.pointerEvents = "auto";
+            target?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, clientX: t.clientX, clientY: t.clientY, view: window }));
+          }
           break;
         }
       }
@@ -89,6 +98,7 @@ export default function LookZone({ onChange }: Props) {
           width: "55%", height: "100%",
           zIndex: 9,
           touchAction: "none",
+          pointerEvents: isTouchDevice ? "auto" : "none",
         }}
       />
       <div

@@ -4,6 +4,17 @@ import { useRef, useMemo, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Stars, Html } from "@react-three/drei";
 import * as THREE from "three";
+import { QIBLA_BEARING_DEG, QIBLA_TOLERANCE_DEG } from "@/lib/maison-sagesse/puzzle-logic";
+
+function normalizeDeg(rad: number): number {
+  const deg = (rad * 180) / Math.PI;
+  return ((deg % 360) + 360) % 360;
+}
+
+function isWithinQiblaTolerance(headingDeg: number): boolean {
+  const diff = Math.abs(headingDeg - QIBLA_BEARING_DEG);
+  return Math.min(diff, 360 - diff) <= QIBLA_TOLERANCE_DEG;
+}
 
 // 7 celestial bodies of Islamic astronomy
 const CELESTIAL_BODIES = [
@@ -21,10 +32,11 @@ interface PlanetaryBodyProps {
   index: number;
   orbitSpeed: number;
   orbitY: number;
+  discovered?: boolean;
   onClick?: (index: number) => void;
 }
 
-function PlanetaryBody({ data, index, orbitSpeed, orbitY, onClick }: PlanetaryBodyProps) {
+function PlanetaryBody({ data, index, orbitSpeed, orbitY, discovered, onClick }: PlanetaryBodyProps) {
   const groupRef = useRef<THREE.Group>(null);
   const meshRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
@@ -46,12 +58,12 @@ function PlanetaryBody({ data, index, orbitSpeed, orbitY, onClick }: PlanetaryBo
     () =>
       new THREE.MeshStandardMaterial({
         color: data.color,
-        emissive: data.emissive,
-        emissiveIntensity: data.emissiveInt + (hovered ? 0.3 : 0),
+        emissive: discovered ? "#34d399" : data.emissive,
+        emissiveIntensity: (discovered ? 0.7 : data.emissiveInt) + (hovered ? 0.3 : 0),
         roughness: data.nameAr === "الشمس" ? 0.2 : 0.8,
         metalness: data.nameAr === "الشمس" ? 0 : 0.1,
       }),
-    [data, hovered]
+    [data, hovered, discovered]
   );
 
   return (
@@ -100,8 +112,8 @@ function PlanetaryBody({ data, index, orbitSpeed, orbitY, onClick }: PlanetaryBo
 
       {/* Name billboard */}
       <Html position={[0, data.radius + 0.25, 0]} center>
-        <span style={{ color: "#D4AF37", fontSize: data.orbitR === 0 ? "12px" : "9px", fontFamily: "serif", whiteSpace: "nowrap", textShadow: "0 0 8px rgba(212,175,55,0.8)", pointerEvents: "none", direction: "rtl" }}>
-          {data.nameAr}
+        <span style={{ color: discovered ? "#34d399" : "#D4AF37", fontSize: data.orbitR === 0 ? "12px" : "9px", fontFamily: "serif", whiteSpace: "nowrap", textShadow: "0 0 8px rgba(212,175,55,0.8)", pointerEvents: "none", direction: "rtl" }}>
+          {data.nameAr}{discovered ? " ✓" : ""}
         </span>
       </Html>
     </group>
@@ -177,10 +189,9 @@ function ArmillarySphere() {
 }
 
 // Astrolabe on a table
-function AstrolabeTable() {
+function AstrolabeTable({ rotY, onRotate }: { rotY: number; onRotate: (rotY: number) => void }) {
   const groupRef = useRef<THREE.Group>(null);
   const [isDragging, setIsDragging] = useState(false);
-  const [rotY, setRotY] = useState(0);
   const lastX = useRef(0);
 
   const diskMat = useMemo(
@@ -223,7 +234,7 @@ function AstrolabeTable() {
         onPointerMove={(e) => {
           if (isDragging) {
             const delta = e.point.x - lastX.current;
-            setRotY((r) => r + delta * 2);
+            onRotate(rotY + delta * 2);
             lastX.current = e.point.x;
           }
         }}
@@ -270,15 +281,32 @@ function OrbitRing({ radius }: { radius: number }) {
 }
 
 interface QuestScienceProps {
-  onPlanetClick?: (index: number) => void;
+  onConfirm?: () => void;
 }
 
-export default function QuestScience({ onPlanetClick }: QuestScienceProps) {
+export default function QuestScience({ onConfirm }: QuestScienceProps) {
   const wallMat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({ color: "#06061A", roughness: 0.95 }),
     []
   );
+
+  const [rotY, setRotY] = useState(0);
+  const [discovered, setDiscovered] = useState<Set<number>>(new Set());
+
+  const headingDeg = useMemo(() => normalizeDeg(rotY), [rotY]);
+  const angleOk = isWithinQiblaTolerance(headingDeg);
+  const allFound = discovered.size === CELESTIAL_BODIES.length;
+  const ready = angleOk && allFound;
+
+  const togglePlanet = (index: number) => {
+    setDiscovered((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
 
   return (
     <group>
@@ -332,7 +360,8 @@ export default function QuestScience({ onPlanetClick }: QuestScienceProps) {
             index={i}
             orbitSpeed={0.3 / (body.orbitR || 1) * (i % 2 === 0 ? 1 : -0.9)}
             orbitY={0}
-            onClick={onPlanetClick}
+            discovered={discovered.has(i)}
+            onClick={togglePlanet}
           />
         ))}
       </group>
@@ -341,7 +370,51 @@ export default function QuestScience({ onPlanetClick }: QuestScienceProps) {
       <ArmillarySphere />
 
       {/* ── Astrolabe on table ── */}
-      <AstrolabeTable />
+      <AstrolabeTable rotY={rotY} onRotate={setRotY} />
+
+      {/* ── Cap readout + confirmation ── */}
+      <Html position={[-4, 1.5, 2]} center>
+        <div
+          className="flex flex-col items-center gap-1.5 rounded-xl px-3 py-2"
+          style={{
+            background: "rgba(10,15,13,0.85)",
+            border: `1px solid ${angleOk ? "rgba(52,211,153,0.5)" : "rgba(96,165,250,0.3)"}`,
+            pointerEvents: "none",
+            width: 150,
+          }}
+        >
+          <span style={{ fontSize: 9, color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-dm-sans)" }}>
+            Cap de l&apos;astrolabe
+          </span>
+          <span style={{ fontSize: 18, fontWeight: 800, color: angleOk ? "#34d399" : "#60a5fa", fontFamily: "var(--font-dm-sans)" }}>
+            {Math.round(headingDeg)}°
+          </span>
+          <span style={{ fontSize: 8, color: "rgba(248,244,236,0.35)", fontFamily: "var(--font-dm-sans)" }}>
+            Astres : {discovered.size}/{CELESTIAL_BODIES.length}
+          </span>
+        </div>
+      </Html>
+      {ready && (
+        <Html position={[-4, 0.9, 2]} center>
+          <button
+            onClick={onConfirm}
+            style={{
+              pointerEvents: "auto",
+              background: "linear-gradient(135deg, #7a5c1a 0%, #D4AF37 50%, #7a5c1a 100%)",
+              border: "1px solid rgba(212,175,55,0.7)",
+              color: "#0A0F0D",
+              fontFamily: "var(--font-dm-sans)",
+              fontWeight: 800,
+              fontSize: 11,
+              borderRadius: 10,
+              padding: "8px 14px",
+              cursor: "pointer",
+            }}
+          >
+            Confirmer la direction sacrée
+          </button>
+        </Html>
+      )}
     </group>
   );
 }

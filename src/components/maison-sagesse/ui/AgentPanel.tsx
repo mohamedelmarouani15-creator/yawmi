@@ -95,26 +95,62 @@ export default function AgentPanel() {
   const agentMessages = useMaisonSagesseStore((s) => s.agentMessages);
   const addAgentMessage = useMaisonSagesseStore((s) => s.addAgentMessage);
   const phase = useMaisonSagesseStore((s) => s.phase);
+  const enigmaA = useMaisonSagesseStore((s) => s.enigmaA);
+  const enigmaB = useMaisonSagesseStore((s) => s.enigmaB);
+  const enigmaC = useMaisonSagesseStore((s) => s.enigmaC);
+  const timeLeft = useMaisonSagesseStore((s) => s.timeLeft);
+  const activeAgent = useMaisonSagesseStore((s) => s.activeAgent);
 
   const [collapsed, setCollapsed] = useState(false);
   const [chatOpen, setChatOpen] = useState(false);
   const [chatInput, setChatInput] = useState("");
+  const [sending, setSending] = useState(false);
 
   const visibleMessages = agentMessages.slice(-5);
   const unread = agentMessages.filter((m) => !m.read).length;
 
-  const handleSendHelp = () => {
-    if (!chatInput.trim()) return;
+  const handleSendHelp = async () => {
+    if (!chatInput.trim() || sending) return;
     const question = chatInput.trim();
+    const agentId = activeAgent ?? "adjoint";
     setChatInput("");
     setChatOpen(false);
+    setSending(true);
 
-    // Yasmine responds
-    addAgentMessage({
-      agentId: "adjoint",
-      text: `Bien reçu : "${question}" — Je transmets votre demande à Al-Khwârizmî. Cherchez les indices visuels dans la salle, chaque objet a une signification.`,
-      triggerContext: "user_help_request",
-    });
+    const minutesLeft = Math.floor(timeLeft / 60);
+    const context = `Phase actuelle : ${phase}. Temps restant : ${minutesLeft} min. Énigme de la Foi ${enigmaA.solved ? "résolue" : "non résolue"}, Énigme de la Science ${enigmaB.solved ? "résolue" : "non résolue"}, Énigme de la Sagesse ${enigmaC.solved ? "résolue" : "non résolue"}.`;
+
+    try {
+      const res = await fetch("/api/maison-sagesse/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ agentId, message: question, context }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        addAgentMessage({
+          agentId: "adjoint",
+          text: data.message ?? "L'agent ne répond pas pour l'instant. Réessaie dans un instant.",
+          triggerContext: "user_help_request_error",
+        });
+        return;
+      }
+
+      addAgentMessage({
+        agentId,
+        text: data.message,
+        triggerContext: "user_help_request",
+      });
+    } catch {
+      addAgentMessage({
+        agentId: "adjoint",
+        text: "Le message n'a pas pu être envoyé — vérifie ta connexion et réessaie.",
+        triggerContext: "user_help_request_error",
+      });
+    } finally {
+      setSending(false);
+    }
   };
 
   // Only render after game starts
@@ -212,9 +248,23 @@ export default function AgentPanel() {
                 ))
               )}
 
+              {sending && (
+                <p
+                  style={{
+                    fontSize: 9,
+                    color: "rgba(52,211,153,0.5)",
+                    fontFamily: "var(--font-dm-sans)",
+                    textAlign: "center",
+                  }}
+                >
+                  L&apos;agent réfléchit...
+                </p>
+              )}
+
               {/* Help button */}
               <motion.button
                 whileTap={{ scale: 0.95 }}
+                disabled={sending}
                 onClick={() => setChatOpen((o) => !o)}
                 className="w-full rounded-xl py-1.5 mt-1"
                 style={{

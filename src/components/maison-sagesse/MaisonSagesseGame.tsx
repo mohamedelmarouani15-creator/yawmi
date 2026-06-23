@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useCallback, Suspense } from "react";
+import { useEffect, useRef, useCallback, useState, Suspense } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useProgress, Html } from "@react-three/drei";
 import { motion } from "framer-motion";
@@ -28,6 +28,23 @@ import LookZone from "./shared/LookZone";
 const SPEED       = 4.2;
 const PITCH_LIMIT = Math.PI / 2.8;
 
+// Chaque salle a sa propre géométrie (12×6×12 pour les quêtes, 20×8×16 pour
+// le hall) — la caméra doit être replacée et re-bornée à chaque changement
+// de phase, sinon elle reste à la position de la salle précédente et peut
+// se retrouver à l'extérieur des murs de la nouvelle salle.
+const ROOM_BOUNDS: Record<string, { x: number; z: number }> = {
+  "main-hall": { x: 9, z: 7 }, intro: { x: 9, z: 7 }, "code-lock": { x: 9, z: 7 },
+  victory: { x: 9, z: 7 }, failure: { x: 9, z: 7 },
+  "quest-faith": { x: 5.3, z: 5.3 }, "quest-science": { x: 5.3, z: 5.3 }, "quest-wisdom": { x: 5.3, z: 5.3 },
+};
+const SPAWN_POINTS: Record<string, { x: number; y: number; z: number; yaw: number }> = {
+  "main-hall": { x: 0, y: 1.7, z: 7, yaw: 0 }, intro: { x: 0, y: 1.7, z: 7, yaw: 0 },
+  "code-lock": { x: 0, y: 1.7, z: 7, yaw: 0 }, victory: { x: 0, y: 1.7, z: 7, yaw: 0 }, failure: { x: 0, y: 1.7, z: 7, yaw: 0 },
+  "quest-faith": { x: 0, y: 1.7, z: 5.5, yaw: 0 },
+  "quest-science": { x: 0, y: 1.7, z: 5.5, yaw: 0 },
+  "quest-wisdom": { x: 0, y: 1.7, z: 5.5, yaw: 0 },
+};
+
 // ── Tone mapping ──────────────────────────────────────────────
 function ToneMappingSetup() {
   const { gl } = useThree();
@@ -42,15 +59,27 @@ function ToneMappingSetup() {
 
 // ── Camera controller (FPS) ───────────────────────────────────
 interface CameraControllerProps {
+  phase:       GamePhase;
   joystickRef: React.MutableRefObject<{ x: number; y: number }>;
   yawRef:      React.MutableRefObject<number>;
   pitchRef:    React.MutableRefObject<number>;
 }
 
-function CameraController({ joystickRef, yawRef, pitchRef }: CameraControllerProps) {
+function CameraController({ phase, joystickRef, yawRef, pitchRef }: CameraControllerProps) {
   const { camera } = useThree();
   const velX = useRef(0);
   const velZ = useRef(0);
+
+  // Replace la caméra au point d'apparition de la salle à chaque changement de phase.
+  useEffect(() => {
+    const spawn = SPAWN_POINTS[phase] ?? SPAWN_POINTS["main-hall"];
+    camera.position.set(spawn.x, spawn.y, spawn.z);
+    yawRef.current = spawn.yaw;
+    pitchRef.current = -0.05;
+    velX.current = 0;
+    velZ.current = 0;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, camera]);
 
   // useFrame mute la caméra à chaque frame (60fps) — pattern imposé par r3f,
   // passer par du state React ici déclencherait un re-render par frame.
@@ -58,6 +87,7 @@ function CameraController({ joystickRef, yawRef, pitchRef }: CameraControllerPro
   useFrame((_, delta) => {
     const joy = joystickRef.current;
     const dt  = Math.min(delta, 0.1);
+    const bounds = ROOM_BOUNDS[phase] ?? ROOM_BOUNDS["main-hall"];
 
     let fx = 0, fz = 0;
 
@@ -80,8 +110,8 @@ function CameraController({ joystickRef, yawRef, pitchRef }: CameraControllerPro
     velZ.current += (fz * SPEED - velZ.current) * ACCEL * dt;
 
     // eslint-disable-next-line react-hooks/immutability
-    camera.position.x = Math.max(-9, Math.min(9, camera.position.x + velX.current * dt));
-    camera.position.z = Math.max(-7, Math.min(7, camera.position.z + velZ.current * dt));
+    camera.position.x = Math.max(-bounds.x, Math.min(bounds.x, camera.position.x + velX.current * dt));
+    camera.position.z = Math.max(-bounds.z, Math.min(bounds.z, camera.position.z + velZ.current * dt));
     camera.position.y = 1.7;
 
     camera.rotation.order = "YXZ";
@@ -125,7 +155,7 @@ function SceneSwitcher({
 }) {
   return (
     <>
-      <CameraController joystickRef={joystickRef} yawRef={yawRef} pitchRef={pitchRef} />
+      <CameraController phase={phase} joystickRef={joystickRef} yawRef={yawRef} pitchRef={pitchRef} />
 
       {(phase === "main-hall" || phase === "intro" || phase === "code-lock" || phase === "victory" || phase === "failure") && (
         <MainHall onPhaseChange={onPhaseChange} />
@@ -133,12 +163,29 @@ function SceneSwitcher({
       {phase === "quest-faith" && (
         <QuestFaith onConfirm={() => { onSolveEnigma("A"); onPhaseChange("main-hall"); }} />
       )}
-      {phase === "quest-science" && <QuestScience />}
+      {phase === "quest-science" && (
+        <QuestScience onConfirm={() => { onSolveEnigma("B"); onPhaseChange("main-hall"); }} />
+      )}
       {phase === "quest-wisdom" && (
-        <QuestWisdom onBookClick={() => { onSolveEnigma("C"); onPhaseChange("main-hall"); }} />
+        <QuestWisdom onConfirm={() => { onSolveEnigma("C"); onPhaseChange("main-hall"); }} />
       )}
     </>
   );
+}
+
+// Les zones tactiles (joystick/regard) couvrent tout l'écran et bloqueraient
+// les clics souris sur les objets 3D si elles restaient actives sur desktop.
+function isTouchCapable(): boolean {
+  if (typeof window === "undefined") return false;
+  return "ontouchstart" in window || navigator.maxTouchPoints > 0;
+}
+
+/** Tap (pas de drag) sur une zone tactile bloquante → relaie le clic à l'élément réel dessous. */
+function passthroughTap(zoneEl: HTMLElement, x: number, y: number) {
+  zoneEl.style.pointerEvents = "none";
+  const target = document.elementFromPoint(x, y);
+  zoneEl.style.pointerEvents = "auto";
+  target?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, clientX: x, clientY: y, view: window }));
 }
 
 // ── Main component ────────────────────────────────────────────
@@ -151,6 +198,13 @@ export function MaisonSagesseGame() {
   const enigmaA    = useMaisonSagesseStore((s) => s.enigmaA);
   const enigmaB    = useMaisonSagesseStore((s) => s.enigmaB);
   const enigmaC    = useMaisonSagesseStore((s) => s.enigmaC);
+
+  const [isTouchDevice, setIsTouchDevice] = useState(false);
+  useEffect(() => {
+    // Détection client-only — indisponible côté SSR.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIsTouchDevice(isTouchCapable());
+  }, []);
 
   // Refs joystick / caméra
   const joystickRef = useRef({ x: 0, y: 0 });
@@ -212,7 +266,7 @@ export function MaisonSagesseGame() {
         shadows
         gl={{ antialias: true, powerPreference: "high-performance" }}
         camera={{ fov: 60, near: 0.1, far: 100, position: [0, 1.7, 8] }}
-        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%", touchAction: "none" }}
       >
         <ambientLight intensity={0.3} color="#FFA040" />
         <directionalLight position={[5, 10, 5]} intensity={0.4} color="#FFD080"
@@ -241,11 +295,12 @@ export function MaisonSagesseGame() {
       {/* ── Dual-stick mobile (seulement en jeu) ── */}
       {inGame && (
         <>
-          {/* Zone gauche — mouvement */}
+          {/* Zone gauche — mouvement (inerte sur desktop pour laisser passer les clics) */}
           <div
             style={{
               position: "absolute", inset: 0, right: "50%",
               zIndex: 9, touchAction: "none",
+              pointerEvents: isTouchDevice ? "auto" : "none",
             }}
             onTouchStart={e => {
               const t = e.changedTouches[0];
@@ -253,6 +308,7 @@ export function MaisonSagesseGame() {
               el.dataset.sx = String(t.clientX);
               el.dataset.sy = String(t.clientY);
               el.dataset.id = String(t.identifier);
+              el.dataset.moved = "0";
             }}
             onTouchMove={e => {
               const el = e.currentTarget as HTMLElement;
@@ -263,15 +319,23 @@ export function MaisonSagesseGame() {
                 const MAX = 55;
                 const dx = Math.max(-MAX, Math.min(MAX, t.clientX - sx));
                 const dy = Math.max(-MAX, Math.min(MAX, t.clientY - sy));
+                if (Math.abs(t.clientX - sx) > 8 || Math.abs(t.clientY - sy) > 8) el.dataset.moved = "1";
                 joystickRef.current = { x: dx / MAX, y: -dy / MAX };
               }
               e.preventDefault();
             }}
-            onTouchEnd={() => { joystickRef.current = { x: 0, y: 0 }; }}
+            onTouchEnd={e => {
+              joystickRef.current = { x: 0, y: 0 };
+              const el = e.currentTarget as HTMLElement;
+              if (el.dataset.moved !== "1") {
+                const t = e.changedTouches[0];
+                passthroughTap(el, t.clientX, t.clientY);
+              }
+            }}
             onTouchCancel={() => { joystickRef.current = { x: 0, y: 0 }; }}
           />
           {/* Zone droite — regard */}
-          <LookZone onChange={handleLook} />
+          <LookZone onChange={handleLook} isTouchDevice={isTouchDevice} />
         </>
       )}
 

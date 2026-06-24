@@ -42,3 +42,6 @@ next-env.d.ts
 
 # graphify (knowledge-graph tool output)
 /graphify-out/
+
+# escape-game prop generator: regenerable parchment texture cache
+escape-game/props/_build/

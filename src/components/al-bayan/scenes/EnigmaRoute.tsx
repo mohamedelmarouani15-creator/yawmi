@@ -6,18 +6,21 @@ import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import AmbientParticles from "../../maison-sagesse/shared/AmbientParticles";
+import Hud3DLabel from "../shared/Hud3DLabel";
 import { CITY_CANDIDATES, REQUIRED_CITIES } from "@/lib/al-bayan/puzzle-logic";
 
-// Positions des villes sur la carte (table au centre de la salle)
+// Positions des villes sur la carte (table au centre de la salle). Écartées
+// (×1.3 vs disposition initiale) pour laisser de la place aux bulles
+// d'étiquette HTML sans qu'elles ne se chevauchent entre villes voisines.
 const CITY_POSITIONS: Record<string, [number, number]> = {
-  medine:    [0, 0.3],
-  bassora:   [1.6, -0.7],
-  koufa:     [1.2, 0.9],
-  damas:     [0.4, 1.6],
-  le_caire:  [-1.6, -0.5],
-  bahrein:   [2.2, 0.2],
-  yemen:     [0.8, -1.7],
-  jerusalem: [-0.8, 1.4],
+  medine:    [0, 0.39],
+  bassora:   [2.08, -0.91],
+  koufa:     [1.56, 1.17],
+  damas:     [0.52, 2.08],
+  le_caire:  [-2.08, -0.65],
+  bahrein:   [2.86, 0.26],
+  yemen:     [1.04, -2.21],
+  jerusalem: [-1.04, 1.82],
 };
 
 interface CityNodeProps {
@@ -50,11 +53,9 @@ function CityNode({ name, active, position, onToggle }: CityNodeProps) {
         <cylinderGeometry args={[0.18, 0.18, 0.06, 16]} />
         <meshStandardMaterial ref={matRef} color={active ? "#34d399" : "#8B6914"} emissive={active ? "#34d399" : "#C8A84B"} emissiveIntensity={0.2} roughness={0.5} metalness={0.6} />
       </mesh>
-      <Html position={[0, 0.25, 0]} center>
-        <span style={{ fontSize: 9, color: active ? "#34d399" : "rgba(248,244,236,0.65)", fontFamily: "var(--font-dm-sans)", fontWeight: active ? 800 : 600, whiteSpace: "nowrap", pointerEvents: "none" }}>
-          {active ? "✓ " : ""}{name}
-        </span>
-      </Html>
+      <Hud3DLabel position={[0, 0.3, 0]} variant="tag" accent={active ? "#34d399" : undefined}>
+        {active ? "✓ " : ""}{name}
+      </Hud3DLabel>
     </group>
   );
 }
@@ -92,7 +93,6 @@ interface EnigmaRouteProps {
 }
 
 export default function EnigmaRoute({ onConfirm }: EnigmaRouteProps) {
-  const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#0E1A14", roughness: 0.92 }), []);
   const [activated, setActivated] = useState<Set<string>>(new Set());
   const [feedback, setFeedback] = useState<string | null>(null);
 
@@ -117,22 +117,17 @@ export default function EnigmaRoute({ onConfirm }: EnigmaRouteProps) {
     }
   };
 
+  // Pas de murs/sol propres ici : le Sanctuaire (zone dédiée) les fournit
+  // désormais — cf. zones/Sanctuaire.tsx.
   return (
     <group>
-      <ambientLight color="#0a1410" intensity={0.35} />
-      <pointLight color="#34d399" intensity={1.4} distance={14} decay={1.6} position={[0, 5, 0]} />
-
-      <mesh position={[0, 3, -6]} receiveShadow castShadow><boxGeometry args={[12, 6, 0.25]} /><primitive object={wallMat} attach="material" /></mesh>
-      <mesh position={[0, 3, 6]} receiveShadow castShadow><boxGeometry args={[12, 6, 0.25]} /><primitive object={wallMat} attach="material" /></mesh>
-      <mesh position={[-6, 3, 0]} receiveShadow castShadow><boxGeometry args={[0.25, 6, 12]} /><primitive object={wallMat} attach="material" /></mesh>
-      <mesh position={[6, 3, 0]} receiveShadow castShadow><boxGeometry args={[0.25, 6, 12]} /><primitive object={wallMat} attach="material" /></mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[12, 12]} /><meshStandardMaterial color="#0A1410" roughness={0.7} /></mesh>
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 6, 0]}><planeGeometry args={[12, 12]} /><meshStandardMaterial color="#060A08" roughness={0.95} /></mesh>
-
       <MapTable activated={activated} onToggleCity={toggleCity} />
 
       <Html position={[0, 3.3, -2]} center>
-        <div className="flex flex-col items-center gap-1">
+        <div
+          className="flex flex-col items-center gap-2"
+          style={{ background: "rgba(6,8,6,0.6)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", border: "1px solid rgba(52,211,153,0.25)", borderRadius: 14, padding: "10px 14px" }}
+        >
           <button
             onClick={handleConfirm}
             style={{ pointerEvents: "auto", background: "linear-gradient(135deg,#1a7a4f,#34d399)", border: "1px solid rgba(52,211,153,0.7)", color: "#0A0F0D", fontFamily: "var(--font-dm-sans)", fontWeight: 800, fontSize: 11, borderRadius: 10, padding: "8px 16px", cursor: "pointer" }}
@@ -140,7 +135,7 @@ export default function EnigmaRoute({ onConfirm }: EnigmaRouteProps) {
             Sceller la route ({activated.size} ville{activated.size > 1 ? "s" : ""})
           </button>
           {feedback && (
-            <span style={{ fontSize: 10, color: "#f87171", fontFamily: "var(--font-dm-sans)", fontWeight: 700, textShadow: "0 0 8px rgba(0,0,0,0.8)" }}>
+            <span style={{ fontSize: 10, color: "#f87171", fontFamily: "var(--font-dm-sans)", fontWeight: 700, whiteSpace: "nowrap" }}>
               {feedback}
             </span>
           )}

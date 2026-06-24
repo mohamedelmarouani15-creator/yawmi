@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useMemo, useState } from "react";
+import { useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import { AnimatePresence } from "framer-motion";
 import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import AmbientParticles from "../../maison-sagesse/shared/AmbientParticles";
+import Hud3DLabel from "../shared/Hud3DLabel";
 import RasmOverlay from "../ui/RasmOverlay";
 
 // Manuscrit central — examiner pour ouvrir l'overlay de points
@@ -46,16 +47,7 @@ function ManuscriptTable({ onExamine }: { onExamine: () => void }) {
         <planeGeometry args={[1.7, 1.1]} />
         <meshStandardMaterial ref={matRef} color="#D4B896" emissive="#60a5fa" emissiveIntensity={0.2} roughness={0.85} />
       </mesh>
-      <Html position={[0, -0.26, 0]} center>
-        <span style={{ fontSize: 16, color: "#1C2840", fontFamily: "serif", whiteSpace: "nowrap", pointerEvents: "none", direction: "rtl" }}>
-          ـ​ـ​ـ​ـ​ـ​ـ​ـ
-        </span>
-      </Html>
-      <Html position={[0, -0.05, 0.6]} center>
-        <span style={{ fontSize: 9, color: "#60a5fa", fontFamily: "var(--font-dm-sans)", fontWeight: 700, whiteSpace: "nowrap", pointerEvents: "none" }}>
-          Examiner le manuscrit
-        </span>
-      </Html>
+      <Hud3DLabel position={[0, 0.18, 0.65]} variant="title" accent="#60a5fa">Examiner le manuscrit</Hud3DLabel>
     </group>
   );
 }
@@ -65,21 +57,12 @@ interface EnigmaRasmProps {
 }
 
 export default function EnigmaRasm({ onConfirm }: EnigmaRasmProps) {
-  const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#0A0E18", roughness: 0.95 }), []);
   const [showOverlay, setShowOverlay] = useState(false);
 
+  // Pas de murs/sol propres ici : le Scriptorium (zone dédiée) les fournit
+  // désormais — cf. zones/Scriptorium.tsx.
   return (
     <group>
-      <ambientLight color="#060810" intensity={0.35} />
-      <pointLight color="#60a5fa" intensity={1.4} distance={14} decay={1.6} position={[0, 5, 0]} />
-
-      <mesh position={[0, 3, -6]} receiveShadow castShadow><boxGeometry args={[12, 6, 0.25]} /><primitive object={wallMat} attach="material" /></mesh>
-      <mesh position={[0, 3, 6]} receiveShadow castShadow><boxGeometry args={[12, 6, 0.25]} /><primitive object={wallMat} attach="material" /></mesh>
-      <mesh position={[-6, 3, 0]} receiveShadow castShadow><boxGeometry args={[0.25, 6, 12]} /><primitive object={wallMat} attach="material" /></mesh>
-      <mesh position={[6, 3, 0]} receiveShadow castShadow><boxGeometry args={[0.25, 6, 12]} /><primitive object={wallMat} attach="material" /></mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[12, 12]} /><meshStandardMaterial color="#080B14" roughness={0.7} /></mesh>
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 6, 0]}><planeGeometry args={[12, 12]} /><meshStandardMaterial color="#04060A" roughness={0.95} /></mesh>
-
       <ManuscriptTable onExamine={() => setShowOverlay(true)} />
 
       <CandleLight position={[-4.5, 0.4, -4.5]} intensity={1.0} />

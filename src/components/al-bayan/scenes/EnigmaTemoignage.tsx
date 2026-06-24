@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useMemo, useState } from "react";
+import { useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
 import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import AmbientParticles from "../../maison-sagesse/shared/AmbientParticles";
+import Hud3DLabel from "../shared/Hud3DLabel";
 import { WITNESS_CANDIDATES, RECIT_CHEVAL, REQUIRED_WEIGHT } from "@/lib/al-bayan/puzzle-logic";
 
 const TABLET_POSITIONS: Record<string, [number, number, number]> = {
@@ -40,11 +41,7 @@ function HorseRecitObject({ onExamine }: { onExamine: () => void }) {
         <boxGeometry args={[0.7, 0.5, 0.06]} />
         <meshStandardMaterial ref={matRef} color="#5C3D1A" emissive="#C8A84B" emissiveIntensity={0.25} roughness={0.8} />
       </mesh>
-      <Html position={[0, 0.42, 0.04]} center>
-        <span style={{ fontSize: 9, color: "#D4AF37", fontFamily: "var(--font-dm-sans)", fontWeight: 700, whiteSpace: "nowrap", pointerEvents: "none" }}>
-          📜 Le Récit du Cheval
-        </span>
-      </Html>
+      <Hud3DLabel position={[0, 0.46, 0.04]} variant="title">📜 Le Récit du Cheval</Hud3DLabel>
     </group>
   );
 }
@@ -117,16 +114,10 @@ function WitnessTablet({ name, arabic, position, placed, onClick }: WitnessTable
           metalness={placed ? 0.4 : 0.1}
         />
       </mesh>
-      <Html position={[0, 0, 0.05]} center>
-        <span style={{ fontSize: 14, color: placed ? "#0A0F0D" : "#D4AF37", fontFamily: "serif", whiteSpace: "nowrap", pointerEvents: "none", direction: "rtl" }}>
-          {arabic}
-        </span>
-      </Html>
-      <Html position={[0, -0.42, 0.05]} center>
-        <span style={{ fontSize: 8, color: "rgba(248,244,236,0.6)", fontFamily: "var(--font-dm-sans)", whiteSpace: "nowrap", pointerEvents: "none" }}>
-          {name}
-        </span>
-      </Html>
+      <Hud3DLabel position={[0, 0.34, 0.05]} variant="tag" accent={placed ? "#D4AF37" : undefined}>
+        <span style={{ fontSize: 15, fontFamily: "serif", direction: "rtl" }}>{arabic}</span>
+      </Hud3DLabel>
+      <Hud3DLabel position={[0, -0.46, 0.05]} variant="tag">{name}</Hud3DLabel>
     </group>
   );
 }
@@ -175,11 +166,7 @@ function BalanceScale({ weight, onConfirm, feedback }: { weight: 0 | 1 | 2; onCo
             <boxGeometry args={[0.5, 0.04, 0.35]} />
             <meshStandardMaterial color="#D4B896" roughness={0.85} />
           </mesh>
-          <Html position={[0, 0.18, 0]} center>
-            <span style={{ fontSize: 8, color: "#D4AF37", fontFamily: "var(--font-dm-sans)", fontWeight: 700, whiteSpace: "nowrap", pointerEvents: "none" }}>
-              At-Tawba 128-129
-            </span>
-          </Html>
+          <Hud3DLabel position={[0, 0.22, 0]} variant="tag" accent="#D4AF37">At-Tawba 128-129</Hud3DLabel>
         </group>
 
         {/* Plateau droit — témoin */}
@@ -189,17 +176,18 @@ function BalanceScale({ weight, onConfirm, feedback }: { weight: 0 | 1 | 2; onCo
             <cylinderGeometry args={[0.45, 0.45, 0.06, 16]} />
             <meshStandardMaterial color="#8B6914" roughness={0.4} metalness={0.7} />
           </mesh>
-          <Html position={[0, 0.18, 0]} center>
-            <span style={{ fontSize: 8, color: weight >= REQUIRED_WEIGHT ? "#34d399" : "rgba(248,244,236,0.5)", fontFamily: "var(--font-dm-sans)", fontWeight: 700, whiteSpace: "nowrap", pointerEvents: "none" }}>
-              Poids : {weight}/2
-            </span>
-          </Html>
+          <Hud3DLabel position={[0, 0.22, 0]} variant="tag" accent={weight >= REQUIRED_WEIGHT ? "#34d399" : undefined}>
+            Poids : {weight}/2
+          </Hud3DLabel>
         </group>
       </group>
 
       {/* Confirmation */}
-      <Html position={[0, -0.6, 0.8]} center>
-        <div className="flex flex-col items-center gap-1">
+      <Html position={[0, -0.75, 0.8]} center>
+        <div
+          className="flex flex-col items-center gap-2"
+          style={{ background: "rgba(6,8,6,0.6)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 14, padding: "10px 14px" }}
+        >
           <button
             onClick={onConfirm}
             style={{ pointerEvents: "auto", background: "linear-gradient(135deg,#7a5c1a,#D4AF37)", border: "1px solid rgba(212,175,55,0.7)", color: "#0A0F0D", fontFamily: "var(--font-dm-sans)", fontWeight: 800, fontSize: 11, borderRadius: 10, padding: "8px 16px", cursor: "pointer" }}
@@ -207,7 +195,7 @@ function BalanceScale({ weight, onConfirm, feedback }: { weight: 0 | 1 | 2; onCo
             Sceller le jugement
           </button>
           {feedback && (
-            <span style={{ fontSize: 10, color: "#f87171", fontFamily: "var(--font-dm-sans)", fontWeight: 700, textShadow: "0 0 8px rgba(0,0,0,0.8)" }}>
+            <span style={{ fontSize: 10, color: "#f87171", fontFamily: "var(--font-dm-sans)", fontWeight: 700, whiteSpace: "nowrap" }}>
               {feedback}
             </span>
           )}
@@ -222,7 +210,6 @@ interface EnigmaTemoignageProps {
 }
 
 export default function EnigmaTemoignage({ onConfirm }: EnigmaTemoignageProps) {
-  const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#1A1208", roughness: 0.92 }), []);
   const [placedWitnessId, setPlacedWitnessId] = useState<string | null>(null);
   const [showRecit, setShowRecit] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -239,19 +226,14 @@ export default function EnigmaTemoignage({ onConfirm }: EnigmaTemoignageProps) {
     }
   };
 
+  // Pas de murs/sol propres ici : la Cour du Témoignage (zone dédiée) les
+  // fournit désormais — cf. zones/CourTemoignage.tsx.
   return (
     <group>
-      <ambientLight color="#1a1408" intensity={0.32} />
-      <pointLight color="#D4AF37" intensity={1.6} distance={14} decay={1.5} position={[0, 5, 0]} castShadow />
-
-      <mesh position={[0, 3, -6]} receiveShadow castShadow><boxGeometry args={[12, 6, 0.25]} /><primitive object={wallMat} attach="material" /></mesh>
-      <mesh position={[0, 3, 6]} receiveShadow castShadow><boxGeometry args={[12, 6, 0.25]} /><primitive object={wallMat} attach="material" /></mesh>
-      <mesh position={[-6, 3, 0]} receiveShadow castShadow><boxGeometry args={[0.25, 6, 12]} /><primitive object={wallMat} attach="material" /></mesh>
-      <mesh position={[6, 3, 0]} receiveShadow castShadow><boxGeometry args={[0.25, 6, 12]} /><primitive object={wallMat} attach="material" /></mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow><planeGeometry args={[12, 12]} /><meshStandardMaterial color="#120D08" roughness={0.7} /></mesh>
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 6, 0]}><planeGeometry args={[12, 12]} /><meshStandardMaterial color="#0A0600" roughness={0.95} /></mesh>
-
-      <BalanceScale weight={weight} onConfirm={handleConfirm} feedback={feedback} />
+      {/* Échelle agrandie : "immense balance de justice en bronze doré" sur l'autel. */}
+      <group scale={1.5}>
+        <BalanceScale weight={weight} onConfirm={handleConfirm} feedback={feedback} />
+      </group>
 
       {WITNESS_CANDIDATES.map((w) => (
         <WitnessTablet
@@ -267,8 +249,8 @@ export default function EnigmaTemoignage({ onConfirm }: EnigmaTemoignageProps) {
 
       <HorseRecitObject onExamine={() => setShowRecit(true)} />
 
-      <CandleLight position={[-4.5, 0.4, -4.5]} intensity={1.0} />
-      <CandleLight position={[4.5, 0.4, -4.5]} intensity={1.0} />
+      <CandleLight position={[-4.5, 0.4, -4.5]} intensity={1.3} />
+      <CandleLight position={[4.5, 0.4, -4.5]} intensity={1.3} />
       <AmbientParticles />
 
       <AnimatePresence>

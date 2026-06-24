@@ -265,7 +265,10 @@ export function MaisonSagesseGame() {
     >
       {/* ── 3D Canvas plein écran ── */}
       <Canvas
-        shadows
+        // "percentage" = THREE.PCFShadowMap. shadows={true} demande à r3f
+        // le PCFSoftShadowMap historique, que three.js a déprécié (warning
+        // console à chaque frame) en faveur de PCFShadowMap.
+        shadows="percentage"
         dpr={[1, 1.5]}
         gl={{ antialias: true, powerPreference: "high-performance" }}
         camera={{ fov: 60, near: 0.1, far: 100, position: [0, 1.7, 8] }}

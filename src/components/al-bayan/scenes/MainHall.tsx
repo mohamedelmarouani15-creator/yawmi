@@ -2,7 +2,7 @@
 
 import { useRef, useMemo, useState } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Html, Stars, MeshReflectorMaterial } from "@react-three/drei";
+import { Html, Stars } from "@react-three/drei";
 import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import AmbientParticles from "../../maison-sagesse/shared/AmbientParticles";
@@ -122,21 +122,14 @@ export default function MainHall({ onOpenTemoignage, onOpenRasm, onOpenRoute }: 
         <meshBasicMaterial color="#D4AF37" wireframe transparent opacity={0.25} />
       </mesh>
 
-      {/* Sol miroir — vrai reflet de l'avatar et des étagères, façon
-          bibliothèque surréaliste. */}
+      {/* Sol vernis sombre — MeshReflectorMaterial re-rendait toute la
+          scène dans une render target chaque frame pour le reflet réel,
+          un coût GPU/mobile énorme (effondrement à ~2-3 FPS observé en
+          vérification). meshStandardMaterial + metalness/roughness donne
+          un aspect sombre et brillant similaire, sans la passe de reflet. */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[W, D]} />
-        <MeshReflectorMaterial
-          blur={[0, 0]}
-          resolution={1024}
-          mixBlur={0}
-          mixStrength={1.4}
-          roughness={0.05}
-          depthScale={0}
-          color="#0B0F16"
-          metalness={0.6}
-          mirror={1}
-        />
+        <meshStandardMaterial color="#090d16" roughness={0.15} metalness={0.8} />
       </mesh>
       {/* Plafond très haut et sombre — se perd dans le noir, jamais
           vraiment vu, pour laisser les étagères grimper sans limite visible. */}

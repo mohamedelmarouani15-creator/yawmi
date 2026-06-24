@@ -42,21 +42,35 @@ export default function IslamicArch({
     const overhang = outerR * 0.18; // how far below spring-line the arch bulges
     shape.absarc(0, springH - overhang, outerR, Math.PI, 0, true);
 
-    // Outer right top to bottom
+    // Outer right top to bottom, then close back to the start. The outer
+    // silhouette is a plain rectangle-plus-arch frame — it must never visit
+    // the inner-wall points (hw, 0) / (hw, springH); those belong only to
+    // the hole below. Routing the outer path through them first (as the
+    // previous version did) skipped the actual bottom-right corner and
+    // closed with one giant diagonal cutting across the whole arch — the
+    // very same "diagonal beam" artifact, this time from the OUTER shape
+    // rather than the hole.
     shape.lineTo(hw + wallT, 0);
-    // Bottom right
-    shape.lineTo(hw, 0);
-    // Inner right up to spring
-    shape.lineTo(hw, springH);
 
     // Inner horseshoe arc (cutout) — smaller radius
     const innerR = hw;
-    const innerOverhang = innerR * 0.18;
-    // We need to go right to left for the inner arc (hole)
+    const innerCenterY = springH - innerR * 0.18;
+    // We need to go right to left for the inner arc (hole). A THREE.Path's
+    // moveTo() only sets the current point — it does NOT itself draw a
+    // segment. Since absarc() starts its own curve at (hw, innerCenterY),
+    // not at this moveTo's (hw, springH), that first segment must be drawn
+    // explicitly, and the loop must be closed explicitly too: otherwise
+    // Earcut closes it automatically by jumping straight from the path's
+    // last point (-hw, 0) back to its first sampled point — a long
+    // diagonal slicing clean across the arch opening (the "diagonal beam"
+    // artifact visible from the main hall).
     const holePath = new THREE.Path();
     holePath.moveTo(hw, springH);
-    holePath.absarc(0, springH - innerOverhang, innerR, 0, Math.PI, false);
+    holePath.lineTo(hw, innerCenterY);
+    holePath.absarc(0, innerCenterY, innerR, 0, Math.PI, false);
     holePath.lineTo(-hw, 0);
+    holePath.lineTo(hw, 0);
+    holePath.lineTo(hw, springH);
     shape.holes.push(holePath);
 
     // Continue outer: left bottom

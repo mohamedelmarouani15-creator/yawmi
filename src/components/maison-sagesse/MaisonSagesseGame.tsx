@@ -8,6 +8,7 @@ import * as THREE from "three";
 
 import { useMaisonSagesseStore } from "@/lib/maison-sagesse/game-store";
 import type { GamePhase } from "@/lib/maison-sagesse/types";
+import { dispatchPassthroughTap } from "@/lib/touch-passthrough";
 
 import MainHall from "./scenes/MainHall";
 import QuestFaith from "./scenes/QuestFaith";
@@ -27,6 +28,13 @@ import LookZone from "./shared/LookZone";
 // ── Constantes navigation ─────────────────────────────────────
 const SPEED       = 4.2;
 const PITCH_LIMIT = Math.PI / 2.8;
+
+// Vecteurs de calcul réutilisés à chaque frame par CameraController — évite
+// d'allouer 2-3 THREE.Vector3 par frame pendant les frames où le joystick
+// est actif (la latence du joystick est sensible au jitter du GC).
+const UP_AXIS   = new THREE.Vector3(0, 1, 0);
+const _camFwd   = new THREE.Vector3();
+const _camRight = new THREE.Vector3();
 
 // Chaque salle a sa propre géométrie (12×6×12 pour les quêtes, 20×8×16 pour
 // le hall) — la caméra doit être replacée et re-bornée à chaque changement
@@ -92,14 +100,12 @@ function CameraController({ phase, joystickRef, yawRef, pitchRef }: CameraContro
     let fx = 0, fz = 0;
 
     if (joy.x !== 0 || joy.y !== 0) {
-      const fwd = new THREE.Vector3();
-      camera.getWorldDirection(fwd);
-      fwd.y = 0;
-      fwd.normalize();
-      const rgt = new THREE.Vector3();
-      rgt.crossVectors(fwd, new THREE.Vector3(0, 1, 0));
-      fx += fwd.x * joy.y + rgt.x * joy.x;
-      fz += fwd.z * joy.y + rgt.z * joy.x;
+      camera.getWorldDirection(_camFwd);
+      _camFwd.y = 0;
+      _camFwd.normalize();
+      _camRight.crossVectors(_camFwd, UP_AXIS);
+      fx += _camFwd.x * joy.y + _camRight.x * joy.x;
+      fz += _camFwd.z * joy.y + _camRight.z * joy.x;
     }
 
     const len = Math.sqrt(fx * fx + fz * fz);
@@ -180,13 +186,8 @@ function isTouchCapable(): boolean {
   return "ontouchstart" in window || navigator.maxTouchPoints > 0;
 }
 
-/** Tap (pas de drag) sur une zone tactile bloquante → relaie le clic à l'élément réel dessous. */
-function passthroughTap(zoneEl: HTMLElement, x: number, y: number) {
-  zoneEl.style.pointerEvents = "none";
-  const target = document.elementFromPoint(x, y);
-  zoneEl.style.pointerEvents = "auto";
-  target?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, clientX: x, clientY: y, view: window }));
-}
+// Voir src/lib/touch-passthrough.ts pour pourquoi un simple clic de
+// synthèse ne suffit pas à ouvrir un portail 3D.
 
 // ── Main component ────────────────────────────────────────────
 export function MaisonSagesseGame() {
@@ -265,6 +266,7 @@ export function MaisonSagesseGame() {
       {/* ── 3D Canvas plein écran ── */}
       <Canvas
         shadows
+        dpr={[1, 1.5]}
         gl={{ antialias: true, powerPreference: "high-performance" }}
         camera={{ fov: 60, near: 0.1, far: 100, position: [0, 1.7, 8] }}
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", touchAction: "none" }}
@@ -323,14 +325,19 @@ export function MaisonSagesseGame() {
                 if (Math.abs(t.clientX - sx) > 8 || Math.abs(t.clientY - sy) > 8) el.dataset.moved = "1";
                 joystickRef.current = { x: dx / MAX, y: -dy / MAX };
               }
-              e.preventDefault();
+              // Pas de e.preventDefault() ici : ce conteneur a déjà
+              // touch-action: "none" en CSS, qui bloque le scroll/zoom du
+              // navigateur sans passer par le JS. React attache ce handler
+              // en mode passif, donc preventDefault() y échoue silencieusement
+              // et le navigateur log un avertissement à chaque mouvement —
+              // CSS suffit, ce call était redondant et inopérant.
             }}
             onTouchEnd={e => {
               joystickRef.current = { x: 0, y: 0 };
               const el = e.currentTarget as HTMLElement;
               if (el.dataset.moved !== "1") {
                 const t = e.changedTouches[0];
-                passthroughTap(el, t.clientX, t.clientY);
+                dispatchPassthroughTap(t.clientX, t.clientY);
               }
             }}
             onTouchCancel={() => { joystickRef.current = { x: 0, y: 0 }; }}

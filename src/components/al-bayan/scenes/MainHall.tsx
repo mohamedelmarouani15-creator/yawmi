@@ -73,11 +73,14 @@ function DoorwayPortal({ position, glowColor, arabicLabel, frenchLabel, onOpen }
 function OctagonalColumn({ position }: { position: [number, number, number] }) {
   const stoneMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#5C4A38", roughness: 0.88 }), []);
   const accentMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#7A6450", roughness: 0.8 }), []);
+  const baseGeo = useMemo(() => new THREE.CylinderGeometry(0.36, 0.42, 0.25, 8), []);
+  const shaftGeo = useMemo(() => new THREE.CylinderGeometry(0.28, 0.3, H - 0.4, 8), []);
+  const capGeo = useMemo(() => new THREE.CylinderGeometry(0.4, 0.28, 0.3, 8), []);
   return (
     <group position={position}>
-      <mesh geometry={new THREE.CylinderGeometry(0.36, 0.42, 0.25, 8)} material={accentMat} position={[0, 0.125, 0]} castShadow receiveShadow />
-      <mesh geometry={new THREE.CylinderGeometry(0.28, 0.3, H - 0.4, 8)} material={stoneMat} position={[0, H / 2, 0]} castShadow receiveShadow />
-      <mesh geometry={new THREE.CylinderGeometry(0.4, 0.28, 0.3, 8)} material={accentMat} position={[0, H - 0.15, 0]} castShadow receiveShadow />
+      <mesh geometry={baseGeo} material={accentMat} position={[0, 0.125, 0]} castShadow receiveShadow />
+      <mesh geometry={shaftGeo} material={stoneMat} position={[0, H / 2, 0]} castShadow receiveShadow />
+      <mesh geometry={capGeo} material={accentMat} position={[0, H - 0.15, 0]} castShadow receiveShadow />
     </group>
   );
 }

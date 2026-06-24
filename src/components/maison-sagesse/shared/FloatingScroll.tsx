@@ -39,9 +39,10 @@ export default function FloatingScroll({
     // Slow Z-axis spin
     group.rotation.y = rotation[1] + t * 0.25;
 
-    // Hover scale
+    // Hover scale (uniform, so a scalar lerp avoids allocating a Vector3
+    // every frame for every FloatingScroll instance in the scene)
     const targetScale = onClick && hovered ? 1.15 : 1;
-    group.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.1);
+    group.scale.setScalar(THREE.MathUtils.lerp(group.scale.x, targetScale, 0.1));
 
     // Glow flicker
     if (glowRef.current) {

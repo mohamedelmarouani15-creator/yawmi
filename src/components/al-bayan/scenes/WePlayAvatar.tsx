@@ -83,11 +83,13 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
       if (joy.x !== 0 || joy.y !== 0) {
         const yaw = yawRef.current;
         // Déplacement relatif à la direction du regard (yaw), comme une
-        // marche en 3e personne classique.
-        const fwd = new THREE.Vector3(Math.sin(yaw), 0, Math.cos(yaw));
-        const rgt = new THREE.Vector3(Math.cos(yaw), 0, -Math.sin(yaw));
-        const moveX = fwd.x * joy.y + rgt.x * joy.x;
-        const moveZ = fwd.z * joy.y + rgt.z * joy.x;
+        // marche en 3e personne classique. Calcul scalaire direct (sin/cos)
+        // plutôt que des THREE.Vector3 — évite deux allocations par frame
+        // pendant exactement les frames où le joystick est actif.
+        const sinYaw = Math.sin(yaw);
+        const cosYaw = Math.cos(yaw);
+        const moveX = sinYaw * joy.y + cosYaw * joy.x;
+        const moveZ = cosYaw * joy.y - sinYaw * joy.x;
         const len = Math.sqrt(moveX * moveX + moveZ * moveZ) || 1;
 
         group.position.x = THREE.MathUtils.clamp(group.position.x + (moveX / len) * speed * dt, -bounds.x, bounds.x);

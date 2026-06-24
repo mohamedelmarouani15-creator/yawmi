@@ -125,17 +125,16 @@ export default function CandleLight({ position, intensity = 1.5 }: CandleLightPr
       <group position={[0, 0.14, 0]}>
         <FlameMesh />
         {/* Warm glow point light */}
+        {/* No castShadow: a shadow-casting point light per candle (6-7 per
+            scene) means 6-7 extra shadow-map render passes every frame —
+            the single biggest mobile GPU/heat cost in this scene. The
+            directional light's shadow already grounds the room. */}
         <pointLight
           ref={lightRef}
           color="#FFA040"
           intensity={intensity}
           distance={5}
           decay={2}
-          castShadow
-          shadow-mapSize-width={256}
-          shadow-mapSize-height={256}
-          shadow-camera-near={0.1}
-          shadow-camera-far={6}
         />
       </group>
     </group>

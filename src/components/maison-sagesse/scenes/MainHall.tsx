@@ -308,6 +308,9 @@ function VaultedCeiling() {
     return geo;
   }, []);
 
+  // Shared by all 6 ceiling medallions below — one geometry, six meshes.
+  const medallionGeo = useMemo(() => new THREE.TorusGeometry(0.6, 0.08, 4, 8), []);
+
   // Arabesque band boxes around the ceiling perimeter
   const bandPositions = useMemo(() => {
     const count = 20;
@@ -344,7 +347,7 @@ function VaultedCeiling() {
         return (
           <mesh
             key={i}
-            geometry={new THREE.TorusGeometry(0.6, 0.08, 4, 8)}
+            geometry={medallionGeo}
             material={arabesqueMat}
             position={[Math.cos(angle) * r, H - 0.05, Math.sin(angle) * r]}
             rotation={[Math.PI / 2, 0, angle]}

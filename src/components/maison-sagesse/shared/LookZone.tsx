@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useEffect, useCallback } from "react";
+import { dispatchPassthroughTap } from "@/lib/touch-passthrough";
 
 interface Props {
   onChange: (dx: number, dy: number) => void;
@@ -65,12 +66,9 @@ export default function LookZone({ onChange, isTouchDevice }: Props) {
           touchId.current = null;
           isDragging.current = false;
           showDot(0, 0, false);
-          if (!wasDragging) {
-            el!.style.pointerEvents = "none";
-            const target = document.elementFromPoint(t.clientX, t.clientY);
-            el!.style.pointerEvents = "auto";
-            target?.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, clientX: t.clientX, clientY: t.clientY, view: window }));
-          }
+          // Voir src/lib/touch-passthrough.ts pour pourquoi un simple clic
+          // de synthèse ne suffit pas à ouvrir un portail 3D.
+          if (!wasDragging) dispatchPassthroughTap(t.clientX, t.clientY);
           break;
         }
       }

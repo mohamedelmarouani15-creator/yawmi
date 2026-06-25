@@ -6,6 +6,7 @@ import * as THREE from "three";
 
 import { useAlBayanStore } from "@/lib/al-bayan/game-store";
 import { dispatchPassthroughTap } from "@/lib/touch-passthrough";
+import { ISO_YAW_DEFAULT } from "@/lib/al-bayan/iso-camera";
 
 import IntroScreen from "@/components/al-bayan/ui/IntroScreen";
 import AlBayanWorld from "@/components/al-bayan/world/AlBayanWorld";
@@ -58,7 +59,7 @@ export default function AlBayanPage() {
   }, []);
 
   const joystickRef = useRef({ x: 0, y: 0 });
-  const yawRef = useRef(0);
+  const yawRef = useRef(ISO_YAW_DEFAULT);
   const avatarRef = useRef<THREE.Group>(null);
 
   // Lock orientation paysage sur mobile

@@ -83,13 +83,15 @@ Limb.displayName = "Limb";
  * à l'arrêt. Le déplacement réel reste piloté par le joystick brut pour
  * rester réactif ; seule l'habillage visuel (bob/tilt/balancement) est amorti.
  *
- * Contrôles (monde ouvert isométrique) :
+ * Contrôles (monde ouvert isométrique, caméra orbitale) :
  * - le déplacement (joystickRef) est projeté dans le repère écran de la
- *   caméra isométrique FIXE (`projectJoystickToWorld`), plus jamais relatif
- *   au yaw de l'avatar — pousser à gauche va à l'écran-gauche quelle que
- *   soit l'orientation du personnage.
- * - l'orientation visuelle (rotation.y du groupe externe) vient
- *   exclusivement de `yawRef`, piloté par le pouce droit (zone tactile droite, page.tsx).
+ *   caméra avec le yaw d'orbite COURANT (`projectJoystickToWorld(...,
+ *   yawRef.current)`) — pousser vers le haut va toujours vers le fond de
+ *   l'écran, quel que soit l'angle d'orbite actuel.
+ * - l'orientation visuelle (rotation.y du groupe externe) vient du même
+ *   `yawRef`, piloté par le pouce droit (zone tactile droite, page.tsx),
+ *   qui fait aussi tourner la caméra (cf. AlBayanWorld.tsx) — caméra et
+ *   avatar tournent ensemble.
  */
 const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
   ({ joystickRef, yawRef, speed = 4, bounds }, ref) => {
@@ -169,7 +171,7 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
       const joy = joystickRef.current;
       const dt = Math.min(delta, 0.1);
 
-      const { x: moveX, z: moveZ } = projectJoystickToWorld(joy.x, joy.y);
+      const { x: moveX, z: moveZ } = projectJoystickToWorld(joy.x, joy.y, yawRef.current);
       const rawLen = Math.hypot(moveX, moveZ);
       const mag = Math.min(1, rawLen);
 

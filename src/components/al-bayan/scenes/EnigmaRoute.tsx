@@ -123,7 +123,7 @@ export default function EnigmaRoute({ onConfirm }: EnigmaRouteProps) {
     <group>
       <MapTable activated={activated} onToggleCity={toggleCity} />
 
-      <Html position={[0, 3.3, -2]} center distanceFactor={9}>
+      <Html position={[0, 3.3, -2]} center>
         <div className="flex flex-col items-center gap-2 rounded-xl border border-amber-500/30 bg-black/80 px-3.5 py-2.5 backdrop-blur-md">
           <button
             onClick={handleConfirm}

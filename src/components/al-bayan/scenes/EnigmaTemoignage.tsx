@@ -183,7 +183,7 @@ function BalanceScale({ weight, onConfirm, feedback }: { weight: 0 | 1 | 2; onCo
       </group>
 
       {/* Confirmation */}
-      <Html position={[0, -0.75, 0.8]} center distanceFactor={9}>
+      <Html position={[0, -0.75, 0.8]} center>
         <div className="flex flex-col items-center gap-2 rounded-xl border border-amber-500/30 bg-black/80 px-3.5 py-2.5 backdrop-blur-md">
           <button
             onClick={onConfirm}

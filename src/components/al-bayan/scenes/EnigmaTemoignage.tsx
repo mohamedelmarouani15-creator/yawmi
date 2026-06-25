@@ -183,11 +183,8 @@ function BalanceScale({ weight, onConfirm, feedback }: { weight: 0 | 1 | 2; onCo
       </group>
 
       {/* Confirmation */}
-      <Html position={[0, -0.75, 0.8]} center>
-        <div
-          className="flex flex-col items-center gap-2"
-          style={{ background: "rgba(6,8,6,0.6)", backdropFilter: "blur(6px)", WebkitBackdropFilter: "blur(6px)", border: "1px solid rgba(212,175,55,0.25)", borderRadius: 14, padding: "10px 14px" }}
-        >
+      <Html position={[0, -0.75, 0.8]} center distanceFactor={9}>
+        <div className="flex flex-col items-center gap-2 rounded-xl border border-amber-500/40 bg-black/80 px-3.5 py-2.5 backdrop-blur-md">
           <button
             onClick={onConfirm}
             style={{ pointerEvents: "auto", background: "linear-gradient(135deg,#7a5c1a,#D4AF37)", border: "1px solid rgba(212,175,55,0.7)", color: "#0A0F0D", fontFamily: "var(--font-dm-sans)", fontWeight: 800, fontSize: 11, borderRadius: 10, padding: "8px 16px", cursor: "pointer" }}
@@ -234,6 +231,8 @@ export default function EnigmaTemoignage({ onConfirm }: EnigmaTemoignageProps) {
       <group scale={1.5}>
         <BalanceScale weight={weight} onConfirm={handleConfirm} feedback={feedback} />
       </group>
+      {/* Balise de quête — hauteur constante 2.2 au-dessus de l'objet */}
+      <Hud3DLabel position={[0, 2.2, 0]} variant="beacon">⚖️ La Balance du Témoignage</Hud3DLabel>
 
       {WITNESS_CANDIDATES.map((w) => (
         <WitnessTablet

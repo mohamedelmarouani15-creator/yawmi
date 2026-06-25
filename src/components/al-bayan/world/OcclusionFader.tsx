@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
+import { collectOccluderCandidates } from "@/lib/al-bayan/occluder-candidates";
 
 // Tout décor entre la caméra et l'avatar devient semi-transparent au lieu de
 // "manger" l'écran en plein noir (cas vécu : étagères/murs traversés par la
@@ -10,7 +11,6 @@ import * as THREE from "three";
 // via un seuil de hauteur, sinon le sol entier clignoterait en transparence
 // dès qu'il croise le rayon caméra→avatar.
 const FADE_OPACITY = 0.2;
-const MIN_OCCLUDER_HEIGHT = 0.3;
 
 // Un seul rayon vers le centre de l'avatar manque les occludeurs qui ne
 // bloquent qu'une épaule/un bord de la silhouette (cas vécu : colonne qui
@@ -33,15 +33,6 @@ interface FadedEntry {
   depthWrite: boolean;
 }
 
-function isDescendantOf(obj: THREE.Object3D, ancestor: THREE.Object3D): boolean {
-  let cur: THREE.Object3D | null = obj;
-  while (cur) {
-    if (cur === ancestor) return true;
-    cur = cur.parent;
-  }
-  return false;
-}
-
 export default function OcclusionFader({ avatarRef }: { avatarRef: React.RefObject<THREE.Group | null> }) {
   const { camera, scene } = useThree();
   const raycaster = useRef(new THREE.Raycaster());
@@ -58,17 +49,7 @@ export default function OcclusionFader({ avatarRef }: { avatarRef: React.RefObje
     // hauts pour être un mur/meuble — les zones sont statiques une fois
     // montées, pas besoin de recalculer ensuite.
     if (!candidates.current) {
-      const list: THREE.Mesh[] = [];
-      const box = new THREE.Box3();
-      scene.traverse((obj) => {
-        if (obj.type !== "Mesh") return;
-        if (isDescendantOf(obj, avatar)) return;
-        const mesh = obj as THREE.Mesh;
-        box.setFromObject(mesh);
-        if (box.max.y - box.min.y < MIN_OCCLUDER_HEIGHT) return;
-        list.push(mesh);
-      });
-      candidates.current = list;
+      candidates.current = collectOccluderCandidates(scene, avatar);
     }
 
     const stillBlocking = new Set<THREE.Mesh>();

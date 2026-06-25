@@ -65,10 +65,10 @@ export default function Scriptorium({ onConfirm }: { onConfirm?: () => void }) {
 
   return (
     <group>
-      <pointLight color="#E8A33D" intensity={2.6} distance={7.5} decay={2} position={[-3, 2.4, -2]} />
-      <pointLight color="#E8A33D" intensity={2.6} distance={7.5} decay={2} position={[3, 2.4, -2]} />
+      <pointLight color="#E8A33D" intensity={2.6} distance={9} decay={2} position={[-3, 2.4, -2]} />
+      <pointLight color="#E8A33D" intensity={2.6} distance={9} decay={2} position={[3, 2.4, -2]} />
       {/* Lumière chaude basse, au niveau des tables de copiste, pour en révéler le volume */}
-      <pointLight color="#FFAA44" intensity={1.6} distance={5} decay={2} position={[0, 1.4, 1]} />
+      <pointLight color="#FFAA44" intensity={1.6} distance={6.5} decay={2} position={[0, 1.4, 1]} />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[SIZE, SIZE]} />
@@ -84,6 +84,15 @@ export default function Scriptorium({ onConfirm }: { onConfirm?: () => void }) {
         <boxGeometry args={[0.2, H, SIZE]} />
         <primitive object={wallMat} attach="material" />
       </mesh>
+      {/* Les 2 autres côtés (perpendiculaires) — referme complètement la pièce */}
+      <mesh position={[SIZE / 2 - 0.1, H / 2, 0]} receiveShadow castShadow>
+        <boxGeometry args={[0.2, H, SIZE]} />
+        <primitive object={wallMat} attach="material" />
+      </mesh>
+      <mesh position={[0, H / 2, -SIZE / 2 + 0.1]} receiveShadow castShadow>
+        <boxGeometry args={[SIZE, H, 0.2]} />
+        <primitive object={wallMat} attach="material" />
+      </mesh>
 
       {/* Cloisons moucharabieh — séparation ajourée vers le Vestibule */}
       <group position={[-3.2, H / 2 - 0.5, SIZE / 2 - 0.5]}>
@@ -92,6 +101,14 @@ export default function Scriptorium({ onConfirm }: { onConfirm?: () => void }) {
       <group position={[3.2, H / 2 - 0.5, SIZE / 2 - 0.5]}>
         <Moucharabieh width={3.4} height={H - 1} cellSize={0.3} />
       </group>
+      {/* Pans pleins flanquant les moucharabiehs jusqu'aux coins — sans
+          cela les coins de la pièce restaient ouverts sur le vide. */}
+      {[-1, 1].map((side) => (
+        <mesh key={`mouch-flank-${side}`} position={[side * 5.7, H / 2, SIZE / 2 - 0.1]} receiveShadow castShadow>
+          <boxGeometry args={[1.6, H, 0.2]} />
+          <primitive object={wallMat} attach="material" />
+        </mesh>
+      ))}
 
       <StepsUp />
 

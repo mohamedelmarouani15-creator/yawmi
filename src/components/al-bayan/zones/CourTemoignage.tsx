@@ -124,11 +124,11 @@ export default function CourTemoignage({ onConfirm }: { onConfirm?: () => void }
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
       />
-      <pointLight color="#FFAA44" intensity={2.0} distance={6.5} decay={2} position={[3.5, 1.6, 4]} />
-      <pointLight color="#FFAA44" intensity={2.0} distance={6.5} decay={2} position={[-3.5, 1.6, 4]} />
+      <pointLight color="#FFAA44" intensity={2.0} distance={8} decay={2} position={[3.5, 1.6, 4]} />
+      <pointLight color="#FFAA44" intensity={2.0} distance={8} decay={2} position={[-3.5, 1.6, 4]} />
       {/* Lumière chaude rapprochée — détache nettement le volume du bassin et la balance de bronze de l'autel */}
-      <pointLight color="#FFC266" intensity={1.8} distance={5.5} decay={2} position={[0, 1.6, 1]} />
-      <pointLight color="#FFC266" intensity={1.6} distance={5} decay={2} position={[0, 2.2, -2]} />
+      <pointLight color="#FFC266" intensity={1.8} distance={7} decay={2} position={[0, 1.6, 1]} />
+      <pointLight color="#FFC266" intensity={1.6} distance={6.5} decay={2} position={[0, 2.2, -2]} />
 
       <MarbleFloor />
       <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, H + 4, 0]}>
@@ -141,6 +141,37 @@ export default function CourTemoignage({ onConfirm }: { onConfirm?: () => void }
         <boxGeometry args={[0.2, H, SIZE]} />
         <primitive object={wallMat} attach="material" />
       </mesh>
+      {/* Les 2 autres côtés (perpendiculaires) — aucune zone voisine de ce côté non plus */}
+      <mesh position={[-SIZE / 2 + 0.1, H / 2, 0]} receiveShadow castShadow>
+        <boxGeometry args={[0.2, H, SIZE]} />
+        <primitive object={wallMat} attach="material" />
+      </mesh>
+      <mesh position={[0, H / 2, -SIZE / 2 + 0.1]} receiveShadow castShadow>
+        <boxGeometry args={[SIZE, H, 0.2]} />
+        <primitive object={wallMat} attach="material" />
+      </mesh>
+      {/* Liseré vert au socle des murs — écho du damier marbre blanc/vert */}
+      <mesh position={[-SIZE / 2 + 0.11, 0.4, 0]}>
+        <boxGeometry args={[0.18, 0.6, SIZE]} />
+        <meshStandardMaterial color="#0E4636" roughness={0.3} metalness={0.15} />
+      </mesh>
+      <mesh position={[SIZE / 2 - 0.11, 0.4, 0]}>
+        <boxGeometry args={[0.18, 0.6, SIZE]} />
+        <meshStandardMaterial color="#0E4636" roughness={0.3} metalness={0.15} />
+      </mesh>
+      <mesh position={[0, 0.4, -SIZE / 2 + 0.11]}>
+        <boxGeometry args={[SIZE, 0.6, 0.18]} />
+        <meshStandardMaterial color="#0E4636" roughness={0.3} metalness={0.15} />
+      </mesh>
+
+      {/* Pans de mur encadrant la triple arcade — referme le reste du côté
+          vestibule, qui ne laissait que des colonnes flottant dans le vide. */}
+      {[-1, 1].map((side) => (
+        <mesh key={`arcade-flank-${side}`} position={[side * 5.75, H / 2, SIZE / 2 - 0.1]} receiveShadow castShadow>
+          <boxGeometry args={[2.5, H, 0.2]} />
+          <primitive object={wallMat} attach="material" />
+        </mesh>
+      ))}
 
       {/* Seuil ouvert vers le Vestibule — triple arcade monumentale */}
       <OctagonalColumn position={[-1.8, 0, SIZE / 2 - 0.6]} height={H} color="#D8D2C2" accentColor="#C9BFA8" />

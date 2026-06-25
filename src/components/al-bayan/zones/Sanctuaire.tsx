@@ -6,10 +6,20 @@ import { Stars } from "@react-three/drei";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import Astrolabe from "../world/Astrolabe";
 import EnigmaRoute from "../scenes/EnigmaRoute";
+import Hud3DLabel from "../shared/Hud3DLabel";
 
 const RADIUS = 8;
 const H = 9;
 // "surélevée" — l'offset Y (+0.4) est appliqué par AlBayanWorld, pas ici.
+
+// Enceinte circulaire — ouverte uniquement sur l'arc qui fait face au
+// Vestibule (+Z, theta=PI/2 dans la paramétrisation de CylinderGeometry :
+// x=-r*cos(theta), z=r*sin(theta)). Le reste du cercle (~316°) est un vrai
+// mur de pierre, plus le pan plat unique d'avant qui laissait presque tout
+// le pourtour ouvert sur le vide.
+const GAP_HALF_ANGLE = 0.4;
+const WALL_THETA_START = Math.PI / 2 + GAP_HALF_ANGLE;
+const WALL_THETA_LENGTH = Math.PI * 2 - GAP_HALF_ANGLE * 2;
 
 /** Étoile à 8 branches émissive incrustée dans le marbre — même principe que les tapis d'or de maison-sagesse. */
 function StarInlay({ position, rotZ }: { position: [number, number]; rotZ: number }) {
@@ -62,7 +72,7 @@ export default function Sanctuaire({ onConfirm }: { onConfirm?: () => void }) {
         distance={H + 4}
         color="#9FC8FF"
       />
-      <pointLight color="#5EEAD4" intensity={0.9} distance={5.5} decay={2} position={[0, 1.5, 0]} />
+      <pointLight color="#5EEAD4" intensity={0.9} distance={7} decay={2} position={[0, 1.5, 0]} />
 
       {/* Sol circulaire en marbre noir */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
@@ -80,15 +90,18 @@ export default function Sanctuaire({ onConfirm }: { onConfirm?: () => void }) {
         <Stars radius={30} depth={8} count={250} factor={2} fade speed={0.3} />
       </group>
 
-      {/* Mur extérieur bas (le seul côté sans zone voisine, juste assez pour fermer la vue) */}
-      <mesh position={[0, H * 0.18, -RADIUS + 0.4]} receiveShadow>
-        <boxGeometry args={[RADIUS * 1.3, H * 0.36, 0.3]} />
-        <meshStandardMaterial color="#0A0A0E" roughness={0.85} />
+      {/* Enceinte circulaire en pierre de taille sombre — referme tout le
+          pourtour sauf l'arc face au Vestibule. */}
+      <mesh position={[0, H / 2, 0]} receiveShadow castShadow>
+        <cylinderGeometry args={[RADIUS, RADIUS, H, 48, 1, true, WALL_THETA_START, WALL_THETA_LENGTH]} />
+        <meshStandardMaterial color="#14141A" roughness={0.78} metalness={0.05} side={THREE.DoubleSide} />
       </mesh>
 
       <group position={[0, 0.8, 0]}>
         <Astrolabe scale={2.6} />
       </group>
+      {/* Balise de quête — hauteur constante 2.2 au-dessus de l'objet, repère visible de loin */}
+      <Hud3DLabel position={[0, 3.0, 0]} variant="beacon">🔭 L&apos;Astrolabe</Hud3DLabel>
 
       <group position={[3.4, 0, 2.4]}>
         <EnigmaRoute onConfirm={onConfirm} />

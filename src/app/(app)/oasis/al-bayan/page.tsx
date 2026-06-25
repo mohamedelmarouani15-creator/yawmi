@@ -136,7 +136,13 @@ export default function AlBayanPage() {
         shadows="percentage"
         dpr={[1, 1.5]}
         gl={{ antialias: true, powerPreference: "high-performance" }}
-        camera={{ fov: 50, near: 0.1, far: 100, position: [8, 8, 8] }}
+        // Angle réduit (50° -> 28°) : un FOV large laisse le bord du champ de
+        // vision dépasser largement le mur testé par les rayons de collision
+        // caméra dans un angle de salle serré (vu : moitié d'écran noire —
+        // pas un mur sombre, du vide pur derrière le bord du cadre). Un
+        // objectif plus "long" rapproche le rendu d'une vraie isométrique et
+        // réduit cette marge d'erreur sans changer la position/distance.
+        camera={{ fov: 36, near: 0.1, far: 100, position: [8, 8, 8] }}
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", touchAction: "none" }}
       >
         <AlBayanWorld

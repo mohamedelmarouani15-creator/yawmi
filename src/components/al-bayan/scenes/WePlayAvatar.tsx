@@ -1,9 +1,19 @@
 "use client";
 
-import { forwardRef, useImperativeHandle, useMemo, useRef } from "react";
-import { useFrame } from "@react-three/fiber";
+import { forwardRef, useEffect, useImperativeHandle, useMemo, useRef } from "react";
+import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { projectJoystickToWorld } from "@/lib/al-bayan/iso-camera";
+import { isDescendantOf } from "@/lib/al-bayan/scene-utils";
+
+// Collision : seuls les meshes assez hauts (murs, meubles, colonnes) bloquent
+// l'avatar — même seuil de hauteur que l'occlusion caméra, pour ignorer sol,
+// tapis, plateaux de carte. Rayon/hauteur d'un petit cylindre de collision
+// centré sur l'avatar (pas une sphère : on teste séparément X et Z pour
+// glisser le long d'un mur plutôt que de se bloquer net en diagonale).
+const COLLIDER_MIN_HEIGHT = 0.4;
+const AVATAR_RADIUS = 0.28;
+const AVATAR_COLLIDER_HEIGHT = 1.7;
 
 interface WePlayAvatarProps {
   joystickRef: React.MutableRefObject<{ x: number; y: number }>;
@@ -16,15 +26,16 @@ const GLOW_COLOR = "#5EEAD4"; // teal/cyan, assorti à l'ambiance de la biblioth
 const BOB_AMPLITUDE = 0.05;
 const BOB_BASE_FREQ = 7;
 const BOB_FREQ_RANGE = 7;
-const TILT_MAX = (12 * Math.PI) / 180; // 12° — physique de course demandée
+const TILT_MAX = (10 * Math.PI) / 180; // 10° — physique de course demandée
 const LIMB_SWING_MAX = (34 * Math.PI) / 180; // amplitude de balancement jambes
 const ARM_SWING_RATIO = 0.7; // bras = 70% de l'amplitude des jambes
 // Amortissement de l'intensité visuelle (pas la vitesse de déplacement, qui
-// reste instantanée pour la réactivité du contrôle) : monte vite, retombe
-// plus lentement pour donner une impression de poids réel à l'arrêt plutôt
-// qu'un arrêt net "robotique".
+// reste instantanée pour la réactivité du contrôle) : montée fluide à
+// l'accélération, friction progressive sur 3-4 frames (~60ms à 60 FPS) à
+// l'arrêt plutôt qu'un arrêt net "robotique" — assez court pour rester
+// précis, assez long pour ne pas claquer.
 const RISE_RATE = 9;
-const FALL_RATE = 4.5;
+const FALL_RATE = 16;
 
 // Coque de halo : même géométrie qu'un membre du corps, légèrement agrandie,
 // faces arrière, additive — imite un glow/bloom sans EffectComposer (coûteux
@@ -92,6 +103,45 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
     const movingMag = useRef(0);
     useImperativeHandle(ref, () => groupRef.current as THREE.Group);
 
+    const { scene } = useThree();
+    const colliders = useRef<THREE.Box3[] | null>(null);
+    const scratchBox = useRef(new THREE.Box3());
+
+    // Collecte unique des volumes solides (murs, colonnes, comptoir, tables,
+    // balance, astrolabe...) une fois la scène montée — elle est statique,
+    // pas besoin de recalculer à chaque frame.
+    useEffect(() => {
+      const avatar = groupRef.current;
+      if (!avatar) return;
+      const list: THREE.Box3[] = [];
+      scene.traverse((obj) => {
+        // `InstancedMesh` hérite `type === "Mesh"` de three.js (aucun type
+        // distinct défini) — sans cette exclusion explicite, un nuage de
+        // particules (AmbientParticles) ou un lattice (Moucharabieh) produit
+        // une boîte englobante couvrant TOUTES ses instances à la fois,
+        // traitée comme un unique mur plein massif (bug constaté : avatar
+        // bloqué dès le spawn par la boîte combinée de 200 grains de poussière).
+        if (obj.type !== "Mesh" || obj instanceof THREE.InstancedMesh) return;
+        if (isDescendantOf(obj, avatar)) return;
+        const box = new THREE.Box3().setFromObject(obj as THREE.Mesh);
+        if (box.max.y - box.min.y < COLLIDER_MIN_HEIGHT) return;
+        list.push(box);
+      });
+      colliders.current = list;
+    }, [scene]);
+
+    function collidesAt(x: number, z: number): boolean {
+      const list = colliders.current;
+      if (!list) return false;
+      const box = scratchBox.current;
+      box.min.set(x - AVATAR_RADIUS, 0.05, z - AVATAR_RADIUS);
+      box.max.set(x + AVATAR_RADIUS, AVATAR_COLLIDER_HEIGHT, z + AVATAR_RADIUS);
+      for (const obstacle of list) {
+        if (obstacle.intersectsBox(box)) return true;
+      }
+      return false;
+    }
+
     const bodyMat = useMemo(
       () =>
         new THREE.MeshStandardMaterial({
@@ -125,8 +175,19 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
 
       if (mag > 0.01) {
         const len = rawLen || 1;
-        group.position.x = THREE.MathUtils.clamp(group.position.x + (moveX / len) * mag * speed * dt, -bounds.x, bounds.x);
-        group.position.z = THREE.MathUtils.clamp(group.position.z + (moveZ / len) * mag * speed * dt, -bounds.z, bounds.z);
+        const nextX = THREE.MathUtils.clamp(group.position.x + (moveX / len) * mag * speed * dt, -bounds.x, bounds.x);
+        const nextZ = THREE.MathUtils.clamp(group.position.z + (moveZ / len) * mag * speed * dt, -bounds.z, bounds.z);
+
+        // Collision stricte : on tente le déplacement complet, puis chaque
+        // axe séparément s'il échoue (glisse le long du mur plutôt que de
+        // se figer net en diagonale contre un coin).
+        if (!collidesAt(nextX, nextZ)) {
+          group.position.x = nextX;
+          group.position.z = nextZ;
+        } else {
+          if (!collidesAt(nextX, group.position.z)) group.position.x = nextX;
+          if (!collidesAt(group.position.x, nextZ)) group.position.z = nextZ;
+        }
       }
 
       // Amortissement "poids réel" : monte vite vers la cible, retombe en

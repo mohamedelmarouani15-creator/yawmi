@@ -47,7 +47,8 @@ function ManuscriptTable({ onExamine }: { onExamine: () => void }) {
         <planeGeometry args={[1.7, 1.1]} />
         <meshStandardMaterial ref={matRef} color="#D4B896" emissive="#60a5fa" emissiveIntensity={0.2} roughness={0.85} />
       </mesh>
-      <Hud3DLabel position={[0, 0.18, 0.65]} variant="title" accent="#60a5fa">Examiner le manuscrit</Hud3DLabel>
+      {/* Balise de quête — hauteur constante 2.2 au-dessus de l'objet */}
+      <Hud3DLabel position={[0, 2.2, 0]} variant="beacon" accent="#60a5fa">📖 Examiner le manuscrit</Hud3DLabel>
     </group>
   );
 }

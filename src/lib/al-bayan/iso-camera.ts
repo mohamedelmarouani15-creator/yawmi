@@ -10,14 +10,20 @@
  */
 
 export const ISO_YAW = Math.PI / 4; // 45°
-export const ISO_PITCH = (40 * Math.PI) / 180; // 40° au-dessus de l'horizon
+export const ISO_PITCH = Math.PI / 4; // 45° — angle isométrique strict (cf. spec direction créative)
 // Une valeur trop grande pousse la caméra à travers le mur derrière
 // l'avatar dès qu'il est proche d'une paroi (vérifié : à 11, la caméra se
 // retrouvait à 1,5 unité DERRIÈRE le mur d'étagères du Vestibule — écran
 // quasi noir car on regardait son dos opaque de très près). 8 garde assez
 // de marge dans toutes les zones (le contenu interactif de chaque zone
 // reste à plusieurs unités de ses murs extérieurs).
-export const ISO_DISTANCE = 8;
+// Réduit (8 -> 6) : avec un pitch de 45° (vs 40° avant) et des murs désormais
+// réels sur tous les côtés de zone, un avatar plaqué contre un mur par la
+// collision pousse vite la caméra (offset constant) au-delà de ce mur — la
+// caméra se retrouve dehors, dans la zone morte sombre entre les salles.
+// Plus la distance est grande, plus cette excursion est large. 6 réduit
+// nettement l'ampleur du problème sans trop resserrer le cadrage iso.
+export const ISO_DISTANCE = 7;
 // Resserré (0.1 -> 0.08) : suivi plus doux, "drone fluide", moins de
 // secousse perceptible quand l'avatar change brusquement de direction.
 export const ISO_FOLLOW_LERP = 0.08;
@@ -32,6 +38,15 @@ export const ISO_CAMERA_OFFSET = {
   x: ISO_DISTANCE * cosPitch * sinYaw,
   y: ISO_DISTANCE * sinPitch,
   z: ISO_DISTANCE * cosPitch * cosYaw,
+};
+
+/** Même direction, normalisée (magnitude exactement 1) — sert à raccourcir
+ * la distance caméra sans changer d'angle quand un mur est détecté entre
+ * l'avatar et la position caméra théorique. */
+export const ISO_CAMERA_DIR = {
+  x: ISO_CAMERA_OFFSET.x / ISO_DISTANCE,
+  y: ISO_CAMERA_OFFSET.y / ISO_DISTANCE,
+  z: ISO_CAMERA_OFFSET.z / ISO_DISTANCE,
 };
 
 /**

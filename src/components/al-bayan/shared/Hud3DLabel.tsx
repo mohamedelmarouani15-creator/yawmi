@@ -44,7 +44,7 @@ export default function Hud3DLabel({
   return (
     <Html position={position} center distanceFactor={distanceFactor} zIndexRange={[10, 0]}>
       <div
-        className={`whitespace-nowrap rounded-xl border border-amber-500/40 bg-black/80 text-center font-sans shadow-lg backdrop-blur-md ${VARIANT_CLASS[variant]}`}
+        className={`whitespace-nowrap rounded-xl border border-amber-500/30 bg-black/80 text-center font-sans shadow-lg backdrop-blur-md ${VARIANT_CLASS[variant]}`}
         style={{ pointerEvents: interactive ? "auto" : "none", ...accentStyle }}
       >
         {children}

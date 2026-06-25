@@ -124,7 +124,7 @@ export default function EnigmaRoute({ onConfirm }: EnigmaRouteProps) {
       <MapTable activated={activated} onToggleCity={toggleCity} />
 
       <Html position={[0, 3.3, -2]} center distanceFactor={9}>
-        <div className="flex flex-col items-center gap-2 rounded-xl border border-amber-500/40 bg-black/80 px-3.5 py-2.5 backdrop-blur-md">
+        <div className="flex flex-col items-center gap-2 rounded-xl border border-amber-500/30 bg-black/80 px-3.5 py-2.5 backdrop-blur-md">
           <button
             onClick={handleConfirm}
             style={{ pointerEvents: "auto", background: "linear-gradient(135deg,#1a7a4f,#34d399)", border: "1px solid rgba(52,211,153,0.7)", color: "#0A0F0D", fontFamily: "var(--font-dm-sans)", fontWeight: 800, fontSize: 11, borderRadius: 10, padding: "8px 16px", cursor: "pointer" }}

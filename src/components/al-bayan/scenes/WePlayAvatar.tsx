@@ -125,6 +125,9 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
         // bloqué dès le spawn par la boîte combinée de 200 grains de poussière).
         if (obj.type !== "Mesh" || obj instanceof THREE.InstancedMesh) return;
         if (isDescendantOf(obj, avatar)) return;
+        // Géométries percées (arches) : leur AABB couvre le trou qu'elles
+        // sont censées laisser franchir — cf. IslamicArch.tsx.
+        if (obj.userData?.noCollide) return;
         const box = new THREE.Box3().setFromObject(obj as THREE.Mesh);
         if (box.max.y - box.min.y < COLLIDER_MIN_HEIGHT) return;
         list.push(box);

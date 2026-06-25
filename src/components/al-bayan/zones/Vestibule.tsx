@@ -102,11 +102,18 @@ export default function Vestibule() {
       <group position={[0, 0, -D / 2 + 0.3]}>
         <IslamicArch width={4.5} height={6} depth={0.3} />
       </group>
-      <OctagonalColumn position={[-W / 2 + 1, 0, 0]} height={H} />
+      {/* Colonnes en flanc (Z=±3, hors de la largeur de l'arche 4.5 = trou
+          ≈±2.25) — un seul pilier centré en Z=0 se retrouvait pile dans le
+          passage une fois la collision réelle en place (bug constaté :
+          avatar bloqué au seuil est, invisible avant que la collision
+          n'existe puisqu'on traversait la colonne sans contact). */}
+      <OctagonalColumn position={[-W / 2 + 1, 0, -3]} height={H} />
+      <OctagonalColumn position={[-W / 2 + 1, 0, 3]} height={H} />
       <group position={[-W / 2 + 0.6, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
         <IslamicArch width={4.5} height={6} depth={0.3} />
       </group>
-      <OctagonalColumn position={[W / 2 - 1, 0, 0]} height={H} />
+      <OctagonalColumn position={[W / 2 - 1, 0, -3]} height={H} />
+      <OctagonalColumn position={[W / 2 - 1, 0, 3]} height={H} />
       <group position={[W / 2 - 0.6, 0, 0]} rotation={[0, Math.PI / 2, 0]}>
         <IslamicArch width={4.5} height={6} depth={0.3} />
       </group>

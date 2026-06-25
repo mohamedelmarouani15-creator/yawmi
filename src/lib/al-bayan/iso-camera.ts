@@ -11,9 +11,8 @@
  * quel que soit l'angle d'orbite actuel.
  */
 
-export const ISO_PITCH = Math.PI / 4; // 45° — fixe, l'orbite ne change que l'horizontale
-// Angle de départ au spawn (avant que le pouce droit ne le modifie) — même
-// cadrage par défaut qu'avec l'ancienne caméra fixe à 45°.
+export const ISO_PITCH = (40 * Math.PI) / 180; // 40° — fixe, verrouillé (anti-plongée), l'orbite ne change que l'horizontale
+// Angle de départ au spawn (avant que le pouce droit ne le modifie).
 export const ISO_YAW_DEFAULT = Math.PI / 4;
 
 // Une valeur trop grande pousse la caméra à travers le mur derrière

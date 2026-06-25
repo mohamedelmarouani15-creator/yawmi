@@ -184,7 +184,7 @@ function BalanceScale({ weight, onConfirm, feedback }: { weight: 0 | 1 | 2; onCo
 
       {/* Confirmation */}
       <Html position={[0, -0.75, 0.8]} center distanceFactor={9}>
-        <div className="flex flex-col items-center gap-2 rounded-xl border border-amber-500/40 bg-black/80 px-3.5 py-2.5 backdrop-blur-md">
+        <div className="flex flex-col items-center gap-2 rounded-xl border border-amber-500/30 bg-black/80 px-3.5 py-2.5 backdrop-blur-md">
           <button
             onClick={onConfirm}
             style={{ pointerEvents: "auto", background: "linear-gradient(135deg,#7a5c1a,#D4AF37)", border: "1px solid rgba(212,175,55,0.7)", color: "#0A0F0D", fontFamily: "var(--font-dm-sans)", fontWeight: 800, fontSize: 11, borderRadius: 10, padding: "8px 16px", cursor: "pointer" }}

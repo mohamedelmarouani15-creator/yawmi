@@ -11,13 +11,19 @@ import CourTemoignage from "../zones/CourTemoignage";
 import Scriptorium from "../zones/Scriptorium";
 import Sanctuaire from "../zones/Sanctuaire";
 import OcclusionFader from "./OcclusionFader";
+import CorridorCourScriptorium from "./CorridorCourScriptorium";
+import CorridorScriptoriumSanctuaire from "./CorridorScriptoriumSanctuaire";
 import { getCameraOffset, getCameraDir, ISO_DISTANCE, ISO_FOLLOW_LERP } from "@/lib/al-bayan/iso-camera";
 import { collectOccluderCandidates } from "@/lib/al-bayan/occluder-candidates";
 
 // Distance minimale (jamais la caméra ne s'approche plus que ça de
 // l'avatar, même collée à un mur) et marge gardée entre la caméra et le mur
 // détecté (évite qu'elle ne "touche" littéralement la face intérieure).
-const MIN_CAM_DISTANCE = 2.6;
+// Réduit (2.6 -> 1.8) : les corridors d'interconnexion ne font que 3 unités
+// de large — avec l'ancienne valeur, la caméra ne pouvait jamais se loger
+// à l'intérieur même après raccourcissement (bug constaté : écran noir au
+// passage du corridor Scriptorium↔Sanctuaire).
+const MIN_CAM_DISTANCE = 1.8;
 const CAM_WALL_MARGIN = 0.4;
 
 // ── Disposition du monde — un seul groupe par zone, footprints qui se
@@ -187,6 +193,12 @@ export default function AlBayanWorld({
       <group position={ZONES.sanctuaire.position} rotation={[0, ZONES.sanctuaire.rotationY, 0]}>
         <Sanctuaire onConfirm={onConfirmRoute} />
       </group>
+
+      {/* Corridors d'interconnexion supplémentaires (en plus de l'étoile
+          centrée sur le Vestibule) — coordonnées MONDE directes, pas
+          nichés dans le repère tourné d'une zone. */}
+      <CorridorCourScriptorium />
+      <CorridorScriptoriumSanctuaire />
 
       <WePlayAvatar ref={avatarRef} joystickRef={joystickRef} yawRef={yawRef} bounds={WORLD_BOUNDS} />
       <IsoCameraFollow avatarRef={avatarRef} yawRef={yawRef} />

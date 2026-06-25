@@ -9,6 +9,26 @@ import EnigmaTemoignage from "../scenes/EnigmaTemoignage";
 const SIZE = 14;
 const H = 9;
 
+// Triple arcade — les 3 arches doivent faire au moins 3 unités de large
+// (passage caméra orbitale + avatar sans secousse). Calculs dérivés plutôt
+// que des nombres magiques, pour que colonnes/pans de mur restent cohérents
+// si on retouche une largeur.
+const CENTER_ARCH_HALF = 1.5; // largeur 3
+const SIDE_ARCH_HALF = 1.5; // largeur 3 (élargi depuis 2.2)
+const COLUMN_X = 1.8;
+const ARCH_GAP = 0.3;
+const SIDE_ARCH_X = COLUMN_X + ARCH_GAP + SIDE_ARCH_HALF;
+const SIDE_ARCH_OUTER = SIDE_ARCH_X + SIDE_ARCH_HALF;
+const FLANK_START = SIDE_ARCH_OUTER + 0.2;
+const FLANK_WIDTH = SIZE / 2 - FLANK_START;
+const FLANK_X = (FLANK_START + SIZE / 2) / 2;
+
+// Corridor vers le Scriptorium (nouveau) — ouverture taillée dans le mur
+// "extérieur" (local X=SIZE/2-0.1, qui correspond au monde Z≈+SIZE/2 une
+// fois la rotation -90° de la zone appliquée). Centré sur le monde X=11.
+const CORRIDOR_OPENING_LOCAL_Z = 4;
+const CORRIDOR_OPENING_HALF = 1.6;
+
 /** Dalles de marbre blanc/vert alternées — mêmes tuiles partagées, pas de texture. */
 function MarbleFloor() {
   const white = useMemo(() => new THREE.MeshStandardMaterial({ color: "#E8E4DA", roughness: 0.12, metalness: 0.22 }), []);
@@ -136,9 +156,22 @@ export default function CourTemoignage({ onConfirm }: { onConfirm?: () => void }
         <meshStandardMaterial color="#04060A" roughness={1} />
       </mesh>
 
-      {/* Mur extérieur (côté qui ne donne sur aucune autre zone) */}
-      <mesh position={[SIZE / 2 - 0.1, H / 2, 0]} receiveShadow castShadow>
-        <boxGeometry args={[0.2, H, SIZE]} />
+      {/* Mur extérieur — percé d'une ouverture vers le corridor du
+          Scriptorium (cf. CORRIDOR_OPENING_*) plutôt qu'un seul pan plein. */}
+      <mesh
+        position={[SIZE / 2 - 0.1, H / 2, (-SIZE / 2 + (CORRIDOR_OPENING_LOCAL_Z - CORRIDOR_OPENING_HALF)) / 2]}
+        receiveShadow
+        castShadow
+      >
+        <boxGeometry args={[0.2, H, SIZE / 2 + (CORRIDOR_OPENING_LOCAL_Z - CORRIDOR_OPENING_HALF)]} />
+        <primitive object={wallMat} attach="material" />
+      </mesh>
+      <mesh
+        position={[SIZE / 2 - 0.1, H / 2, (SIZE / 2 + (CORRIDOR_OPENING_LOCAL_Z + CORRIDOR_OPENING_HALF)) / 2]}
+        receiveShadow
+        castShadow
+      >
+        <boxGeometry args={[0.2, H, SIZE / 2 - (CORRIDOR_OPENING_LOCAL_Z + CORRIDOR_OPENING_HALF)]} />
         <primitive object={wallMat} attach="material" />
       </mesh>
       {/* Les 2 autres côtés (perpendiculaires) — aucune zone voisine de ce côté non plus */}
@@ -155,8 +188,13 @@ export default function CourTemoignage({ onConfirm }: { onConfirm?: () => void }
         <boxGeometry args={[0.18, 0.6, SIZE]} />
         <meshStandardMaterial color="#0E4636" roughness={0.3} metalness={0.15} />
       </mesh>
-      <mesh position={[SIZE / 2 - 0.11, 0.4, 0]}>
-        <boxGeometry args={[0.18, 0.6, SIZE]} />
+      {/* Liseré est scindé par l'ouverture du corridor (même découpe que le mur) */}
+      <mesh position={[SIZE / 2 - 0.11, 0.4, (-SIZE / 2 + (CORRIDOR_OPENING_LOCAL_Z - CORRIDOR_OPENING_HALF)) / 2]}>
+        <boxGeometry args={[0.18, 0.6, SIZE / 2 + (CORRIDOR_OPENING_LOCAL_Z - CORRIDOR_OPENING_HALF)]} />
+        <meshStandardMaterial color="#0E4636" roughness={0.3} metalness={0.15} />
+      </mesh>
+      <mesh position={[SIZE / 2 - 0.11, 0.4, (SIZE / 2 + (CORRIDOR_OPENING_LOCAL_Z + CORRIDOR_OPENING_HALF)) / 2]}>
+        <boxGeometry args={[0.18, 0.6, SIZE / 2 - (CORRIDOR_OPENING_LOCAL_Z + CORRIDOR_OPENING_HALF)]} />
         <meshStandardMaterial color="#0E4636" roughness={0.3} metalness={0.15} />
       </mesh>
       <mesh position={[0, 0.4, -SIZE / 2 + 0.11]}>
@@ -167,23 +205,24 @@ export default function CourTemoignage({ onConfirm }: { onConfirm?: () => void }
       {/* Pans de mur encadrant la triple arcade — referme le reste du côté
           vestibule, qui ne laissait que des colonnes flottant dans le vide. */}
       {[-1, 1].map((side) => (
-        <mesh key={`arcade-flank-${side}`} position={[side * 5.75, H / 2, SIZE / 2 - 0.1]} receiveShadow castShadow>
-          <boxGeometry args={[2.5, H, 0.2]} />
+        <mesh key={`arcade-flank-${side}`} position={[side * FLANK_X, H / 2, SIZE / 2 - 0.1]} receiveShadow castShadow>
+          <boxGeometry args={[FLANK_WIDTH, H, 0.2]} />
           <primitive object={wallMat} attach="material" />
         </mesh>
       ))}
 
-      {/* Seuil ouvert vers le Vestibule — triple arcade monumentale */}
-      <OctagonalColumn position={[-1.8, 0, SIZE / 2 - 0.6]} height={H} color="#D8D2C2" accentColor="#C9BFA8" />
-      <OctagonalColumn position={[1.8, 0, SIZE / 2 - 0.6]} height={H} color="#D8D2C2" accentColor="#C9BFA8" />
+      {/* Seuil ouvert vers le Vestibule — triple arcade monumentale, les 3
+          arches à ≥3 unités de large pour le passage caméra orbitale + avatar. */}
+      <OctagonalColumn position={[-COLUMN_X, 0, SIZE / 2 - 0.6]} height={H} color="#D8D2C2" accentColor="#C9BFA8" />
+      <OctagonalColumn position={[COLUMN_X, 0, SIZE / 2 - 0.6]} height={H} color="#D8D2C2" accentColor="#C9BFA8" />
       <group position={[0, 0, SIZE / 2 - 0.6]}>
-        <IslamicArch width={3} height={H * 0.6} depth={0.3} color="#D8D2C2" />
+        <IslamicArch width={CENTER_ARCH_HALF * 2} height={H * 0.6} depth={0.3} color="#D8D2C2" />
       </group>
-      <group position={[-3.4, 0, SIZE / 2 - 0.6]}>
-        <IslamicArch width={2.2} height={H * 0.5} depth={0.25} color="#D8D2C2" />
+      <group position={[-SIDE_ARCH_X, 0, SIZE / 2 - 0.6]}>
+        <IslamicArch width={SIDE_ARCH_HALF * 2} height={H * 0.55} depth={0.25} color="#D8D2C2" />
       </group>
-      <group position={[3.4, 0, SIZE / 2 - 0.6]}>
-        <IslamicArch width={2.2} height={H * 0.5} depth={0.25} color="#D8D2C2" />
+      <group position={[SIDE_ARCH_X, 0, SIZE / 2 - 0.6]}>
+        <IslamicArch width={SIDE_ARCH_HALF * 2} height={H * 0.55} depth={0.25} color="#D8D2C2" />
       </group>
 
       <Pool />

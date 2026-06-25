@@ -12,14 +12,18 @@ const RADIUS = 8;
 const H = 9;
 // "surélevée" — l'offset Y (+0.4) est appliqué par AlBayanWorld, pas ici.
 
-// Enceinte circulaire — ouverte uniquement sur l'arc qui fait face au
-// Vestibule (+Z, theta=PI/2 dans la paramétrisation de CylinderGeometry :
-// x=-r*cos(theta), z=r*sin(theta)). Le reste du cercle (~316°) est un vrai
-// mur de pierre, plus le pan plat unique d'avant qui laissait presque tout
-// le pourtour ouvert sur le vide.
+// Enceinte circulaire — ouverte sur un seul arc combiné qui couvre à la
+// fois le seuil du Vestibule (theta=PI/2, x=-r*cos(theta), z=r*sin(theta))
+// ET le nouveau corridor vers le Scriptorium (theta≈0.769 rad, direction
+// du vecteur Sanctuaire->Scriptorium). Les deux gaps se touchent presque
+// (67°), on les fusionne en une seule ouverture plutôt que de laisser un
+// pilier de pierre large de quelques degrés entre les deux. Le reste du
+// cercle (~268°) est un vrai mur de pierre.
 const GAP_HALF_ANGLE = 0.4;
-const WALL_THETA_START = Math.PI / 2 + GAP_HALF_ANGLE;
-const WALL_THETA_LENGTH = Math.PI * 2 - GAP_HALF_ANGLE * 2;
+const VESTIBULE_THETA = Math.PI / 2;
+const SCRIPTORIUM_THETA = 0.769;
+const WALL_THETA_START = VESTIBULE_THETA + GAP_HALF_ANGLE;
+const WALL_THETA_LENGTH = Math.PI * 2 - (WALL_THETA_START - (SCRIPTORIUM_THETA - GAP_HALF_ANGLE));
 
 /** Étoile à 8 branches émissive incrustée dans le marbre — même principe que les tapis d'or de maison-sagesse. */
 function StarInlay({ position, rotZ }: { position: [number, number]; rotZ: number }) {

@@ -11,6 +11,14 @@ const SIZE = 13;
 const H = 7;
 const STEP_DOWN = 0.6; // "en contrebas, deux marches" — l'offset Y du groupe zone
 
+// Ouvertures de corridor taillées dans les murs "sud" (vers la Cour du
+// Témoignage) et "nord" (vers le Sanctuaire) — cf. CourTemoignage.tsx /
+// Sanctuaire.tsx pour le calcul des positions monde correspondantes.
+const CORRIDOR_COUR_LOCAL_Z = 3.5;
+const CORRIDOR_COUR_HALF = 1.6;
+const CORRIDOR_SANCTUAIRE_LOCAL_Z = 0;
+const CORRIDOR_SANCTUAIRE_HALF = 1.6;
+
 /** Table de copiste basse inclinée — décor, pas interactif. */
 function CopyistTable({ position, rotation }: { position: [number, number, number]; rotation?: [number, number, number] }) {
   return (
@@ -79,16 +87,41 @@ export default function Scriptorium({ onConfirm }: { onConfirm?: () => void }) {
         <meshStandardMaterial color="#040302" roughness={1} />
       </mesh>
 
-      {/* Mur extérieur (côté qui ne donne sur aucune autre zone) */}
-      <mesh position={[-SIZE / 2 + 0.1, H / 2, 0]} receiveShadow castShadow>
-        <boxGeometry args={[0.2, H, SIZE]} />
+      {/* Mur vers la Cour — percé d'une ouverture pour le corridor Cour↔Scriptorium */}
+      <mesh
+        position={[-SIZE / 2 + 0.1, H / 2, (-SIZE / 2 + (CORRIDOR_COUR_LOCAL_Z - CORRIDOR_COUR_HALF)) / 2]}
+        receiveShadow
+        castShadow
+      >
+        <boxGeometry args={[0.2, H, SIZE / 2 + (CORRIDOR_COUR_LOCAL_Z - CORRIDOR_COUR_HALF)]} />
         <primitive object={wallMat} attach="material" />
       </mesh>
-      {/* Les 2 autres côtés (perpendiculaires) — referme complètement la pièce */}
-      <mesh position={[SIZE / 2 - 0.1, H / 2, 0]} receiveShadow castShadow>
-        <boxGeometry args={[0.2, H, SIZE]} />
+      <mesh
+        position={[-SIZE / 2 + 0.1, H / 2, (SIZE / 2 + (CORRIDOR_COUR_LOCAL_Z + CORRIDOR_COUR_HALF)) / 2]}
+        receiveShadow
+        castShadow
+      >
+        <boxGeometry args={[0.2, H, SIZE / 2 - (CORRIDOR_COUR_LOCAL_Z + CORRIDOR_COUR_HALF)]} />
         <primitive object={wallMat} attach="material" />
       </mesh>
+      {/* Mur vers le Sanctuaire — percé d'une ouverture pour le corridor Scriptorium↔Sanctuaire */}
+      <mesh
+        position={[SIZE / 2 - 0.1, H / 2, (-SIZE / 2 + (CORRIDOR_SANCTUAIRE_LOCAL_Z - CORRIDOR_SANCTUAIRE_HALF)) / 2]}
+        receiveShadow
+        castShadow
+      >
+        <boxGeometry args={[0.2, H, SIZE / 2 + (CORRIDOR_SANCTUAIRE_LOCAL_Z - CORRIDOR_SANCTUAIRE_HALF)]} />
+        <primitive object={wallMat} attach="material" />
+      </mesh>
+      <mesh
+        position={[SIZE / 2 - 0.1, H / 2, (SIZE / 2 + (CORRIDOR_SANCTUAIRE_LOCAL_Z + CORRIDOR_SANCTUAIRE_HALF)) / 2]}
+        receiveShadow
+        castShadow
+      >
+        <boxGeometry args={[0.2, H, SIZE / 2 - (CORRIDOR_SANCTUAIRE_LOCAL_Z + CORRIDOR_SANCTUAIRE_HALF)]} />
+        <primitive object={wallMat} attach="material" />
+      </mesh>
+      {/* Côté restant (perpendiculaire, aucune zone voisine) */}
       <mesh position={[0, H / 2, -SIZE / 2 + 0.1]} receiveShadow castShadow>
         <boxGeometry args={[SIZE, H, 0.2]} />
         <primitive object={wallMat} attach="material" />

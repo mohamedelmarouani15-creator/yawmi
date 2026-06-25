@@ -125,8 +125,13 @@ export default function IslamicArch({
 
   return (
     <group>
-      {/* Main arch frame */}
-      <mesh geometry={geometry} material={material} receiveShadow castShadow position={[0, 0, -depth / 2]} />
+      {/* Main arch frame — `userData.noCollide` : sa géométrie a un trou (le
+          passage), mais une AABB ne connaît pas les trous et couvrirait tout
+          le cadre, bouchant l'ouverture qu'elle est censée laisser franchir.
+          L'occlusion caméra n'est pas concernée (raycasting réel, pas une
+          boîte) ; seule la collision de déplacement (WePlayAvatar) doit
+          ignorer ce mesh précis. */}
+      <mesh geometry={geometry} material={material} receiveShadow castShadow position={[0, 0, -depth / 2]} userData={{ noCollide: true }} />
 
       {/* Keystone at apex */}
       <mesh

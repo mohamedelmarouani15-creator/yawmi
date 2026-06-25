@@ -17,7 +17,7 @@ function EnigmaCard({ label, icon, color, enigma }: EnigmaCardProps) {
 
   return (
     <motion.div
-      className="flex items-center gap-2 rounded-xl px-3 py-2 relative overflow-hidden"
+      className="flex items-center gap-2 rounded-xl px-3 py-2 relative overflow-hidden pointer-events-none"
       style={{
         background: solved ? "rgba(52,211,153,0.18)" : "rgba(10,15,13,0.85)",
         border: `1px solid ${solved ? "rgba(52,211,153,0.4)" : "rgba(255,255,255,0.08)"}`,

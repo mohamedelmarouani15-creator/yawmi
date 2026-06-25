@@ -30,7 +30,7 @@ export default function Timer() {
       transition={isCritical ? { duration: 0.4, repeat: Infinity, repeatDelay: 1.5 } : {}}
     >
       <div
-        className="flex items-center gap-3 rounded-2xl px-4 py-2"
+        className="flex items-center gap-3 rounded-2xl px-4 py-2 pointer-events-none"
         style={{
           background: "rgba(10,15,13,0.85)",
           border: `1px solid ${strokeColor}55`,

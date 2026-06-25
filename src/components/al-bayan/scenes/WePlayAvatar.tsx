@@ -89,7 +89,7 @@ Limb.displayName = "Limb";
  *   au yaw de l'avatar — pousser à gauche va à l'écran-gauche quelle que
  *   soit l'orientation du personnage.
  * - l'orientation visuelle (rotation.y du groupe externe) vient
- *   exclusivement de `yawRef`, piloté par le pouce droit (LookZone).
+ *   exclusivement de `yawRef`, piloté par le pouce droit (zone tactile droite, page.tsx).
  */
 const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
   ({ joystickRef, yawRef, speed = 4, bounds }, ref) => {

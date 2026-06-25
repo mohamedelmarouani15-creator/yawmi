@@ -15,7 +15,11 @@ import HintMailbox from "@/components/al-bayan/ui/HintMailbox";
 import CodeLock from "@/components/al-bayan/ui/CodeLock";
 import VictoryOverlay from "@/components/al-bayan/ui/VictoryOverlay";
 import FailureOverlay from "@/components/al-bayan/ui/FailureOverlay";
-import LookZone from "@/components/maison-sagesse/shared/LookZone";
+
+// Sensibilité de rotation au glissé tactile (pouce droit) — même échelle
+// que l'ancien LookZone (px * SENS par évènement de déplacement incrémental).
+const LOOK_SENS = 0.004;
+const LOOK_DRAG_THRESHOLD = 8;
 
 function isTouchCapable(): boolean {
   if (typeof window === "undefined") return false;
@@ -109,10 +113,6 @@ export default function AlBayanPage() {
     };
   }, []);
 
-  const handleLook = (dx: number) => {
-    yawRef.current -= dx;
-  };
-
   if (!mounted) return null;
   if (phase === "idle") return <IntroScreen />;
 
@@ -199,7 +199,50 @@ export default function AlBayanPage() {
                 }}
                 onTouchCancel={() => { joystickRef.current = { x: 0, y: 0 }; }}
               />
-              <LookZone onChange={handleLook} isTouchDevice={isTouchDevice} />
+              {/* Zone d'orientation (pouce droit) — même mécanisme React
+                  (onTouchStart/Move/End inline) que la zone de déplacement
+                  ci-dessus, plutôt que l'ancien composant LookZone qui
+                  attachait ses propres listeners DOM bruts via un effet
+                  recréé à chaque rendu du parent (handleLook non mémoïsé) :
+                  ça pouvait couper un glissé en cours sur certains appareils. */}
+              <div
+                style={{ position: "absolute", inset: 0, left: "45%", zIndex: 9, touchAction: "none" }}
+                onTouchStart={e => {
+                  const t = e.changedTouches[0];
+                  const el = e.currentTarget as HTMLElement;
+                  el.dataset.sx = String(t.clientX);
+                  el.dataset.sy = String(t.clientY);
+                  el.dataset.lx = String(t.clientX);
+                  el.dataset.ly = String(t.clientY);
+                  el.dataset.id = String(t.identifier);
+                  el.dataset.moved = "0";
+                }}
+                onTouchMove={e => {
+                  const el = e.currentTarget as HTMLElement;
+                  for (const t of Array.from(e.changedTouches)) {
+                    if (String(t.identifier) !== el.dataset.id) continue;
+                    const sx = Number(el.dataset.sx ?? t.clientX);
+                    const sy = Number(el.dataset.sy ?? t.clientY);
+                    const lx = Number(el.dataset.lx ?? t.clientX);
+                    if (Math.abs(t.clientX - sx) > LOOK_DRAG_THRESHOLD || Math.abs(t.clientY - sy) > LOOK_DRAG_THRESHOLD) {
+                      el.dataset.moved = "1";
+                    }
+                    if (el.dataset.moved === "1") {
+                      yawRef.current -= (t.clientX - lx) * LOOK_SENS;
+                    }
+                    el.dataset.lx = String(t.clientX);
+                    el.dataset.ly = String(t.clientY);
+                  }
+                }}
+                onTouchEnd={e => {
+                  const el = e.currentTarget as HTMLElement;
+                  if (el.dataset.moved !== "1") {
+                    const t = e.changedTouches[0];
+                    dispatchPassthroughTap(t.clientX, t.clientY);
+                  }
+                  el.dataset.moved = "0";
+                }}
+              />
             </>
           ) : (
             <div

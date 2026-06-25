@@ -62,21 +62,23 @@ const STAR_LAYOUT: { position: [number, number]; rotZ: number }[] = Array.from({
  * ne pas se superposer au centerpiece.
  */
 export default function Sanctuaire({ onConfirm }: { onConfirm?: () => void }) {
-  const marbleMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#0A0A0E", roughness: 0.2, metalness: 0.3 }), []);
+  const marbleMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#181828", roughness: 0.18, metalness: 0.35 }), []);
 
   return (
     <group>
-      {/* Puits céleste bleu argenté à travers la coupole — tranche avec le chaud du reste du complexe */}
+      {/* Puits céleste bleu argenté à travers la coupole */}
       <spotLight
         position={[0, H + 1, 0]}
         target-position={[0, 0, 0]}
         angle={0.55}
         penumbra={0.5}
-        intensity={4}
-        distance={H + 4}
+        intensity={6}
+        distance={H + 5}
         color="#9FC8FF"
       />
-      <pointLight color="#5EEAD4" intensity={0.9} distance={7} decay={2} position={[0, 1.5, 0]} />
+      <pointLight color="#3D7FE8" intensity={1.6} distance={9} decay={2} position={[0, 1.5, 0]} />
+      {/* Fill latéral pour ne pas laisser le mur courbe dans le noir */}
+      <pointLight color="#6090C8" intensity={1.2} distance={7} decay={2} position={[0, 4.0, -6]} />
 
       {/* Sol circulaire en marbre noir */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>

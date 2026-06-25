@@ -144,16 +144,19 @@ export default function CourTemoignage({ onConfirm }: { onConfirm?: () => void }
         shadow-mapSize-width={1024}
         shadow-mapSize-height={1024}
       />
-      <pointLight color="#FFAA44" intensity={2.0} distance={8} decay={2} position={[3.5, 1.6, 4]} />
-      <pointLight color="#FFAA44" intensity={2.0} distance={8} decay={2} position={[-3.5, 1.6, 4]} />
-      {/* Lumière chaude rapprochée — détache nettement le volume du bassin et la balance de bronze de l'autel */}
-      <pointLight color="#FFC266" intensity={1.8} distance={7} decay={2} position={[0, 1.6, 1]} />
-      <pointLight color="#FFC266" intensity={1.6} distance={6.5} decay={2} position={[0, 2.2, -2]} />
+      <pointLight color="#FFAA44" intensity={3.2} distance={10} decay={2} position={[3.5, 1.6, 4]} />
+      <pointLight color="#FFAA44" intensity={3.2} distance={10} decay={2} position={[-3.5, 1.6, 4]} />
+      {/* Lumière chaude rapprochée — bassin + balance de bronze */}
+      <pointLight color="#FFC266" intensity={2.6} distance={9} decay={2} position={[0, 1.6, 1]} />
+      <pointLight color="#FFC266" intensity={2.4} distance={8} decay={2} position={[0, 2.2, -2]} />
+      {/* Fill murs latéraux */}
+      <pointLight color="#E8A33D" intensity={1.6} distance={9} decay={2} position={[-5, 3.0, -1]} />
+      <pointLight color="#E8A33D" intensity={1.6} distance={9} decay={2} position={[5, 3.0, -1]} />
 
       <MarbleFloor />
       <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, H + 4, 0]}>
         <planeGeometry args={[SIZE, SIZE]} />
-        <meshStandardMaterial color="#04060A" roughness={1} />
+        <meshStandardMaterial color="#101828" roughness={0.9} />
       </mesh>
 
       {/* Mur extérieur — percé d'une ouverture vers le corridor du

@@ -17,10 +17,91 @@ import CodeLock from "@/components/al-bayan/ui/CodeLock";
 import VictoryOverlay from "@/components/al-bayan/ui/VictoryOverlay";
 import FailureOverlay from "@/components/al-bayan/ui/FailureOverlay";
 
-// Sensibilité de rotation au glissé tactile (pouce droit) — même échelle
-// que l'ancien LookZone (px * SENS par évènement de déplacement incrémental).
+// Sensibilité de rotation au glissé tactile (pouce droit)
 const LOOK_SENS = 0.004;
 const LOOK_DRAG_THRESHOLD = 8;
+
+const ZONE_CENTERS = [
+  { id: "vestibule", label: "Vestibule", icon: "🏛️", x: 0, z: 0 },
+  { id: "cour", label: "Cour", icon: "⚖️", x: 15, z: 0 },
+  { id: "scriptorium", label: "Scriptorium", icon: "✒️", x: -14.5, z: 0 },
+  { id: "sanctuaire", label: "Sanctuaire", icon: "🔭", x: 0, z: -14 },
+] as const;
+
+function ZoneMiniMap({ avatarRef }: { avatarRef: { readonly current: THREE.Group | null } }) {
+  const [currentZone, setCurrentZone] = useState<string>("vestibule");
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      const pos = avatarRef.current?.position;
+      if (!pos) return;
+      let closest: typeof ZONE_CENTERS[number] = ZONE_CENTERS[0];
+      let minDist = Infinity;
+      for (const z of ZONE_CENTERS) {
+        const d = Math.hypot(pos.x - z.x, pos.z - z.z);
+        if (d < minDist) { minDist = d; closest = z; }
+      }
+      setCurrentZone(closest.id);
+    }, 400);
+    return () => clearInterval(id);
+  }, [avatarRef]);
+
+  return (
+    <div
+      style={{
+        position: "absolute",
+        top: 16,
+        left: 16,
+        display: "flex",
+        flexDirection: "column",
+        gap: 3,
+        pointerEvents: "none",
+      }}
+    >
+      {ZONE_CENTERS.map((z) => {
+        const active = z.id === currentZone;
+        return (
+          <div
+            key={z.id}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              padding: "3px 8px 3px 5px",
+              borderRadius: 8,
+              background: active ? "rgba(61,127,232,0.18)" : "rgba(10,10,8,0.70)",
+              border: `1px solid ${active ? "rgba(61,127,232,0.55)" : "rgba(255,255,255,0.06)"}`,
+              backdropFilter: "blur(8px)",
+              transition: "all 0.25s",
+              opacity: active ? 1 : 0.5,
+            }}
+          >
+            <div
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: active ? "#3D7FE8" : "rgba(255,255,255,0.18)",
+                boxShadow: active ? "0 0 6px #3D7FE8" : "none",
+                flexShrink: 0,
+              }}
+            />
+            <span style={{
+              fontSize: 8,
+              fontFamily: "var(--font-dm-sans)",
+              fontWeight: active ? 800 : 600,
+              color: active ? "rgba(200,220,255,0.95)" : "rgba(255,255,255,0.3)",
+              letterSpacing: "0.04em",
+              whiteSpace: "nowrap",
+            }}>
+              {z.icon} {z.label}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 function isTouchCapable(): boolean {
   if (typeof window === "undefined") return false;
@@ -46,6 +127,10 @@ export default function AlBayanPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsTouchDevice(isTouchCapable());
   }, []);
+
+  // Joystick visuel — suivi de position pour le dot interne
+  const [joyVis, setJoyVis] = useState({ x: 0, y: 0, active: false });
+  const [lookActive, setLookActive] = useState(false);
 
   // `phase` vient du store Zustand persisté en localStorage : côté SSR il
   // vaut toujours sa valeur par défaut ('idle'). Sans cette garde, un
@@ -174,6 +259,7 @@ export default function AlBayanPage() {
                   el.dataset.sy = String(t.clientY);
                   el.dataset.id = String(t.identifier);
                   el.dataset.moved = "0";
+                  setJoyVis({ x: 0, y: 0, active: true });
                 }}
                 onTouchMove={e => {
                   const el = e.currentTarget as HTMLElement;
@@ -186,19 +272,22 @@ export default function AlBayanPage() {
                     const dy = Math.max(-MAX, Math.min(MAX, t.clientY - sy));
                     if (Math.abs(t.clientX - sx) > 8 || Math.abs(t.clientY - sy) > 8) el.dataset.moved = "1";
                     joystickRef.current = { x: dx / MAX, y: -dy / MAX };
+                    setJoyVis({ x: dx / MAX, y: -dy / MAX, active: true });
                   }
-                  // Pas de e.preventDefault() : touch-action:"none" suffit déjà
-                  // (cf. src/lib/touch-passthrough.ts pour le détail).
                 }}
                 onTouchEnd={e => {
                   joystickRef.current = { x: 0, y: 0 };
+                  setJoyVis({ x: 0, y: 0, active: false });
                   const el = e.currentTarget as HTMLElement;
                   if (el.dataset.moved !== "1") {
                     const t = e.changedTouches[0];
                     dispatchPassthroughTap(t.clientX, t.clientY);
                   }
                 }}
-                onTouchCancel={() => { joystickRef.current = { x: 0, y: 0 }; }}
+                onTouchCancel={() => {
+                  joystickRef.current = { x: 0, y: 0 };
+                  setJoyVis({ x: 0, y: 0, active: false });
+                }}
               />
               {/* Zone d'orientation (pouce droit) — même mécanisme React
                   (onTouchStart/Move/End inline) que la zone de déplacement
@@ -217,6 +306,7 @@ export default function AlBayanPage() {
                   el.dataset.ly = String(t.clientY);
                   el.dataset.id = String(t.identifier);
                   el.dataset.moved = "0";
+                  setLookActive(true);
                 }}
                 onTouchMove={e => {
                   const el = e.currentTarget as HTMLElement;
@@ -242,7 +332,9 @@ export default function AlBayanPage() {
                     dispatchPassthroughTap(t.clientX, t.clientY);
                   }
                   el.dataset.moved = "0";
+                  setLookActive(false);
                 }}
+                onTouchCancel={() => setLookActive(false)}
               />
             </>
           ) : (
@@ -262,12 +354,91 @@ export default function AlBayanPage() {
               ⌨️ WASD : marcher · Q/E : orienter
             </div>
           )}
+
+          {/* ── Joystick visuel (gauche) ──────────────────────────── */}
+          {isTouchDevice && (
+            <>
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 88,
+                  left: 32,
+                  zIndex: 15,
+                  pointerEvents: "none",
+                  width: 78,
+                  height: 78,
+                  borderRadius: "50%",
+                  border: `2px solid rgba(61,127,232,${joyVis.active ? 0.55 : 0.22})`,
+                  background: `rgba(61,127,232,${joyVis.active ? 0.10 : 0.04})`,
+                  backdropFilter: "blur(4px)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "border-color 0.15s, background 0.15s",
+                }}
+              >
+                {/* Croix de guidage */}
+                <div style={{ position: "absolute", width: 1, height: 28, background: "rgba(61,127,232,0.25)" }} />
+                <div style={{ position: "absolute", width: 28, height: 1, background: "rgba(61,127,232,0.25)" }} />
+                {/* Dot de position */}
+                <div
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #3D7FE8, #6FA8FF)",
+                    boxShadow: "0 0 14px rgba(61,127,232,0.6)",
+                    transform: `translate(${joyVis.x * 22}px, ${-joyVis.y * 22}px)`,
+                    transition: joyVis.active ? "none" : "transform 0.2s cubic-bezier(0.34,1.56,0.64,1)",
+                    opacity: joyVis.active ? 1 : 0.5,
+                  }}
+                />
+              </div>
+
+              {/* ── Indicateur rotation (droite) ────────────────────── */}
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 88,
+                  right: 32,
+                  zIndex: 15,
+                  pointerEvents: "none",
+                  width: 68,
+                  height: 68,
+                  borderRadius: "50%",
+                  border: `2px solid rgba(212,175,55,${lookActive ? 0.55 : 0.20})`,
+                  background: `rgba(212,175,55,${lookActive ? 0.10 : 0.04})`,
+                  backdropFilter: "blur(4px)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexDirection: "column",
+                  gap: 2,
+                  transition: "border-color 0.15s, background 0.15s",
+                }}
+              >
+                <span style={{ fontSize: 16, opacity: lookActive ? 1 : 0.5 }}>↻</span>
+                <span style={{
+                  fontSize: 7,
+                  fontFamily: "var(--font-dm-sans)",
+                  color: `rgba(212,175,55,${lookActive ? 0.9 : 0.4})`,
+                  fontWeight: 700,
+                  letterSpacing: "0.05em",
+                  textTransform: "uppercase",
+                }}>
+                  Vue
+                </span>
+              </div>
+            </>
+          )}
         </>
       )}
 
       <div style={{ position: "absolute", inset: 0, pointerEvents: "none", zIndex: 10 }}>
         <Timer />
         <EnigmaStatus />
+        {/* Mini-carte de zones — rappel spatial discret */}
+        <ZoneMiniMap avatarRef={avatarRef} />
       </div>
 
       <div style={{ position: "absolute", bottom: 64, left: 16, zIndex: 20 }}>

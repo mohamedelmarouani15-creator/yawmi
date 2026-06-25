@@ -68,13 +68,15 @@ function CedarCounter({ position }: { position: [number, number, number] }) {
  */
 export default function Vestibule() {
   const floorMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#C9BFA8", roughness: 0.14, metalness: 0.07 }), []);
-  const ceilingMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#050302", roughness: 1 }), []);
+  const ceilingMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#1E1208", roughness: 0.9 }), []);
 
   return (
     <group>
-      <pointLight color="#FFAA44" intensity={2.2} distance={10.5} decay={2} position={[0, 1.7, -1]} castShadow={false} />
-      <pointLight color="#E8A33D" intensity={2.6} distance={10} decay={2} position={[-W / 2 + 2.5, 3.2, 4]} />
-      <pointLight color="#E8A33D" intensity={2.6} distance={10} decay={2} position={[W / 2 - 2.5, 3.2, 4]} />
+      <pointLight color="#FFAA44" intensity={3.2} distance={13} decay={2} position={[0, 1.7, -1]} castShadow={false} />
+      <pointLight color="#E8A33D" intensity={3.6} distance={12} decay={2} position={[-W / 2 + 2.5, 3.2, 4]} />
+      <pointLight color="#E8A33D" intensity={3.6} distance={12} decay={2} position={[W / 2 - 2.5, 3.2, 4]} />
+      {/* Fill haut pour illuminer le plafond poutres */}
+      <pointLight color="#C8842A" intensity={1.4} distance={14} decay={2} position={[0, H - 1, 0]} />
 
       <group position={[0, H + 8, 0]}>
         <Stars radius={40} depth={5} count={150} factor={1.5} fade speed={0.4} />

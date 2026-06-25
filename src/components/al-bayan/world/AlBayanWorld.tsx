@@ -165,12 +165,15 @@ export default function AlBayanWorld({
 }: AlBayanWorldProps) {
   return (
     <group>
-      <fog attach="fog" args={["#05050a", 20, 55]} />
-      {/* Sécurité anti-pixellisation des ombres uniquement — pas un éclairage
-          global plat, juste assez pour déboucher le noir total. */}
-      <ambientLight color="#3a3220" intensity={0.2} />
+      <fog attach="fog" args={["#060814", 28, 65]} />
+      {/* Fill global : ambiance lumineuse chaude qui débouche les salles sombres
+          sans tuer le contrast dramatique — hémisphère ciel bleu nuit / sol
+          ambre chaud, + ambient de sécurité. */}
+      {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+      <hemisphereLight args={["#1A2060", "#4A2800", 0.35] as any} />
+      <ambientLight color="#2A2838" intensity={0.55} />
 
-      <Sparkles count={140} scale={[40, 6, 40]} size={1.6} speed={0.15} color="#D4AF37" opacity={0.5} />
+      <Sparkles count={180} scale={[44, 8, 44]} size={1.4} speed={0.12} color="#D4AF37" opacity={0.45} />
 
       {/* Dalle de fondation continue sous tout le complexe, sous le niveau
           le plus bas (Scriptorium, y=-0.6) — garde-fou : même si deux sols

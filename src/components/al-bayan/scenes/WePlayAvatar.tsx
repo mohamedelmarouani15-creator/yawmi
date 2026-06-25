@@ -22,7 +22,7 @@ interface WePlayAvatarProps {
   bounds: { x: number; z: number };
 }
 
-const GLOW_COLOR = "#5EEAD4"; // teal/cyan, assorti à l'ambiance de la bibliothèque
+const GLOW_COLOR = "#3D7FE8"; // bleu islamique profond — respect de l'interdiction de représentation, silhouette nette
 const BOB_AMPLITUDE = 0.05;
 const BOB_BASE_FREQ = 7;
 const BOB_FREQ_RANGE = 7;
@@ -43,7 +43,7 @@ const FALL_RATE = 16;
 const haloMat = new THREE.MeshBasicMaterial({
   color: GLOW_COLOR,
   transparent: true,
-  opacity: 0.35,
+  opacity: 0.22,
   side: THREE.BackSide,
   blending: THREE.AdditiveBlending,
   depthWrite: false,
@@ -152,9 +152,9 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
         new THREE.MeshStandardMaterial({
           color: GLOW_COLOR,
           emissive: GLOW_COLOR,
-          emissiveIntensity: 2.2,
-          roughness: 0.25,
-          metalness: 0.1,
+          emissiveIntensity: 2.8,
+          roughness: 0.15,
+          metalness: 0.2,
           toneMapped: false,
         }),
       []

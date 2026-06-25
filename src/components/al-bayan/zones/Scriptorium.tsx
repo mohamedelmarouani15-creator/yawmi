@@ -68,15 +68,17 @@ function StepsUp() {
  * la flamme/lumière est déjà non-shadow-casting).
  */
 export default function Scriptorium({ onConfirm }: { onConfirm?: () => void }) {
-  const floorMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#1B140A", roughness: 0.6, metalness: 0.08 }), []);
-  const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#120E08", roughness: 0.9 }), []);
+  const floorMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#30200E", roughness: 0.55, metalness: 0.06 }), []);
+  const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#261A0C", roughness: 0.85 }), []);
 
   return (
     <group>
-      <pointLight color="#E8A33D" intensity={2.6} distance={9} decay={2} position={[-3, 2.4, -2]} />
-      <pointLight color="#E8A33D" intensity={2.6} distance={9} decay={2} position={[3, 2.4, -2]} />
-      {/* Lumière chaude basse, au niveau des tables de copiste, pour en révéler le volume */}
-      <pointLight color="#FFAA44" intensity={1.6} distance={6.5} decay={2} position={[0, 1.4, 1]} />
+      <pointLight color="#E8A33D" intensity={4.0} distance={11} decay={2} position={[-3, 2.4, -2]} />
+      <pointLight color="#E8A33D" intensity={4.0} distance={11} decay={2} position={[3, 2.4, -2]} />
+      {/* Lumière chaude basse, au niveau des tables de copiste */}
+      <pointLight color="#FFAA44" intensity={2.4} distance={8} decay={2} position={[0, 1.4, 1]} />
+      {/* Fill de fond pour déboucher le mur du fond */}
+      <pointLight color="#D4954A" intensity={1.8} distance={9} decay={2} position={[0, 3.5, -5]} />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[SIZE, SIZE]} />
@@ -84,7 +86,7 @@ export default function Scriptorium({ onConfirm }: { onConfirm?: () => void }) {
       </mesh>
       <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, H, 0]}>
         <planeGeometry args={[SIZE, SIZE]} />
-        <meshStandardMaterial color="#040302" roughness={1} />
+        <meshStandardMaterial color="#1A1008" roughness={1} />
       </mesh>
 
       {/* Mur vers la Cour — percé d'une ouverture pour le corridor Cour↔Scriptorium */}

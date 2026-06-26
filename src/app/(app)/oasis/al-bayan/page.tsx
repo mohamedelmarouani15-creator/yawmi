@@ -10,12 +10,15 @@ import { ISO_YAW_DEFAULT } from "@/lib/al-bayan/iso-camera";
 
 import IntroScreen from "@/components/al-bayan/ui/IntroScreen";
 import AlBayanWorld from "@/components/al-bayan/world/AlBayanWorld";
+import AlBayanPostProcessing from "@/components/al-bayan/world/PostProcessing";
+import LoadingVeil from "@/components/al-bayan/ui/LoadingVeil";
 import Timer from "@/components/al-bayan/ui/Timer";
 import EnigmaStatus from "@/components/al-bayan/ui/EnigmaStatus";
 import HintMailbox from "@/components/al-bayan/ui/HintMailbox";
 import CodeLock from "@/components/al-bayan/ui/CodeLock";
 import VictoryOverlay from "@/components/al-bayan/ui/VictoryOverlay";
 import FailureOverlay from "@/components/al-bayan/ui/FailureOverlay";
+import { resumeAudio, startAmbient, stopAmbient, playSolve } from "@/lib/al-bayan/audio-engine";
 
 // Sensibilité de rotation au glissé tactile (pouce droit)
 const LOOK_SENS = 0.004;
@@ -128,6 +131,34 @@ export default function AlBayanPage() {
     setIsTouchDevice(isTouchCapable());
   }, []);
 
+  // Voile de chargement — visible pendant l'intro cinématique (~3s)
+  const [showVeil, setShowVeil] = useState(true);
+  useEffect(() => {
+    if (phase === "idle") return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setShowVeil(true);
+    const t = setTimeout(() => setShowVeil(false), 3200);
+    return () => clearTimeout(t);
+  }, [phase]);
+
+  // Audio — démarré au premier geste après changement de phase
+  useEffect(() => {
+    if (phase === "idle") {
+      stopAmbient();
+      return;
+    }
+    const handler = () => {
+      resumeAudio();
+      startAmbient();
+    };
+    window.addEventListener("touchstart", handler, { once: true });
+    window.addEventListener("click", handler, { once: true });
+    return () => {
+      window.removeEventListener("touchstart", handler);
+      window.removeEventListener("click", handler);
+    };
+  }, [phase]);
+
   // Joystick visuel — suivi de position pour le dot interne
   const [joyVis, setJoyVis] = useState({ x: 0, y: 0, active: false });
   const [lookActive, setLookActive] = useState(false);
@@ -205,6 +236,16 @@ export default function AlBayanPage() {
   const inGame = phase !== "victory" && phase !== "failure";
   const anyEnigmaSolved = enigmaA.solved || enigmaB.solved || enigmaC.solved;
 
+  // Son de résolution — uniquement quand une énigme passe de non-résolue à résolue
+  const prevSolvedRef = useRef({ A: false, B: false, C: false });
+  useEffect(() => {
+    const prev = prevSolvedRef.current;
+    if ((enigmaA.solved && !prev.A) || (enigmaB.solved && !prev.B) || (enigmaC.solved && !prev.C)) {
+      playSolve();
+    }
+    prevSolvedRef.current = { A: enigmaA.solved, B: enigmaB.solved, C: enigmaC.solved };
+  }, [enigmaA.solved, enigmaB.solved, enigmaC.solved]);
+
   return (
     <div
       style={{
@@ -239,7 +280,11 @@ export default function AlBayanPage() {
           onConfirmRasm={() => solveEnigma("B")}
           onConfirmRoute={() => solveEnigma("C")}
         />
+        <AlBayanPostProcessing />
       </Canvas>
+
+      {/* Voile de chargement — par-dessus le Canvas, en dessous du HUD */}
+      <LoadingVeil visible={showVeil} />
 
       <div style={{
         position: "absolute", inset: 0, pointerEvents: "none", zIndex: 5,

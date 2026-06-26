@@ -6,6 +6,7 @@ import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import AmbientParticles from "../../maison-sagesse/shared/AmbientParticles";
 import Moucharabieh from "../shared/Moucharabieh";
 import EnigmaRasm from "../scenes/EnigmaRasm";
+import InteractiveAura from "../shared/InteractiveAura";
 
 const SIZE = 13;
 const H = 7;
@@ -146,6 +147,9 @@ export default function Scriptorium({ onConfirm }: { onConfirm?: () => void }) {
       ))}
 
       <StepsUp />
+
+      {/* Auréole interactive — table du manuscrit */}
+      <InteractiveAura position={[0, 0.02, -0.5]} color="#60a5fa" radius={1.2} />
 
       <group position={[0, 0, -0.5]}>
         <EnigmaRasm onConfirm={onConfirm} />

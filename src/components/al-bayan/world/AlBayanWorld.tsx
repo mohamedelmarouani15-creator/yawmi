@@ -13,6 +13,9 @@ import Sanctuaire from "../zones/Sanctuaire";
 import OcclusionFader from "./OcclusionFader";
 import CorridorCourScriptorium from "./CorridorCourScriptorium";
 import CorridorScriptoriumSanctuaire from "./CorridorScriptoriumSanctuaire";
+import AvatarTrail from "./AvatarTrail";
+import IncenseSmoke from "./IncenseSmoke";
+import CinematicIntro from "./CinematicIntro";
 import { getCameraOffset, getCameraDir, ISO_DISTANCE, ISO_FOLLOW_LERP } from "@/lib/al-bayan/iso-camera";
 import { collectOccluderCandidates } from "@/lib/al-bayan/occluder-candidates";
 
@@ -44,6 +47,7 @@ export const WORLD_BOUNDS = { x: 23, z: 23 };
 interface IsoCameraFollowProps {
   avatarRef: React.RefObject<THREE.Group | null>;
   yawRef: React.MutableRefObject<number>;
+  cameraReadyRef: React.MutableRefObject<boolean>;
 }
 
 /**
@@ -70,7 +74,7 @@ interface IsoCameraFollowProps {
 // seul rayon central).
 const CAM_RAY_ANGLES = [0, 0.46, -0.46];
 
-function IsoCameraFollow({ avatarRef, yawRef }: IsoCameraFollowProps) {
+function IsoCameraFollow({ avatarRef, yawRef, cameraReadyRef }: IsoCameraFollowProps) {
   const { camera, scene } = useThree();
   const desired = useRef(new THREE.Vector3());
   const candidates = useRef<THREE.Mesh[] | null>(null);
@@ -78,6 +82,7 @@ function IsoCameraFollow({ avatarRef, yawRef }: IsoCameraFollowProps) {
   const rayDir = useRef(new THREE.Vector3());
 
   useFrame(() => {
+    if (!cameraReadyRef.current) return; // cinematic intro en cours
     const avatar = avatarRef.current;
     if (!avatar) return;
 
@@ -163,6 +168,8 @@ export default function AlBayanWorld({
   onConfirmRasm,
   onConfirmRoute,
 }: AlBayanWorldProps) {
+  const cameraReadyRef = useRef(false);
+
   return (
     <group>
       <fog attach="fog" args={["#060814", 28, 65]} />
@@ -204,7 +211,18 @@ export default function AlBayanWorld({
       <CorridorScriptoriumSanctuaire />
 
       <WePlayAvatar ref={avatarRef} joystickRef={joystickRef} yawRef={yawRef} bounds={WORLD_BOUNDS} />
-      <IsoCameraFollow avatarRef={avatarRef} yawRef={yawRef} />
+      <AvatarTrail avatarRef={avatarRef} />
+
+      {/* Colonnes de fumée d'encens dans le Vestibule */}
+      <IncenseSmoke position={[2.4, 0.08, -2.8]} />
+      <IncenseSmoke position={[-2.4, 0.08, -2.8]} />
+
+      <IsoCameraFollow avatarRef={avatarRef} yawRef={yawRef} cameraReadyRef={cameraReadyRef} />
+      <CinematicIntro
+        avatarRef={avatarRef}
+        yawRef={yawRef}
+        onComplete={() => { cameraReadyRef.current = true; }}
+      />
       <OcclusionFader avatarRef={avatarRef} />
       <InitialSpawn avatarRef={avatarRef} yawRef={yawRef} />
       <ToneMappingSetup />

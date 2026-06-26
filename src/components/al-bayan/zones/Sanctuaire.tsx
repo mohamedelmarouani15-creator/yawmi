@@ -7,6 +7,8 @@ import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import Astrolabe from "../world/Astrolabe";
 import EnigmaRoute from "../scenes/EnigmaRoute";
 import Hud3DLabel from "../shared/Hud3DLabel";
+import InteractiveAura from "../shared/InteractiveAura";
+import IncenseSmoke from "../world/IncenseSmoke";
 
 const RADIUS = 8;
 const H = 9;
@@ -109,12 +111,18 @@ export default function Sanctuaire({ onConfirm }: { onConfirm?: () => void }) {
       {/* Balise de quête — hauteur constante 2.2 au-dessus de l'objet, repère visible de loin */}
       <Hud3DLabel position={[0, 3.0, 0]} variant="beacon">🔭 L&apos;Astrolabe</Hud3DLabel>
 
+      {/* Auréole interactive — table de la route */}
+      <InteractiveAura position={[3.4, 0.02, 2.4]} color="#34d399" radius={1.3} />
+
       <group position={[3.4, 0, 2.4]}>
         <EnigmaRoute onConfirm={onConfirm} />
       </group>
 
       <CandleLight position={[-5, 0.4, 2]} intensity={1.2} />
       <CandleLight position={[5, 0.4, -2]} intensity={1.2} />
+      {/* Fumée d'encens aux bougies */}
+      <IncenseSmoke position={[-5, 0.46, 2]} />
+      <IncenseSmoke position={[5, 0.46, -2]} />
     </group>
   );
 }

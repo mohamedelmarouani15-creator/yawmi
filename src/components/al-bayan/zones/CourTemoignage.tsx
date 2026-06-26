@@ -5,6 +5,7 @@ import * as THREE from "three";
 import IslamicArch from "../../maison-sagesse/shared/IslamicArch";
 import OctagonalColumn from "../shared/OctagonalColumn";
 import EnigmaTemoignage from "../scenes/EnigmaTemoignage";
+import InteractiveAura from "../shared/InteractiveAura";
 
 const SIZE = 14;
 const H = 9;
@@ -229,6 +230,9 @@ export default function CourTemoignage({ onConfirm }: { onConfirm?: () => void }
       </group>
 
       <Pool />
+
+      {/* Auréole interactive — autel de la balance */}
+      <InteractiveAura position={[0, 0.02, -2]} color="#D4AF37" radius={1.3} />
 
       {/* Autel + balance (logique de puzzle inchangée) */}
       <mesh position={[0, 0.25, -2]} material={altarMat} castShadow receiveShadow>

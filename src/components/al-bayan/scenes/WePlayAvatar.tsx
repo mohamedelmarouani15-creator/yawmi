@@ -96,9 +96,9 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
         new THREE.MeshStandardMaterial({
           color: GLOW_COLOR,
           emissive: GLOW_COLOR,
-          emissiveIntensity: 2.8,
-          roughness: 0.15,
-          metalness: 0.2,
+          emissiveIntensity: 1.6,
+          roughness: 0.22,
+          metalness: 0.15,
           toneMapped: false,
         }),
       []

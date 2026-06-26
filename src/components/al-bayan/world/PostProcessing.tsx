@@ -17,10 +17,10 @@ export default function AlBayanPostProcessing() {
     <EffectComposer multisampling={0}>
       <Bloom
         mipmapBlur
-        intensity={1.6}
-        luminanceThreshold={0.42}
-        luminanceSmoothing={0.06}
-        radius={0.85}
+        intensity={0.9}
+        luminanceThreshold={0.60}
+        luminanceSmoothing={0.08}
+        radius={0.78}
       />
       <Vignette eskil={false} offset={0.09} darkness={0.68} />
       <ChromaticAberration offset={CA_OFFSET} />

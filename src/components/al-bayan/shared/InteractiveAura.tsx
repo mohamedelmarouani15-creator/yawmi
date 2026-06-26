@@ -35,15 +35,15 @@ export default function InteractiveAura({
     [color]
   );
 
-  const beamMat = useMemo(
+  const innerMat = useMemo(
     () =>
       new THREE.MeshBasicMaterial({
         color,
         transparent: true,
-        opacity: 0.1,
+        opacity: 0.18,
         blending: THREE.AdditiveBlending,
         depthWrite: false,
-        side: THREE.BackSide,
+        side: THREE.DoubleSide,
       }),
     [color]
   );
@@ -52,26 +52,26 @@ export default function InteractiveAura({
     const t = clock.getElapsedTime();
     if (ringRef.current) {
       const pulse = 0.5 + 0.5 * Math.sin(t * 2.2);
-      ringMat.opacity = 0.2 + 0.38 * pulse;
+      ringMat.opacity = 0.18 + 0.28 * pulse;
       ringRef.current.scale.setScalar(1 + 0.11 * Math.sin(t * 2.2));
     }
-    beamMat.opacity = 0.06 + 0.06 * Math.sin(t * 1.7);
+    innerMat.opacity = 0.08 + 0.10 * Math.sin(t * 1.5);
   });
 
   return (
     <group position={position}>
-      {/* Anneau horizontal pulsant */}
+      {/* Anneau extérieur pulsant */}
       <mesh ref={ringRef} rotation={[-Math.PI / 2, 0, 0]}>
         <ringGeometry args={[radius * 0.62, radius, 44]} />
         <primitive object={ringMat} attach="material" />
       </mesh>
-      {/* Faisceau vertical (cône large, faces arrière) */}
-      <mesh position={[0, 1.4, 0]}>
-        <coneGeometry args={[radius * 0.55, 2.8, 14, 1, true]} />
-        <primitive object={beamMat} attach="material" />
+      {/* Disque intérieur doux */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]}>
+        <circleGeometry args={[radius * 0.60, 36]} />
+        <primitive object={innerMat} attach="material" />
       </mesh>
-      {/* Lueur ambiante douce */}
-      <pointLight color={color} intensity={0.55} distance={3.2} position={[0, 0.8, 0]} />
+      {/* Lueur ambiante douce — pas trop forte pour ne pas surcharger le Bloom */}
+      <pointLight color={color} intensity={0.35} distance={2.8} position={[0, 0.5, 0]} />
     </group>
   );
 }

@@ -230,13 +230,7 @@ export default function AlBayanPage() {
     };
   }, []);
 
-  if (!mounted) return null;
-  if (phase === "idle") return <IntroScreen />;
-
-  const inGame = phase !== "victory" && phase !== "failure";
-  const anyEnigmaSolved = enigmaA.solved || enigmaB.solved || enigmaC.solved;
-
-  // Son de résolution — uniquement quand une énigme passe de non-résolue à résolue
+  // Son de résolution — doit être avant les retours conditionnels (Rules of Hooks)
   const prevSolvedRef = useRef({ A: false, B: false, C: false });
   useEffect(() => {
     const prev = prevSolvedRef.current;
@@ -245,6 +239,12 @@ export default function AlBayanPage() {
     }
     prevSolvedRef.current = { A: enigmaA.solved, B: enigmaB.solved, C: enigmaC.solved };
   }, [enigmaA.solved, enigmaB.solved, enigmaC.solved]);
+
+  if (!mounted) return null;
+  if (phase === "idle") return <IntroScreen />;
+
+  const inGame = phase !== "victory" && phase !== "failure";
+  const anyEnigmaSolved = enigmaA.solved || enigmaB.solved || enigmaC.solved;
 
   return (
     <div

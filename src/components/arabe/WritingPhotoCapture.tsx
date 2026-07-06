@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Camera, RotateCcw, CheckCircle2, Check, Send, Loader2 } from "lucide-react";
 import { storage } from "@/lib/storage";
 import { arabeProgress } from "@/lib/arabe/progress";
+import { supabase } from "@/lib/supabase";
 
 interface WritingPhotoCaptureProps {
   letter: string;           // Mot arabe à écrire (ex: بسم الله)
@@ -83,9 +84,14 @@ export default function WritingPhotoCapture({
     setLoading(true);
     setApiError(null);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("Connecte-toi pour utiliser cette fonctionnalité");
       const res  = await fetch("/api/arabe/analyser-ecriture", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({ imageBase64: imageB64, mimeType, wordAr: letter, wordFr: french || transliteration, ageGroup }),
       });
       const data = await res.json();

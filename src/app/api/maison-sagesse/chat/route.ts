@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
 import Groq from 'groq-sdk';
 import { logger } from '@/lib/logger';
+import { checkRateLimit } from '@/lib/rate-limit';
 import {
   DIRECTEUR_SYSTEM_PROMPT,
   MANAGER_SYSTEM_PROMPT,
@@ -41,19 +43,36 @@ function isValidAgentId(value: unknown): value is AgentId {
   return value === 'directeur' || value === 'manager' || value === 'adjoint';
 }
 
-/**
- * Rate limit basique par session via cookie.
- * Retourne le nombre de messages utilisés ou null si dépassé.
- */
-function getSessionCount(req: NextRequest): number {
-  const raw = req.cookies.get('ms_chat_count')?.value;
-  const parsed = raw ? parseInt(raw, 10) : 0;
-  return isNaN(parsed) ? 0 : parsed;
+function supabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
 }
 
 // ── Route handler ─────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
+  // ── Auth ────────────────────────────────────────────────────────
+  const auth = req.headers.get('Authorization');
+  if (!auth?.startsWith('Bearer ')) {
+    return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+  }
+  const { data: { user } } = await supabaseAdmin().auth.getUser(auth.replace('Bearer ', ''));
+  if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
+
+  // ── Rate limit serveur (20 messages/heure) ─────────────────────
+  const rl = await checkRateLimit(user.id, 'maison_sagesse_chat', SESSION_LIMIT);
+  if (rl.limited) {
+    return NextResponse.json(
+      {
+        error: 'session_limit_reached',
+        message: 'Vous avez atteint la limite de 20 messages pour cette heure.',
+      },
+      { status: 429 }
+    );
+  }
+
   // ── Lecture et validation du body ─────────────────────────────
   let body: unknown;
   try {
@@ -84,19 +103,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     message:  (rawBody.message as string).slice(0, 1000), // limite longueur
     context:  typeof rawBody.context === 'string' ? rawBody.context.slice(0, 500) : '',
   };
-
-  // ── Rate limit session (cookie) ───────────────────────────────
-  const sessionCount = getSessionCount(req);
-
-  if (sessionCount >= SESSION_LIMIT) {
-    return NextResponse.json(
-      {
-        error: 'session_limit_reached',
-        message: 'Vous avez atteint la limite de 20 messages pour cette session.',
-      },
-      { status: 429 }
-    );
-  }
 
   // ── Sélection du prompt système ───────────────────────────────
   const systemPrompt = SYSTEM_PROMPTS[parsedBody.agentId];
@@ -144,20 +150,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  // ── Réponse avec mise à jour du cookie session ────────────────
-  const newCount = sessionCount + 1;
-  const response = NextResponse.json({
-    message:   reply,
-    agentId:   parsedBody.agentId,
-    remaining: SESSION_LIMIT - newCount,
+  return NextResponse.json({
+    message: reply,
+    agentId: parsedBody.agentId,
   });
-
-  response.cookies.set('ms_chat_count', String(newCount), {
-    httpOnly: true,
-    sameSite: 'strict',
-    path:     '/api/maison-sagesse',
-    maxAge:   60 * 60 * 24, // expire après 24h
-  });
-
-  return response;
 }

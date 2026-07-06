@@ -12,8 +12,8 @@ export async function POST(req: NextRequest) {
   const { data: { user }, error: authError } = await authClient.auth.getUser(token);
   if (authError || !user) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
 
-  const { subscription, userId, lat, lng, prayerMethod, madhab } = await req.json();
-  if (!subscription || !userId) {
+  const { subscription, lat, lng, prayerMethod, madhab } = await req.json();
+  if (!subscription) {
     return NextResponse.json({ error: "missing_params" }, { status: 400 });
   }
   const supabase = createClient(
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   );
   const { error } = await supabase.from("push_subscriptions").upsert(
     {
-      user_id:       userId,
+      user_id:       user.id,
       sub:           subscription,
       lat:           lat   ?? null,
       lng:           lng   ?? null,

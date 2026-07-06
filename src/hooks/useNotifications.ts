@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { computePrayerTimes, PRAYER_LABELS, PRAYER_ORDER } from "@/lib/prayer";
 import { storage } from "@/lib/storage";
+import { supabase } from "@/lib/supabase";
 
 // ── Clés localStorage ─────────────────────────────────────────
 const KEY_PRAYERS = "yawmi_notif_prayers";
@@ -77,9 +78,11 @@ export function useNotifications() {
   }, [prefs.prayers, permission]);
 
   // ── Abonnement push ───────────────────────────────────────────
-  const subscribePush = useCallback(async (userId: string): Promise<boolean> => {
+  const subscribePush = useCallback(async (): Promise<boolean> => {
     if (!("PushManager" in window)) return false;
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) return false;
       const reg = await navigator.serviceWorker.ready;
       const sub = await reg.pushManager.getSubscription()
         ?? await reg.pushManager.subscribe({
@@ -90,10 +93,12 @@ export function useNotifications() {
       const s = storage.getSettings();
       await fetch("/api/push/subscribe", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({
           subscription:  sub.toJSON(),
-          userId,
           lat:           s.lat,
           lng:           s.lng,
           prayerMethod:  s.method,
@@ -119,7 +124,7 @@ export function useNotifications() {
     if (isIOS() && !isStandaloneMode()) return "needs-standalone";
     const p = await Notification.requestPermission();
     setPermission(p);
-    if (p === "granted" && userId) await subscribePush(userId);
+    if (p === "granted" && userId) await subscribePush();
     return p;
   }, [subscribePush]);
 

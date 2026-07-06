@@ -192,6 +192,28 @@ export function playSolve() {
   } catch {}
 }
 
+/** Buzz dissonant court — combinaison du coffre incorrecte. */
+export function playBuzz() {
+  const s = getState();
+  if (!s) return;
+  try {
+    const { ctx } = s;
+    const freqs = [196, 185];
+    freqs.forEach((freq) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.connect(gain);
+      connectWithReverb(s, gain);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.32);
+    });
+  } catch {}
+}
+
 /** Fanfare de victoire — arpège ascendant Ré majeur sur deux octaves. */
 export function playVictory() {
   const s = getState();

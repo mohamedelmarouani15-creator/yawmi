@@ -169,6 +169,7 @@ interface AlBayanWorldProps {
   onConfirmRasm?: () => void;
   onConfirmRoute?: () => void;
   sunRef?: React.Ref<THREE.Mesh>;
+  vestibuleSunRef?: React.Ref<THREE.Mesh>;
 }
 
 /**
@@ -186,6 +187,7 @@ export default function AlBayanWorld({
   onConfirmRasm,
   onConfirmRoute,
   sunRef,
+  vestibuleSunRef,
 }: AlBayanWorldProps) {
   const cameraReadyRef = useRef(false);
 
@@ -211,7 +213,7 @@ export default function AlBayanWorld({
       </mesh>
 
       <group position={ZONES.vestibule.position} rotation={[0, ZONES.vestibule.rotationY, 0]}>
-        <Vestibule />
+        <Vestibule sunRef={vestibuleSunRef} />
       </group>
       <group position={ZONES.courTemoignage.position} rotation={[0, ZONES.courTemoignage.rotationY, 0]}>
         <CourTemoignage onConfirm={onConfirmTemoignage} />

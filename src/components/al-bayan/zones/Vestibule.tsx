@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type Ref } from "react";
 import * as THREE from "three";
 import { Stars } from "@react-three/drei";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
@@ -9,6 +9,8 @@ import IslamicArch from "../../maison-sagesse/shared/IslamicArch";
 import OctagonalColumn from "../shared/OctagonalColumn";
 import BookshelfWall from "../scenes/BookshelfWall";
 import ZoneWall from "../shared/ZoneWall";
+import LightShaftSun from "../world/LightShaftSun";
+import EmberParticles from "../shared/EmberParticles";
 
 const W = 18;
 const D = 14;
@@ -66,7 +68,7 @@ function CedarCounter({ position }: { position: [number, number, number] }) {
  * navigation par route, on y entre/sort en marchant) et gagne le décor du
  * brief : sol calcaire, comptoir cèdre, tapis, étagères dans le fond.
  */
-export default function Vestibule() {
+export default function Vestibule({ sunRef }: { sunRef?: Ref<THREE.Mesh> }) {
   const floorMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#C9BFA8", roughness: 0.14, metalness: 0.07 }), []);
   const ceilingMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#1E1208", roughness: 0.9 }), []);
 
@@ -81,6 +83,10 @@ export default function Vestibule() {
       <group position={[0, H + 8, 0]}>
         <Stars radius={40} depth={5} count={150} factor={1.5} fade speed={0.4} />
       </group>
+
+      {/* Source des rayons de lumière (GodRays) — lucarne haute du Vestibule,
+          première pièce vue par le joueur au spawn. */}
+      <LightShaftSun ref={sunRef} position={[0, H - 1, -2]} color="#FFE0A0" size={1.8} />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[W, D]} />
@@ -178,6 +184,8 @@ export default function Vestibule() {
       <CandleLight position={[4.5, 0.4, -3.5]} intensity={1.3} />
       <CandleLight position={[-2, 1.16, -1.5]} intensity={0.85} />
       <CandleLight position={[2, 1.16, -1.5]} intensity={0.85} />
+      <EmberParticles position={[-4.5, 0.55, -3.5]} count={9} />
+      <EmberParticles position={[4.5, 0.55, -3.5]} count={9} />
 
       <AmbientParticles />
     </group>

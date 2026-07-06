@@ -179,6 +179,7 @@ export default function AlBayanPage() {
   const yawRef = useRef(ISO_YAW_DEFAULT);
   const avatarRef = useRef<THREE.Group>(null);
   const sunRef = useRef<THREE.Mesh>(null);
+  const vestibuleSunRef = useRef<THREE.Mesh>(null);
 
   // Lock orientation paysage sur mobile
   useEffect(() => {
@@ -295,8 +296,9 @@ export default function AlBayanPage() {
           onConfirmRasm={() => solveEnigma("B")}
           onConfirmRoute={() => solveEnigma("C")}
           sunRef={sunRef}
+          vestibuleSunRef={vestibuleSunRef}
         />
-        <AlBayanPostProcessing sunRef={sunRef} />
+        <AlBayanPostProcessing sunRef={sunRef} vestibuleSunRef={vestibuleSunRef} />
       </Canvas>
 
       {/* Voile de chargement — par-dessus le Canvas, en dessous du HUD */}

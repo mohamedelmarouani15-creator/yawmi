@@ -10,25 +10,31 @@ const CA_OFFSET = new THREE.Vector2(0.00035, 0.00035);
 
 interface AlBayanPostProcessingProps {
   sunRef?: React.RefObject<THREE.Mesh | null>;
+  vestibuleSunRef?: React.RefObject<THREE.Mesh | null>;
 }
 
 /**
  * Post-processing pipeline d'al-bayan :
- * - GodRays → faisceaux de lumière filtrant à travers le moucharabieh du
- *   Scriptorium (source : LightShaftSun, voir zones/Scriptorium.tsx)
+ * - GodRays (×2) → faisceaux à travers le moucharabieh du Scriptorium ET
+ *   lucarne haute du Vestibule (sources : LightShaftSun, voir zones/*.tsx)
  * - Bloom mipmapBlur → l'avatar bleu (#3D7FE8, emissiveIntensity 2.8) illumine l'espace
  * - Vignette → assombrit les coins (atmosphère de salle secrète)
  * - ChromaticAberration → légère aberration chromatique pour un look cinématique
  */
-export default function AlBayanPostProcessing({ sunRef }: AlBayanPostProcessingProps) {
-  // La ref du soleil (mesh dans zones/Scriptorium.tsx) n'est peuplée qu'après
-  // le commit initial de l'arbre — on ne doit jamais lire `.current` pendant
-  // le rendu (react-hooks/refs) : un effet post-montage copie le mesh dans
-  // un state, qui déclenche alors le re-rendu ajoutant GodRays.
+export default function AlBayanPostProcessing({ sunRef, vestibuleSunRef }: AlBayanPostProcessingProps) {
+  // Les refs des soleils (mesh dans zones/Scriptorium.tsx et Vestibule.tsx)
+  // ne sont peuplées qu'après le commit initial de l'arbre — on ne doit
+  // jamais lire `.current` pendant le rendu (react-hooks/refs) : un effet
+  // post-montage copie chaque mesh dans un state, qui déclenche alors le
+  // re-rendu ajoutant son GodRays.
   const [sunMesh, setSunMesh] = useState<THREE.Mesh | null>(null);
+  const [vestibuleSunMesh, setVestibuleSunMesh] = useState<THREE.Mesh | null>(null);
   useEffect(() => {
     if (sunRef?.current) setSunMesh(sunRef.current);
   }, [sunRef]);
+  useEffect(() => {
+    if (vestibuleSunRef?.current) setVestibuleSunMesh(vestibuleSunRef.current);
+  }, [vestibuleSunRef]);
 
   return (
     <EffectComposer multisampling={0}>
@@ -48,6 +54,22 @@ export default function AlBayanPostProcessing({ sunRef }: AlBayanPostProcessingP
       ) : (
         // Fragment vide le temps que la ref du soleil se peuple (1er frame) —
         // EffectComposer exige des enfants stables, pas de retour null direct.
+        <></>
+      )}
+      {vestibuleSunMesh ? (
+        <GodRays
+          sun={vestibuleSunMesh}
+          blendFunction={BlendFunction.SCREEN}
+          samples={40}
+          density={0.55}
+          decay={0.82}
+          weight={0.35}
+          exposure={0.24}
+          clampMax={1}
+          kernelSize={2}
+          blur
+        />
+      ) : (
         <></>
       )}
       <Bloom

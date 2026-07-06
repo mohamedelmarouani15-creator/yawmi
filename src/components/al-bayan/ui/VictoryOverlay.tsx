@@ -37,9 +37,11 @@ function StarRating({ timeLeft }: { timeLeft: number }) {
 
 export default function VictoryOverlay() {
   const timeLeft = useAlBayanStore((s) => s.timeLeft);
+  const codeAttempts = useAlBayanStore((s) => s.codeAttempts);
   const resetGame = useAlBayanStore((s) => s.resetGame);
   const router = useRouter();
   const [showContent, setShowContent] = useState(false);
+  const flawless = codeAttempts === 0;
 
   useEffect(() => {
     const t = setTimeout(() => setShowContent(true), 600);
@@ -78,6 +80,21 @@ export default function VictoryOverlay() {
             </h2>
 
             <StarRating timeLeft={timeLeft} />
+
+            {flawless && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1.4, type: "spring", stiffness: 300, damping: 14 }}
+                className="flex items-center gap-1.5 rounded-full px-3 py-1"
+                style={{ background: "rgba(96,165,250,0.12)", border: "1px solid rgba(96,165,250,0.4)" }}
+              >
+                <span style={{ fontSize: 13 }}>✦</span>
+                <span style={{ fontSize: 10, fontFamily: "var(--font-dm-sans)", fontWeight: 800, color: "#60a5fa", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                  Sans faute — coffret ouvert du premier coup
+                </span>
+              </motion.div>
+            )}
 
             <p style={{ fontSize: 11, fontFamily: "var(--font-dm-sans)", color: "rgba(248,244,236,0.45)", textAlign: "center" }}>
               Temps restant : {String(minutesLeft).padStart(2, "0")}:{String(secondsLeft).padStart(2, "0")} sur {Math.floor(GAME_DURATION / 60)} minutes

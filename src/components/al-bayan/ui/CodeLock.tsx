@@ -3,6 +3,8 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAlBayanStore } from "@/lib/al-bayan/game-store";
+import { playInteract, playBuzz } from "@/lib/al-bayan/audio-engine";
+import { triggerShake } from "@/lib/camera-shake";
 
 type Slot = "a" | "b" | "c";
 
@@ -11,10 +13,12 @@ function DigitSlot({ slot, value, disabled }: { slot: Slot; value: number | null
 
   const increment = () => {
     if (disabled) return;
+    playInteract();
     setCodeDigit(slot, value === null ? 0 : (value + 1) % 10);
   };
   const decrement = () => {
     if (disabled) return;
+    playInteract();
     setCodeDigit(slot, value === null ? 9 : (value - 1 + 10) % 10);
   };
 
@@ -68,6 +72,8 @@ export default function CodeLock() {
       setFeedbackMsg("Le coffret s'ouvre...");
       setShowFeedback(true);
     } else {
+      playBuzz();
+      triggerShake(0.06, 0.35);
       setShaking(true);
       setFeedbackMsg(`Combinaison incorrecte... (tentative ${codeAttempts + 1})`);
       setShowFeedback(true);

@@ -8,6 +8,7 @@ import CandleLight from "../shared/CandleLight";
 import AmbientParticles from "../shared/AmbientParticles";
 import IslamicArch from "../shared/IslamicArch";
 import LightShaftSun from "../../al-bayan/world/LightShaftSun";
+import EmberParticles from "../../al-bayan/shared/EmberParticles";
 import type { GamePhase } from "@/lib/maison-sagesse/types";
 
 // Room dimensions
@@ -451,6 +452,8 @@ export default function MainHall({ onPhaseChange, sunRef }: MainHallProps) {
       <CandleLight position={[5, 0.5, 4]} intensity={1.2} />
       <CandleLight position={[-8, 1.2, -6]} intensity={0.9} />
       <CandleLight position={[8, 1.2, -6]} intensity={0.9} />
+      <EmberParticles position={[-5, 0.65, -4]} count={9} color="#FFC24D" />
+      <EmberParticles position={[5, 0.65, -4]} count={9} color="#FFC24D" />
 
       {/* ── Bookshelves on side walls ── */}
       <BookShelf position={[-9.5, 1.5, -5]} rotation={[0, Math.PI / 2, 0]} />

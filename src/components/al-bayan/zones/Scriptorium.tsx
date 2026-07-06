@@ -8,6 +8,7 @@ import Moucharabieh from "../shared/Moucharabieh";
 import EnigmaRasm from "../scenes/EnigmaRasm";
 import InteractiveAura from "../shared/InteractiveAura";
 import LightShaftSun from "../world/LightShaftSun";
+import EmberParticles from "../shared/EmberParticles";
 
 const SIZE = 13;
 const H = 7;
@@ -169,6 +170,8 @@ export default function Scriptorium({ onConfirm, sunRef }: { onConfirm?: () => v
       <CandleLight position={[-4.5, 0.4, -3]} intensity={1.2} />
       <CandleLight position={[4.5, 0.4, -3]} intensity={1.2} />
       <CandleLight position={[0, 0.4, 3.5]} intensity={1.0} />
+      <EmberParticles position={[-4.5, 0.55, -3]} count={9} />
+      <EmberParticles position={[4.5, 0.55, -3]} count={9} />
 
       <AmbientParticles />
     </group>

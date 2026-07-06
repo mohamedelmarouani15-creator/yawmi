@@ -49,9 +49,11 @@ function StarRating({ timeLeft }: { timeLeft: number }) {
 
 export default function VictoryOverlay() {
   const timeLeft = useMaisonSagesseStore((s) => s.timeLeft);
+  const codeAttempts = useMaisonSagesseStore((s) => s.codeAttempts);
   const resetGame = useMaisonSagesseStore((s) => s.resetGame);
   const router = useRouter();
   const [showContent, setShowContent] = useState(false);
+  const flawless = codeAttempts === 0;
 
   useEffect(() => {
     const t = setTimeout(() => setShowContent(true), 600);
@@ -152,6 +154,21 @@ export default function VictoryOverlay() {
 
             {/* Stars */}
             <StarRating timeLeft={timeLeft} />
+
+            {flawless && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1.4, type: "spring", stiffness: 300, damping: 14 }}
+                className="flex items-center gap-1.5 rounded-full px-3 py-1"
+                style={{ background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.4)" }}
+              >
+                <span style={{ fontSize: 13 }}>✦</span>
+                <span style={{ fontSize: 10, fontFamily: "var(--font-dm-sans)", fontWeight: 800, color: "#D4AF37", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                  Sans faute — coffre ouvert du premier coup
+                </span>
+              </motion.div>
+            )}
 
             {/* Time */}
             <p

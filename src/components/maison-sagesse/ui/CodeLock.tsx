@@ -139,11 +139,6 @@ export default function CodeLock() {
 
   const disabled = lockOpen || phase === "victory" || phase === "failure";
 
-  // Only show when phase is code-lock or later
-  if (phase !== "code-lock" && phase !== "victory" && phase !== "failure") {
-    return null;
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}

@@ -110,7 +110,7 @@ export default function EnigmaStatus() {
   const enigmaC = useMaisonSagesseStore((s) => s.enigmaC);
   const phase = useMaisonSagesseStore((s) => s.phase);
 
-  if (phase === "idle" || phase === "intro") return null;
+  if (phase === "idle") return null;
 
   return (
     <div

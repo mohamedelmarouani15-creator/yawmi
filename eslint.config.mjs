@@ -18,7 +18,7 @@ const eslintConfig = defineConfig([
     // render model, but react-three-fiber's documented pattern is to mutate
     // Three.js objects (materials, meshes) directly per-frame to avoid
     // triggering re-renders — that's a deliberate escape hatch, not a bug.
-    files: ["src/components/al-bayan/**/*.tsx"],
+    files: ["src/components/al-bayan/**/*.tsx", "src/components/maison-sagesse/world/**/*.tsx"],
     rules: {
       "react-hooks/immutability": "off",
     },

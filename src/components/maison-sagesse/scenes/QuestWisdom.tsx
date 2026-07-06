@@ -8,8 +8,14 @@ import * as THREE from "three";
 import CandleLight from "../shared/CandleLight";
 import AmbientParticles from "../shared/AmbientParticles";
 import GrillePercee from "../ui/GrillePercee";
+import ProximityPrompt from "../shared/ProximityPrompt";
+import InteractiveAura from "../../al-bayan/shared/InteractiveAura";
+import ZoneWall from "../../al-bayan/shared/ZoneWall";
+import { QUEST_SIZE, CORRIDOR_HALF_WIDTH } from "@/lib/maison-sagesse/zone-layout";
 
-// 6 pillars of faith (Arkan al-Iman)
+const { W: SIZE, H } = QUEST_SIZE;
+const GAP = CORRIDOR_HALF_WIDTH;
+
 const PILLARS_OF_FAITH = [
   { label: "Allah", arabic: "الله" },
   { label: "Anges", arabic: "الملائكة" },
@@ -30,29 +36,12 @@ interface BookProps {
   colorIndex: number;
   width: number;
   height: number;
-  onClick?: () => void;
   revealed?: boolean;
   pillarsLabel?: string;
 }
 
-function Book({ position, colorIndex, width, height, onClick, revealed, pillarsLabel }: BookProps) {
-  const groupRef = useRef<THREE.Group>(null);
-  const [hovered, setHovered] = useState(false);
-  const [opened, setOpened] = useState(false);
-  const lidRef = useRef<THREE.Mesh>(null);
-
+function Book({ position, colorIndex, width, height, revealed, pillarsLabel }: BookProps) {
   const color = BOOK_COLORS[colorIndex % BOOK_COLORS.length];
-
-  useFrame(() => {
-    if (lidRef.current) {
-      const targetRot = opened ? -Math.PI * 0.7 : 0;
-      lidRef.current.rotation.z += (targetRot - lidRef.current.rotation.z) * 0.12;
-    }
-    if (groupRef.current) {
-      const targetY = hovered ? position[1] + 0.05 : position[1];
-      groupRef.current.position.y += (targetY - groupRef.current.position.y) * 0.18;
-    }
-  });
 
   const coverMat = useMemo(
     () =>
@@ -72,65 +61,30 @@ function Book({ position, colorIndex, width, height, onClick, revealed, pillarsL
   );
 
   const goldMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: "#D4AF37",
-        roughness: 0.4,
-        metalness: 0.7,
-      }),
+    () => new THREE.MeshStandardMaterial({ color: "#D4AF37", roughness: 0.4, metalness: 0.7 }),
     []
   );
 
   const depth = 0.35;
 
   return (
-    <group
-      ref={groupRef}
-      position={position}
-      onPointerOver={() => {
-        if (onClick) {
-          setHovered(true);
-          document.body.style.cursor = "pointer";
-        }
-      }}
-      onPointerOut={() => {
-        setHovered(false);
-        document.body.style.cursor = "default";
-      }}
-      onClick={() => {
-        if (onClick) {
-          setOpened(!opened);
-          onClick();
-        }
-      }}
-    >
-      {/* Pages block */}
+    <group position={position}>
       <mesh material={pageMat} castShadow receiveShadow position={[0, 0, 0]}>
         <boxGeometry args={[width * 0.9, height, depth * 0.85]} />
       </mesh>
-      {/* Front cover */}
       <mesh material={coverMat} castShadow receiveShadow position={[0, 0, depth / 2 + 0.005]}>
         <boxGeometry args={[width + 0.015, height + 0.01, 0.012]} />
       </mesh>
-      {/* Back cover */}
       <mesh material={coverMat} castShadow receiveShadow position={[0, 0, -depth / 2 - 0.005]}>
         <boxGeometry args={[width + 0.015, height + 0.01, 0.012]} />
       </mesh>
-      {/* Spine */}
-      <mesh
-        ref={lidRef}
-        material={coverMat}
-        castShadow
-        position={[-(width / 2 + 0.006), 0, 0]}
-      >
+      <mesh material={coverMat} castShadow position={[-(width / 2 + 0.006), 0, 0]}>
         <boxGeometry args={[0.012, height + 0.01, depth + 0.025]} />
       </mesh>
-      {/* Gold spine decoration */}
       <mesh material={goldMat} position={[-(width / 2 + 0.013), 0, 0]}>
         <boxGeometry args={[0.006, height * 0.7, 0.015]} />
       </mesh>
 
-      {/* Revealed pillar label */}
       {revealed && pillarsLabel && (
         <Html position={[0, height / 2 + 0.15, 0]} center>
           <span style={{ color: "#D4AF37", fontSize: "9px", fontFamily: "serif", whiteSpace: "nowrap", textShadow: "0 0 8px rgba(212,175,55,0.8)", pointerEvents: "none", direction: "rtl" }}>
@@ -142,13 +96,8 @@ function Book({ position, colorIndex, width, height, onClick, revealed, pillarsL
   );
 }
 
-// Bookshelf unit — wall-mounted floor-to-ceiling
 function LibraryShelf({ posX, posZ, rotY }: { posX: number; posZ: number; rotY: number }) {
-  const shelfMat = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: "#2C1810", roughness: 0.9 }),
-    []
-  );
-
+  const shelfMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#2C1810", roughness: 0.9 }), []);
   const rows = [0.6, 1.55, 2.5, 3.45, 4.4];
   const booksPerRow = 12;
 
@@ -167,44 +116,33 @@ function LibraryShelf({ posX, posZ, rotY }: { posX: number; posZ: number; rotY: 
 
   return (
     <group position={[posX, 0, posZ]} rotation={[0, rotY, 0]}>
-      {/* Back panel */}
       <mesh receiveShadow position={[0, 2.7, 0]}>
         <boxGeometry args={[4.5, 5.5, 0.1]} />
         <primitive object={shelfMat} attach="material" />
       </mesh>
-      {/* Shelf boards */}
       {rows.map((sy) => (
         <mesh key={sy} castShadow receiveShadow position={[0, sy, 0.24]}>
           <boxGeometry args={[4.5, 0.06, 0.45]} />
           <primitive object={shelfMat} attach="material" />
         </mesh>
       ))}
-      {/* Books */}
       {bookData.map((b, i) => {
         const startX = -2.1;
         const spacing = 4.4 / booksPerRow;
         const x = startX + b.col * spacing + b.w / 2;
         return (
-          <Book
-            key={i}
-            position={[x, b.rowY + 0.04 + b.h / 2, 0.27]}
-            colorIndex={b.colorIdx}
-            width={b.w}
-            height={b.h}
-          />
+          <Book key={i} position={[x, b.rowY + 0.04 + b.h / 2, 0.27]} colorIndex={b.colorIdx} width={b.w} height={b.h} />
         );
       })}
     </group>
   );
 }
 
-// Central open book — examine to open the grille percée overlay
-function CentralBook({ onExamine }: { onExamine?: () => void }) {
+function CentralBook() {
   const particleRef = useRef<THREE.InstancedMesh>(null);
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
   useFrame(({ clock }) => {
-    // Ambient particle burst effect around the book
     if (particleRef.current) {
       const t = clock.getElapsedTime();
       for (let i = 0; i < 40; i++) {
@@ -219,35 +157,18 @@ function CentralBook({ onExamine }: { onExamine?: () => void }) {
     }
   });
 
-  const parchmentMat = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: "#D4B896", roughness: 0.88 }),
-    []
-  );
+  const parchmentMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#D4B896", roughness: 0.88 }), []);
   const curtainMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: "#2C1810",
-        roughness: 0.8,
-        transparent: true,
-        opacity: 0.9,
-      }),
+    () => new THREE.MeshStandardMaterial({ color: "#2C1810", roughness: 0.8, transparent: true, opacity: 0.9 }),
     []
   );
   const goldMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: "#D4AF37",
-        emissive: "#8B6914",
-        emissiveIntensity: 0.3,
-        roughness: 0.4,
-        metalness: 0.7,
-      }),
+    () => new THREE.MeshStandardMaterial({ color: "#D4AF37", emissive: "#8B6914", emissiveIntensity: 0.3, roughness: 0.4, metalness: 0.7 }),
     []
   );
 
   return (
     <group position={[0, 0.8, 0.5]}>
-      {/* Table */}
       <mesh position={[0, -0.3, 0]} castShadow receiveShadow>
         <boxGeometry args={[3.5, 0.08, 2.2]} />
         <meshStandardMaterial color="#2C1810" roughness={0.85} />
@@ -261,80 +182,43 @@ function CentralBook({ onExamine }: { onExamine?: () => void }) {
         ))
       )}
 
-      {/* Open book pages */}
-      {/* Left page */}
       <mesh material={parchmentMat} castShadow receiveShadow rotation={[0, -Math.PI * 0.05, 0]} position={[-0.88, -0.12, 0]}>
         <boxGeometry args={[1.7, 0.02, 2]} />
       </mesh>
-      {/* Right page */}
       <mesh material={parchmentMat} castShadow receiveShadow rotation={[0, Math.PI * 0.05, 0]} position={[0.88, -0.12, 0]}>
         <boxGeometry args={[1.7, 0.02, 2]} />
       </mesh>
-      {/* Spine */}
       <mesh material={goldMat} position={[0, -0.1, 0]}>
         <boxGeometry args={[0.08, 0.04, 2.05]} />
       </mesh>
 
-      {/* Perforated card (grille percée), resting over the pages */}
       <mesh material={curtainMat} position={[0, 0.02, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <boxGeometry args={[3.5, 2, 0.06]} />
       </mesh>
-      {/* Card holes pattern */}
       {[...Array(4)].map((_, row) =>
         [...Array(6)].map((_, col) => (
-          <mesh
-            key={`${row}${col}`}
-            position={[-1.25 + col * 0.5, 0.05, -0.75 + row * 0.4]}
-            rotation={[-Math.PI / 2, 0, 0]}
-          >
+          <mesh key={`${row}${col}`} position={[-1.25 + col * 0.5, 0.05, -0.75 + row * 0.4]} rotation={[-Math.PI / 2, 0, 0]}>
             <circleGeometry args={[0.06, 8]} />
             <meshStandardMaterial color="#1C0E08" roughness={1} />
           </mesh>
         ))
       )}
 
-      {/* Ambient gold particles around the book */}
-      <instancedMesh ref={particleRef} args={[undefined, undefined, 40]}>
+      <instancedMesh ref={particleRef} args={[undefined, undefined, 40]} userData={{ noCollide: true }}>
         <sphereGeometry args={[0.025, 4, 4]} />
         <meshStandardMaterial color="#D4AF37" emissive="#D4AF37" emissiveIntensity={0.8} />
       </instancedMesh>
-
-      {/* Examine button */}
-      <mesh
-        position={[0, -0.17, 1.2]}
-        castShadow
-        onClick={onExamine}
-        onPointerOver={() => (document.body.style.cursor = "pointer")}
-        onPointerOut={() => (document.body.style.cursor = "default")}
-      >
-        <boxGeometry args={[1.5, 0.1, 0.4]} />
-        <meshStandardMaterial
-          color="#D4AF37"
-          emissive="#8B6914"
-          emissiveIntensity={0.4}
-          roughness={0.5}
-          metalness={0.6}
-        />
-      </mesh>
-      <Html position={[0, -0.1, 1.2]} center>
-        <span style={{ color: "#0A0F0D", fontSize: "9px", fontFamily: "serif", whiteSpace: "nowrap", pointerEvents: "none" }}>
-          Examiner la grille
-        </span>
-      </Html>
     </group>
   );
 }
 
-// Monumental central candle
 function MonumentalCandle() {
   return (
     <group position={[0, 0, -4.5]}>
-      {/* Pedestal */}
       <mesh castShadow receiveShadow position={[0, 0.2, 0]}>
         <cylinderGeometry args={[0.4, 0.5, 0.4, 10]} />
         <meshStandardMaterial color="#5C3D1A" roughness={0.7} metalness={0.3} />
       </mesh>
-      {/* Candle body — large */}
       <mesh castShadow receiveShadow position={[0, 1.0, 0]}>
         <cylinderGeometry args={[0.18, 0.2, 1.4, 10]} />
         <meshStandardMaterial color="#F0E8C0" roughness={0.9} />
@@ -346,73 +230,87 @@ function MonumentalCandle() {
 
 interface QuestWisdomProps {
   onConfirm?: () => void;
+  avatarRef: React.RefObject<THREE.Group | null>;
+  zoneOffset: readonly [number, number, number];
 }
 
-export default function QuestWisdom({ onConfirm }: QuestWisdomProps) {
+export default function QuestWisdom({ onConfirm, avatarRef, zoneOffset }: QuestWisdomProps) {
   const [showGrille, setShowGrille] = useState(false);
 
-  const wallMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({ color: "#1C1008", roughness: 0.92, metalness: 0.02 }),
-    []
-  );
+  const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#1C1008", roughness: 0.92, metalness: 0.02 }), []);
+
+  // Segment du mur ouest (côté hall) percé pour le corridor.
+  const westSegD = (SIZE - GAP * 2) / 2;
+  const westSegZ = GAP + westSegD / 2;
 
   return (
     <group>
-      {/* ── Lighting — warm gold ── */}
       <ambientLight color="#100800" intensity={0.3} />
       <pointLight color="#8B6914" intensity={2} distance={16} decay={1.5} position={[0, 5, 0]} castShadow />
       <pointLight color="#C8A84B" intensity={0.8} distance={8} decay={2} position={[-5, 3, -3]} />
       <pointLight color="#C8A84B" intensity={0.8} distance={8} decay={2} position={[5, 3, -3]} />
 
-      {/* ── Room walls ── */}
       <mesh position={[0, 3, -6]} receiveShadow castShadow>
-        <boxGeometry args={[12, 6, 0.25]} />
+        <boxGeometry args={[SIZE, H, 0.25]} />
         <primitive object={wallMat} attach="material" />
       </mesh>
       <mesh position={[0, 3, 6]} receiveShadow castShadow>
-        <boxGeometry args={[12, 6, 0.25]} />
+        <boxGeometry args={[SIZE, H, 0.25]} />
         <primitive object={wallMat} attach="material" />
       </mesh>
-      <mesh position={[-6, 3, 0]} receiveShadow castShadow>
-        <boxGeometry args={[0.25, 6, 12]} />
-        <primitive object={wallMat} attach="material" />
-      </mesh>
+      {/* Mur ouest — percé, débouche sur le corridor vers le Hall */}
+      <ZoneWall position={[-6, 3, -westSegZ]} size={[0.25, H, westSegD]} color="#1C1008" roughness={0.92} metalness={0.02} />
+      <ZoneWall position={[-6, 3, westSegZ]} size={[0.25, H, westSegD]} color="#1C1008" roughness={0.92} metalness={0.02} />
       <mesh position={[6, 3, 0]} receiveShadow castShadow>
-        <boxGeometry args={[0.25, 6, 12]} />
+        <boxGeometry args={[0.25, H, SIZE]} />
         <primitive object={wallMat} attach="material" />
       </mesh>
-      {/* Floor */}
+
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[12, 12]} />
+        <planeGeometry args={[SIZE, SIZE]} />
         <meshStandardMaterial color="#1C1008" roughness={0.8} />
       </mesh>
-      {/* Ceiling */}
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 6, 0]}>
-        <planeGeometry args={[12, 12]} />
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, 6, 0]} userData={{ noCollide: true }}>
+        <planeGeometry args={[SIZE, SIZE]} />
         <meshStandardMaterial color="#0A0600" roughness={0.95} />
       </mesh>
 
-      {/* ── Library shelves on 3 walls ── */}
       <LibraryShelf posX={0} posZ={-5.5} rotY={0} />
-      <LibraryShelf posX={-5.5} posZ={0} rotY={Math.PI / 2} />
       <LibraryShelf posX={5.5} posZ={0} rotY={-Math.PI / 2} />
 
-      {/* ── Decorative feature books ── */}
       {PILLARS_OF_FAITH.map((pillar, i) => (
-        <Book
-          key={pillar.label}
-          position={[(-2.5 + i) * 0.6, 1.2, 4.5]}
-          colorIndex={i}
-          width={0.22}
-          height={0.55}
-        />
+        <Book key={pillar.label} position={[(-2.5 + i) * 0.6, 1.2, 4.5]} colorIndex={i} width={0.22} height={0.55} />
       ))}
 
-      {/* ── Central open book — examine to reveal the grille percée ── */}
-      <CentralBook onExamine={() => setShowGrille(true)} />
+      <CentralBook />
+      <InteractiveAura position={[0, 0.02, 0.5]} color="#D4AF37" radius={1.4} />
+      <ProximityPrompt avatarRef={avatarRef} zoneOffset={zoneOffset} localPosition={[0, 0, 0.5]} radius={2.2}>
+        {(inRange) =>
+          inRange && (
+            <Html position={[0, 1.3, 1.3]} center>
+              <button
+                onClick={() => setShowGrille(true)}
+                style={{
+                  pointerEvents: "auto",
+                  background: "linear-gradient(135deg, #7a5c1a 0%, #D4AF37 50%, #7a5c1a 100%)",
+                  border: "1px solid rgba(212,175,55,0.7)",
+                  color: "#0A0F0D",
+                  fontFamily: "var(--font-dm-sans)",
+                  fontWeight: 800,
+                  fontSize: 11,
+                  borderRadius: 10,
+                  padding: "8px 14px",
+                  cursor: "pointer",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Examiner la grille
+              </button>
+            </Html>
+          )
+        }
+      </ProximityPrompt>
 
-      {/* ── Grille percée overlay ── */}
       <AnimatePresence>
         {showGrille && (
           <Html fullscreen>
@@ -427,16 +325,13 @@ export default function QuestWisdom({ onConfirm }: QuestWisdomProps) {
         )}
       </AnimatePresence>
 
-      {/* ── Monumental candle ── */}
       <MonumentalCandle />
 
-      {/* ── Side candles ── */}
       <CandleLight position={[-5, 0.5, -4]} intensity={1.0} />
       <CandleLight position={[5, 0.5, -4]} intensity={1.0} />
       <CandleLight position={[-5, 0.5, 3]} intensity={0.8} />
       <CandleLight position={[5, 0.5, 3]} intensity={0.8} />
 
-      {/* ── Ambient dust ── */}
       <AmbientParticles />
     </group>
   );

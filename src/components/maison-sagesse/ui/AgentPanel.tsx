@@ -167,7 +167,7 @@ export default function AgentPanel() {
   };
 
   // Only render after game starts
-  if (phase === "idle" || phase === "intro") return null;
+  if (phase === "idle") return null;
 
   return (
     <div

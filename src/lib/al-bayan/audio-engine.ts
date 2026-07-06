@@ -218,6 +218,33 @@ export function playBuzz() {
   } catch {}
 }
 
+/** Descente sombre — le temps est écoulé (échec). Trois notes descendantes
+ * en mineur, timbre plus grave/mat que playBuzz (pas une simple erreur, la
+ * partie se termine). */
+export function playFailure() {
+  const s = getState();
+  if (!s) return;
+  try {
+    const { ctx } = s;
+    const freqs = [220, 196, 164.81]; // La3, Sol3, Mi3 — descente mineure
+    const delays = [0, 0.3, 0.6];
+    freqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = freq;
+      const t0 = ctx.currentTime + delays[i];
+      gain.gain.setValueAtTime(0, t0);
+      gain.gain.linearRampToValueAtTime(0.1, t0 + 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 1.1);
+      osc.connect(gain);
+      connectWithReverb(s, gain);
+      osc.start(t0);
+      osc.stop(t0 + 1.15);
+    });
+  } catch {}
+}
+
 /** Fanfare de victoire — arpège ascendant sur deux octaves (Ré majeur),
  * plus ample et plus long que playSolve (issue triomphale, pas juste une
  * énigme). */

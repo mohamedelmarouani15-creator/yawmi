@@ -214,6 +214,31 @@ export function playBuzz() {
   } catch {}
 }
 
+/** Descente sombre — le temps est écoulé (échec). */
+export function playFailure() {
+  const s = getState();
+  if (!s) return;
+  try {
+    const { ctx } = s;
+    const freqs = [220, 196, 164.81];
+    const delays = [0, 0.3, 0.6];
+    freqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = freq;
+      const t0 = ctx.currentTime + delays[i];
+      gain.gain.setValueAtTime(0, t0);
+      gain.gain.linearRampToValueAtTime(0.1, t0 + 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 1.1);
+      osc.connect(gain);
+      connectWithReverb(s, gain);
+      osc.start(t0);
+      osc.stop(t0 + 1.15);
+    });
+  } catch {}
+}
+
 /** Fanfare de victoire — arpège ascendant Ré majeur sur deux octaves. */
 export function playVictory() {
   const s = getState();

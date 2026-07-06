@@ -84,10 +84,11 @@ function IsoCameraFollow({ avatarRef, yawRef, cameraReadyRef }: IsoCameraFollowP
   const raycaster = useRef(new THREE.Raycaster());
   const rayDir = useRef(new THREE.Vector3());
 
-  useFrame(() => {
+  useFrame(({ clock }) => {
     if (!cameraReadyRef.current) return; // cinematic intro en cours
     const avatar = avatarRef.current;
     if (!avatar) return;
+    const t = clock.getElapsedTime();
 
     if (!candidates.current) {
       candidates.current = collectOccluderCandidates(scene, avatar);
@@ -115,6 +116,10 @@ function IsoCameraFollow({ avatarRef, yawRef, cameraReadyRef }: IsoCameraFollowP
       avatar.position.z + offset.z * scale
     );
     camera.position.lerp(desired.current, ISO_FOLLOW_LERP);
+
+    // Respiration ambiante — très légère dérive verticale continue, pour
+    // que la caméra ne soit jamais parfaitement figée même à l'arrêt.
+    camera.position.y += Math.sin(t * 0.35) * 0.025;
 
     // Secousse d'impact (résolution d'énigme / victoire) — décalage caméra
     // additif + léger coup de zoom (FOV), voir lib/camera-shake.ts.

@@ -18,7 +18,7 @@ import HintMailbox from "@/components/al-bayan/ui/HintMailbox";
 import CodeLock from "@/components/al-bayan/ui/CodeLock";
 import VictoryOverlay from "@/components/al-bayan/ui/VictoryOverlay";
 import FailureOverlay from "@/components/al-bayan/ui/FailureOverlay";
-import { resumeAudio, startAmbient, stopAmbient, playSolve, playVictory } from "@/lib/al-bayan/audio-engine";
+import { resumeAudio, startAmbient, stopAmbient, playSolve, playVictory, playFailure } from "@/lib/al-bayan/audio-engine";
 import { triggerShake } from "@/lib/camera-shake";
 
 // Sensibilité de rotation au glissé tactile (pouce droit)
@@ -254,6 +254,17 @@ export default function AlBayanPage() {
       triggerShake(0.22, 1.1);
     }
     if (phase !== "victory") victoryPlayedRef.current = false;
+  }, [phase]);
+
+  // Descente sombre au temps écoulé
+  const failurePlayedRef = useRef(false);
+  useEffect(() => {
+    if (phase === "failure" && !failurePlayedRef.current) {
+      failurePlayedRef.current = true;
+      playFailure();
+      triggerShake(0.08, 0.8);
+    }
+    if (phase !== "failure") failurePlayedRef.current = false;
   }, [phase]);
 
   if (!mounted) return null;

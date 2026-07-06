@@ -9,7 +9,7 @@ import * as THREE from "three";
 import { useMaisonSagesseStore } from "@/lib/maison-sagesse/game-store";
 import type { GamePhase } from "@/lib/maison-sagesse/types";
 import { dispatchPassthroughTap } from "@/lib/touch-passthrough";
-import { resumeAudio, startAmbient, stopAmbient, playFootstep, playSolve, playVictory } from "@/lib/maison-sagesse/audio-engine";
+import { resumeAudio, startAmbient, stopAmbient, playFootstep, playSolve, playVictory, playFailure } from "@/lib/maison-sagesse/audio-engine";
 import { triggerShake, getShakeOffset } from "@/lib/camera-shake";
 
 import MainHall from "./scenes/MainHall";
@@ -101,7 +101,8 @@ function CameraController({ phase, joystickRef, yawRef, pitchRef }: CameraContro
   // useFrame mute la caméra à chaque frame (60fps) — pattern imposé par r3f,
   // passer par du state React ici déclencherait un re-render par frame.
   // eslint-disable-next-line react-hooks/immutability
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
+    const t = clock.getElapsedTime();
     const joy = joystickRef.current;
     const dt  = Math.min(delta, 0.1);
     const bounds = ROOM_BOUNDS[phase] ?? ROOM_BOUNDS["main-hall"];
@@ -138,9 +139,11 @@ function CameraController({ phase, joystickRef, yawRef, pitchRef }: CameraContro
       bobPhase.current = 0;
     }
     const bobY = Math.abs(Math.sin(bobPhase.current)) * BOB_AMPLITUDE * speedMag;
+    // Respiration ambiante — légère dérive continue, même à l'arrêt.
+    const idleSway = Math.sin(t * 0.3) * 0.02;
 
     const shake = getShakeOffset();
-    camera.position.y = 1.7 + bobY + shake.y * 0.4;
+    camera.position.y = 1.7 + bobY + idleSway + shake.y * 0.4;
     camera.position.x += shake.x * 0.3;
 
     camera.rotation.order = "YXZ";
@@ -316,6 +319,17 @@ export function MaisonSagesseGame() {
       triggerShake(0.22, 1.1);
     }
     if (phase !== "victory") victoryPlayedRef.current = false;
+  }, [phase]);
+
+  // Descente sombre au temps écoulé
+  const failurePlayedRef = useRef(false);
+  useEffect(() => {
+    if (phase === "failure" && !failurePlayedRef.current) {
+      failurePlayedRef.current = true;
+      playFailure();
+      triggerShake(0.08, 0.8);
+    }
+    if (phase !== "failure") failurePlayedRef.current = false;
   }, [phase]);
 
   // LookZone handler → met à jour yaw/pitch

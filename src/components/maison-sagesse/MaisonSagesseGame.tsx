@@ -9,11 +9,14 @@ import * as THREE from "three";
 import { useMaisonSagesseStore } from "@/lib/maison-sagesse/game-store";
 import type { GamePhase } from "@/lib/maison-sagesse/types";
 import { dispatchPassthroughTap } from "@/lib/touch-passthrough";
+import { resumeAudio, startAmbient, stopAmbient, playFootstep, playSolve, playVictory } from "@/lib/maison-sagesse/audio-engine";
+import { triggerShake, getShakeOffset } from "@/lib/camera-shake";
 
 import MainHall from "./scenes/MainHall";
 import QuestFaith from "./scenes/QuestFaith";
 import QuestScience from "./scenes/QuestScience";
 import QuestWisdom from "./scenes/QuestWisdom";
+import MaisonSagessePostProcessing from "./world/PostProcessing";
 
 import IntroScreen from "./ui/IntroScreen";
 import Timer45 from "./ui/Timer45";
@@ -73,10 +76,16 @@ interface CameraControllerProps {
   pitchRef:    React.MutableRefObject<number>;
 }
 
+const BASE_CAMERA_FOV = 60;
+const BOB_AMPLITUDE = 0.045;
+const BOB_FREQ = 9.5;
+
 function CameraController({ phase, joystickRef, yawRef, pitchRef }: CameraControllerProps) {
   const { camera } = useThree();
+  const perspCamera = camera as THREE.PerspectiveCamera;
   const velX = useRef(0);
   const velZ = useRef(0);
+  const bobPhase = useRef(0);
 
   // Replace la caméra au point d'apparition de la salle à chaque changement de phase.
   useEffect(() => {
@@ -118,11 +127,37 @@ function CameraController({ phase, joystickRef, yawRef, pitchRef }: CameraContro
     // eslint-disable-next-line react-hooks/immutability
     camera.position.x = Math.max(-bounds.x, Math.min(bounds.x, camera.position.x + velX.current * dt));
     camera.position.z = Math.max(-bounds.z, Math.min(bounds.z, camera.position.z + velZ.current * dt));
-    camera.position.y = 1.7;
+
+    // Head-bob + pas — proportionnel à la vitesse réelle (0..1), pas au
+    // joystick brut, pour rester fluide même en accélération/freinage.
+    const speedMag = Math.min(1, Math.hypot(velX.current, velZ.current) / SPEED);
+    if (speedMag > 0.08) {
+      bobPhase.current += dt * (BOB_FREQ + BOB_FREQ * 0.3 * speedMag);
+      if (speedMag > 0.5) playFootstep();
+    } else {
+      bobPhase.current = 0;
+    }
+    const bobY = Math.abs(Math.sin(bobPhase.current)) * BOB_AMPLITUDE * speedMag;
+
+    const shake = getShakeOffset();
+    camera.position.y = 1.7 + bobY + shake.y * 0.4;
+    camera.position.x += shake.x * 0.3;
 
     camera.rotation.order = "YXZ";
     camera.rotation.y = yawRef.current;
     camera.rotation.x = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, pitchRef.current));
+    camera.rotation.z = Math.sin(bobPhase.current) * 0.012 * speedMag;
+
+    if (perspCamera.isPerspectiveCamera) {
+      const targetFov = BASE_CAMERA_FOV + shake.fovPunch;
+      if (Math.abs(perspCamera.fov - targetFov) > 0.01) {
+        // Mutation impérative du renderer Three.js — API native r3f, comme
+        // gl.toneMapping/camera.position ci-dessus, pas un état React.
+        // eslint-disable-next-line react-hooks/immutability
+        perspCamera.fov = targetFov;
+        perspCamera.updateProjectionMatrix();
+      }
+    }
   });
 
   return null;
@@ -151,6 +186,7 @@ function SceneSwitcher({
   joystickRef,
   yawRef,
   pitchRef,
+  sunRef,
 }: {
   phase: GamePhase;
   onPhaseChange: (p: GamePhase) => void;
@@ -158,13 +194,14 @@ function SceneSwitcher({
   joystickRef: React.MutableRefObject<{ x: number; y: number }>;
   yawRef: React.MutableRefObject<number>;
   pitchRef: React.MutableRefObject<number>;
+  sunRef: React.RefObject<THREE.Mesh | null>;
 }) {
   return (
     <>
       <CameraController phase={phase} joystickRef={joystickRef} yawRef={yawRef} pitchRef={pitchRef} />
 
       {(phase === "main-hall" || phase === "intro" || phase === "code-lock" || phase === "victory" || phase === "failure") && (
-        <MainHall onPhaseChange={onPhaseChange} />
+        <MainHall onPhaseChange={onPhaseChange} sunRef={sunRef} />
       )}
       {phase === "quest-faith" && (
         <QuestFaith onConfirm={() => { onSolveEnigma("A"); onPhaseChange("main-hall"); }} />
@@ -207,10 +244,11 @@ export function MaisonSagesseGame() {
     setIsTouchDevice(isTouchCapable());
   }, []);
 
-  // Refs joystick / caméra
+  // Refs joystick / caméra / source des rayons de lumière
   const joystickRef = useRef({ x: 0, y: 0 });
   const yawRef      = useRef(0);
   const pitchRef    = useRef(-0.05);
+  const sunRef      = useRef<THREE.Mesh>(null);
 
   // Lock orientation paysage sur mobile
   useEffect(() => {
@@ -239,6 +277,46 @@ export function MaisonSagesseGame() {
       setPhase("code-lock");
     }
   }, [enigmaA.solved, enigmaB.solved, enigmaC.solved, phase, setPhase]);
+
+  // Audio ambiant — démarré au premier geste après l'entrée en jeu
+  useEffect(() => {
+    if (phase === "idle") {
+      stopAmbient();
+      return;
+    }
+    const handler = () => {
+      resumeAudio();
+      startAmbient();
+    };
+    window.addEventListener("touchstart", handler, { once: true });
+    window.addEventListener("click", handler, { once: true });
+    return () => {
+      window.removeEventListener("touchstart", handler);
+      window.removeEventListener("click", handler);
+    };
+  }, [phase]);
+
+  // Son + secousse caméra à la résolution d'une quête
+  const prevSolvedRef = useRef({ A: false, B: false, C: false });
+  useEffect(() => {
+    const prev = prevSolvedRef.current;
+    if ((enigmaA.solved && !prev.A) || (enigmaB.solved && !prev.B) || (enigmaC.solved && !prev.C)) {
+      playSolve();
+      triggerShake(0.12, 0.5);
+    }
+    prevSolvedRef.current = { A: enigmaA.solved, B: enigmaB.solved, C: enigmaC.solved };
+  }, [enigmaA.solved, enigmaB.solved, enigmaC.solved]);
+
+  // Fanfare + secousse ample à la victoire
+  const victoryPlayedRef = useRef(false);
+  useEffect(() => {
+    if (phase === "victory" && !victoryPlayedRef.current) {
+      victoryPlayedRef.current = true;
+      playVictory();
+      triggerShake(0.22, 1.1);
+    }
+    if (phase !== "victory") victoryPlayedRef.current = false;
+  }, [phase]);
 
   // LookZone handler → met à jour yaw/pitch
   const handleLook = useCallback((dx: number, dy: number) => {
@@ -286,10 +364,12 @@ export function MaisonSagesseGame() {
             joystickRef={joystickRef}
             yawRef={yawRef}
             pitchRef={pitchRef}
+            sunRef={sunRef}
           />
         </Suspense>
 
         <ToneMappingSetup />
+        <MaisonSagessePostProcessing sunRef={sunRef} />
       </Canvas>
 
       {/* ── Vignette CSS ── */}

@@ -1,4 +1,7 @@
-// Web Audio API engine for al-bayan — no audio files, everything is procedural.
+// Web Audio API engine for Maison de la Sagesse — no audio files, everything
+// is procedural. Mirrors al-bayan/audio-engine.ts (même architecture, même
+// réverb de salle de pierre) avec une signature harmonique propre (Ré
+// majeur, plus lumineux/doré que le drone de quinte d'al-bayan).
 // Call resumeAudio() after the first user gesture (AudioContext policy).
 
 interface AudioState {
@@ -6,16 +9,13 @@ interface AudioState {
   ambientGain: GainNode;
   ambientStarted: boolean;
   reverb: ConvolverNode;
-  reverbSend: GainNode; // niveau envoyé au convolver (dry/wet)
-  dry: GainNode; // sortie directe (non traitée) vers la destination
+  reverbSend: GainNode;
+  dry: GainNode;
 }
 
 let state: AudioState | null = null;
 
-/** Impulse response synthétique — decay exponentiel bruité, simule la
- * réverbération d'une salle de pierre (scriptorium/sanctuaire) sans charger
- * de fichier audio. */
-function makeImpulseResponse(ctx: AudioContext, durationSec = 2.6, decay = 3.2): AudioBuffer {
+function makeImpulseResponse(ctx: AudioContext, durationSec = 3.2, decay = 2.8): AudioBuffer {
   const rate = ctx.sampleRate;
   const length = Math.floor(rate * durationSec);
   const impulse = ctx.createBuffer(2, length, rate);
@@ -39,7 +39,7 @@ function getState(): AudioState | null {
       const reverb = ctx.createConvolver();
       reverb.buffer = makeImpulseResponse(ctx);
       const reverbSend = ctx.createGain();
-      reverbSend.gain.value = 0.32; // niveau de réverbération (salle de pierre)
+      reverbSend.gain.value = 0.36; // grand hall voûté — un peu plus ample qu'al-bayan
       const dry = ctx.createGain();
       dry.gain.value = 1;
 
@@ -56,8 +56,6 @@ function getState(): AudioState | null {
   return state;
 }
 
-/** Connecte une source à la fois en direct et via la réverb — à utiliser
- * pour tout son ponctuel (pas pour le drone ambiant, déjà routé via dry). */
 function connectWithReverb(s: AudioState, node: AudioNode) {
   node.connect(s.dry);
   node.connect(s.reverbSend);
@@ -69,7 +67,7 @@ export function resumeAudio() {
   if (s.ctx.state === "suspended") s.ctx.resume().catch(() => {});
 }
 
-/** Drone ambiant — quinte parfaite (55 Hz + 82.5 Hz) + LFO trémolo. */
+/** Drone ambiant — Ré majeur (73.4 Hz + 110 Hz, quinte) + LFO doux. */
 export function startAmbient() {
   const s = getState();
   if (!s || s.ambientStarted) return;
@@ -82,18 +80,18 @@ export function startAmbient() {
     const osc2 = ctx.createOscillator();
     osc1.type = "sine";
     osc2.type = "sine";
-    osc1.frequency.value = 55;
-    osc2.frequency.value = 82.5;
+    osc1.frequency.value = 73.42; // Ré2
+    osc2.frequency.value = 110;   // La2
 
     const g1 = ctx.createGain();
     const g2 = ctx.createGain();
-    g1.gain.value = 0.018;
-    g2.gain.value = 0.012;
+    g1.gain.value = 0.016;
+    g2.gain.value = 0.011;
 
     const lfo = ctx.createOscillator();
     const lfoGain = ctx.createGain();
-    lfo.frequency.value = 0.08;
-    lfoGain.gain.value = 0.005;
+    lfo.frequency.value = 0.065;
+    lfoGain.gain.value = 0.004;
     lfo.connect(lfoGain);
     lfoGain.connect(g1.gain);
     lfo.start();
@@ -105,9 +103,8 @@ export function startAmbient() {
     osc1.start();
     osc2.start();
 
-    // Fade-in ambiant sur 2.5s
     ambientGain.gain.setTargetAtTime(1.0, ctx.currentTime, 2.5);
-  } catch { /* AudioContext peut être refusé */ }
+  } catch {}
 }
 
 export function stopAmbient() {
@@ -119,12 +116,11 @@ export function stopAmbient() {
 
 let lastFootstep = 0;
 
-/** Bruit de pas — burst noise filtre passe-bande 280 Hz. */
 export function playFootstep() {
   const s = getState();
   if (!s) return;
   const now = s.ctx.currentTime;
-  if (now - lastFootstep < 0.22) return; // throttle
+  if (now - lastFootstep < 0.22) return;
   lastFootstep = now;
 
   try {
@@ -140,7 +136,7 @@ export function playFootstep() {
     src.buffer = buf;
     const filter = ctx.createBiquadFilter();
     filter.type = "bandpass";
-    filter.frequency.value = 280;
+    filter.frequency.value = 240; // marbre — un poil plus grave que le grès d'al-bayan
     filter.Q.value = 0.7;
     const gain = ctx.createGain();
     gain.gain.value = 0.09;
@@ -151,7 +147,7 @@ export function playFootstep() {
   } catch {}
 }
 
-/** Tintement court montant — survol d'un objet interactif. */
+/** Tintement doré — survol d'un portail ou objet interactif. */
 export function playInteract() {
   const s = getState();
   if (!s) return;
@@ -160,8 +156,8 @@ export function playInteract() {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = "sine";
-    osc.frequency.setValueAtTime(820, ctx.currentTime);
-    osc.frequency.linearRampToValueAtTime(1150, ctx.currentTime + 0.1);
+    osc.frequency.setValueAtTime(660, ctx.currentTime);
+    osc.frequency.linearRampToValueAtTime(990, ctx.currentTime + 0.1);
     gain.gain.setValueAtTime(0.07, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.16);
     osc.connect(gain);
@@ -171,13 +167,13 @@ export function playInteract() {
   } catch {}
 }
 
-/** Accord majeur — résolution d'une énigme (A4 + C#5 + E5). */
+/** Accord — résolution d'une énigme/quête (Ré majeur : D5 + F#5 + A5). */
 export function playSolve() {
   const s = getState();
   if (!s) return;
   try {
     const { ctx } = s;
-    const freqs = [440, 554, 659];
+    const freqs = [587.33, 739.99, 880];
     const delays = [0, 0.09, 0.18];
     freqs.forEach((freq, i) => {
       const osc = ctx.createOscillator();
@@ -196,15 +192,12 @@ export function playSolve() {
   } catch {}
 }
 
-/** Fanfare de victoire — arpège ascendant sur deux octaves (Ré majeur),
- * plus ample et plus long que playSolve (issue triomphale, pas juste une
- * énigme). */
+/** Fanfare de victoire — arpège ascendant Ré majeur sur deux octaves. */
 export function playVictory() {
   const s = getState();
   if (!s) return;
   try {
     const { ctx } = s;
-    // Ré, Fa#, La, Ré (octave sup), Fa# (octave sup)
     const freqs = [293.66, 369.99, 440, 587.33, 739.99];
     const delays = [0, 0.14, 0.28, 0.42, 0.56];
     freqs.forEach((freq, i) => {

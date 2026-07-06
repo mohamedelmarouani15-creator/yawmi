@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useMemo, useState } from "react";
+import { useRef, useMemo, useState, type Ref } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import CandleLight from "../shared/CandleLight";
 import AmbientParticles from "../shared/AmbientParticles";
 import IslamicArch from "../shared/IslamicArch";
+import LightShaftSun from "../../al-bayan/world/LightShaftSun";
 import type { GamePhase } from "@/lib/maison-sagesse/types";
 
 // Room dimensions
@@ -367,9 +368,10 @@ function VaultedCeiling() {
 
 interface MainHallProps {
   onPhaseChange: (phase: GamePhase) => void;
+  sunRef?: Ref<THREE.Mesh>;
 }
 
-export default function MainHall({ onPhaseChange }: MainHallProps) {
+export default function MainHall({ onPhaseChange, sunRef }: MainHallProps) {
   // Wall material — warm stone
   const wallMat = useMemo(
     () =>
@@ -487,6 +489,10 @@ export default function MainHall({ onPhaseChange }: MainHallProps) {
 
       {/* ── Floating dust particles ── */}
       <AmbientParticles />
+
+      {/* Source des rayons de lumière (GodRays) — au sommet du dôme, pour
+          un faisceau doré tombant au centre du hall. */}
+      <LightShaftSun ref={sunRef} position={[0, H - 0.4, 0]} color="#FFD87A" size={2.6} />
     </group>
   );
 }

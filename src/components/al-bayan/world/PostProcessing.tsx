@@ -1,20 +1,55 @@
 "use client";
 
-import { EffectComposer, Bloom, Vignette, ChromaticAberration } from "@react-three/postprocessing";
+import { useEffect, useState } from "react";
+import { EffectComposer, Bloom, Vignette, ChromaticAberration, GodRays } from "@react-three/postprocessing";
+import { BlendFunction } from "postprocessing";
 import * as THREE from "three";
 
 // Constant — avoids creating a new Vector2 every render
 const CA_OFFSET = new THREE.Vector2(0.00035, 0.00035);
 
+interface AlBayanPostProcessingProps {
+  sunRef?: React.RefObject<THREE.Mesh | null>;
+}
+
 /**
  * Post-processing pipeline d'al-bayan :
+ * - GodRays → faisceaux de lumière filtrant à travers le moucharabieh du
+ *   Scriptorium (source : LightShaftSun, voir zones/Scriptorium.tsx)
  * - Bloom mipmapBlur → l'avatar bleu (#3D7FE8, emissiveIntensity 2.8) illumine l'espace
  * - Vignette → assombrit les coins (atmosphère de salle secrète)
  * - ChromaticAberration → légère aberration chromatique pour un look cinématique
  */
-export default function AlBayanPostProcessing() {
+export default function AlBayanPostProcessing({ sunRef }: AlBayanPostProcessingProps) {
+  // La ref du soleil (mesh dans zones/Scriptorium.tsx) n'est peuplée qu'après
+  // le commit initial de l'arbre — on ne doit jamais lire `.current` pendant
+  // le rendu (react-hooks/refs) : un effet post-montage copie le mesh dans
+  // un state, qui déclenche alors le re-rendu ajoutant GodRays.
+  const [sunMesh, setSunMesh] = useState<THREE.Mesh | null>(null);
+  useEffect(() => {
+    if (sunRef?.current) setSunMesh(sunRef.current);
+  }, [sunRef]);
+
   return (
     <EffectComposer multisampling={0}>
+      {sunMesh ? (
+        <GodRays
+          sun={sunMesh}
+          blendFunction={BlendFunction.SCREEN}
+          samples={45}
+          density={0.65}
+          decay={0.8}
+          weight={0.4}
+          exposure={0.28}
+          clampMax={1}
+          kernelSize={2}
+          blur
+        />
+      ) : (
+        // Fragment vide le temps que la ref du soleil se peuple (1er frame) —
+        // EffectComposer exige des enfants stables, pas de retour null direct.
+        <></>
+      )}
       <Bloom
         mipmapBlur
         intensity={0.9}

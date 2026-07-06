@@ -5,6 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { projectJoystickToWorld } from "@/lib/al-bayan/iso-camera";
 import { isDescendantOf } from "@/lib/al-bayan/scene-utils";
+import { playFootstep } from "@/lib/al-bayan/audio-engine";
 
 const COLLIDER_MIN_HEIGHT = 0.4;
 const AVATAR_RADIUS = 0.28;
@@ -166,6 +167,7 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
         bobPhase.current += dt * (BOB_BASE_FREQ + BOB_FREQ_RANGE * m);
         body.position.y = Math.sin(bobPhase.current) * BOB_AMPLITUDE * m;
         body.rotation.x = TILT_MAX * m;
+        if (m > 0.5) playFootstep();
 
         // Manches en opposition de phase (comme les bras humains à la marche)
         const swing = Math.sin(bobPhase.current) * SLEEVE_SWING_MAX * m;

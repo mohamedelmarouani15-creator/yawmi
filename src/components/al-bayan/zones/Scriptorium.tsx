@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, type Ref } from "react";
 import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import AmbientParticles from "../../maison-sagesse/shared/AmbientParticles";
 import Moucharabieh from "../shared/Moucharabieh";
 import EnigmaRasm from "../scenes/EnigmaRasm";
 import InteractiveAura from "../shared/InteractiveAura";
+import LightShaftSun from "../world/LightShaftSun";
 
 const SIZE = 13;
 const H = 7;
@@ -68,7 +69,7 @@ function StepsUp() {
  * (réutilise `CandleLight` tel quel — pas de nouvelle géométrie de lampe,
  * la flamme/lumière est déjà non-shadow-casting).
  */
-export default function Scriptorium({ onConfirm }: { onConfirm?: () => void }) {
+export default function Scriptorium({ onConfirm, sunRef }: { onConfirm?: () => void; sunRef?: Ref<THREE.Mesh> }) {
   const floorMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#30200E", roughness: 0.55, metalness: 0.06 }), []);
   const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#261A0C", roughness: 0.85 }), []);
 
@@ -147,6 +148,12 @@ export default function Scriptorium({ onConfirm }: { onConfirm?: () => void }) {
       ))}
 
       <StepsUp />
+
+      {/* Source des rayons de lumière (GodRays) — placée côté Vestibule,
+          au-delà des cloisons moucharabieh, pour que la lumière semble
+          filtrer à travers les perforations ajourées. */}
+      <LightShaftSun ref={sunRef} position={[0, H / 2 + 0.6, SIZE / 2 + 2.2]} size={2.2} />
+
 
       {/* Auréole interactive — table du manuscrit */}
       <InteractiveAura position={[0, 0.02, -0.5]} color="#60a5fa" radius={1.2} />

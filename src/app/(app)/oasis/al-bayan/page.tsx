@@ -18,7 +18,8 @@ import HintMailbox from "@/components/al-bayan/ui/HintMailbox";
 import CodeLock from "@/components/al-bayan/ui/CodeLock";
 import VictoryOverlay from "@/components/al-bayan/ui/VictoryOverlay";
 import FailureOverlay from "@/components/al-bayan/ui/FailureOverlay";
-import { resumeAudio, startAmbient, stopAmbient, playSolve } from "@/lib/al-bayan/audio-engine";
+import { resumeAudio, startAmbient, stopAmbient, playSolve, playVictory } from "@/lib/al-bayan/audio-engine";
+import { triggerShake } from "@/lib/camera-shake";
 
 // Sensibilité de rotation au glissé tactile (pouce droit)
 const LOOK_SENS = 0.004;
@@ -177,6 +178,7 @@ export default function AlBayanPage() {
   const joystickRef = useRef({ x: 0, y: 0 });
   const yawRef = useRef(ISO_YAW_DEFAULT);
   const avatarRef = useRef<THREE.Group>(null);
+  const sunRef = useRef<THREE.Mesh>(null);
 
   // Lock orientation paysage sur mobile
   useEffect(() => {
@@ -230,15 +232,28 @@ export default function AlBayanPage() {
     };
   }, []);
 
-  // Son de résolution — doit être avant les retours conditionnels (Rules of Hooks)
+  // Son + secousse caméra de résolution — doit être avant les retours
+  // conditionnels (Rules of Hooks)
   const prevSolvedRef = useRef({ A: false, B: false, C: false });
   useEffect(() => {
     const prev = prevSolvedRef.current;
     if ((enigmaA.solved && !prev.A) || (enigmaB.solved && !prev.B) || (enigmaC.solved && !prev.C)) {
       playSolve();
+      triggerShake(0.12, 0.5);
     }
     prevSolvedRef.current = { A: enigmaA.solved, B: enigmaB.solved, C: enigmaC.solved };
   }, [enigmaA.solved, enigmaB.solved, enigmaC.solved]);
+
+  // Fanfare + secousse plus ample à la victoire
+  const victoryPlayedRef = useRef(false);
+  useEffect(() => {
+    if (phase === "victory" && !victoryPlayedRef.current) {
+      victoryPlayedRef.current = true;
+      playVictory();
+      triggerShake(0.22, 1.1);
+    }
+    if (phase !== "victory") victoryPlayedRef.current = false;
+  }, [phase]);
 
   if (!mounted) return null;
   if (phase === "idle") return <IntroScreen />;
@@ -279,8 +294,9 @@ export default function AlBayanPage() {
           onConfirmTemoignage={() => solveEnigma("A")}
           onConfirmRasm={() => solveEnigma("B")}
           onConfirmRoute={() => solveEnigma("C")}
+          sunRef={sunRef}
         />
-        <AlBayanPostProcessing />
+        <AlBayanPostProcessing sunRef={sunRef} />
       </Canvas>
 
       {/* Voile de chargement — par-dessus le Canvas, en dessous du HUD */}

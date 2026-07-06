@@ -18,6 +18,7 @@ import IncenseSmoke from "./IncenseSmoke";
 import CinematicIntro from "./CinematicIntro";
 import { getCameraOffset, getCameraDir, ISO_DISTANCE, ISO_FOLLOW_LERP } from "@/lib/al-bayan/iso-camera";
 import { collectOccluderCandidates } from "@/lib/al-bayan/occluder-candidates";
+import { getShakeOffset } from "@/lib/camera-shake";
 
 // Distance minimale (jamais la caméra ne s'approche plus que ça de
 // l'avatar, même collée à un mur) et marge gardée entre la caméra et le mur
@@ -73,9 +74,11 @@ interface IsoCameraFollowProps {
 // l'écran restait noire malgré le raccourcissement de distance basé sur le
 // seul rayon central).
 const CAM_RAY_ANGLES = [0, 0.46, -0.46];
+const BASE_FOV = 36;
 
 function IsoCameraFollow({ avatarRef, yawRef, cameraReadyRef }: IsoCameraFollowProps) {
   const { camera, scene } = useThree();
+  const perspCamera = camera as THREE.PerspectiveCamera;
   const desired = useRef(new THREE.Vector3());
   const candidates = useRef<THREE.Mesh[] | null>(null);
   const raycaster = useRef(new THREE.Raycaster());
@@ -112,7 +115,22 @@ function IsoCameraFollow({ avatarRef, yawRef, cameraReadyRef }: IsoCameraFollowP
       avatar.position.z + offset.z * scale
     );
     camera.position.lerp(desired.current, ISO_FOLLOW_LERP);
+
+    // Secousse d'impact (résolution d'énigme / victoire) — décalage caméra
+    // additif + léger coup de zoom (FOV), voir lib/camera-shake.ts.
+    const shake = getShakeOffset();
+    camera.position.x += shake.x;
+    camera.position.y += shake.y * 0.5;
+
     camera.lookAt(avatar.position.x, avatar.position.y + 1.1, avatar.position.z);
+
+    if (perspCamera.isPerspectiveCamera) {
+      const targetFov = BASE_FOV + shake.fovPunch;
+      if (Math.abs(perspCamera.fov - targetFov) > 0.01) {
+        perspCamera.fov = targetFov;
+        perspCamera.updateProjectionMatrix();
+      }
+    }
   });
 
   return null;
@@ -150,6 +168,7 @@ interface AlBayanWorldProps {
   onConfirmTemoignage?: () => void;
   onConfirmRasm?: () => void;
   onConfirmRoute?: () => void;
+  sunRef?: React.Ref<THREE.Mesh>;
 }
 
 /**
@@ -166,6 +185,7 @@ export default function AlBayanWorld({
   onConfirmTemoignage,
   onConfirmRasm,
   onConfirmRoute,
+  sunRef,
 }: AlBayanWorldProps) {
   const cameraReadyRef = useRef(false);
 
@@ -197,7 +217,7 @@ export default function AlBayanWorld({
         <CourTemoignage onConfirm={onConfirmTemoignage} />
       </group>
       <group position={ZONES.scriptorium.position} rotation={[0, ZONES.scriptorium.rotationY, 0]}>
-        <Scriptorium onConfirm={onConfirmRasm} />
+        <Scriptorium onConfirm={onConfirmRasm} sunRef={sunRef} />
       </group>
       <group position={ZONES.sanctuaire.position} rotation={[0, ZONES.sanctuaire.rotationY, 0]}>
         <Sanctuaire onConfirm={onConfirmRoute} />

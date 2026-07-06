@@ -13,6 +13,16 @@ const eslintConfig = defineConfig([
     "build/**",
     "next-env.d.ts",
   ]),
+  {
+    // react-hooks/immutability assumes useFrame callbacks follow React's
+    // render model, but react-three-fiber's documented pattern is to mutate
+    // Three.js objects (materials, meshes) directly per-frame to avoid
+    // triggering re-renders — that's a deliberate escape hatch, not a bug.
+    files: ["src/components/al-bayan/**/*.tsx"],
+    rules: {
+      "react-hooks/immutability": "off",
+    },
+  },
 ]);
 
 export default eslintConfig;

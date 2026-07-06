@@ -5,6 +5,16 @@ import Groq from "groq-sdk";
 let groqClient: Groq | null = null;
 
 function getClient() {
+  return getGroqClient();
+}
+
+/**
+ * Client Groq brut, pour les routes qui ont besoin de leur propre prompt
+ * système / modèle / paramètres (quran/coach, quran/recite(-chunk),
+ * arabe/chat, maison-sagesse/chat). `groqChat`/`groqSingle` ci-dessous
+ * restent réservés au companion (prompt système fixe).
+ */
+export function getGroqClient(): Groq {
   if (groqClient) return groqClient;
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) throw new Error("GROQ_API_KEY manquante dans les variables d'environnement");

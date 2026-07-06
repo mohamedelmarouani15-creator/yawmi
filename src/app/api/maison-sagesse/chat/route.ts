@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import Groq from 'groq-sdk';
+import type Groq from 'groq-sdk';
+import { getGroqClient } from '@/lib/ai/groq';
 import { logger } from '@/lib/logger';
 import { checkRateLimit } from '@/lib/rate-limit';
 import {
@@ -32,12 +33,6 @@ const SYSTEM_PROMPTS: Record<AgentId, string> = {
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────
-
-function getGroqClient(): Groq {
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) throw new Error('GROQ_API_KEY manquante dans les variables d\'environnement');
-  return new Groq({ apiKey });
-}
 
 function isValidAgentId(value: unknown): value is AgentId {
   return value === 'directeur' || value === 'manager' || value === 'adjoint';

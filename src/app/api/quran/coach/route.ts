@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import Groq from "groq-sdk";
+import type Groq from "groq-sdk";
+import { getGroqClient } from "@/lib/ai/groq";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 // ── Types ────────────────────────────────────────────────────────
@@ -287,9 +288,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Limite atteinte (30/heure)" }, { status: 429 });
   }
 
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) return NextResponse.json({ error: "GROQ_API_KEY manquante" }, { status: 500 });
-
   let body: CoachRequest;
   try {
     body = await req.json();
@@ -315,7 +313,12 @@ export async function POST(req: NextRequest) {
   const needsTafsir     = score >= 85;
   const needsNextFocus  = true;
 
-  const groq = new Groq({ apiKey });
+  let groq;
+  try {
+    groq = getGroqClient();
+  } catch {
+    return NextResponse.json({ error: "GROQ_API_KEY manquante" }, { status: 500 });
+  }
 
   // ── Sub-agents run in parallel (9s timeout for Vercel Hobby) ─
   let encouragement = "";

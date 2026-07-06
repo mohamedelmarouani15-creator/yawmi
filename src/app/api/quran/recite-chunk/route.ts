@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import Groq from "groq-sdk";
 import { createClient } from "@supabase/supabase-js";
+import { getGroqClient } from "@/lib/ai/groq";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 // ── Arabic normalization ─────────────────────────────────────────
 function stripDiacritics(s: string): string {
@@ -60,6 +61,15 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser(auth.replace("Bearer ", ""));
   if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
 
+  // Un chunk est envoyé toutes les 2s pendant la récitation active (voir
+  // useChunkedRecitation.ts) — limite généreuse pour ne pas couper une
+  // session en cours, mais bornée pour éviter le spam de transcriptions
+  // Whisper (600/h ≈ 20 min de streaming continu).
+  const rl = await checkRateLimit(user.id, "quran_recite_chunk", 600);
+  if (rl.limited) {
+    return NextResponse.json({ confirmed_up_to: -1 });
+  }
+
   const formData  = await req.formData();
   const audioBlob = formData.get("audio") as File | null;
   const wordsJson = formData.get("words") as string | null;   // JSON array de mots attendus
@@ -68,18 +78,20 @@ export async function POST(req: NextRequest) {
   if (!audioBlob || !wordsJson) {
     return NextResponse.json({ confirmed_up_to: -1 });
   }
-  if (audioBlob.size < 1000) {
-    return NextResponse.json({ confirmed_up_to: -1 }); // chunk trop court
+  if (audioBlob.size < 1000 || audioBlob.size > 5 * 1024 * 1024) {
+    return NextResponse.json({ confirmed_up_to: -1 }); // chunk trop court ou trop volumineux
   }
 
-  const expectedWords: string[] = JSON.parse(wordsJson);
+  let expectedWords: string[];
+  try {
+    expectedWords = JSON.parse(wordsJson);
+  } catch {
+    return NextResponse.json({ confirmed_up_to: -1 });
+  }
   const offset = parseInt(offsetStr ?? "0", 10);
 
-  const apiKey = process.env.GROQ_API_KEY;
-  if (!apiKey) return NextResponse.json({ confirmed_up_to: -1 });
-
   try {
-    const groq = new Groq({ apiKey });
+    const groq = getGroqClient();
     const transcription = await groq.audio.transcriptions.create({
       file:            audioBlob,
       model:           "whisper-large-v3-turbo",

@@ -121,7 +121,6 @@ function IsoCameraFollow({ avatarRef, yawRef, cameraReadyRef }: IsoCameraFollowP
 function ToneMappingSetup() {
   const { gl } = useThree();
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/immutability
     gl.toneMapping = THREE.ACESFilmicToneMapping;
     gl.toneMappingExposure = 1.25;
   }, [gl]);

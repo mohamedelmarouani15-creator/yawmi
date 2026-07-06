@@ -5,9 +5,12 @@ interface CacheEntry {
   expiresAt: number;
 }
 
-// In-memory cache — survives across requests in the same Node.js process
+// In-memory cache — survives across requests in the same Node.js process.
+// Bornée à MAX_ENTRIES (114 sourates × quelques éditions tient largement
+// dedans) pour éviter une croissance illimitée si la clé était forgée.
 const cache = new Map<string, CacheEntry>();
 const TTL_MS = 60 * 60 * 1000; // 1 hour
+const MAX_ENTRIES = 500;
 
 function getCached(key: string): unknown | null {
   const entry = cache.get(key);
@@ -20,16 +23,26 @@ function getCached(key: string): unknown | null {
 }
 
 function setCached(key: string, data: unknown): void {
+  if (cache.size >= MAX_ENTRIES) {
+    const oldestKey = cache.keys().next().value;
+    if (oldestKey !== undefined) cache.delete(oldestKey);
+  }
   cache.set(key, { data, expiresAt: Date.now() + TTL_MS });
 }
 
+const EDITION_RE = /^[a-z]{2}\.[a-z0-9_-]{1,40}$/i;
+
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
-  const surah   = searchParams.get("surah");
-  const edition = searchParams.get("edition") ?? "fr.hamidullah";
+  const surahRaw = searchParams.get("surah");
+  const edition  = searchParams.get("edition") ?? "fr.hamidullah";
 
-  if (!surah) {
-    return NextResponse.json({ error: "Missing surah parameter" }, { status: 400 });
+  const surah = surahRaw ? Number(surahRaw) : NaN;
+  if (!Number.isInteger(surah) || surah < 1 || surah > 114) {
+    return NextResponse.json({ error: "surah doit être un entier entre 1 et 114" }, { status: 400 });
+  }
+  if (!EDITION_RE.test(edition)) {
+    return NextResponse.json({ error: "edition invalide" }, { status: 400 });
   }
 
   const cacheKey = `surah-${surah}-${edition}`;

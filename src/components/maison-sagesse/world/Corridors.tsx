@@ -5,7 +5,14 @@ import * as THREE from "three";
 import CandleLight from "../shared/CandleLight";
 import { HALL, QUEST_SIZE, CORRIDOR_HALF_WIDTH, ZONES } from "@/lib/maison-sagesse/zone-layout";
 
-const HALL_WALL_HEIGHT = HALL.H;
+// Hauteur des murs de corridor — alignée sur la PLUS PETITE des deux zones
+// reliées (les 3 corridors relient tous le Hall, H=8, à une quête, H=6) pour
+// ne jamais dépasser le mur de la salle de quête à la jonction : un mur de
+// corridor à hauteur du Hall créerait un surplomb visible de ~2 unités
+// exactement là où le corridor débouche dans la quête (décrochage constaté
+// à l'audit). Rester plus bas que le Hall aussi est cohérent avec l'esprit
+// « resserré » déjà assumé pour la voûte (CEIL_H, plus basse que les deux).
+const CORRIDOR_WALL_HEIGHT = QUEST_SIZE.H;
 const CEIL_H = 3.6; // hauteur de la voûte du corridor (plus bas que les salles, effet resserré)
 
 interface StraightCorridorProps {
@@ -34,12 +41,12 @@ function StraightCorridor({ axis, near, far, cross }: StraightCorridorProps) {
   const floorSize: [number, number, number] = axis === "z" ? [width, 0.1, length] : [length, 0.1, width];
   const floorPos: [number, number, number] = axis === "z" ? [cross, 0, center] : [center, 0, cross];
 
-  const wallSize: [number, number, number] = axis === "z" ? [0.3, HALL_WALL_HEIGHT, length] : [length, HALL_WALL_HEIGHT, 0.3];
+  const wallSize: [number, number, number] = axis === "z" ? [0.3, CORRIDOR_WALL_HEIGHT, length] : [length, CORRIDOR_WALL_HEIGHT, 0.3];
   const wallOffset = width / 2;
   const wallAPos: [number, number, number] =
-    axis === "z" ? [cross - wallOffset, HALL_WALL_HEIGHT / 2 - 0.4, center] : [center, HALL_WALL_HEIGHT / 2 - 0.4, cross - wallOffset];
+    axis === "z" ? [cross - wallOffset, CORRIDOR_WALL_HEIGHT / 2 - 0.4, center] : [center, CORRIDOR_WALL_HEIGHT / 2 - 0.4, cross - wallOffset];
   const wallBPos: [number, number, number] =
-    axis === "z" ? [cross + wallOffset, HALL_WALL_HEIGHT / 2 - 0.4, center] : [center, HALL_WALL_HEIGHT / 2 - 0.4, cross + wallOffset];
+    axis === "z" ? [cross + wallOffset, CORRIDOR_WALL_HEIGHT / 2 - 0.4, center] : [center, CORRIDOR_WALL_HEIGHT / 2 - 0.4, cross + wallOffset];
 
   const vaultRotation: [number, number, number] = axis === "z" ? [0, 0, 0] : [0, 0, Math.PI / 2];
   const vaultLength = length;

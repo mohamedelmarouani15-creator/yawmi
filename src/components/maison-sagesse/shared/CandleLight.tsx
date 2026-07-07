@@ -4,18 +4,33 @@ import { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
+// Au-delà de cette distance, le joueur est dans une autre zone (murs opaques
+// entre elles) : geler le sway/scintillement plutôt que de les calculer pour
+// une bougie invisible. Voir AmbientParticles.tsx pour le même garde-fou.
+const ACTIVE_RADIUS = 20;
+
 interface CandleLightProps {
   position: [number, number, number];
   intensity?: number;
+  /** Ref MONDE de l'avatar — si absent (ex: usages al-bayan, corridors),
+   * l'animation tourne toujours, comme avant ce garde-fou. */
+  avatarRef?: React.RefObject<THREE.Group | null>;
 }
 
 // Inner flame mesh that flickers and sways
-function FlameMesh() {
+function FlameMesh({ avatarRef }: { avatarRef?: React.RefObject<THREE.Group | null> }) {
   const meshRef = useRef<THREE.Mesh>(null);
+  const worldPos = useMemo(() => new THREE.Vector3(), []);
 
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
     if (!mesh) return;
+
+    if (avatarRef?.current) {
+      mesh.getWorldPosition(worldPos);
+      if (worldPos.distanceTo(avatarRef.current.position) > ACTIVE_RADIUS) return;
+    }
+
     const t = clock.getElapsedTime();
 
     // Gentle sway
@@ -98,12 +113,22 @@ function CandleHolder() {
   return <mesh geometry={geometry} material={material} position={[0, -0.13, 0]} castShadow receiveShadow />;
 }
 
-export default function CandleLight({ position, intensity = 1.5 }: CandleLightProps) {
+export default function CandleLight({ position, intensity = 1.5, avatarRef }: CandleLightProps) {
   const lightRef = useRef<THREE.PointLight>(null);
+  const worldPos = useMemo(() => new THREE.Vector3(), []);
 
   useFrame(({ clock }) => {
     const light = lightRef.current;
     if (!light) return;
+
+    if (avatarRef?.current) {
+      light.getWorldPosition(worldPos);
+      if (worldPos.distanceTo(avatarRef.current.position) > ACTIVE_RADIUS) {
+        light.intensity = intensity; // valeur stable plutôt que figée au dernier flicker
+        return;
+      }
+    }
+
     const t = clock.getElapsedTime();
     // Organic flicker using multiple sine waves at prime frequencies
     const flicker =
@@ -123,7 +148,7 @@ export default function CandleLight({ position, intensity = 1.5 }: CandleLightPr
       <CandleHolder />
       {/* Flame sits above wick */}
       <group position={[0, 0.14, 0]}>
-        <FlameMesh />
+        <FlameMesh avatarRef={avatarRef} />
         {/* Warm glow point light */}
         {/* No castShadow: a shadow-casting point light per candle (6-7 per
             scene) means 6-7 extra shadow-map render passes every frame —

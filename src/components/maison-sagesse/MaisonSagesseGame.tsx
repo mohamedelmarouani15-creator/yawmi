@@ -259,6 +259,9 @@ export function MaisonSagesseGame() {
               onConfirmFaith={() => solveEnigma("A")}
               onConfirmScience={() => solveEnigma("B")}
               onConfirmWisdom={() => solveEnigma("C")}
+              solvedFaith={enigmaA.solved}
+              solvedScience={enigmaB.solved}
+              solvedWisdom={enigmaC.solved}
               hallSunRef={hallSunRef}
             />
           ) : phase === "victory" ? (
@@ -320,7 +323,7 @@ export function MaisonSagesseGame() {
                 }}
               />
               <div
-                style={{ position: "absolute", inset: 0, left: "45%", zIndex: 9, touchAction: "none" }}
+                style={{ position: "absolute", inset: 0, left: "50%", zIndex: 9, touchAction: "none" }}
                 onTouchStart={e => {
                   const t = e.changedTouches[0];
                   const el = e.currentTarget as HTMLElement;

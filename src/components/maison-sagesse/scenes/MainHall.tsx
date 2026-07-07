@@ -10,7 +10,7 @@ import IslamicArch from "../shared/IslamicArch";
 import LightShaftSun from "../../al-bayan/world/LightShaftSun";
 import EmberParticles from "../../al-bayan/shared/EmberParticles";
 import ZoneWall from "../../al-bayan/shared/ZoneWall";
-import { HALL, CORRIDOR_HALF_WIDTH } from "@/lib/maison-sagesse/zone-layout";
+import { HALL, CORRIDOR_HALF_WIDTH, wallGapSegment } from "@/lib/maison-sagesse/zone-layout";
 
 const { W, H, D } = HALL;
 const GAP = CORRIDOR_HALF_WIDTH;
@@ -306,6 +306,7 @@ function VaultedCeiling() {
 
 interface MainHallProps {
   sunRef?: React.Ref<THREE.Mesh>;
+  avatarRef?: React.RefObject<THREE.Group | null>;
 }
 
 /**
@@ -314,7 +315,7 @@ interface MainHallProps {
  * de portails cliquables. Chaque ouverture est signalée par un
  * `ZoneThreshold` purement décoratif.
  */
-export default function MainHall({ sunRef }: MainHallProps) {
+export default function MainHall({ sunRef, avatarRef }: MainHallProps) {
   const wallMat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
@@ -325,12 +326,9 @@ export default function MainHall({ sunRef }: MainHallProps) {
     []
   );
 
-  // Segments des murs percés — largeur pleine moins la moitié de l'ouverture,
-  // centrés de part et d'autre du seuil (voir zone-layout.ts pour GAP).
-  const backSegW = (W - GAP * 2) / 2;
-  const backSegX = GAP + backSegW / 2;
-  const sideSegD = (D - GAP * 2) / 2;
-  const sideSegZ = GAP + sideSegD / 2;
+  // Segments des murs percés (voir zone-layout.ts pour la formule partagée).
+  const { segLen: backSegW, segOffset: backSegX } = wallGapSegment(W, GAP);
+  const { segLen: sideSegD, segOffset: sideSegZ } = wallGapSegment(D, GAP);
 
   return (
     <group>
@@ -386,12 +384,12 @@ export default function MainHall({ sunRef }: MainHallProps) {
         <IslamicArch width={4} height={5.5} depth={0.3} />
       </group>
 
-      <CandleLight position={[-5, 0.5, -4]} intensity={1.2} />
-      <CandleLight position={[5, 0.5, -4]} intensity={1.2} />
-      <CandleLight position={[-5, 0.5, 4]} intensity={1.2} />
-      <CandleLight position={[5, 0.5, 4]} intensity={1.2} />
-      <CandleLight position={[-8, 1.2, -6]} intensity={0.9} />
-      <CandleLight position={[8, 1.2, -6]} intensity={0.9} />
+      <CandleLight position={[-5, 0.5, -4]} intensity={1.2} avatarRef={avatarRef} />
+      <CandleLight position={[5, 0.5, -4]} intensity={1.2} avatarRef={avatarRef} />
+      <CandleLight position={[-5, 0.5, 4]} intensity={1.2} avatarRef={avatarRef} />
+      <CandleLight position={[5, 0.5, 4]} intensity={1.2} avatarRef={avatarRef} />
+      <CandleLight position={[-8, 1.2, -6]} intensity={0.9} avatarRef={avatarRef} />
+      <CandleLight position={[8, 1.2, -6]} intensity={0.9} avatarRef={avatarRef} />
       <EmberParticles position={[-5, 0.65, -4]} count={9} color="#FFC24D" />
       <EmberParticles position={[5, 0.65, -4]} count={9} color="#FFC24D" />
 
@@ -405,7 +403,7 @@ export default function MainHall({ sunRef }: MainHallProps) {
       <ZoneThreshold position={[-W / 2 + 0.2, 0, 0]} rotation={[0, Math.PI / 2, 0]} glowColor="#055C3F" arabicLabel="الإيمان" frenchLabel="La Voie de la Foi" />
       <ZoneThreshold position={[W / 2 - 0.2, 0, 0]} rotation={[0, -Math.PI / 2, 0]} glowColor="#D4AF37" arabicLabel="الحكمة" frenchLabel="La Voie de la Sagesse" />
 
-      <AmbientParticles />
+      <AmbientParticles avatarRef={avatarRef} />
 
       <LightShaftSun ref={sunRef} position={[0, H - 0.4, 0]} color="#FFD87A" size={2.6} />
     </group>

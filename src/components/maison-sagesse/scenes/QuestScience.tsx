@@ -8,7 +8,7 @@ import ProximityPrompt from "../shared/ProximityPrompt";
 import InteractiveAura from "../../al-bayan/shared/InteractiveAura";
 import ZoneWall from "../../al-bayan/shared/ZoneWall";
 import { QIBLA_BEARING_DEG, QIBLA_TOLERANCE_DEG } from "@/lib/maison-sagesse/puzzle-logic";
-import { QUEST_SIZE, CORRIDOR_HALF_WIDTH } from "@/lib/maison-sagesse/zone-layout";
+import { QUEST_SIZE, CORRIDOR_HALF_WIDTH, wallGapSegment } from "@/lib/maison-sagesse/zone-layout";
 
 const { W: SIZE, H } = QUEST_SIZE;
 const GAP = CORRIDOR_HALF_WIDTH;
@@ -236,9 +236,12 @@ interface QuestScienceProps {
   onConfirm?: () => void;
   avatarRef: React.RefObject<THREE.Group | null>;
   zoneOffset: readonly [number, number, number];
+  /** Quête déjà résolue — voir QuestFaith.tsx pour le pourquoi (monde ouvert
+   * persistant, plus de démontage de salle à la résolution). */
+  solved?: boolean;
 }
 
-export default function QuestScience({ onConfirm, avatarRef, zoneOffset }: QuestScienceProps) {
+export default function QuestScience({ onConfirm, avatarRef, zoneOffset, solved }: QuestScienceProps) {
   const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#06061A", roughness: 0.95 }), []);
 
   const [rotY, setRotY] = useState(0);
@@ -261,8 +264,7 @@ export default function QuestScience({ onConfirm, avatarRef, zoneOffset }: Quest
   };
 
   // Segment du mur sud (côté hall) percé pour le corridor.
-  const southSegW = (SIZE - GAP * 2) / 2;
-  const southSegX = GAP + southSegW / 2;
+  const { segLen: southSegW, segOffset: southSegX } = wallGapSegment(SIZE, GAP);
 
   return (
     <group>
@@ -318,100 +320,145 @@ export default function QuestScience({ onConfirm, avatarRef, zoneOffset }: Quest
       <InteractiveAura position={[0, 0.02, -1]} color="#60a5fa" radius={2} />
       <InteractiveAura position={[-4, 0.02, 2]} color="#D4AF37" radius={1.2} />
 
-      {/* ── Observer les astres — bouton de proximité près de la sphère orbitale ── */}
-      <ProximityPrompt avatarRef={avatarRef} zoneOffset={zoneOffset} localPosition={[0, 0, -1]} radius={2.4}>
-        {(inRange) =>
-          inRange && (
-            <Html position={[0, 3.4, -1]} center>
-              <div className="flex flex-col items-center gap-2" style={{ pointerEvents: "none" }}>
-                <span style={{ fontSize: 9, color: "rgba(248,244,236,0.6)", fontFamily: "var(--font-dm-sans)", background: "rgba(10,15,13,0.7)", padding: "3px 8px", borderRadius: 6 }}>
-                  Astres observés : {discovered.size}/{CELESTIAL_BODIES.length}
-                </span>
-                {!allFound && (
-                  <button
-                    onClick={observeNextPlanet}
-                    style={{
-                      pointerEvents: "auto",
-                      background: "linear-gradient(135deg, #1B3A6B 0%, #60a5fa 50%, #1B3A6B 100%)",
-                      border: "1px solid rgba(96,165,250,0.6)",
-                      color: "#F8F4EC",
-                      fontFamily: "var(--font-dm-sans)",
-                      fontWeight: 700,
-                      fontSize: 11,
-                      borderRadius: 10,
-                      padding: "6px 14px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    Observer un astre
-                  </button>
-                )}
-              </div>
-            </Html>
-          )
-        }
-      </ProximityPrompt>
-
-      {/* ── Astrolabe — molette HTML plutôt qu'un drag 3D fragile ── */}
-      <ProximityPrompt avatarRef={avatarRef} zoneOffset={zoneOffset} localPosition={[-4, 0, 2]} radius={2}>
-        {(inRange) =>
-          inRange && (
-            <Html position={[-4, 1.6, 2]} center>
-              <div
-                className="flex flex-col items-center gap-1.5 rounded-xl px-3 py-2"
-                style={{
-                  background: "rgba(10,15,13,0.85)",
-                  border: `1px solid ${angleOk ? "rgba(52,211,153,0.5)" : "rgba(96,165,250,0.3)"}`,
-                  width: 170,
-                  pointerEvents: "auto",
-                }}
-              >
-                <span style={{ fontSize: 9, color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-dm-sans)" }}>
-                  Cap de l&apos;astrolabe
-                </span>
-                <span style={{ fontSize: 18, fontWeight: 800, color: angleOk ? "#34d399" : "#60a5fa", fontFamily: "var(--font-dm-sans)" }}>
-                  {Math.round(headingDeg)}°
-                </span>
-                <input
-                  type="range"
-                  min={0}
-                  max={359}
-                  value={Math.round(headingDeg)}
-                  onChange={(e) => setRotY((Number(e.target.value) * Math.PI) / 180)}
-                  style={{ width: "100%", accentColor: "#D4AF37" }}
-                />
-              </div>
-            </Html>
-          )
-        }
-      </ProximityPrompt>
-
-      {ready && (
-        <ProximityPrompt avatarRef={avatarRef} zoneOffset={zoneOffset} localPosition={[-4, 0, 2]} radius={2}>
+      {/* ── Compteur d'astres observés — toujours visible (le joueur doit
+          pouvoir vérifier sa progression sans revenir jusqu'ici), le bouton
+          d'observation lui reste gated par proximité. ── */}
+      {!solved && (
+        <Html position={[0, 3.4, -1]} center>
+          <div className="flex flex-col items-center gap-2" style={{ pointerEvents: "none" }}>
+            <span style={{ fontSize: 9, color: "rgba(248,244,236,0.6)", fontFamily: "var(--font-dm-sans)", background: "rgba(10,15,13,0.7)", padding: "3px 8px", borderRadius: 6 }}>
+              Astres observés : {discovered.size}/{CELESTIAL_BODIES.length}
+            </span>
+          </div>
+        </Html>
+      )}
+      {!solved && (
+        <ProximityPrompt avatarRef={avatarRef} zoneOffset={zoneOffset} localPosition={[0, 0, -1]} radius={2.4}>
           {(inRange) =>
-            inRange && (
-              <Html position={[-4, 0.6, 2]} center>
+            inRange &&
+            !allFound && (
+              <Html position={[0, 2.9, -1]} center>
                 <button
-                  onClick={onConfirm}
+                  onClick={observeNextPlanet}
                   style={{
                     pointerEvents: "auto",
-                    background: "linear-gradient(135deg, #7a5c1a 0%, #D4AF37 50%, #7a5c1a 100%)",
-                    border: "1px solid rgba(212,175,55,0.7)",
-                    color: "#0A0F0D",
+                    background: "linear-gradient(135deg, #1B3A6B 0%, #60a5fa 50%, #1B3A6B 100%)",
+                    border: "1px solid rgba(96,165,250,0.6)",
+                    color: "#F8F4EC",
                     fontFamily: "var(--font-dm-sans)",
-                    fontWeight: 800,
+                    fontWeight: 700,
                     fontSize: 11,
                     borderRadius: 10,
-                    padding: "8px 14px",
+                    padding: "6px 14px",
                     cursor: "pointer",
                   }}
                 >
-                  Confirmer la direction sacrée
+                  Observer un astre
                 </button>
               </Html>
             )
           }
         </ProximityPrompt>
+      )}
+
+      {/* ── Cap de l'astrolabe — lecture toujours visible (vérifiable de
+          loin), la molette pour le régler reste gated par proximité
+          puisqu'il faut être physiquement devant la table. ── */}
+      {!solved && (
+        <Html position={[-4, 2.2, 2]} center>
+          <div
+            className="flex flex-col items-center gap-0.5 rounded-lg px-2 py-1"
+            style={{
+              background: "rgba(10,15,13,0.7)",
+              border: `1px solid ${angleOk ? "rgba(52,211,153,0.4)" : "rgba(96,165,250,0.25)"}`,
+              pointerEvents: "none",
+            }}
+          >
+            <span style={{ fontSize: 8, color: "rgba(248,244,236,0.5)", fontFamily: "var(--font-dm-sans)" }}>
+              Cap de l&apos;astrolabe
+            </span>
+            <span style={{ fontSize: 14, fontWeight: 800, color: angleOk ? "#34d399" : "#60a5fa", fontFamily: "var(--font-dm-sans)" }}>
+              {Math.round(headingDeg)}°
+            </span>
+          </div>
+        </Html>
+      )}
+      {!solved && (
+        <ProximityPrompt avatarRef={avatarRef} zoneOffset={zoneOffset} localPosition={[-4, 0, 2]} radius={2}>
+          {(inRange) =>
+            inRange && (
+              <Html position={[-4, 1.6, 2]} center>
+                <div
+                  className="flex flex-col items-center gap-1.5 rounded-xl px-3 py-2"
+                  style={{
+                    background: "rgba(10,15,13,0.85)",
+                    border: `1px solid ${angleOk ? "rgba(52,211,153,0.5)" : "rgba(96,165,250,0.3)"}`,
+                    width: 170,
+                    pointerEvents: "auto",
+                  }}
+                >
+                  <input
+                    type="range"
+                    min={0}
+                    max={359}
+                    value={Math.round(headingDeg)}
+                    onChange={(e) => setRotY((Number(e.target.value) * Math.PI) / 180)}
+                    style={{ width: "100%", accentColor: "#D4AF37" }}
+                  />
+                </div>
+              </Html>
+            )
+          }
+        </ProximityPrompt>
+      )}
+
+      {solved ? (
+        <Html position={[-4, 0.6, 2]} center>
+          <span
+            style={{
+              pointerEvents: "none",
+              background: "rgba(52,211,153,0.15)",
+              border: "1px solid rgba(52,211,153,0.5)",
+              color: "#34d399",
+              fontFamily: "var(--font-dm-sans)",
+              fontWeight: 800,
+              fontSize: 11,
+              borderRadius: 10,
+              padding: "8px 14px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            ✓ Voie de la Science résolue
+          </span>
+        </Html>
+      ) : (
+        ready && (
+          <ProximityPrompt avatarRef={avatarRef} zoneOffset={zoneOffset} localPosition={[-4, 0, 2]} radius={2}>
+            {(inRange) =>
+              inRange && (
+                <Html position={[-4, 0.6, 2]} center>
+                  <button
+                    onClick={onConfirm}
+                    style={{
+                      pointerEvents: "auto",
+                      background: "linear-gradient(135deg, #7a5c1a 0%, #D4AF37 50%, #7a5c1a 100%)",
+                      border: "1px solid rgba(212,175,55,0.7)",
+                      color: "#0A0F0D",
+                      fontFamily: "var(--font-dm-sans)",
+                      fontWeight: 800,
+                      fontSize: 11,
+                      borderRadius: 10,
+                      padding: "8px 14px",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Confirmer la direction sacrée
+                  </button>
+                </Html>
+              )
+            }
+          </ProximityPrompt>
+        )
       )}
     </group>
   );

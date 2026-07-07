@@ -21,6 +21,11 @@ import Corridors from "./Corridors";
 const MIN_CAM_DISTANCE = 1.8;
 const CAM_WALL_MARGIN = 0.4;
 const CAM_RAY_ANGLES = [0, 0.46, -0.46];
+// Volontairement plus large que le BASE_FOV=36 d'al-bayan (voir
+// al-bayan/world/AlBayanWorld.tsx) : le Hall (20x16) et les salles de quête
+// (12x12) sont physiquement plus grandes que les zones d'al-bayan, à même
+// ISO_DISTANCE=7 il faut un champ plus ouvert pour cadrer assez de la pièce.
+// Ce n'est pas une dérive accidentelle de la duplication caméra.
 const BASE_FOV = 40;
 
 interface IsoCameraFollowProps {
@@ -121,6 +126,9 @@ interface MaisonSagesseWorldProps {
   onConfirmFaith?: () => void;
   onConfirmScience?: () => void;
   onConfirmWisdom?: () => void;
+  solvedFaith?: boolean;
+  solvedScience?: boolean;
+  solvedWisdom?: boolean;
   hallSunRef?: React.Ref<THREE.Mesh>;
 }
 
@@ -139,6 +147,9 @@ export default function MaisonSagesseWorld({
   onConfirmFaith,
   onConfirmScience,
   onConfirmWisdom,
+  solvedFaith,
+  solvedScience,
+  solvedWisdom,
   hallSunRef,
 }: MaisonSagesseWorldProps) {
   return (
@@ -156,16 +167,16 @@ export default function MaisonSagesseWorld({
       </mesh>
 
       <group position={ZONES.hall.position}>
-        <MainHall sunRef={hallSunRef} />
+        <MainHall sunRef={hallSunRef} avatarRef={avatarRef} />
       </group>
       <group position={ZONES.science.position}>
-        <QuestScience onConfirm={onConfirmScience} avatarRef={avatarRef} zoneOffset={ZONES.science.position} />
+        <QuestScience onConfirm={onConfirmScience} avatarRef={avatarRef} zoneOffset={ZONES.science.position} solved={solvedScience} />
       </group>
       <group position={ZONES.faith.position}>
-        <QuestFaith onConfirm={onConfirmFaith} avatarRef={avatarRef} zoneOffset={ZONES.faith.position} />
+        <QuestFaith onConfirm={onConfirmFaith} avatarRef={avatarRef} zoneOffset={ZONES.faith.position} solved={solvedFaith} />
       </group>
       <group position={ZONES.wisdom.position}>
-        <QuestWisdom onConfirm={onConfirmWisdom} avatarRef={avatarRef} zoneOffset={ZONES.wisdom.position} />
+        <QuestWisdom onConfirm={onConfirmWisdom} avatarRef={avatarRef} zoneOffset={ZONES.wisdom.position} solved={solvedWisdom} />
       </group>
 
       <Corridors />

@@ -370,7 +370,7 @@ export default function AlBayanPage() {
                   recréé à chaque rendu du parent (handleLook non mémoïsé) :
                   ça pouvait couper un glissé en cours sur certains appareils. */}
               <div
-                style={{ position: "absolute", inset: 0, left: "45%", zIndex: 9, touchAction: "none" }}
+                style={{ position: "absolute", inset: 0, left: "50%", zIndex: 9, touchAction: "none" }}
                 onTouchStart={e => {
                   const t = e.changedTouches[0];
                   const el = e.currentTarget as HTMLElement;

@@ -27,7 +27,7 @@ export default function MaisonSagessePostProcessing({ sunRef }: MaisonSagessePos
   // dans un state une fois la ref peuplée.
   const [sunMesh, setSunMesh] = useState<THREE.Mesh | null>(null);
   useEffect(() => {
-    if (sunRef?.current) setSunMesh(sunRef.current);
+    setSunMesh(sunRef?.current ?? null);
   }, [sunRef]);
 
   return (

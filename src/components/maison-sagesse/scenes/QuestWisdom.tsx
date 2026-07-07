@@ -11,7 +11,7 @@ import GrillePercee from "../ui/GrillePercee";
 import ProximityPrompt from "../shared/ProximityPrompt";
 import InteractiveAura from "../../al-bayan/shared/InteractiveAura";
 import ZoneWall from "../../al-bayan/shared/ZoneWall";
-import { QUEST_SIZE, CORRIDOR_HALF_WIDTH } from "@/lib/maison-sagesse/zone-layout";
+import { QUEST_SIZE, CORRIDOR_HALF_WIDTH, wallGapSegment } from "@/lib/maison-sagesse/zone-layout";
 
 const { W: SIZE, H } = QUEST_SIZE;
 const GAP = CORRIDOR_HALF_WIDTH;
@@ -212,7 +212,7 @@ function CentralBook() {
   );
 }
 
-function MonumentalCandle() {
+function MonumentalCandle({ avatarRef }: { avatarRef?: React.RefObject<THREE.Group | null> }) {
   return (
     <group position={[0, 0, -4.5]}>
       <mesh castShadow receiveShadow position={[0, 0.2, 0]}>
@@ -223,7 +223,7 @@ function MonumentalCandle() {
         <cylinderGeometry args={[0.18, 0.2, 1.4, 10]} />
         <meshStandardMaterial color="#F0E8C0" roughness={0.9} />
       </mesh>
-      <CandleLight position={[0, 1.75, -4.5]} intensity={2.5} />
+      <CandleLight position={[0, 1.75, -4.5]} intensity={2.5} avatarRef={avatarRef} />
     </group>
   );
 }
@@ -232,16 +232,18 @@ interface QuestWisdomProps {
   onConfirm?: () => void;
   avatarRef: React.RefObject<THREE.Group | null>;
   zoneOffset: readonly [number, number, number];
+  /** Quête déjà résolue — voir QuestFaith.tsx pour le pourquoi (monde ouvert
+   * persistant, plus de démontage de salle à la résolution). */
+  solved?: boolean;
 }
 
-export default function QuestWisdom({ onConfirm, avatarRef, zoneOffset }: QuestWisdomProps) {
+export default function QuestWisdom({ onConfirm, avatarRef, zoneOffset, solved }: QuestWisdomProps) {
   const [showGrille, setShowGrille] = useState(false);
 
   const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#1C1008", roughness: 0.92, metalness: 0.02 }), []);
 
   // Segment du mur ouest (côté hall) percé pour le corridor.
-  const westSegD = (SIZE - GAP * 2) / 2;
-  const westSegZ = GAP + westSegD / 2;
+  const { segLen: westSegD, segOffset: westSegZ } = wallGapSegment(SIZE, GAP);
 
   return (
     <group>
@@ -283,33 +285,56 @@ export default function QuestWisdom({ onConfirm, avatarRef, zoneOffset }: QuestW
       ))}
 
       <CentralBook />
-      <InteractiveAura position={[0, 0.02, 0.5]} color="#D4AF37" radius={1.4} />
-      <ProximityPrompt avatarRef={avatarRef} zoneOffset={zoneOffset} localPosition={[0, 0, 0.5]} radius={2.2}>
-        {(inRange) =>
-          inRange && (
-            <Html position={[0, 1.3, 1.3]} center>
-              <button
-                onClick={() => setShowGrille(true)}
-                style={{
-                  pointerEvents: "auto",
-                  background: "linear-gradient(135deg, #7a5c1a 0%, #D4AF37 50%, #7a5c1a 100%)",
-                  border: "1px solid rgba(212,175,55,0.7)",
-                  color: "#0A0F0D",
-                  fontFamily: "var(--font-dm-sans)",
-                  fontWeight: 800,
-                  fontSize: 11,
-                  borderRadius: 10,
-                  padding: "8px 14px",
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Examiner la grille
-              </button>
-            </Html>
-          )
-        }
-      </ProximityPrompt>
+      {solved ? (
+        <Html position={[0, 1.3, 1.3]} center>
+          <span
+            style={{
+              pointerEvents: "none",
+              background: "rgba(52,211,153,0.15)",
+              border: "1px solid rgba(52,211,153,0.5)",
+              color: "#34d399",
+              fontFamily: "var(--font-dm-sans)",
+              fontWeight: 800,
+              fontSize: 11,
+              borderRadius: 10,
+              padding: "8px 14px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            ✓ Voie de la Sagesse résolue
+          </span>
+        </Html>
+      ) : (
+        <>
+          <InteractiveAura position={[0, 0.02, 0.5]} color="#D4AF37" radius={1.4} />
+          <ProximityPrompt avatarRef={avatarRef} zoneOffset={zoneOffset} localPosition={[0, 0, 0.5]} radius={2.2}>
+            {(inRange) =>
+              inRange && (
+                <Html position={[0, 1.3, 1.3]} center>
+                  <button
+                    onClick={() => setShowGrille(true)}
+                    style={{
+                      pointerEvents: "auto",
+                      background: "linear-gradient(135deg, #7a5c1a 0%, #D4AF37 50%, #7a5c1a 100%)",
+                      border: "1px solid rgba(212,175,55,0.7)",
+                      color: "#0A0F0D",
+                      fontFamily: "var(--font-dm-sans)",
+                      fontWeight: 800,
+                      fontSize: 11,
+                      borderRadius: 10,
+                      padding: "8px 14px",
+                      cursor: "pointer",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Examiner la grille
+                  </button>
+                </Html>
+              )
+            }
+          </ProximityPrompt>
+        </>
+      )}
 
       <AnimatePresence>
         {showGrille && (
@@ -325,14 +350,14 @@ export default function QuestWisdom({ onConfirm, avatarRef, zoneOffset }: QuestW
         )}
       </AnimatePresence>
 
-      <MonumentalCandle />
+      <MonumentalCandle avatarRef={avatarRef} />
 
-      <CandleLight position={[-5, 0.5, -4]} intensity={1.0} />
-      <CandleLight position={[5, 0.5, -4]} intensity={1.0} />
-      <CandleLight position={[-5, 0.5, 3]} intensity={0.8} />
-      <CandleLight position={[5, 0.5, 3]} intensity={0.8} />
+      <CandleLight position={[-5, 0.5, -4]} intensity={1.0} avatarRef={avatarRef} />
+      <CandleLight position={[5, 0.5, -4]} intensity={1.0} avatarRef={avatarRef} />
+      <CandleLight position={[-5, 0.5, 3]} intensity={0.8} avatarRef={avatarRef} />
+      <CandleLight position={[5, 0.5, 3]} intensity={0.8} avatarRef={avatarRef} />
 
-      <AmbientParticles />
+      <AmbientParticles avatarRef={avatarRef} />
     </group>
   );
 }

@@ -74,6 +74,9 @@ interface IsoCameraFollowProps {
 // l'écran restait noire malgré le raccourcissement de distance basé sur le
 // seul rayon central).
 const CAM_RAY_ANGLES = [0, 0.46, -0.46];
+// Plus resserré que le BASE_FOV=40 de maison-sagesse (voir
+// maison-sagesse/world/MaisonSagesseWorld.tsx) : les zones d'al-bayan sont
+// plus petites, un champ plus étroit suffit à les cadrer à même ISO_DISTANCE.
 const BASE_FOV = 36;
 
 function IsoCameraFollow({ avatarRef, yawRef, cameraReadyRef }: IsoCameraFollowProps) {

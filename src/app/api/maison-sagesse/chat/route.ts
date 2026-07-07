@@ -56,19 +56,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   const { data: { user } } = await supabaseAdmin().auth.getUser(auth.replace('Bearer ', ''));
   if (!user) return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
 
-  // ── Rate limit serveur (20 messages/heure) ─────────────────────
-  const rl = await checkRateLimit(user.id, 'maison_sagesse_chat', SESSION_LIMIT);
-  if (rl.limited) {
-    return NextResponse.json(
-      {
-        error: 'session_limit_reached',
-        message: 'Vous avez atteint la limite de 20 messages pour cette heure.',
-      },
-      { status: 429 }
-    );
-  }
-
   // ── Lecture et validation du body ─────────────────────────────
+  // (avant le rate limit : une requête malformée ne doit pas consommer le
+  // quota de l'utilisateur — cf. audit, un bug client ou une panne Groq ne
+  // doit pas verrouiller quelqu'un pour l'heure sans une seule vraie réponse)
   let body: unknown;
   try {
     body = await req.json();
@@ -98,6 +89,18 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     message:  (rawBody.message as string).slice(0, 1000), // limite longueur
     context:  typeof rawBody.context === 'string' ? rawBody.context.slice(0, 500) : '',
   };
+
+  // ── Rate limit serveur (20 messages/heure) ─────────────────────
+  const rl = await checkRateLimit(user.id, 'maison_sagesse_chat', SESSION_LIMIT);
+  if (rl.limited) {
+    return NextResponse.json(
+      {
+        error: 'session_limit_reached',
+        message: 'Vous avez atteint la limite de 20 messages pour cette heure.',
+      },
+      { status: 429 }
+    );
+  }
 
   // ── Sélection du prompt système ───────────────────────────────
   const systemPrompt = SYSTEM_PROMPTS[parsedBody.agentId];

@@ -30,3 +30,17 @@ export const WORLD_BOUNDS = { x: HALL.W / 2 + CORRIDOR_LENGTH + QUEST_SIZE.W + 2
 // raccourcissement anti-clipping de la caméra ne colle un plan rapproché
 // disgracieux dès l'arrivée dans la zone).
 export const SPAWN = { x: 0, y: 0, z: 0 };
+
+/**
+ * Découpe un mur de longueur `size` centré en 0, percé au milieu d'une
+ * ouverture de largeur `gap * 2` (le corridor), en deux segments symétriques.
+ * Reprend une formule auparavant recopiée à la main dans MainHall.tsx (x2),
+ * QuestFaith.tsx, QuestScience.tsx et QuestWisdom.tsx — centralisée ici pour
+ * qu'un futur changement de CORRIDOR_HALF_WIDTH ou de taille de zone ne
+ * puisse pas désynchroniser un mur d'une seule salle par oubli.
+ */
+export function wallGapSegment(size: number, gap: number) {
+  const segLen = (size - gap * 2) / 2;
+  const segOffset = gap + segLen / 2;
+  return { segLen, segOffset };
+}

@@ -12,7 +12,7 @@ import ProximityPrompt from "../shared/ProximityPrompt";
 import ZoneWall from "../../al-bayan/shared/ZoneWall";
 import InteractiveAura from "../../al-bayan/shared/InteractiveAura";
 import { PILLAR_RIDDLES, PILLAR_LIFE_ORDER } from "@/lib/maison-sagesse/puzzle-logic";
-import { QUEST_SIZE, CORRIDOR_HALF_WIDTH } from "@/lib/maison-sagesse/zone-layout";
+import { QUEST_SIZE, CORRIDOR_HALF_WIDTH, wallGapSegment } from "@/lib/maison-sagesse/zone-layout";
 
 const { W: SIZE, H } = QUEST_SIZE;
 const GAP = CORRIDOR_HALF_WIDTH;
@@ -195,9 +195,14 @@ interface QuestFaithProps {
   onConfirm?: () => void;
   avatarRef: React.RefObject<THREE.Group | null>;
   zoneOffset: readonly [number, number, number];
+  /** Quête déjà résolue — le monde étant désormais ouvert et persistant (plus
+   * de démontage de salle à la résolution), il faut geler l'interaction
+   * nous-mêmes pour ne pas laisser un bouton de validation indéfiniment
+   * cliquable après coup. */
+  solved?: boolean;
 }
 
-export default function QuestFaith({ onConfirm, avatarRef, zoneOffset }: QuestFaithProps) {
+export default function QuestFaith({ onConfirm, avatarRef, zoneOffset, solved }: QuestFaithProps) {
   const [order, setOrder] = useState<string[]>([]);
   const [modalPillar, setModalPillar] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -233,8 +238,7 @@ export default function QuestFaith({ onConfirm, avatarRef, zoneOffset }: QuestFa
   );
 
   // Segment du mur est (côté hall) percé pour le corridor.
-  const eastSegD = (SIZE - GAP * 2) / 2;
-  const eastSegZ = GAP + eastSegD / 2;
+  const { segLen: eastSegD, segOffset: eastSegZ } = wallGapSegment(SIZE, GAP);
 
   return (
     <group>
@@ -290,7 +294,8 @@ export default function QuestFaith({ onConfirm, avatarRef, zoneOffset }: QuestFa
               glowing={true}
               label={pos !== -1 ? String(pos + 1) : undefined}
             />
-            <InteractiveAura position={[pillar.position[0], 0.02, pillar.position[2]]} color="#34d399" radius={0.9} />
+            {!solved && <InteractiveAura position={[pillar.position[0], 0.02, pillar.position[2]]} color="#34d399" radius={0.9} />}
+            {!solved && (
             <ProximityPrompt avatarRef={avatarRef} zoneOffset={zoneOffset} localPosition={pillar.position} radius={1.7}>
               {(inRange) =>
                 inRange && (
@@ -317,6 +322,7 @@ export default function QuestFaith({ onConfirm, avatarRef, zoneOffset }: QuestFa
                 )
               }
             </ProximityPrompt>
+            )}
           </group>
         );
       })}
@@ -349,32 +355,53 @@ export default function QuestFaith({ onConfirm, avatarRef, zoneOffset }: QuestFa
         )}
       </group>
       <InteractiveAura position={[0, 0.02, 2.5]} color="#055C3F" radius={1} />
-      <ProximityPrompt avatarRef={avatarRef} zoneOffset={zoneOffset} localPosition={[0, 0, 2.5]} radius={1.8}>
-        {(inRange) =>
-          inRange && (
-            <Html position={[0, 1.3, 2.5]} center>
-              <button
-                onClick={handleConfirm}
-                style={{
-                  pointerEvents: "auto",
-                  background: "linear-gradient(135deg, #7a5c1a 0%, #D4AF37 50%, #7a5c1a 100%)",
-                  border: "1px solid rgba(212,175,55,0.7)",
-                  color: "#0A0F0D",
-                  fontFamily: "var(--font-dm-sans)",
-                  fontWeight: 800,
-                  fontSize: 11,
-                  borderRadius: 10,
-                  padding: "8px 14px",
-                  cursor: "pointer",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                Valider l&apos;ordre des piliers
-              </button>
-            </Html>
-          )
-        }
-      </ProximityPrompt>
+      {solved ? (
+        <Html position={[0, 1.3, 2.5]} center>
+          <span
+            style={{
+              pointerEvents: "none",
+              background: "rgba(52,211,153,0.15)",
+              border: "1px solid rgba(52,211,153,0.5)",
+              color: "#34d399",
+              fontFamily: "var(--font-dm-sans)",
+              fontWeight: 800,
+              fontSize: 11,
+              borderRadius: 10,
+              padding: "8px 14px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            ✓ Voie de la Foi résolue
+          </span>
+        </Html>
+      ) : (
+        <ProximityPrompt avatarRef={avatarRef} zoneOffset={zoneOffset} localPosition={[0, 0, 2.5]} radius={1.8}>
+          {(inRange) =>
+            inRange && (
+              <Html position={[0, 1.3, 2.5]} center>
+                <button
+                  onClick={handleConfirm}
+                  style={{
+                    pointerEvents: "auto",
+                    background: "linear-gradient(135deg, #7a5c1a 0%, #D4AF37 50%, #7a5c1a 100%)",
+                    border: "1px solid rgba(212,175,55,0.7)",
+                    color: "#0A0F0D",
+                    fontFamily: "var(--font-dm-sans)",
+                    fontWeight: 800,
+                    fontSize: 11,
+                    borderRadius: 10,
+                    padding: "8px 14px",
+                    cursor: "pointer",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  Valider l&apos;ordre des piliers
+                </button>
+              </Html>
+            )
+          }
+        </ProximityPrompt>
+      )}
 
       <AnimatePresence>
         {modalPillar && (
@@ -386,12 +413,12 @@ export default function QuestFaith({ onConfirm, avatarRef, zoneOffset }: QuestFa
         )}
       </AnimatePresence>
 
-      <CandleLight position={[-4.5, 0.4, -4.5]} intensity={1.0} />
-      <CandleLight position={[4.5, 0.4, -4.5]} intensity={1.0} />
-      <CandleLight position={[-4.5, 0.4, 4.5]} intensity={0.8} />
-      <CandleLight position={[4.5, 0.4, 4.5]} intensity={0.8} />
+      <CandleLight position={[-4.5, 0.4, -4.5]} intensity={1.0} avatarRef={avatarRef} />
+      <CandleLight position={[4.5, 0.4, -4.5]} intensity={1.0} avatarRef={avatarRef} />
+      <CandleLight position={[-4.5, 0.4, 4.5]} intensity={0.8} avatarRef={avatarRef} />
+      <CandleLight position={[4.5, 0.4, 4.5]} intensity={0.8} avatarRef={avatarRef} />
 
-      <AmbientParticles />
+      <AmbientParticles avatarRef={avatarRef} />
     </group>
   );
 }

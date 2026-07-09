@@ -27,11 +27,12 @@ const LOOK_DRAG_THRESHOLD = 8;
 
 const ZONE_CENTERS = [
   { id: "vestibule", label: "Vestibule", icon: "🏛️", x: 0, z: 0 },
-  { id: "jardin", label: "Jardin", icon: "⛲", x: 15, z: 0 },
-  { id: "majlis", label: "Majlis", icon: "🛋️", x: 33.8, z: 0 },
-  { id: "scriptorium", label: "Scriptorium", icon: "✒️", x: -14.5, z: 0 },
-  { id: "cuisine", label: "Cuisine", icon: "🏺", x: -32.3, z: 0 },
-  { id: "sanctuaire", label: "Sanctuaire", icon: "🔭", x: 0, z: -14 },
+  { id: "jardin", label: "Jardin", icon: "⛲", x: 53, z: 0 },
+  { id: "majlis", label: "Majlis", icon: "🛋️", x: 119, z: 0 },
+  { id: "suite", label: "Suite Privée", icon: "🗝️", x: 167, z: 0 },
+  { id: "scriptorium", label: "Scriptorium", icon: "✒️", x: -44, z: 0 },
+  { id: "cuisine", label: "Cuisine", icon: "🏺", x: -98, z: 0 },
+  { id: "sanctuaire", label: "Sanctuaire", icon: "🔭", x: 0, z: -43 },
 ] as const;
 
 function ZoneMiniMap({ avatarRef }: { avatarRef: { readonly current: THREE.Group | null } }) {

@@ -13,22 +13,25 @@ import EmberParticles from "../shared/EmberParticles";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { MANUSCRIPTS } from "@/lib/al-bayan/puzzle-logic";
 
-const SIZE = 13;
-const H = 7;
-const STEP_DOWN = 0.6; // "en contrebas, deux marches" — l'offset Y du groupe zone
+// Passage à l'échelle "Grand Riad" — SS=3 (empreinte + décor), hauteur x1.8.
+const SS = 3;
+const HS = 1.8;
+export const SIZE = 13 * SS;
+export const H = 7 * HS;
+const STEP_DOWN = 1.1; // écart de niveau Vestibule (y=0) -> Scriptorium (y=-1.1)
 
-// Ouvertures de corridor taillées dans les murs "sud" (vers le Jardin) et
-// "nord" (vers le Sanctuaire) — cf. CourTemoignage.tsx / Sanctuaire.tsx pour
-// le calcul des positions monde correspondantes.
-const CORRIDOR_COUR_LOCAL_Z = 3.5;
-const CORRIDOR_COUR_HALF = 1.6;
-const CORRIDOR_SANCTUAIRE_LOCAL_Z = 0;
-const CORRIDOR_SANCTUAIRE_HALF = 1.6;
+// Ouvertures de corridor taillées dans les murs "sud" (vers le Jardin, via
+// une longue galerie diagonale) et "nord" (vers le Sanctuaire) — cf.
+// CorridorCourScriptorium.tsx / CorridorScriptoriumSanctuaire.tsx pour le
+// calcul complet des positions monde correspondantes.
+export const CORRIDOR_COUR_LOCAL_Z = 10.5;
+export const CORRIDOR_COUR_HALF = 4;
+export const CORRIDOR_SANCTUAIRE_LOCAL_Z = 0;
+export const CORRIDOR_SANCTUAIRE_HALF = 4;
 
-// Passage secret vers la Cuisine — ouverture taillée dans le mur "-Z local"
-// (qui correspond au monde X≈-20.9 — cf. CorridorScriptoriumCuisine.tsx).
+// Passage secret vers la Cuisine — ouverture taillée dans le mur "-Z local".
 // Verrouillé tant que les 3 manuscrits ne sont pas dans l'ordre.
-const CUISINE_GAP_HALF = 1.6;
+export const CUISINE_GAP_HALF = 4;
 const CUISINE_SEG_LEN = (SIZE - CUISINE_GAP_HALF * 2) / 2;
 const CUISINE_SEG_X = CUISINE_GAP_HALF + CUISINE_SEG_LEN / 2;
 
@@ -58,6 +61,34 @@ function CopyistTable({ position, rotation }: { position: [number, number, numbe
   );
 }
 
+/** Bibliothèque murale — étagères pleines de parchemins roulés, décor dense
+ * pour le Scriptorium (brief : "bibliothèques pleines de parchemins"). */
+function ScrollShelf({ position, rotation, width = 3.4 }: { position: [number, number, number]; rotation?: [number, number, number]; width?: number }) {
+  const woodMat = usePBRMaterial("wood-dark", { repeat: [1, 0.4] });
+  const rows = 4;
+  const perRow = Math.max(4, Math.round(width * 3));
+  return (
+    <group position={position} rotation={rotation}>
+      <mesh castShadow receiveShadow material={woodMat}>
+        <boxGeometry args={[width, rows * 0.62, 0.4]} />
+      </mesh>
+      {Array.from({ length: rows }, (_, r) =>
+        Array.from({ length: perRow }, (_, c) => {
+          const x = -width / 2 + 0.25 + (c / (perRow - 1)) * (width - 0.5);
+          const y = -rows * 0.31 + 0.31 + r * 0.62;
+          const hue = 30 + ((r * perRow + c) % 5) * 8;
+          return (
+            <mesh key={`${r}-${c}`} position={[x, y, 0.22]} rotation={[Math.PI / 2, 0, 0]} castShadow>
+              <cylinderGeometry args={[0.08, 0.08, 0.32, 8]} />
+              <meshStandardMaterial color={`hsl(${hue},45%,55%)`} roughness={0.75} />
+            </mesh>
+          );
+        })
+      )}
+    </group>
+  );
+}
+
 /** Spot droit au-dessus d'un panneau moucharabieh, visant le sol juste
  * en dessous — projette le motif géométrique du treillis (cf. `castShadow`
  * ajouté sur ses lattes dans Moucharabieh.tsx) comme une ombre nette plutôt
@@ -76,11 +107,11 @@ function MoucharabiehSpot({ position }: { position: [number, number, number] }) 
     <>
       <spotLight
         ref={lightRef}
-        position={[position[0], H - 0.3, position[2]]}
+        position={[position[0], H - 0.9, position[2]]}
         angle={0.32}
         penumbra={0.35}
-        intensity={5}
-        distance={9}
+        intensity={7}
+        distance={27}
         decay={2}
         color="#E8C27A"
         castShadow
@@ -97,12 +128,12 @@ function MoucharabiehSpot({ position }: { position: [number, number, number] }) 
 function StepsUp() {
   const mat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#3A3024", roughness: 0.85 }), []);
   return (
-    <group position={[0, 0, SIZE / 2 - 0.3]}>
-      <mesh position={[0, STEP_DOWN * 0.66, 0.4]} material={mat} receiveShadow castShadow>
-        <boxGeometry args={[4, STEP_DOWN * 0.66, 0.8]} />
+    <group position={[0, 0, SIZE / 2 - 0.9]}>
+      <mesh position={[0, STEP_DOWN * 0.66, 1.2]} material={mat} receiveShadow castShadow>
+        <boxGeometry args={[12, STEP_DOWN * 0.66, 2.4]} />
       </mesh>
-      <mesh position={[0, STEP_DOWN * 0.33, 1.1]} material={mat} receiveShadow castShadow>
-        <boxGeometry args={[4, STEP_DOWN * 0.33, 0.8]} />
+      <mesh position={[0, STEP_DOWN * 0.33, 3.3]} material={mat} receiveShadow castShadow>
+        <boxGeometry args={[12, STEP_DOWN * 0.33, 2.4]} />
       </mesh>
     </group>
   );
@@ -164,7 +195,7 @@ function ManuscriptShelf({
   };
 
   return (
-    <group position={[0, 0, -0.5]}>
+    <group position={[0, 0, -1.5]}>
       <mesh position={[0, 0.55, -0.15]} castShadow receiveShadow material={woodMat}>
         <boxGeometry args={[2.4, 1.1, 0.3]} />
       </mesh>
@@ -176,8 +207,8 @@ function ManuscriptShelf({
 
       {!solved && (
         // zoneOffset=[0,0,0] : position monde précalculée (zone tournée
-        // rotationY=+π/2, position (-14.5,-0.6,0) ; local (0,0,-0.5) -> monde (-15,-0.6,0)).
-        <ProximityPrompt avatarRef={avatarRef} zoneOffset={[0, 0, 0]} localPosition={[-15, -0.6, 0]} radius={2.4}>
+        // rotationY=+π/2, position (-44,-1.1,0) ; local (0,0,-1.5) -> monde (-45.5,-1.1,0)).
+        <ProximityPrompt avatarRef={avatarRef} zoneOffset={[0, 0, 0]} localPosition={[-45.5, -1.1, 0]} radius={3.2}>
           {(inRange) =>
             inRange && (
               <Html position={[0, 1.5, 0]} center distanceFactor={9}>
@@ -231,8 +262,9 @@ function ManuscriptShelf({
 /**
  * Zone 3 — Le Scriptorium de la Calligraphie. En contrebas du Vestibule
  * (cf. offset Y appliqué par AlBayanWorld), cloisons moucharabieh filtrant
- * la lumière projetée au sol, tables de copiste, lampes à l'huile, étagère
- * des 3 manuscrits à ranger dans l'ordre chronologique.
+ * la lumière projetée au sol, bibliothèques chargées de parchemins, tables
+ * de copiste, lampes à l'huile, étagère des 3 manuscrits à ranger dans
+ * l'ordre chronologique.
  */
 export default function Scriptorium({
   sunRef,
@@ -252,12 +284,12 @@ export default function Scriptorium({
 
   return (
     <group>
-      <pointLight color="#E8A33D" intensity={4.0} distance={11} decay={2} position={[-3, 2.4, -2]} />
-      <pointLight color="#E8A33D" intensity={4.0} distance={11} decay={2} position={[3, 2.4, -2]} />
+      <pointLight color="#E8A33D" intensity={5.5} distance={24} decay={2} position={[-9, 4.5, -6]} />
+      <pointLight color="#E8A33D" intensity={5.5} distance={24} decay={2} position={[9, 4.5, -6]} />
       {/* Lumière chaude basse, au niveau des tables de copiste */}
-      <pointLight color="#FFAA44" intensity={2.4} distance={8} decay={2} position={[0, 1.4, 1]} />
+      <pointLight color="#FFAA44" intensity={3.5} distance={18} decay={2} position={[0, 2.6, 3]} />
       {/* Fill de fond pour déboucher le mur du fond */}
-      <pointLight color="#D4954A" intensity={1.8} distance={9} decay={2} position={[0, 3.5, -5]} />
+      <pointLight color="#D4954A" intensity={2.8} distance={20} decay={2} position={[0, 7, -15]} />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[SIZE, SIZE]} />
@@ -268,7 +300,7 @@ export default function Scriptorium({
         <meshStandardMaterial color="#1A1008" roughness={1} />
       </mesh>
 
-      {/* Mur vers la Cour — percé d'une ouverture pour le corridor Cour↔Scriptorium */}
+      {/* Mur vers le Jardin — percé d'une ouverture pour la galerie Jardin↔Scriptorium */}
       <mesh
         position={[-SIZE / 2 + 0.1, H / 2, (-SIZE / 2 + (CORRIDOR_COUR_LOCAL_Z - CORRIDOR_COUR_HALF)) / 2]}
         receiveShadow
@@ -314,19 +346,19 @@ export default function Scriptorium({
       </mesh>
 
       {/* Cloisons moucharabieh — séparation ajourée vers le Vestibule */}
-      <group position={[-3.2, H / 2 - 0.5, SIZE / 2 - 0.5]}>
-        <Moucharabieh width={3.4} height={H - 1} cellSize={0.3} />
+      <group position={[-9.6, H / 2 - 0.9, SIZE / 2 - 1.5]}>
+        <Moucharabieh width={10.2} height={H - 1.8} cellSize={0.32} />
       </group>
-      <group position={[3.2, H / 2 - 0.5, SIZE / 2 - 0.5]}>
-        <Moucharabieh width={3.4} height={H - 1} cellSize={0.3} />
+      <group position={[9.6, H / 2 - 0.9, SIZE / 2 - 1.5]}>
+        <Moucharabieh width={10.2} height={H - 1.8} cellSize={0.32} />
       </group>
-      <MoucharabiehSpot position={[-3.2, 0, SIZE / 2 - 0.5]} />
-      <MoucharabiehSpot position={[3.2, 0, SIZE / 2 - 0.5]} />
+      <MoucharabiehSpot position={[-9.6, 0, SIZE / 2 - 1.5]} />
+      <MoucharabiehSpot position={[9.6, 0, SIZE / 2 - 1.5]} />
       {/* Pans pleins flanquant les moucharabiehs jusqu'aux coins — sans
           cela les coins de la pièce restaient ouverts sur le vide. */}
       {[-1, 1].map((side) => (
-        <mesh key={`mouch-flank-${side}`} position={[side * 5.7, H / 2, SIZE / 2 - 0.1]} receiveShadow castShadow>
-          <boxGeometry args={[1.6, H, 0.2]} />
+        <mesh key={`mouch-flank-${side}`} position={[side * 17.1, H / 2, SIZE / 2 - 0.1]} receiveShadow castShadow>
+          <boxGeometry args={[4.8, H, 0.2]} />
           <primitive object={wallMat} attach="material" />
         </mesh>
       ))}
@@ -336,23 +368,28 @@ export default function Scriptorium({
       {/* Source des rayons de lumière (GodRays) — placée côté Vestibule,
           au-delà des cloisons moucharabieh, pour que la lumière semble
           filtrer à travers les perforations ajourées. */}
-      <LightShaftSun ref={sunRef} position={[0, H / 2 + 0.6, SIZE / 2 + 2.2]} size={2.2} />
+      <LightShaftSun ref={sunRef} position={[0, H / 2 + 1.5, SIZE / 2 + 6.6]} size={4} />
 
+      {/* Bibliothèques murales chargées de parchemins */}
+      <ScrollShelf position={[-SIZE / 2 + 0.5, 1.5, -8]} rotation={[0, Math.PI / 2, 0]} width={11} />
+      <ScrollShelf position={[SIZE / 2 - 0.5, 1.5, -8]} rotation={[0, -Math.PI / 2, 0]} width={11} />
 
       {/* Auréole interactive — étagère des manuscrits */}
-      <InteractiveAura position={[0, 0.02, -0.5]} color="#60a5fa" radius={1.2} />
+      <InteractiveAura position={[0, 0.02, -1.5]} color="#60a5fa" radius={2.2} />
 
       <ManuscriptShelf avatarRef={avatarRef} libraryClueFound={!!libraryClueFound} onSolved={() => onSolveManuscripts?.()} solved={!!manuscriptsSolved} />
 
-      <CopyistTable position={[-3.6, 0, 1.5]} rotation={[0, 0.4, 0]} />
-      <CopyistTable position={[3.6, 0, 1.5]} rotation={[0, -0.4, 0]} />
-      <CopyistTable position={[-3.8, 0, -2.5]} rotation={[0, 0.9, 0]} />
+      <CopyistTable position={[-11, 0, 4.5]} rotation={[0, 0.4, 0]} />
+      <CopyistTable position={[11, 0, 4.5]} rotation={[0, -0.4, 0]} />
+      <CopyistTable position={[-11.4, 0, -7.5]} rotation={[0, 0.9, 0]} />
+      <CopyistTable position={[11.4, 0, -7.5]} rotation={[0, -0.9, 0]} />
+      <CopyistTable position={[0, 0, -13]} rotation={[0, 0, 0]} />
 
-      <CandleLight position={[-4.5, 0.4, -3]} intensity={1.2} avatarRef={avatarRef} />
-      <CandleLight position={[4.5, 0.4, -3]} intensity={1.2} avatarRef={avatarRef} />
-      <CandleLight position={[0, 0.4, 3.5]} intensity={1.0} avatarRef={avatarRef} />
-      <EmberParticles position={[-4.5, 0.55, -3]} count={9} />
-      <EmberParticles position={[4.5, 0.55, -3]} count={9} />
+      <CandleLight position={[-13.5, 0.4, -9]} intensity={1.4} avatarRef={avatarRef} />
+      <CandleLight position={[13.5, 0.4, -9]} intensity={1.4} avatarRef={avatarRef} />
+      <CandleLight position={[0, 0.4, 10.5]} intensity={1.2} avatarRef={avatarRef} />
+      <EmberParticles position={[-13.5, 0.55, -9]} count={11} />
+      <EmberParticles position={[13.5, 0.55, -9]} count={11} />
 
       <AmbientParticles avatarRef={avatarRef} />
     </group>

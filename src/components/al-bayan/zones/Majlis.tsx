@@ -5,19 +5,23 @@ import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import AmbientParticles from "../../maison-sagesse/shared/AmbientParticles";
-import InteractiveAura from "../shared/InteractiveAura";
+import Moucharabieh from "../shared/Moucharabieh";
 import ProximityPrompt from "../../maison-sagesse/shared/ProximityPrompt";
-import CodeLock from "../ui/CodeLock";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { LIBRARY_CLUE } from "@/lib/al-bayan/puzzle-logic";
 
-export const MAJLIS_SIZE = 12;
-export const MAJLIS_H = 5;
+// Passage à l'échelle "Grand Riad" — SIZE x3, hauteur x1.8 (cf. commentaire
+// dans Vestibule.tsx pour le raisonnement).
+const S = 3;
+const HS = 1.8;
+export const MAJLIS_SIZE = 12 * S;
+export const MAJLIS_H = 5 * HS;
 // Position monde — cf. calcul dans CorridorJardinMajlis.tsx : le mur "-X
-// local" (gap au centre) doit atterrir sur MAJLIS_OPENING_X=27.9.
-export const MAJLIS_POSITION: [number, number, number] = [33.8, 0, 0];
+// local" (gap au centre) doit atterrir sur MAJLIS_OPENING_X. Le mur "+X
+// local" ouvre désormais vers la Suite Privée (cf. CorridorMajlisSuite.tsx).
+export const MAJLIS_POSITION: [number, number, number] = [119, 0, 0];
 
-const GAP_HALF = 1.6;
+const GAP_HALF = 4;
 const SEG_LEN = (MAJLIS_SIZE - GAP_HALF * 2) / 2;
 const SEG_Z = GAP_HALF + SEG_LEN / 2;
 
@@ -29,6 +33,7 @@ function CushionPile({ position, rotation }: { position: [number, number, number
       { x: 0, z: 0, y: 0.14, s: 0.55, rot: 0.1 },
       { x: 0.25, z: 0.15, y: 0.13, s: 0.5, rot: -0.3 },
       { x: -0.2, z: 0.22, y: 0.4, s: 0.48, rot: 0.4 },
+      { x: 0.1, z: -0.25, y: 0.13, s: 0.46, rot: 0.7 },
     ],
     []
   );
@@ -63,6 +68,10 @@ function LowTable({ position, rotation }: { position: [number, number, number]; 
         <torusGeometry args={[0.55, 0.015, 6, 24]} />
         <meshStandardMaterial color="#D4AF37" roughness={0.3} metalness={0.8} />
       </mesh>
+      {/* Plateau à thé en cuivre, posé dessus */}
+      <mesh position={[0, 0.42, 0]} castShadow material={copperMat}>
+        <cylinderGeometry args={[0.14, 0.14, 0.05, 16]} />
+      </mesh>
     </group>
   );
 }
@@ -73,28 +82,28 @@ function Chandelier({ position }: { position: [number, number, number] }) {
   const copperMat = usePBRMaterial("copper", { repeat: [1, 1], roughnessIntensity: 0.3, metalness: 0.8 });
   return (
     <group position={position}>
-      <mesh position={[0, 0.6, 0]} castShadow>
-        <cylinderGeometry args={[0.015, 0.015, 1.2, 6]} />
+      <mesh position={[0, 0.9, 0]} castShadow>
+        <cylinderGeometry args={[0.02, 0.02, 1.8, 6]} />
         <meshStandardMaterial color="#2C1810" roughness={0.6} />
       </mesh>
       <mesh castShadow material={copperMat}>
-        <torusGeometry args={[0.5, 0.05, 8, 24]} />
+        <torusGeometry args={[0.75, 0.07, 8, 32]} />
       </mesh>
-      {Array.from({ length: 8 }, (_, i) => {
-        const angle = (i / 8) * Math.PI * 2;
+      {Array.from({ length: 10 }, (_, i) => {
+        const angle = (i / 10) * Math.PI * 2;
         return (
-          <group key={i} position={[Math.cos(angle) * 0.5, 0.1, Math.sin(angle) * 0.5]}>
+          <group key={i} position={[Math.cos(angle) * 0.75, 0.14, Math.sin(angle) * 0.75]}>
             <mesh castShadow material={copperMat}>
-              <cylinderGeometry args={[0.02, 0.025, 0.15, 6]} />
+              <cylinderGeometry args={[0.026, 0.032, 0.2, 6]} />
             </mesh>
-            <mesh position={[0, 0.12, 0]}>
-              <sphereGeometry args={[0.03, 6, 6]} />
+            <mesh position={[0, 0.16, 0]}>
+              <sphereGeometry args={[0.04, 6, 6]} />
               <meshStandardMaterial color="#FFC840" emissive="#FF8800" emissiveIntensity={1.4} toneMapped={false} />
             </mesh>
           </group>
         );
       })}
-      <pointLight color="#FFA040" intensity={2.5} distance={8} decay={2} />
+      <pointLight color="#FFA040" intensity={3.4} distance={13} decay={2} />
     </group>
   );
 }
@@ -106,17 +115,21 @@ function ClueRug({ avatarRef, onFound, found }: { avatarRef: React.RefObject<THR
   return (
     <group position={[0, 0.01, 0]}>
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-        <planeGeometry args={[4, 3]} />
+        <planeGeometry args={[10, 7.5]} />
         <meshStandardMaterial color="#7A1F1F" roughness={0.9} />
       </mesh>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.002, 0]}>
-        <planeGeometry args={[3.2, 2.2]} />
+        <planeGeometry args={[8.2, 5.8]} />
+        <meshStandardMaterial color="#16204A" roughness={0.9} />
+      </mesh>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.004, 0]}>
+        <planeGeometry args={[6, 4.2]} />
         <meshStandardMaterial color="#C8A84B" roughness={0.85} />
       </mesh>
 
       {!found && (
         // zoneOffset=[0,0,0] : Majlis n'est pas tournée, MAJLIS_POSITION + (0,0,0) = position monde du tapis.
-        <ProximityPrompt avatarRef={avatarRef} zoneOffset={MAJLIS_POSITION} localPosition={[0, 0, 0]} radius={2.5}>
+        <ProximityPrompt avatarRef={avatarRef} zoneOffset={MAJLIS_POSITION} localPosition={[0, 0, 0]} radius={4.5}>
           {(inRange) =>
             inRange && (
               <Html position={[0, 0.6, 0]} center distanceFactor={9}>
@@ -162,27 +175,28 @@ interface MajlisProps {
   avatarRef: React.RefObject<THREE.Group | null>;
   libraryClueFound?: boolean;
   onFindLibraryClue?: () => void;
-  jarsRead?: boolean;
-  safeOpen?: boolean;
 }
 
 /**
- * Zone 5 — Le Majlis (Grand Salon). Coussins de velours, tables basses en
- * bois sculpté et cuivre poli, grand lustre suspendu, tapis berbère
- * dissimulant l'indice menant au Scriptorium, coffre en cèdre (ouvert avec
- * le code lu sur les jarres de la Cuisine) contenant la lentille de cristal.
+ * Zone 5 — Le Grand Salon (Majlis), en U autour d'un tapis berbère central.
+ * Coussins de velours, tables basses en bois sculpté et cuivre poli, grand
+ * lustre suspendu, moucharabiehs projetant leurs ombres géométriques.
+ * Le tapis dissimule l'indice menant au Scriptorium. Le coffre en cèdre
+ * (ouvert avec le code des jarres) se trouve désormais dans la suite privée
+ * attenante, au-delà du mur est.
  */
-export default function Majlis({ avatarRef, libraryClueFound, onFindLibraryClue, jarsRead, safeOpen }: MajlisProps) {
-  const plasterMat = usePBRMaterial("plaster", { repeat: [2, 2] });
-  const carpetMat = usePBRMaterial("carpet", { repeat: [3, 3] });
-  const woodMat = usePBRMaterial("wood-dark", { repeat: [1, 1] });
+export default function Majlis({ avatarRef, libraryClueFound, onFindLibraryClue }: MajlisProps) {
+  const plasterMat = usePBRMaterial("plaster", { repeat: [3, 3] });
+  const carpetMat = usePBRMaterial("carpet", { repeat: [5, 5] });
 
   return (
     <group>
       <ambientLight color="#3D2A10" intensity={0.3} />
-      <pointLight color="#E8A33D" intensity={2.2} distance={12} decay={2} position={[0, MAJLIS_H - 0.6, 0]} castShadow />
-      <pointLight color="#FFC266" intensity={1.6} distance={8} decay={2} position={[-3, 1.6, -3]} />
-      <pointLight color="#FFC266" intensity={1.6} distance={8} decay={2} position={[3, 1.6, 3]} />
+      <pointLight color="#E8A33D" intensity={4.5} distance={26} decay={2} position={[0, MAJLIS_H - 1, 0]} castShadow />
+      <pointLight color="#FFC266" intensity={3.2} distance={20} decay={2} position={[-9, 3, -9]} />
+      <pointLight color="#FFC266" intensity={3.2} distance={20} decay={2} position={[9, 3, 9]} />
+      <pointLight color="#D4954A" intensity={2.4} distance={18} decay={2} position={[9, 3, -9]} />
+      <pointLight color="#D4954A" intensity={2.4} distance={18} decay={2} position={[-9, 3, 9]} />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[MAJLIS_SIZE, MAJLIS_SIZE]} />
@@ -202,11 +216,18 @@ export default function Majlis({ avatarRef, libraryClueFound, onFindLibraryClue,
         <boxGeometry args={[0.2, MAJLIS_H, SEG_LEN]} />
         <primitive object={plasterMat} attach="material" />
       </mesh>
-      {/* 3 autres côtés — pleins, aucune zone voisine */}
-      <mesh position={[MAJLIS_SIZE / 2 - 0.1, MAJLIS_H / 2, 0]} receiveShadow castShadow>
-        <boxGeometry args={[0.2, MAJLIS_H, MAJLIS_SIZE]} />
+      {/* Mur vers la Suite Privée — percé au centre (jamais verrouillé côté
+          Majlis ; la porte gérée par CorridorMajlisSuite se verrouille
+          jusqu'à ce que le code des jarres soit connu). */}
+      <mesh position={[MAJLIS_SIZE / 2 - 0.1, MAJLIS_H / 2, -SEG_Z]} receiveShadow castShadow>
+        <boxGeometry args={[0.2, MAJLIS_H, SEG_LEN]} />
         <primitive object={plasterMat} attach="material" />
       </mesh>
+      <mesh position={[MAJLIS_SIZE / 2 - 0.1, MAJLIS_H / 2, SEG_Z]} receiveShadow castShadow>
+        <boxGeometry args={[0.2, MAJLIS_H, SEG_LEN]} />
+        <primitive object={plasterMat} attach="material" />
+      </mesh>
+      {/* 2 autres côtés — pleins, avec moucharabiehs ajourés */}
       <mesh position={[0, MAJLIS_H / 2, -MAJLIS_SIZE / 2 + 0.1]} receiveShadow castShadow>
         <boxGeometry args={[MAJLIS_SIZE, MAJLIS_H, 0.2]} />
         <primitive object={plasterMat} attach="material" />
@@ -215,55 +236,38 @@ export default function Majlis({ avatarRef, libraryClueFound, onFindLibraryClue,
         <boxGeometry args={[MAJLIS_SIZE, MAJLIS_H, 0.2]} />
         <primitive object={plasterMat} attach="material" />
       </mesh>
-
-      <ClueRug avatarRef={avatarRef} onFound={() => onFindLibraryClue?.()} found={!!libraryClueFound} />
-      <Chandelier position={[0, MAJLIS_H - 0.7, 0]} />
-
-      <CushionPile position={[-4.3, 0, -4.3]} rotation={[0, 0.6, 0]} />
-      <CushionPile position={[4.3, 0, -4.3]} rotation={[0, -0.6, 0]} />
-      <CushionPile position={[-4.3, 0, 4.3]} rotation={[0, 2.4, 0]} />
-      <CushionPile position={[4.3, 0, 4.3]} rotation={[0, -2.4, 0]} />
-      <LowTable position={[-2.5, 0, 0]} />
-      <LowTable position={[2.5, 0, 0]} />
-
-      {/* Coffre en cèdre — ouvert par le code lu sur les jarres de la Cuisine */}
-      <group position={[0, 0, 4]}>
-        <InteractiveAura position={[0, 0.02, 0]} color="#D4AF37" radius={1.2} />
-        <mesh position={[0, 0.3, 0]} castShadow receiveShadow material={woodMat}>
-          <boxGeometry args={[1.1, 0.6, 0.6]} />
-        </mesh>
-        <mesh position={[0, 0.62, 0]} castShadow material={woodMat}>
-          <boxGeometry args={[1.15, 0.05, 0.65]} />
-        </mesh>
-        {!safeOpen && jarsRead && (
-          <Html position={[0, 1.1, 0]} center distanceFactor={9}>
-            <div style={{ pointerEvents: "auto" }}>
-              <CodeLock />
-            </div>
-          </Html>
-        )}
-        {safeOpen && (
-          <Html position={[0, 1.0, 0]} center distanceFactor={9}>
-            <span
-              style={{
-                fontSize: 10,
-                color: "#34d399",
-                fontFamily: "var(--font-dm-sans)",
-                fontWeight: 700,
-                background: "rgba(10,15,13,0.8)",
-                padding: "6px 10px",
-                borderRadius: 8,
-                whiteSpace: "nowrap",
-              }}
-            >
-              ✓ Le coffre est ouvert — la lentille de cristal a été récupérée
-            </span>
-          </Html>
-        )}
+      <group position={[-9, MAJLIS_H / 2 - 1.4, -MAJLIS_SIZE / 2 + 0.5]}>
+        <Moucharabieh width={9} height={MAJLIS_H - 2.5} cellSize={0.35} />
+      </group>
+      <group position={[9, MAJLIS_H / 2 - 1.4, -MAJLIS_SIZE / 2 + 0.5]}>
+        <Moucharabieh width={9} height={MAJLIS_H - 2.5} cellSize={0.35} />
+      </group>
+      <group position={[-9, MAJLIS_H / 2 - 1.4, MAJLIS_SIZE / 2 - 0.5]}>
+        <Moucharabieh width={9} height={MAJLIS_H - 2.5} cellSize={0.35} />
+      </group>
+      <group position={[9, MAJLIS_H / 2 - 1.4, MAJLIS_SIZE / 2 - 0.5]}>
+        <Moucharabieh width={9} height={MAJLIS_H - 2.5} cellSize={0.35} />
       </group>
 
-      <CandleLight position={[-5.3, 0.4, -1]} intensity={1.0} avatarRef={avatarRef} />
-      <CandleLight position={[5.3, 0.4, 1]} intensity={1.0} avatarRef={avatarRef} />
+      <ClueRug avatarRef={avatarRef} onFound={() => onFindLibraryClue?.()} found={!!libraryClueFound} />
+      <Chandelier position={[0, MAJLIS_H - 1.2, 0]} />
+
+      {/* Assise en U — coussins le long de 3 côtés */}
+      <CushionPile position={[-13, 0, -13]} rotation={[0, 0.6, 0]} />
+      <CushionPile position={[13, 0, -13]} rotation={[0, -0.6, 0]} />
+      <CushionPile position={[-13, 0, 0]} rotation={[0, 1.9, 0]} />
+      <CushionPile position={[13, 0, 0]} rotation={[0, -1.9, 0]} />
+      <CushionPile position={[-13, 0, 13]} rotation={[0, 2.4, 0]} />
+      <CushionPile position={[13, 0, 13]} rotation={[0, -2.4, 0]} />
+      <LowTable position={[-7.5, 0, 0]} />
+      <LowTable position={[7.5, 0, 0]} />
+      <LowTable position={[0, 0, -8]} />
+      <LowTable position={[0, 0, 8]} />
+
+      <CandleLight position={[-15, 0.4, -3]} intensity={1.2} avatarRef={avatarRef} />
+      <CandleLight position={[15, 0.4, 3]} intensity={1.2} avatarRef={avatarRef} />
+      <CandleLight position={[-15, 0.4, 3]} intensity={1.0} avatarRef={avatarRef} />
+      <CandleLight position={[15, 0.4, -3]} intensity={1.0} avatarRef={avatarRef} />
 
       <AmbientParticles avatarRef={avatarRef} />
     </group>

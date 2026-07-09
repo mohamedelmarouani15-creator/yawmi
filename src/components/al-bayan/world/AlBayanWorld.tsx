@@ -12,11 +12,13 @@ import Scriptorium from "../zones/Scriptorium";
 import Sanctuaire from "../zones/Sanctuaire";
 import Majlis, { MAJLIS_POSITION } from "../zones/Majlis";
 import Cuisine, { CUISINE_POSITION } from "../zones/Cuisine";
+import SuitePrivee, { SUITE_POSITION } from "../zones/SuitePrivee";
 import OcclusionFader from "./OcclusionFader";
 import CorridorCourScriptorium from "./CorridorCourScriptorium";
 import CorridorScriptoriumSanctuaire from "./CorridorScriptoriumSanctuaire";
 import CorridorJardinMajlis from "./CorridorJardinMajlis";
 import CorridorScriptoriumCuisine from "./CorridorScriptoriumCuisine";
+import CorridorMajlisSuite from "./CorridorMajlisSuite";
 import AvatarTrail from "./AvatarTrail";
 import IncenseSmoke from "./IncenseSmoke";
 import CinematicIntro from "./CinematicIntro";
@@ -40,16 +42,18 @@ const CAM_WALL_MARGIN = 0.4;
 // rayon connu, recouvrement volontaire d'environ 1 unité). ──────────────
 const ZONES = {
   vestibule: { position: [0, 0, 0] as [number, number, number], rotationY: 0 },
-  courTemoignage: { position: [15, 0, 0] as [number, number, number], rotationY: -Math.PI / 2 },
-  scriptorium: { position: [-14.5, -0.6, 0] as [number, number, number], rotationY: Math.PI / 2 },
-  sanctuaire: { position: [0, 0.4, -14] as [number, number, number], rotationY: 0 },
+  courTemoignage: { position: [53, 0, 0] as [number, number, number], rotationY: -Math.PI / 2 },
+  scriptorium: { position: [-44, -1.1, 0] as [number, number, number], rotationY: Math.PI / 2 },
+  sanctuaire: { position: [0, 0.7, -43] as [number, number, number], rotationY: 0 },
 };
 
-// Bornes englobantes généreuses pour tout le complexe (simple rectangle,
-// cf. discipline de clamp déjà utilisée ailleurs dans l'app). Élargi en X
-// (23 -> 42) pour englober le Majlis (centre x=33.8, demi-taille 6) et la
-// Cuisine (centre x=-32.3, demi-taille 5.5).
-export const WORLD_BOUNDS = { x: 42, z: 23 };
+// Bornes englobantes généreuses pour tout le complexe (simple rectangle
+// symétrique, cf. discipline de clamp déjà utilisée ailleurs dans l'app —
+// le clamp reste volontairement simple même si le monde n'est plus
+// symétrique autour de l'origine). Couvre la Suite Privée (centre x=167,
+// demi-taille 12) côté est et la Cuisine (centre x=-98, demi-taille 16.5)
+// côté ouest, plus le Sanctuaire (centre z=-43, rayon 24) côté sud.
+export const WORLD_BOUNDS = { x: 185, z: 72 };
 
 interface IsoCameraFollowProps {
   avatarRef: React.RefObject<THREE.Group | null>;
@@ -229,8 +233,9 @@ export default function AlBayanWorld({
   // Recalcule la liste des colliders de WePlayAvatar quand une porte
   // verrouillée s'ouvre (LockedDoor bascule userData.noCollide) — sans ça
   // le collider figé au montage continuerait de bloquer l'avatar même
-  // après déverrouillage visuel.
-  const collidersVersion = Number(!!majlisUnlocked) + Number(!!cuisineUnlocked) * 2;
+  // après déverrouillage visuel. La porte Majlis↔Suite Privée se déverrouille
+  // directement sur jarsRead (pas de flag dédié — cf. CorridorMajlisSuite).
+  const collidersVersion = Number(!!majlisUnlocked) + Number(!!cuisineUnlocked) * 2 + Number(!!jarsRead) * 4;
 
   return (
     <group>
@@ -246,13 +251,13 @@ export default function AlBayanWorld({
       <hemisphereLight args={["#1A2060", "#4A2800", 0.35] as any} />
       <ambientLight color="#2A2838" intensity={0.55} />
 
-      <Sparkles count={180} scale={[44, 8, 44]} size={1.4} speed={0.12} color="#D4AF37" opacity={0.45} />
+      <Sparkles count={360} scale={[220, 20, 150]} size={1.4} speed={0.12} color="#D4AF37" opacity={0.4} />
 
       {/* Dalle de fondation continue sous tout le complexe, sous le niveau
-          le plus bas (Scriptorium, y=-0.6) — garde-fou : même si deux sols
-          de zone ne se recouvrent pas exactement à une jointure, il n'y a
-          jamais de vide noir sous les pieds de l'avatar. */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.85, 0]} receiveShadow>
+          le plus bas (Scriptorium/Cuisine, y=-1.1) — garde-fou : même si
+          deux sols de zone ne se recouvrent pas exactement à une jointure,
+          il n'y a jamais de vide noir sous les pieds de l'avatar. */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.3, 0]} receiveShadow>
         <planeGeometry args={[WORLD_BOUNDS.x * 2.2, WORLD_BOUNDS.z * 2.2]} />
         <meshStandardMaterial color="#08070A" roughness={0.95} />
       </mesh>
@@ -276,25 +281,23 @@ export default function AlBayanWorld({
         <Sanctuaire avatarRef={avatarRef} lensCollected={lensCollected} lensPlaced={lensPlaced} onPlaceLens={onPlaceLens} />
       </group>
       <group position={MAJLIS_POSITION}>
-        <Majlis
-          avatarRef={avatarRef}
-          libraryClueFound={libraryClueFound}
-          onFindLibraryClue={onFindLibraryClue}
-          jarsRead={jarsRead}
-          safeOpen={safeOpen}
-        />
+        <Majlis avatarRef={avatarRef} libraryClueFound={libraryClueFound} onFindLibraryClue={onFindLibraryClue} />
       </group>
       <group position={CUISINE_POSITION}>
         <Cuisine avatarRef={avatarRef} jarsRead={jarsRead} onReadJars={onReadJars} />
+      </group>
+      <group position={SUITE_POSITION}>
+        <SuitePrivee avatarRef={avatarRef} jarsRead={jarsRead} safeOpen={safeOpen} />
       </group>
 
       {/* Corridors d'interconnexion supplémentaires (en plus de l'étoile
           centrée sur le Vestibule) — coordonnées MONDE directes, pas
           nichés dans le repère tourné d'une zone. */}
-      <CorridorCourScriptorium />
-      <CorridorScriptoriumSanctuaire />
+      <CorridorCourScriptorium avatarRef={avatarRef} />
+      <CorridorScriptoriumSanctuaire avatarRef={avatarRef} />
       <CorridorJardinMajlis avatarRef={avatarRef} majlisUnlocked={!!majlisUnlocked} />
       <CorridorScriptoriumCuisine avatarRef={avatarRef} cuisineUnlocked={!!cuisineUnlocked} />
+      <CorridorMajlisSuite avatarRef={avatarRef} jarsRead={!!jarsRead} />
 
       <WePlayAvatar
         ref={avatarRef}
@@ -306,8 +309,8 @@ export default function AlBayanWorld({
       <AvatarTrail avatarRef={avatarRef} />
 
       {/* Colonnes de fumée d'encens dans le Vestibule */}
-      <IncenseSmoke position={[2.4, 0.08, -2.8]} />
-      <IncenseSmoke position={[-2.4, 0.08, -2.8]} />
+      <IncenseSmoke position={[7.2, 0.08, -8.4]} />
+      <IncenseSmoke position={[-7.2, 0.08, -8.4]} />
 
       <IsoCameraFollow avatarRef={avatarRef} yawRef={yawRef} cameraReadyRef={cameraReadyRef} />
       <CinematicIntro

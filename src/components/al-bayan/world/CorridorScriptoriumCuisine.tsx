@@ -3,17 +3,18 @@
 import { useMemo } from "react";
 import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
+import OctagonalColumn from "../shared/OctagonalColumn";
 import LockedDoor from "../shared/LockedDoor";
 
 // Passage secret en coordonnées MONDE reliant l'ouverture taillée dans le
-// mur "-Z local" du Scriptorium (monde X≈-20.9, Z∈[-1.6,1.6], y=-0.6 — même
-// niveau que le Scriptorium) à la Cuisine. Porte verrouillée tant que les 3
-// manuscrits ne sont pas replacés dans l'ordre chronologique.
-const SCRIPTORIUM_OPENING_X = -20.9;
-const CUISINE_OPENING_X = -26.9;
-const WIDTH = 3.2;
-const HALL_HEIGHT = 3.4;
-const Y = -0.6;
+// mur "-Z local" du Scriptorium (monde X≈-63.5, y=-1.1 — même niveau que le
+// Scriptorium) à la Cuisine. Porte verrouillée tant que les 3 manuscrits ne
+// sont pas replacés dans l'ordre chronologique.
+const SCRIPTORIUM_OPENING_X = -63.5;
+const CUISINE_OPENING_X = -81.5;
+const WIDTH = 8;
+const HALL_HEIGHT = 6;
+const Y = -1.1;
 
 interface CorridorScriptoriumCuisineProps {
   avatarRef: React.RefObject<THREE.Group | null>;
@@ -21,12 +22,16 @@ interface CorridorScriptoriumCuisineProps {
 }
 
 export default function CorridorScriptoriumCuisine({ avatarRef, cuisineUnlocked }: CorridorScriptoriumCuisineProps) {
-  void avatarRef;
   const floorMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#1E1810", roughness: 0.7, metalness: 0.04 }), []);
   const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#2E2416", roughness: 0.82 }), []);
 
   const length = SCRIPTORIUM_OPENING_X - CUISINE_OPENING_X;
   const centerX = (SCRIPTORIUM_OPENING_X + CUISINE_OPENING_X) / 2;
+
+  const columnXs = useMemo(() => {
+    const count = Math.max(2, Math.round(length / 4.5));
+    return Array.from({ length: count }, (_, i) => CUISINE_OPENING_X + ((i + 0.5) / count) * length);
+  }, [length]);
 
   return (
     <group>
@@ -44,12 +49,19 @@ export default function CorridorScriptoriumCuisine({ avatarRef, cuisineUnlocked 
         <primitive object={wallMat} attach="material" />
       </mesh>
 
+      {columnXs.map((x, i) => (
+        <group key={`col-${i}`}>
+          <OctagonalColumn position={[x, Y, -WIDTH / 2 + 0.5]} height={HALL_HEIGHT - 0.4} />
+          <OctagonalColumn position={[x, Y, WIDTH / 2 - 0.5]} height={HALL_HEIGHT - 0.4} />
+        </group>
+      ))}
+
       <mesh
         position={[centerX, Y + HALL_HEIGHT - 0.4, 0]}
         rotation={[0, 0, Math.PI / 2]}
         userData={{ noCollide: true }}
       >
-        <cylinderGeometry args={[WIDTH / 2, WIDTH / 2, length, 16, 1, true, 0, Math.PI]} />
+        <cylinderGeometry args={[WIDTH / 2, WIDTH / 2, length, 20, 1, true, 0, Math.PI]} />
         <meshStandardMaterial color="#241C10" roughness={0.85} side={THREE.BackSide} />
       </mesh>
 
@@ -62,8 +74,8 @@ export default function CorridorScriptoriumCuisine({ avatarRef, cuisineUnlocked 
         color="#2C1810"
       />
 
-      <CandleLight position={[centerX, Y + 0.6, 0]} intensity={0.85} avatarRef={avatarRef} />
-      <pointLight color="#D4954A" intensity={1.3} distance={7} decay={2} position={[centerX, Y + 2, 0]} />
+      <CandleLight position={[centerX, Y + 0.6, 0]} intensity={1.0} avatarRef={avatarRef} />
+      <pointLight color="#D4954A" intensity={2.0} distance={14} decay={2} position={[centerX, Y + 3, 0]} />
     </group>
   );
 }

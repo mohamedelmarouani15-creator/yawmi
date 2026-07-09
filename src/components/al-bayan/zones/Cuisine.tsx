@@ -9,14 +9,15 @@ import ProximityPrompt from "../../maison-sagesse/shared/ProximityPrompt";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { JAR_CODE, KITCHEN_CLUE } from "@/lib/al-bayan/puzzle-logic";
 
-export const CUISINE_SIZE = 11;
-export const CUISINE_H = 4.6;
-export const CUISINE_Y = -0.6;
+// Passage à l'échelle "Grand Riad" — SIZE x3, hauteur x1.8.
+export const CUISINE_SIZE = 11 * 3;
+export const CUISINE_H = 4.6 * 1.8;
+export const CUISINE_Y = -1.1;
 // Position monde — cf. calcul dans CorridorScriptoriumCuisine.tsx : le mur
-// "+X local" (gap au centre) doit atterrir sur CUISINE_OPENING_X=-26.9.
-export const CUISINE_POSITION: [number, number, number] = [-32.3, CUISINE_Y, 0];
+// "+X local" (gap au centre) doit atterrir sur CUISINE_OPENING_X.
+export const CUISINE_POSITION: [number, number, number] = [-98, CUISINE_Y, 0];
 
-const GAP_HALF = 1.6;
+const GAP_HALF = 4;
 const SEG_LEN = (CUISINE_SIZE - GAP_HALF * 2) / 2;
 const SEG_Z = GAP_HALF + SEG_LEN / 2;
 
@@ -56,7 +57,7 @@ function OilJar({ position, digit, scale = 1 }: { position: [number, number, num
 function JarShelf({ avatarRef, jarsRead, onRead }: { avatarRef: React.RefObject<THREE.Group | null>; jarsRead: boolean; onRead: () => void }) {
   const woodMat = usePBRMaterial("wood-dark", { repeat: [2, 0.3] });
   return (
-    <group position={[0, 0, -4.6]}>
+    <group position={[0, 0, -13.8]}>
       <mesh position={[0, 0.9, 0]} castShadow receiveShadow material={woodMat}>
         <boxGeometry args={[6, 1.6, 0.3]} />
       </mesh>
@@ -67,9 +68,11 @@ function JarShelf({ avatarRef, jarsRead, onRead }: { avatarRef: React.RefObject<
           4 jarres gravées des autres. */}
       <OilJar position={[-2.6, 0.28, 0.3]} scale={1.3} />
       <OilJar position={[2.6, 0.28, 0.3]} scale={1.3} />
+      <OilJar position={[-3.4, 0.24, 0.6]} scale={1.1} />
+      <OilJar position={[3.4, 0.24, 0.6]} scale={1.1} />
 
       {!jarsRead && (
-        <ProximityPrompt avatarRef={avatarRef} zoneOffset={CUISINE_POSITION} localPosition={[0, 0, -4.6]} radius={2.6}>
+        <ProximityPrompt avatarRef={avatarRef} zoneOffset={CUISINE_POSITION} localPosition={[0, 0, -13.8]} radius={3.6}>
           {(inRange) =>
             inRange && (
               <Html position={[0, 2.3, 0]} center distanceFactor={9}>
@@ -132,6 +135,32 @@ function StoneMortar({ position }: { position: [number, number, number] }) {
   );
 }
 
+/** Table de préparation basse en bois, ustensiles posés dessus. */
+function PrepTable({ position, rotation }: { position: [number, number, number]; rotation?: [number, number, number] }) {
+  const woodMat = usePBRMaterial("wood-dark", { repeat: [1, 0.5] });
+  const copperMat = usePBRMaterial("copper", { repeat: [1, 1], roughnessIntensity: 0.3, metalness: 0.8 });
+  return (
+    <group position={position} rotation={rotation}>
+      <mesh position={[0, 0.4, 0]} castShadow receiveShadow material={woodMat}>
+        <boxGeometry args={[1.6, 0.08, 0.8]} />
+      </mesh>
+      {[-0.7, 0.7].map((x) =>
+        [-0.3, 0.3].map((z) => (
+          <mesh key={`${x}${z}`} position={[x, 0.2, z]} castShadow material={woodMat}>
+            <cylinderGeometry args={[0.04, 0.04, 0.4, 6]} />
+          </mesh>
+        ))
+      )}
+      <mesh position={[0.4, 0.46, 0]} castShadow material={copperMat}>
+        <cylinderGeometry args={[0.16, 0.16, 0.08, 12]} />
+      </mesh>
+      <mesh position={[-0.4, 0.46, 0]} castShadow material={copperMat}>
+        <cylinderGeometry args={[0.12, 0.12, 0.1, 12]} />
+      </mesh>
+    </group>
+  );
+}
+
 interface CuisineProps {
   avatarRef: React.RefObject<THREE.Group | null>;
   jarsRead?: boolean;
@@ -139,20 +168,22 @@ interface CuisineProps {
 }
 
 /**
- * Zone 6 — La Cuisine traditionnelle, accessible uniquement par le passage
+ * Zone 4 — La Cuisine traditionnelle, accessible uniquement par le passage
  * secret révélé par les manuscrits du Scriptorium. Poteries d'argile,
- * jarres d'huile, mortier de pierre, paniers d'osier — 4 jarres gravées
- * donnent le code du coffre du Majlis.
+ * jarres d'huile, mortiers de pierre, paniers d'osier, tables de
+ * préparation en bois — 4 jarres gravées donnent le code du coffre de la
+ * Suite Privée.
  */
 export default function Cuisine({ avatarRef, jarsRead, onReadJars }: CuisineProps) {
-  const terracottaFloor = usePBRMaterial("terracotta", { repeat: [3, 3], roughnessIntensity: 0.8 });
-  const plasterMat = usePBRMaterial("plaster", { repeat: [2, 1.5] });
+  const terracottaFloor = usePBRMaterial("terracotta", { repeat: [6, 6], roughnessIntensity: 0.8 });
+  const plasterMat = usePBRMaterial("plaster", { repeat: [3, 2] });
 
   return (
     <group>
       <ambientLight color="#3D2A10" intensity={0.28} />
-      <pointLight color="#E8A33D" intensity={2.2} distance={10} decay={2} position={[0, CUISINE_H - 0.4, 0]} castShadow />
-      <pointLight color="#FFC266" intensity={1.4} distance={7} decay={2} position={[0, 1.4, -3]} />
+      <pointLight color="#E8A33D" intensity={5} distance={22} decay={2} position={[0, CUISINE_H - 1, 0]} castShadow />
+      <pointLight color="#FFC266" intensity={3.2} distance={16} decay={2} position={[0, 3, -9]} />
+      <pointLight color="#FFC266" intensity={2.6} distance={14} decay={2} position={[0, 3, 9]} />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[CUISINE_SIZE, CUISINE_SIZE]} />
@@ -186,17 +217,27 @@ export default function Cuisine({ avatarRef, jarsRead, onReadJars }: CuisineProp
         <primitive object={plasterMat} attach="material" />
       </mesh>
 
-      <InteractiveAura position={[0, 0.02, -4.6]} color="#D4AF37" radius={1.6} />
+      <InteractiveAura position={[0, 0.02, -13.8]} color="#D4AF37" radius={2.2} />
       <JarShelf avatarRef={avatarRef} jarsRead={!!jarsRead} onRead={() => onReadJars?.()} />
 
-      <StoneMortar position={[-3.2, 0.12, 2]} />
-      <StoneMortar position={[3.2, 0.12, 2]} />
-      <WickerBasket position={[-4, 0.2, -1]} />
-      <WickerBasket position={[4, 0.2, -1]} />
-      <WickerBasket position={[-4, 0.2, 3.5]} />
+      <PrepTable position={[-8, 0, 2]} rotation={[0, 0.3, 0]} />
+      <PrepTable position={[8, 0, 2]} rotation={[0, -0.3, 0]} />
+      <PrepTable position={[0, 0, 8]} rotation={[0, 0, 0]} />
 
-      <CandleLight position={[-4.3, 0.4, -3]} intensity={0.9} avatarRef={avatarRef} />
-      <CandleLight position={[4.3, 0.4, -3]} intensity={0.9} avatarRef={avatarRef} />
+      <StoneMortar position={[-9.6, 0.12, 6]} />
+      <StoneMortar position={[9.6, 0.12, 6]} />
+      <StoneMortar position={[-9.6, 0.12, -6]} />
+      <StoneMortar position={[9.6, 0.12, -6]} />
+      <WickerBasket position={[-12, 0.2, -3]} />
+      <WickerBasket position={[12, 0.2, -3]} />
+      <WickerBasket position={[-12, 0.2, 10.5]} />
+      <WickerBasket position={[12, 0.2, 10.5]} />
+      <WickerBasket position={[-6, 0.2, 12]} />
+      <WickerBasket position={[6, 0.2, 12]} />
+
+      <CandleLight position={[-12.9, 0.4, -9]} intensity={1.2} avatarRef={avatarRef} />
+      <CandleLight position={[12.9, 0.4, -9]} intensity={1.2} avatarRef={avatarRef} />
+      <CandleLight position={[0, 0.4, 13]} intensity={1.0} avatarRef={avatarRef} />
 
       <AmbientParticles avatarRef={avatarRef} />
     </group>

@@ -22,6 +22,11 @@ interface WePlayAvatarProps {
   /** Callback de bruit de pas — par défaut celui d'al-bayan ; passer celui
    * d'un autre moteur audio pour un jeu qui réutilise cet avatar. */
   onFootstep?: () => void;
+  /** Incrémenter cette valeur force un nouveau balayage de la scène pour
+   * reconstruire la liste des colliders — nécessaire pour les portes/passages
+   * verrouillés dont le `userData.noCollide` change dynamiquement après
+   * résolution d'une énigme (la liste est normalement figée au montage). */
+  collidersVersion?: number;
 }
 
 const BOB_AMPLITUDE = 0.038;
@@ -46,7 +51,7 @@ const FALL_RATE = 16;
  * par rapport à la version stick-figure.
  */
 const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
-  ({ joystickRef, yawRef, speed = 4, bounds, glowColor = "#3D7FE8", onFootstep = playFootstepAlBayan }, ref) => {
+  ({ joystickRef, yawRef, speed = 4, bounds, glowColor = "#3D7FE8", onFootstep = playFootstepAlBayan, collidersVersion = 0 }, ref) => {
     const groupRef = useRef<THREE.Group>(null);
     const bodyRef = useRef<THREE.Group>(null);
     const leftSleeveRef = useRef<THREE.Group>(null);
@@ -72,7 +77,7 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
         list.push(box);
       });
       colliders.current = list;
-    }, [scene]);
+    }, [scene, collidersVersion]);
 
     function collidesAt(x: number, z: number): boolean {
       const list = colliders.current;

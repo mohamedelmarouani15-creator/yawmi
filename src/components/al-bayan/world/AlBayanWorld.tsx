@@ -10,9 +10,13 @@ import Vestibule from "../zones/Vestibule";
 import CourTemoignage from "../zones/CourTemoignage";
 import Scriptorium from "../zones/Scriptorium";
 import Sanctuaire from "../zones/Sanctuaire";
+import Majlis, { MAJLIS_POSITION } from "../zones/Majlis";
+import Cuisine, { CUISINE_POSITION } from "../zones/Cuisine";
 import OcclusionFader from "./OcclusionFader";
 import CorridorCourScriptorium from "./CorridorCourScriptorium";
 import CorridorScriptoriumSanctuaire from "./CorridorScriptoriumSanctuaire";
+import CorridorJardinMajlis from "./CorridorJardinMajlis";
+import CorridorScriptoriumCuisine from "./CorridorScriptoriumCuisine";
 import AvatarTrail from "./AvatarTrail";
 import IncenseSmoke from "./IncenseSmoke";
 import CinematicIntro from "./CinematicIntro";
@@ -42,8 +46,10 @@ const ZONES = {
 };
 
 // Bornes englobantes généreuses pour tout le complexe (simple rectangle,
-// cf. discipline de clamp déjà utilisée ailleurs dans l'app).
-export const WORLD_BOUNDS = { x: 23, z: 23 };
+// cf. discipline de clamp déjà utilisée ailleurs dans l'app). Élargi en X
+// (23 -> 42) pour englober le Majlis (centre x=33.8, demi-taille 6) et la
+// Cuisine (centre x=-32.3, demi-taille 5.5).
+export const WORLD_BOUNDS = { x: 42, z: 23 };
 
 interface IsoCameraFollowProps {
   avatarRef: React.RefObject<THREE.Group | null>;
@@ -173,9 +179,20 @@ interface AlBayanWorldProps {
   avatarRef: React.RefObject<THREE.Group | null>;
   joystickRef: React.MutableRefObject<{ x: number; y: number }>;
   yawRef: React.MutableRefObject<number>;
-  onConfirmTemoignage?: () => void;
-  onConfirmRasm?: () => void;
-  onConfirmRoute?: () => void;
+  astrolabeSolved?: boolean;
+  onSolveAstrolabe?: () => void;
+  majlisUnlocked?: boolean;
+  libraryClueFound?: boolean;
+  onFindLibraryClue?: () => void;
+  manuscriptsSolved?: boolean;
+  onSolveManuscripts?: () => void;
+  cuisineUnlocked?: boolean;
+  jarsRead?: boolean;
+  onReadJars?: () => void;
+  safeOpen?: boolean;
+  lensCollected?: boolean;
+  lensPlaced?: boolean;
+  onPlaceLens?: () => void;
   sunRef?: React.Ref<THREE.Mesh>;
   vestibuleSunRef?: React.Ref<THREE.Mesh>;
 }
@@ -191,13 +208,29 @@ export default function AlBayanWorld({
   avatarRef,
   joystickRef,
   yawRef,
-  onConfirmTemoignage,
-  onConfirmRasm,
-  onConfirmRoute,
+  astrolabeSolved,
+  onSolveAstrolabe,
+  majlisUnlocked,
+  libraryClueFound,
+  onFindLibraryClue,
+  manuscriptsSolved,
+  onSolveManuscripts,
+  cuisineUnlocked,
+  jarsRead,
+  onReadJars,
+  safeOpen,
+  lensCollected,
+  lensPlaced,
+  onPlaceLens,
   sunRef,
   vestibuleSunRef,
 }: AlBayanWorldProps) {
   const cameraReadyRef = useRef(false);
+  // Recalcule la liste des colliders de WePlayAvatar quand une porte
+  // verrouillée s'ouvre (LockedDoor bascule userData.noCollide) — sans ça
+  // le collider figé au montage continuerait de bloquer l'avatar même
+  // après déverrouillage visuel.
+  const collidersVersion = Number(!!majlisUnlocked) + Number(!!cuisineUnlocked) * 2;
 
   return (
     <group>
@@ -228,13 +261,31 @@ export default function AlBayanWorld({
         <Vestibule sunRef={vestibuleSunRef} />
       </group>
       <group position={ZONES.courTemoignage.position} rotation={[0, ZONES.courTemoignage.rotationY, 0]}>
-        <CourTemoignage onConfirm={onConfirmTemoignage} />
+        <CourTemoignage onSolveAstrolabe={onSolveAstrolabe} astrolabeSolved={astrolabeSolved} avatarRef={avatarRef} />
       </group>
       <group position={ZONES.scriptorium.position} rotation={[0, ZONES.scriptorium.rotationY, 0]}>
-        <Scriptorium onConfirm={onConfirmRasm} sunRef={sunRef} />
+        <Scriptorium
+          sunRef={sunRef}
+          avatarRef={avatarRef}
+          libraryClueFound={libraryClueFound}
+          manuscriptsSolved={manuscriptsSolved}
+          onSolveManuscripts={onSolveManuscripts}
+        />
       </group>
       <group position={ZONES.sanctuaire.position} rotation={[0, ZONES.sanctuaire.rotationY, 0]}>
-        <Sanctuaire onConfirm={onConfirmRoute} />
+        <Sanctuaire avatarRef={avatarRef} lensCollected={lensCollected} lensPlaced={lensPlaced} onPlaceLens={onPlaceLens} />
+      </group>
+      <group position={MAJLIS_POSITION}>
+        <Majlis
+          avatarRef={avatarRef}
+          libraryClueFound={libraryClueFound}
+          onFindLibraryClue={onFindLibraryClue}
+          jarsRead={jarsRead}
+          safeOpen={safeOpen}
+        />
+      </group>
+      <group position={CUISINE_POSITION}>
+        <Cuisine avatarRef={avatarRef} jarsRead={jarsRead} onReadJars={onReadJars} />
       </group>
 
       {/* Corridors d'interconnexion supplémentaires (en plus de l'étoile
@@ -242,8 +293,16 @@ export default function AlBayanWorld({
           nichés dans le repère tourné d'une zone. */}
       <CorridorCourScriptorium />
       <CorridorScriptoriumSanctuaire />
+      <CorridorJardinMajlis avatarRef={avatarRef} majlisUnlocked={!!majlisUnlocked} />
+      <CorridorScriptoriumCuisine avatarRef={avatarRef} cuisineUnlocked={!!cuisineUnlocked} />
 
-      <WePlayAvatar ref={avatarRef} joystickRef={joystickRef} yawRef={yawRef} bounds={WORLD_BOUNDS} />
+      <WePlayAvatar
+        ref={avatarRef}
+        joystickRef={joystickRef}
+        yawRef={yawRef}
+        bounds={WORLD_BOUNDS}
+        collidersVersion={collidersVersion}
+      />
       <AvatarTrail avatarRef={avatarRef} />
 
       {/* Colonnes de fumée d'encens dans le Vestibule */}

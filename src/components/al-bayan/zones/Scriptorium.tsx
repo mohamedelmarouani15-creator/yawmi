@@ -1,26 +1,36 @@
 "use client";
 
-import { useEffect, useMemo, useRef, type Ref } from "react";
+import { useEffect, useMemo, useRef, useState, type Ref } from "react";
+import { Html } from "@react-three/drei";
 import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import AmbientParticles from "../../maison-sagesse/shared/AmbientParticles";
 import Moucharabieh from "../shared/Moucharabieh";
-import EnigmaRasm from "../scenes/EnigmaRasm";
 import InteractiveAura from "../shared/InteractiveAura";
+import ProximityPrompt from "../../maison-sagesse/shared/ProximityPrompt";
 import LightShaftSun from "../world/LightShaftSun";
 import EmberParticles from "../shared/EmberParticles";
+import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
+import { MANUSCRIPTS } from "@/lib/al-bayan/puzzle-logic";
 
 const SIZE = 13;
 const H = 7;
 const STEP_DOWN = 0.6; // "en contrebas, deux marches" — l'offset Y du groupe zone
 
-// Ouvertures de corridor taillées dans les murs "sud" (vers la Cour du
-// Témoignage) et "nord" (vers le Sanctuaire) — cf. CourTemoignage.tsx /
-// Sanctuaire.tsx pour le calcul des positions monde correspondantes.
+// Ouvertures de corridor taillées dans les murs "sud" (vers le Jardin) et
+// "nord" (vers le Sanctuaire) — cf. CourTemoignage.tsx / Sanctuaire.tsx pour
+// le calcul des positions monde correspondantes.
 const CORRIDOR_COUR_LOCAL_Z = 3.5;
 const CORRIDOR_COUR_HALF = 1.6;
 const CORRIDOR_SANCTUAIRE_LOCAL_Z = 0;
 const CORRIDOR_SANCTUAIRE_HALF = 1.6;
+
+// Passage secret vers la Cuisine — ouverture taillée dans le mur "-Z local"
+// (qui correspond au monde X≈-20.9 — cf. CorridorScriptoriumCuisine.tsx).
+// Verrouillé tant que les 3 manuscrits ne sont pas dans l'ordre.
+const CUISINE_GAP_HALF = 1.6;
+const CUISINE_SEG_LEN = (SIZE - CUISINE_GAP_HALF * 2) / 2;
+const CUISINE_SEG_X = CUISINE_GAP_HALF + CUISINE_SEG_LEN / 2;
 
 /** Table de copiste basse inclinée — décor, pas interactif. */
 function CopyistTable({ position, rotation }: { position: [number, number, number]; rotation?: [number, number, number] }) {
@@ -98,14 +108,145 @@ function StepsUp() {
   );
 }
 
+/** Un manuscrit posé sur l'étagère — épaisseur, tranche dorée, année visible. */
+function ManuscriptBook({ position, manuscript, correct }: { position: [number, number, number]; manuscript: (typeof MANUSCRIPTS)[number]; correct: boolean }) {
+  const leatherMat = usePBRMaterial("leather", { repeat: [1, 1], color: correct ? "#8fbf9f" : "#ffffff" });
+  return (
+    <group position={position}>
+      <mesh castShadow material={leatherMat}>
+        <boxGeometry args={[0.5, 0.7, 0.18]} />
+      </mesh>
+      <mesh position={[0, 0, 0.1]} castShadow>
+        <boxGeometry args={[0.46, 0.66, 0.01]} />
+        <meshStandardMaterial color="#D4B896" roughness={0.85} />
+      </mesh>
+      <Html position={[0, 0.42, 0.1]} center distanceFactor={9}>
+        <span style={{ fontSize: 9, color: correct ? "#34d399" : "#D4AF37", fontFamily: "var(--font-dm-sans)", fontWeight: 700, whiteSpace: "nowrap", textShadow: "0 0 6px rgba(0,0,0,0.8)" }}>
+          {manuscript.year}
+        </span>
+      </Html>
+    </group>
+  );
+}
+
+/** Étagère des 3 manuscrits — un indice trouvé dans le Majlis (sous un
+ * tapis) doit d'abord être découvert ; les replacer dans l'ordre
+ * chronologique révèle le passage secret vers la Cuisine. */
+function ManuscriptShelf({
+  avatarRef,
+  libraryClueFound,
+  onSolved,
+  solved,
+}: {
+  avatarRef: React.RefObject<THREE.Group | null>;
+  libraryClueFound: boolean;
+  onSolved: () => void;
+  solved: boolean;
+}) {
+  const [slots, setSlots] = useState<string[]>(() => [MANUSCRIPTS[1].id, MANUSCRIPTS[2].id, MANUSCRIPTS[0].id]);
+  const woodMat = usePBRMaterial("wood-dark", { repeat: [2, 0.3] });
+
+  const allCorrect = slots.every((id, idx) => MANUSCRIPTS.find((m) => m.id === id)?.correctSlot === idx);
+
+  useEffect(() => {
+    if (allCorrect && libraryClueFound && !solved) onSolved();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allCorrect, libraryClueFound, solved]);
+
+  const cycle = (slotIdx: number) => {
+    setSlots((prev) => {
+      const currentIdx = MANUSCRIPTS.findIndex((m) => m.id === prev[slotIdx]);
+      const next = MANUSCRIPTS[(currentIdx + 1) % MANUSCRIPTS.length].id;
+      const copy = [...prev];
+      copy[slotIdx] = next;
+      return copy;
+    });
+  };
+
+  return (
+    <group position={[0, 0, -0.5]}>
+      <mesh position={[0, 0.55, -0.15]} castShadow receiveShadow material={woodMat}>
+        <boxGeometry args={[2.4, 1.1, 0.3]} />
+      </mesh>
+      {[-0.7, 0, 0.7].map((x, idx) => {
+        const manuscript = MANUSCRIPTS.find((m) => m.id === slots[idx])!;
+        const correct = manuscript.correctSlot === idx;
+        return <ManuscriptBook key={idx} position={[x, 0.55, 0.05]} manuscript={manuscript} correct={correct} />;
+      })}
+
+      {!solved && (
+        // zoneOffset=[0,0,0] : position monde précalculée (zone tournée
+        // rotationY=+π/2, position (-14.5,-0.6,0) ; local (0,0,-0.5) -> monde (-15,-0.6,0)).
+        <ProximityPrompt avatarRef={avatarRef} zoneOffset={[0, 0, 0]} localPosition={[-15, -0.6, 0]} radius={2.4}>
+          {(inRange) =>
+            inRange && (
+              <Html position={[0, 1.5, 0]} center distanceFactor={9}>
+                {libraryClueFound ? (
+                  <div className="flex gap-2">
+                    {[0, 1, 2].map((idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => cycle(idx)}
+                        style={{
+                          pointerEvents: "auto",
+                          background: "rgba(10,15,13,0.85)",
+                          border: "1px solid rgba(212,175,55,0.5)",
+                          color: "#D4AF37",
+                          fontFamily: "var(--font-dm-sans)",
+                          fontWeight: 700,
+                          fontSize: 10,
+                          borderRadius: 10,
+                          padding: "6px 10px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Position {idx + 1} ↻
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <span
+                    style={{
+                      fontSize: 10,
+                      color: "rgba(248,244,236,0.6)",
+                      fontFamily: "var(--font-dm-sans)",
+                      background: "rgba(10,15,13,0.8)",
+                      padding: "6px 10px",
+                      borderRadius: 8,
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    Un indice manque pour ranger ces manuscrits...
+                  </span>
+                )}
+              </Html>
+            )
+          }
+        </ProximityPrompt>
+      )}
+    </group>
+  );
+}
+
 /**
- * Zone 3 — Le Scriptorium de la Calligraphie (Quête du Rasm). En
- * contrebas du Vestibule (cf. offset Y appliqué par AlBayanWorld), cloisons
- * moucharabieh filtrant la lumière, tables de copiste, lampes à l'huile
- * (réutilise `CandleLight` tel quel — pas de nouvelle géométrie de lampe,
- * la flamme/lumière est déjà non-shadow-casting).
+ * Zone 3 — Le Scriptorium de la Calligraphie. En contrebas du Vestibule
+ * (cf. offset Y appliqué par AlBayanWorld), cloisons moucharabieh filtrant
+ * la lumière projetée au sol, tables de copiste, lampes à l'huile, étagère
+ * des 3 manuscrits à ranger dans l'ordre chronologique.
  */
-export default function Scriptorium({ onConfirm, sunRef }: { onConfirm?: () => void; sunRef?: Ref<THREE.Mesh> }) {
+export default function Scriptorium({
+  sunRef,
+  avatarRef,
+  libraryClueFound,
+  manuscriptsSolved,
+  onSolveManuscripts,
+}: {
+  sunRef?: Ref<THREE.Mesh>;
+  avatarRef: React.RefObject<THREE.Group | null>;
+  libraryClueFound?: boolean;
+  manuscriptsSolved?: boolean;
+  onSolveManuscripts?: () => void;
+}) {
   const floorMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#30200E", roughness: 0.55, metalness: 0.06 }), []);
   const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#261A0C", roughness: 0.85 }), []);
 
@@ -161,9 +302,14 @@ export default function Scriptorium({ onConfirm, sunRef }: { onConfirm?: () => v
         <boxGeometry args={[0.2, H, SIZE / 2 - (CORRIDOR_SANCTUAIRE_LOCAL_Z + CORRIDOR_SANCTUAIRE_HALF)]} />
         <primitive object={wallMat} attach="material" />
       </mesh>
-      {/* Côté restant (perpendiculaire, aucune zone voisine) */}
-      <mesh position={[0, H / 2, -SIZE / 2 + 0.1]} receiveShadow castShadow>
-        <boxGeometry args={[SIZE, H, 0.2]} />
+      {/* Mur vers la Cuisine — désormais percé (passage secret, révélé par
+          la résolution des 3 manuscrits). */}
+      <mesh position={[-CUISINE_SEG_X, H / 2, -SIZE / 2 + 0.1]} receiveShadow castShadow>
+        <boxGeometry args={[CUISINE_SEG_LEN, H, 0.2]} />
+        <primitive object={wallMat} attach="material" />
+      </mesh>
+      <mesh position={[CUISINE_SEG_X, H / 2, -SIZE / 2 + 0.1]} receiveShadow castShadow>
+        <boxGeometry args={[CUISINE_SEG_LEN, H, 0.2]} />
         <primitive object={wallMat} attach="material" />
       </mesh>
 
@@ -193,24 +339,22 @@ export default function Scriptorium({ onConfirm, sunRef }: { onConfirm?: () => v
       <LightShaftSun ref={sunRef} position={[0, H / 2 + 0.6, SIZE / 2 + 2.2]} size={2.2} />
 
 
-      {/* Auréole interactive — table du manuscrit */}
+      {/* Auréole interactive — étagère des manuscrits */}
       <InteractiveAura position={[0, 0.02, -0.5]} color="#60a5fa" radius={1.2} />
 
-      <group position={[0, 0, -0.5]}>
-        <EnigmaRasm onConfirm={onConfirm} />
-      </group>
+      <ManuscriptShelf avatarRef={avatarRef} libraryClueFound={!!libraryClueFound} onSolved={() => onSolveManuscripts?.()} solved={!!manuscriptsSolved} />
 
       <CopyistTable position={[-3.6, 0, 1.5]} rotation={[0, 0.4, 0]} />
       <CopyistTable position={[3.6, 0, 1.5]} rotation={[0, -0.4, 0]} />
       <CopyistTable position={[-3.8, 0, -2.5]} rotation={[0, 0.9, 0]} />
 
-      <CandleLight position={[-4.5, 0.4, -3]} intensity={1.2} />
-      <CandleLight position={[4.5, 0.4, -3]} intensity={1.2} />
-      <CandleLight position={[0, 0.4, 3.5]} intensity={1.0} />
+      <CandleLight position={[-4.5, 0.4, -3]} intensity={1.2} avatarRef={avatarRef} />
+      <CandleLight position={[4.5, 0.4, -3]} intensity={1.2} avatarRef={avatarRef} />
+      <CandleLight position={[0, 0.4, 3.5]} intensity={1.0} avatarRef={avatarRef} />
       <EmberParticles position={[-4.5, 0.55, -3]} count={9} />
       <EmberParticles position={[4.5, 0.55, -3]} count={9} />
 
-      <AmbientParticles />
+      <AmbientParticles avatarRef={avatarRef} />
     </group>
   );
 }

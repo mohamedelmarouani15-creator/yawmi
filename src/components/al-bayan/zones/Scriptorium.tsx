@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type Ref } from "react";
+import { useEffect, useMemo, useRef, type Ref } from "react";
 import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import AmbientParticles from "../../maison-sagesse/shared/AmbientParticles";
@@ -45,6 +45,41 @@ function CopyistTable({ position, rotation }: { position: [number, number, numbe
         <meshStandardMaterial color="#D4D4D4" roughness={0.6} />
       </mesh>
     </group>
+  );
+}
+
+/** Spot droit au-dessus d'un panneau moucharabieh, visant le sol juste
+ * en dessous — projette le motif géométrique du treillis (cf. `castShadow`
+ * ajouté sur ses lattes dans Moucharabieh.tsx) comme une ombre nette plutôt
+ * que de rester un simple habillage décoratif sans effet au sol. */
+function MoucharabiehSpot({ position }: { position: [number, number, number] }) {
+  const lightRef = useRef<THREE.SpotLight>(null);
+  const targetRef = useRef<THREE.Object3D>(null);
+
+  useEffect(() => {
+    if (lightRef.current && targetRef.current) {
+      lightRef.current.target = targetRef.current;
+    }
+  }, []);
+
+  return (
+    <>
+      <spotLight
+        ref={lightRef}
+        position={[position[0], H - 0.3, position[2]]}
+        angle={0.32}
+        penumbra={0.35}
+        intensity={5}
+        distance={9}
+        decay={2}
+        color="#E8C27A"
+        castShadow
+        shadow-mapSize-width={512}
+        shadow-mapSize-height={512}
+        shadow-bias={-0.0015}
+      />
+      <object3D ref={targetRef} position={[position[0], 0, position[2]]} />
+    </>
   );
 }
 
@@ -139,6 +174,8 @@ export default function Scriptorium({ onConfirm, sunRef }: { onConfirm?: () => v
       <group position={[3.2, H / 2 - 0.5, SIZE / 2 - 0.5]}>
         <Moucharabieh width={3.4} height={H - 1} cellSize={0.3} />
       </group>
+      <MoucharabiehSpot position={[-3.2, 0, SIZE / 2 - 0.5]} />
+      <MoucharabiehSpot position={[3.2, 0, SIZE / 2 - 0.5]} />
       {/* Pans pleins flanquant les moucharabiehs jusqu'aux coins — sans
           cela les coins de la pièce restaient ouverts sur le vide. */}
       {[-1, 1].map((side) => (

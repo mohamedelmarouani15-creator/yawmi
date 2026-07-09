@@ -71,9 +71,17 @@ function Pool() {
         <circleGeometry args={[1.6, 10]} />
         <primitive object={waterMat} attach="material" />
       </mesh>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.04, 0]}>
-        <ringGeometry args={[1.58, 1.78, 10]} />
-        <meshStandardMaterial color="#C9BFA8" roughness={0.3} />
+      {/* Margelle — un tube ouvert plutôt qu'un anneau plat : un `ringGeometry`
+          posé à plat a une hauteur de boîte englobante quasi nulle, sous le
+          seuil de collision (WePlayAvatar.COLLIDER_MIN_HEIGHT=0.4), donc
+          totalement traversable par l'avatar (bug constaté à l'audit —
+          "zéro clipping" ne tenait pas pour le bassin). Le tube descend
+          sous le niveau du sol (invisible) pour porter sa boîte englobante
+          au-delà de ce seuil tout en ne laissant dépasser qu'une margelle
+          discrète au-dessus du sol. */}
+      <mesh position={[0, -0.2, 0]} receiveShadow castShadow>
+        <cylinderGeometry args={[1.78, 1.78, 0.5, 10, 1, true]} />
+        <meshStandardMaterial color="#C9BFA8" roughness={0.3} side={THREE.DoubleSide} />
       </mesh>
     </group>
   );

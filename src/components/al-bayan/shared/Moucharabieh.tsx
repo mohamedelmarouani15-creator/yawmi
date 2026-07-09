@@ -69,13 +69,18 @@ export default function Moucharabieh({
 
   return (
     <group>
-      <instancedMesh ref={diagARef} args={[geometry, material, maxCount]} />
-      <instancedMesh ref={diagBRef} args={[geometry, material, maxCount]} />
+      {/* castShadow sur le treillis : c'est ce qui permet à une lumière
+          placée derrière le panneau de projeter le motif géométrique du
+          moucharabieh au sol (cf. spotLight dédiée dans Scriptorium.tsx),
+          plutôt que de rester une simple cloison décorative opaque à
+          l'ombre. */}
+      <instancedMesh ref={diagARef} args={[geometry, material, maxCount]} castShadow />
+      <instancedMesh ref={diagBRef} args={[geometry, material, maxCount]} castShadow />
       {/* Cadre */}
-      <mesh position={[0, height / 2, 0]}><boxGeometry args={[width + 0.1, 0.08, 0.08]} /><meshStandardMaterial color={color} roughness={0.8} /></mesh>
-      <mesh position={[0, -height / 2, 0]}><boxGeometry args={[width + 0.1, 0.08, 0.08]} /><meshStandardMaterial color={color} roughness={0.8} /></mesh>
-      <mesh position={[-width / 2, 0, 0]}><boxGeometry args={[0.08, height, 0.08]} /><meshStandardMaterial color={color} roughness={0.8} /></mesh>
-      <mesh position={[width / 2, 0, 0]}><boxGeometry args={[0.08, height, 0.08]} /><meshStandardMaterial color={color} roughness={0.8} /></mesh>
+      <mesh position={[0, height / 2, 0]} castShadow><boxGeometry args={[width + 0.1, 0.08, 0.08]} /><meshStandardMaterial color={color} roughness={0.8} /></mesh>
+      <mesh position={[0, -height / 2, 0]} castShadow><boxGeometry args={[width + 0.1, 0.08, 0.08]} /><meshStandardMaterial color={color} roughness={0.8} /></mesh>
+      <mesh position={[-width / 2, 0, 0]} castShadow><boxGeometry args={[0.08, height, 0.08]} /><meshStandardMaterial color={color} roughness={0.8} /></mesh>
+      <mesh position={[width / 2, 0, 0]} castShadow><boxGeometry args={[0.08, height, 0.08]} /><meshStandardMaterial color={color} roughness={0.8} /></mesh>
     </group>
   );
 }

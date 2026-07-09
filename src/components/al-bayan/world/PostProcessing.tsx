@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { EffectComposer, Bloom, Vignette, ChromaticAberration, GodRays } from "@react-three/postprocessing";
+import { EffectComposer, Bloom, Vignette, ChromaticAberration, GodRays, N8AO } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import * as THREE from "three";
 
@@ -30,10 +30,10 @@ export default function AlBayanPostProcessing({ sunRef, vestibuleSunRef }: AlBay
   const [sunMesh, setSunMesh] = useState<THREE.Mesh | null>(null);
   const [vestibuleSunMesh, setVestibuleSunMesh] = useState<THREE.Mesh | null>(null);
   useEffect(() => {
-    if (sunRef?.current) setSunMesh(sunRef.current);
+    setSunMesh(sunRef?.current ?? null);
   }, [sunRef]);
   useEffect(() => {
-    if (vestibuleSunRef?.current) setVestibuleSunMesh(vestibuleSunRef.current);
+    setVestibuleSunMesh(vestibuleSunRef?.current ?? null);
   }, [vestibuleSunRef]);
 
   return (
@@ -74,10 +74,23 @@ export default function AlBayanPostProcessing({ sunRef, vestibuleSunRef }: AlBay
       )}
       <Bloom
         mipmapBlur
-        intensity={0.9}
-        luminanceThreshold={0.60}
+        intensity={1.5}
+        luminanceThreshold={0.4}
         luminanceSmoothing={0.08}
         radius={0.78}
+      />
+      {/* Occlusion ambiante en espace écran — ombres de contact sous les
+          meubles, dans les angles de mur, aux pieds de l'avatar. `quality`
+          en "performance" + `halfRes` : SSAO est l'effet le plus coûteux de
+          la chaîne, ce réglage garde le verrou 60 FPS sur mobile visé par
+          le reste du pipeline (GodRays ×2 + Bloom mipmap + Vignette + CA). */}
+      <N8AO
+        aoRadius={1.1}
+        distanceFalloff={1}
+        intensity={2.2}
+        quality="performance"
+        halfRes
+        screenSpaceRadius
       />
       <Vignette eskil={false} offset={0.09} darkness={0.68} />
       <ChromaticAberration offset={CA_OFFSET} />

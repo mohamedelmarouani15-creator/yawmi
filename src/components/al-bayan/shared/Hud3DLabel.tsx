@@ -11,6 +11,10 @@ interface Hud3DLabelProps {
   variant?: Hud3DLabelVariant;
   accent?: string;
   interactive?: boolean;
+  /** Mise à l'échelle par la distance caméra (drei `Html`) — le badge
+   * rétrécit naturellement en s'éloignant au lieu de garder une taille
+   * écran fixe, cohérent avec le reste de la scène 3D. */
+  distanceFactor?: number;
 }
 
 const VARIANT_STYLE: Record<Hud3DLabelVariant, CSSProperties> = {
@@ -86,6 +90,7 @@ export default function Hud3DLabel({
   variant = "tag",
   accent,
   interactive = false,
+  distanceFactor = 10,
 }: Hud3DLabelProps) {
   const base = VARIANT_STYLE[variant];
   const accentOverride: CSSProperties | undefined = accent
@@ -93,7 +98,7 @@ export default function Hud3DLabel({
     : undefined;
 
   return (
-    <Html position={position} center zIndexRange={[10, 0]}>
+    <Html position={position} center zIndexRange={[10, 0]} distanceFactor={distanceFactor}>
       {variant === "beacon" && (
         <style>{BEACON_KEYFRAMES}</style>
       )}

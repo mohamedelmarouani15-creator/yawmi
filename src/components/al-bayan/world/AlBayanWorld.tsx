@@ -201,7 +201,11 @@ export default function AlBayanWorld({
 
   return (
     <group>
-      <fog attach="fog" args={["#060814", 28, 65]} />
+      {/* Brouillard exponentiel (FogExp2) plutôt que linéaire : une teinte
+          ocre/ambre très sombre qui épaissit progressivement avec la
+          distance donne de la profondeur aux longs corridors sans le "mur"
+          net d'un fog linéaire near/far. */}
+      <fogExp2 attach="fog" args={["#0b0805", 0.015]} />
       {/* Fill global : ambiance lumineuse chaude qui débouche les salles sombres
           sans tuer le contrast dramatique — hémisphère ciel bleu nuit / sol
           ambre chaud, + ambient de sécurité. */}

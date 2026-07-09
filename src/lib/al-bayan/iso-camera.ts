@@ -1,35 +1,42 @@
 /**
- * Caméra isométrique ORBITALE pour al-bayan : l'inclinaison (pitch) est
- * fixe, mais la rotation horizontale (yaw) suit désormais le pouce droit en
- * direct — la caméra tourne autour de l'avatar comme dans un jeu d'action
- * classique, au lieu d'un angle figé à 45°. L'avatar tourne avec elle
- * (même `yawRef`), donc viser une porte reste visuellement intuitif.
+ * Caméra isométrique ORBITALE pour al-bayan : la rotation horizontale (yaw)
+ * ET l'inclinaison (pitch) suivent le pouce droit en direct — glissé
+ * horizontal = orbite autour de l'avatar, glissé vertical = incline la
+ * caméra (regarder en haut d'un couloir voûté / regarder vers le bas d'une
+ * pièce vaste). L'avatar tourne avec le yaw (même `yawRef`), donc viser une
+ * porte reste visuellement intuitif ; le pitch ne fait qu'incliner la
+ * caméra, jamais l'avatar.
  *
- * Comme le yaw change en direct, le joystick gauche doit être reprojeté
- * CHAQUE FRAME avec le yaw courant (et non plus une constante précalculée)
- * pour que "pousser vers le haut" continue d'aller vers le fond de l'écran
- * quel que soit l'angle d'orbite actuel.
+ * Comme yaw ET pitch changent en direct, le joystick gauche doit être
+ * reprojeté CHAQUE FRAME avec le yaw courant (et non plus une constante
+ * précalculée) pour que "pousser vers le haut" continue d'aller vers le
+ * fond de l'écran quel que soit l'angle d'orbite actuel.
  */
 
-export const ISO_PITCH = (40 * Math.PI) / 180; // 40° — fixe, verrouillé (anti-plongée), l'orbite ne change que l'horizontale
+export const ISO_PITCH_DEFAULT = (40 * Math.PI) / 180; // 40° au spawn
+// Plage de bascule au pouce droit (glissé vertical) — 15° (quasi à hauteur
+// d'avatar, pour regarder loin dans un couloir) à 65° (plongée, pour
+// embrasser une grande pièce d'un coup d'œil). Anciennement figé à 40°.
+export const ISO_PITCH_MIN = (15 * Math.PI) / 180;
+export const ISO_PITCH_MAX = (65 * Math.PI) / 180;
 // Angle de départ au spawn (avant que le pouce droit ne le modifie).
 export const ISO_YAW_DEFAULT = Math.PI / 4;
 
-// Une valeur trop grande pousse la caméra à travers le mur derrière
-// l'avatar dès qu'il est proche d'une paroi (vérifié : à 11, la caméra se
-// retrouvait à 1,5 unité DERRIÈRE le mur d'étagères du Vestibule — écran
-// quasi noir car on regardait son dos opaque de très près). 7 garde assez
-// de marge dans toutes les zones tout en laissant le recul isométrique.
-export const ISO_DISTANCE = 7;
+// Élargi (7 -> 10) avec le passage à l'échelle "Grand Riad" : embrasse
+// davantage la scène (plus de contexte, plus de décor visible d'un coup
+// d'œil) sans perdre le garde-fou anti-mur (la collision caméra dans
+// AlBayanWorld.tsx raccourcit dynamiquement cette distance nominale dès
+// qu'un mur est détecté, donc l'augmenter ici ne pousse jamais la caméra
+// à travers un mur — seulement plus loin quand la place le permet).
+export const ISO_DISTANCE = 10;
 // Resserré (0.1 -> 0.08) : suivi plus doux, "drone fluide", moins de
 // secousse perceptible quand l'avatar change brusquement de direction.
 export const ISO_FOLLOW_LERP = 0.08;
 
-const cosPitch = Math.cos(ISO_PITCH);
-const sinPitch = Math.sin(ISO_PITCH);
-
-/** Décalage caméra (avatar -> caméra) pour le yaw d'orbite courant. */
-export function getCameraOffset(yaw: number) {
+/** Décalage caméra (avatar -> caméra) pour le yaw/pitch d'orbite courants. */
+export function getCameraOffset(yaw: number, pitch: number = ISO_PITCH_DEFAULT) {
+  const cosPitch = Math.cos(pitch);
+  const sinPitch = Math.sin(pitch);
   return {
     x: ISO_DISTANCE * cosPitch * Math.sin(yaw),
     y: ISO_DISTANCE * sinPitch,
@@ -39,7 +46,9 @@ export function getCameraOffset(yaw: number) {
 
 /** Même direction, normalisée (longueur 1) — sert à la collision caméra
  * (raccourcir la distance sans changer d'angle quand un mur est détecté). */
-export function getCameraDir(yaw: number) {
+export function getCameraDir(yaw: number, pitch: number = ISO_PITCH_DEFAULT) {
+  const cosPitch = Math.cos(pitch);
+  const sinPitch = Math.sin(pitch);
   return {
     x: cosPitch * Math.sin(yaw),
     y: sinPitch,

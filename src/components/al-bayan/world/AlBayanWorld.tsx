@@ -58,6 +58,7 @@ export const WORLD_BOUNDS = { x: 185, z: 72 };
 interface IsoCameraFollowProps {
   avatarRef: React.RefObject<THREE.Group | null>;
   yawRef: React.MutableRefObject<number>;
+  pitchRef: React.MutableRefObject<number>;
   cameraReadyRef: React.MutableRefObject<boolean>;
 }
 
@@ -89,7 +90,7 @@ const CAM_RAY_ANGLES = [0, 0.46, -0.46];
 // plus petites, un champ plus étroit suffit à les cadrer à même ISO_DISTANCE.
 const BASE_FOV = 36;
 
-function IsoCameraFollow({ avatarRef, yawRef, cameraReadyRef }: IsoCameraFollowProps) {
+function IsoCameraFollow({ avatarRef, yawRef, pitchRef, cameraReadyRef }: IsoCameraFollowProps) {
   const { camera, scene } = useThree();
   const perspCamera = camera as THREE.PerspectiveCamera;
   const desired = useRef(new THREE.Vector3());
@@ -108,9 +109,10 @@ function IsoCameraFollow({ avatarRef, yawRef, cameraReadyRef }: IsoCameraFollowP
     }
 
     const yaw = yawRef.current;
+    const pitch = pitchRef.current;
     let distance = ISO_DISTANCE;
     for (const angle of CAM_RAY_ANGLES) {
-      const d = getCameraDir(yaw + angle);
+      const d = getCameraDir(yaw + angle, pitch);
       rayDir.current.set(d.x, d.y, d.z);
       raycaster.current.set(avatar.position, rayDir.current);
       raycaster.current.near = 0.1;
@@ -121,7 +123,7 @@ function IsoCameraFollow({ avatarRef, yawRef, cameraReadyRef }: IsoCameraFollowP
       }
     }
 
-    const offset = getCameraOffset(yaw);
+    const offset = getCameraOffset(yaw, pitch);
     const scale = distance / ISO_DISTANCE;
     desired.current.set(
       avatar.position.x + offset.x * scale,
@@ -158,7 +160,7 @@ function ToneMappingSetup() {
   const { gl } = useThree();
   useEffect(() => {
     gl.toneMapping = THREE.ACESFilmicToneMapping;
-    gl.toneMappingExposure = 1.25;
+    gl.toneMappingExposure = 1.5;
   }, [gl]);
   return null;
 }
@@ -167,11 +169,11 @@ const SPAWN = { x: 0, y: 0, z: 0 };
 
 /** Place l'avatar et "snap" la caméra au spawn une seule fois au montage
  * du monde (plus de changement de route à chaque salle désormais). */
-function InitialSpawn({ avatarRef, yawRef }: { avatarRef: React.RefObject<THREE.Group | null>; yawRef: React.MutableRefObject<number> }) {
+function InitialSpawn({ avatarRef, yawRef, pitchRef }: { avatarRef: React.RefObject<THREE.Group | null>; yawRef: React.MutableRefObject<number>; pitchRef: React.MutableRefObject<number> }) {
   const { camera } = useThree();
   useEffect(() => {
     avatarRef.current?.position.set(SPAWN.x, SPAWN.y, SPAWN.z);
-    const offset = getCameraOffset(yawRef.current);
+    const offset = getCameraOffset(yawRef.current, pitchRef.current);
     camera.position.set(SPAWN.x + offset.x, SPAWN.y + offset.y, SPAWN.z + offset.z);
     camera.lookAt(SPAWN.x, SPAWN.y + 1.1, SPAWN.z);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -183,6 +185,7 @@ interface AlBayanWorldProps {
   avatarRef: React.RefObject<THREE.Group | null>;
   joystickRef: React.MutableRefObject<{ x: number; y: number }>;
   yawRef: React.MutableRefObject<number>;
+  pitchRef: React.MutableRefObject<number>;
   astrolabeSolved?: boolean;
   onSolveAstrolabe?: () => void;
   majlisUnlocked?: boolean;
@@ -212,6 +215,7 @@ export default function AlBayanWorld({
   avatarRef,
   joystickRef,
   yawRef,
+  pitchRef,
   astrolabeSolved,
   onSolveAstrolabe,
   majlisUnlocked,
@@ -243,15 +247,19 @@ export default function AlBayanWorld({
           ocre/ambre très sombre qui épaissit progressivement avec la
           distance donne de la profondeur aux longs corridors sans le "mur"
           net d'un fog linéaire near/far. */}
-      <fogExp2 attach="fog" args={["#0b0805", 0.015]} />
+      {/* Densité réduite (0.015 -> 0.006) : à l'échelle "Grand Riad" (pièces
+          jusqu'à 60 unités, galeries de 70), l'ancienne densité rendait tout
+          quasi noir au-delà de ~25 unités — un fog pensé pour des pièces
+          3x plus petites. */}
+      <fogExp2 attach="fog" args={["#0b0805", 0.006]} />
       {/* Fill global : ambiance lumineuse chaude qui débouche les salles sombres
           sans tuer le contrast dramatique — hémisphère ciel bleu nuit / sol
           ambre chaud, + ambient de sécurité. */}
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      <hemisphereLight args={["#1A2060", "#4A2800", 0.35] as any} />
-      <ambientLight color="#2A2838" intensity={0.55} />
+      <hemisphereLight args={["#1A2060", "#4A2800", 0.6] as any} />
+      <ambientLight color="#3A3850" intensity={0.9} />
 
-      <Sparkles count={360} scale={[220, 20, 150]} size={1.4} speed={0.12} color="#D4AF37" opacity={0.4} />
+      <Sparkles count={160} scale={[220, 20, 150]} size={1.4} speed={0.12} color="#D4AF37" opacity={0.4} />
 
       {/* Dalle de fondation continue sous tout le complexe, sous le niveau
           le plus bas (Scriptorium/Cuisine, y=-1.1) — garde-fou : même si
@@ -312,14 +320,15 @@ export default function AlBayanWorld({
       <IncenseSmoke position={[7.2, 0.08, -8.4]} />
       <IncenseSmoke position={[-7.2, 0.08, -8.4]} />
 
-      <IsoCameraFollow avatarRef={avatarRef} yawRef={yawRef} cameraReadyRef={cameraReadyRef} />
+      <IsoCameraFollow avatarRef={avatarRef} yawRef={yawRef} pitchRef={pitchRef} cameraReadyRef={cameraReadyRef} />
       <CinematicIntro
         avatarRef={avatarRef}
         yawRef={yawRef}
+        pitchRef={pitchRef}
         onComplete={() => { cameraReadyRef.current = true; }}
       />
       <OcclusionFader avatarRef={avatarRef} />
-      <InitialSpawn avatarRef={avatarRef} yawRef={yawRef} />
+      <InitialSpawn avatarRef={avatarRef} yawRef={yawRef} pitchRef={pitchRef} />
       <ToneMappingSetup />
     </group>
   );

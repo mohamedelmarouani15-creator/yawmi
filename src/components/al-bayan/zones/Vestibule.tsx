@@ -80,6 +80,7 @@ export default function Vestibule({ sunRef }: { sunRef?: Ref<THREE.Mesh> }) {
 
   return (
     <group>
+      <ambientLight color="#4A3520" intensity={0.32} />
       <pointLight color="#FFAA44" intensity={3.2} distance={13 * S} decay={2} position={[0, 1.7 * HS, -1 * S]} castShadow={false} />
       <pointLight color="#E8A33D" intensity={3.6} distance={12 * S} decay={2} position={[-W / 2 + 2.5 * S, 3.2 * HS, 4 * S]} />
       <pointLight color="#E8A33D" intensity={3.6} distance={12 * S} decay={2} position={[W / 2 - 2.5 * S, 3.2 * HS, 4 * S]} />

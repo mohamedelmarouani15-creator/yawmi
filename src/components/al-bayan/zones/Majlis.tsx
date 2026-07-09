@@ -191,8 +191,8 @@ export default function Majlis({ avatarRef, libraryClueFound, onFindLibraryClue 
 
   return (
     <group>
-      <ambientLight color="#3D2A10" intensity={0.3} />
-      <pointLight color="#E8A33D" intensity={4.5} distance={26} decay={2} position={[0, MAJLIS_H - 1, 0]} castShadow />
+      <ambientLight color="#3D2A10" intensity={0.5} />
+      <pointLight color="#E8A33D" intensity={6.5} distance={34} decay={2} position={[0, MAJLIS_H - 1, 0]} castShadow />
       <pointLight color="#FFC266" intensity={3.2} distance={20} decay={2} position={[-9, 3, -9]} />
       <pointLight color="#FFC266" intensity={3.2} distance={20} decay={2} position={[9, 3, 9]} />
       <pointLight color="#D4954A" intensity={2.4} distance={18} decay={2} position={[9, 3, -9]} />

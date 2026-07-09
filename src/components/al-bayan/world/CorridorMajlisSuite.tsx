@@ -5,6 +5,7 @@ import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import OctagonalColumn from "../shared/OctagonalColumn";
 import LockedDoor from "../shared/LockedDoor";
+import { WallSconce, MonumentalVase, CorridorRug } from "../shared/CorridorDecor";
 
 // Corridor en coordonnées MONDE reliant l'ouverture taillée dans le mur "+X
 // local" du Majlis (monde X≈136.9) à celle du mur "-X local" de la Suite
@@ -29,7 +30,7 @@ export default function CorridorMajlisSuite({ avatarRef, jarsRead }: CorridorMaj
   const centerX = (MAJLIS_OPENING_X + SUITE_OPENING_X) / 2;
 
   const columnXs = useMemo(() => {
-    const count = Math.max(2, Math.round(length / 4.5));
+    const count = Math.max(2, Math.round(length / 9));
     return Array.from({ length: count }, (_, i) => MAJLIS_OPENING_X + ((i + 0.5) / count) * length);
   }, [length]);
 
@@ -51,10 +52,19 @@ export default function CorridorMajlisSuite({ avatarRef, jarsRead }: CorridorMaj
 
       {columnXs.map((x, i) => (
         <group key={`col-${i}`}>
-          <OctagonalColumn position={[x, 0, -WIDTH / 2 + 0.45]} height={HALL_HEIGHT - 0.4} />
-          <OctagonalColumn position={[x, 0, WIDTH / 2 - 0.45]} height={HALL_HEIGHT - 0.4} />
+          <OctagonalColumn position={[x, 0, -WIDTH / 2 + 0.45]} height={HALL_HEIGHT - 0.4} shadows={false} />
+          <OctagonalColumn position={[x, 0, WIDTH / 2 - 0.45]} height={HALL_HEIGHT - 0.4} shadows={false} />
         </group>
       ))}
+      {columnXs.map((x, i) => (
+        <group key={`sconce-${i}`}>
+          <WallSconce position={[x, HALL_HEIGHT * 0.5, -WIDTH / 2 + 0.15]} rotationY={0} />
+          <WallSconce position={[x, HALL_HEIGHT * 0.5, WIDTH / 2 - 0.15]} rotationY={Math.PI} />
+        </group>
+      ))}
+      <MonumentalVase position={[MAJLIS_OPENING_X + 1.3, 0, -WIDTH / 2 + 0.8]} scale={1.1} />
+      <MonumentalVase position={[SUITE_OPENING_X - 1.3, 0, WIDTH / 2 - 0.8]} scale={1.1} />
+      <CorridorRug position={[centerX, 0.015, 0]} width={length * 0.4} length={WIDTH * 0.55} />
 
       <mesh
         position={[centerX, HALL_HEIGHT - 0.4, 0]}

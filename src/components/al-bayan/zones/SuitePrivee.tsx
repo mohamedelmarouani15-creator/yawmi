@@ -90,10 +90,10 @@ export default function SuitePrivee({ avatarRef, jarsRead, safeOpen }: SuitePriv
 
   return (
     <group>
-      <ambientLight color="#2A2038" intensity={0.28} />
-      <pointLight color="#9FC8FF" intensity={2.6} distance={16} decay={2} position={[0, SUITE_H - 1, 0]} castShadow />
-      <pointLight color="#FFC266" intensity={2.0} distance={12} decay={2} position={[-6, 2, -6]} />
-      <pointLight color="#FFC266" intensity={2.0} distance={12} decay={2} position={[6, 2, 6]} />
+      <ambientLight color="#2A2038" intensity={0.48} />
+      <pointLight color="#9FC8FF" intensity={3.6} distance={22} decay={2} position={[0, SUITE_H - 1, 0]} castShadow />
+      <pointLight color="#FFC266" intensity={2.8} distance={16} decay={2} position={[-6, 2, -6]} />
+      <pointLight color="#FFC266" intensity={2.8} distance={16} decay={2} position={[6, 2, 6]} />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[SUITE_SIZE, SUITE_SIZE]} />

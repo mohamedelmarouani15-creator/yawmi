@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { EffectComposer, Bloom, Vignette, ChromaticAberration, GodRays, N8AO } from "@react-three/postprocessing";
+import { EffectComposer, Bloom, Vignette, ChromaticAberration, GodRays } from "@react-three/postprocessing";
 import { BlendFunction } from "postprocessing";
 import * as THREE from "three";
 
@@ -42,7 +42,7 @@ export default function AlBayanPostProcessing({ sunRef, vestibuleSunRef }: AlBay
         <GodRays
           sun={sunMesh}
           blendFunction={BlendFunction.SCREEN}
-          samples={45}
+          samples={24}
           density={0.65}
           decay={0.8}
           weight={0.4}
@@ -60,7 +60,7 @@ export default function AlBayanPostProcessing({ sunRef, vestibuleSunRef }: AlBay
         <GodRays
           sun={vestibuleSunMesh}
           blendFunction={BlendFunction.SCREEN}
-          samples={40}
+          samples={22}
           density={0.55}
           decay={0.82}
           weight={0.35}
@@ -79,19 +79,13 @@ export default function AlBayanPostProcessing({ sunRef, vestibuleSunRef }: AlBay
         luminanceSmoothing={0.08}
         radius={0.78}
       />
-      {/* Occlusion ambiante en espace écran — ombres de contact sous les
-          meubles, dans les angles de mur, aux pieds de l'avatar. `quality`
-          en "performance" + `halfRes` : SSAO est l'effet le plus coûteux de
-          la chaîne, ce réglage garde le verrou 60 FPS sur mobile visé par
-          le reste du pipeline (GodRays ×2 + Bloom mipmap + Vignette + CA). */}
-      <N8AO
-        aoRadius={1.1}
-        distanceFalloff={1}
-        intensity={2.2}
-        quality="performance"
-        halfRes
-        screenSpaceRadius
-      />
+      {/* N8AO (SSAO) retiré : c'était de très loin l'effet le plus coûteux
+          de la chaîne (même en quality="performance" + halfRes), et le
+          passage à l'échelle "Grand Riad" (pièces 3x plus vastes, galeries
+          de 70 unités) a fait grimper le coût de sa passe en espace écran
+          au point de rendre le jeu injouable sur mobile (retour utilisateur
+          direct : "énormément lent"). La Vignette + l'éclairage renforcé
+          (cf. zones/*.tsx) portent seule la profondeur désormais. */}
       <Vignette eskil={false} offset={0.09} darkness={0.68} />
       <ChromaticAberration offset={CA_OFFSET} />
     </EffectComposer>

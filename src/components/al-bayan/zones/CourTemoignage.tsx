@@ -427,6 +427,7 @@ export default function CourTemoignage({
 
   return (
     <group>
+      <ambientLight color="#4A3520" intensity={0.32} />
       {/* Puits de lumière vertical, blanc, solennel — seul spot à ombre de la zone */}
       <spotLight
         position={[0, H - 1, -9]}
@@ -437,8 +438,8 @@ export default function CourTemoignage({
         distance={H + 8}
         color="#F4F2EC"
         castShadow
-        shadow-mapSize-width={1024}
-        shadow-mapSize-height={1024}
+        shadow-mapSize-width={640}
+        shadow-mapSize-height={640}
       />
       <pointLight color="#FFAA44" intensity={4.5} distance={20} decay={2} position={[15, 5, 15]} />
       <pointLight color="#FFAA44" intensity={4.5} distance={20} decay={2} position={[-15, 5, 15]} />

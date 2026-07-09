@@ -180,8 +180,8 @@ export default function Cuisine({ avatarRef, jarsRead, onReadJars }: CuisineProp
 
   return (
     <group>
-      <ambientLight color="#3D2A10" intensity={0.28} />
-      <pointLight color="#E8A33D" intensity={5} distance={22} decay={2} position={[0, CUISINE_H - 1, 0]} castShadow />
+      <ambientLight color="#3D2A10" intensity={0.48} />
+      <pointLight color="#E8A33D" intensity={6.8} distance={30} decay={2} position={[0, CUISINE_H - 1, 0]} castShadow />
       <pointLight color="#FFC266" intensity={3.2} distance={16} decay={2} position={[0, 3, -9]} />
       <pointLight color="#FFC266" intensity={2.6} distance={14} decay={2} position={[0, 3, 9]} />
 

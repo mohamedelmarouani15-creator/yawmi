@@ -5,6 +5,7 @@ import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import OctagonalColumn from "../shared/OctagonalColumn";
 import LockedDoor from "../shared/LockedDoor";
+import { WallSconce, MonumentalVase, CorridorRug } from "../shared/CorridorDecor";
 
 // Passage secret en coordonnées MONDE reliant l'ouverture taillée dans le
 // mur "-Z local" du Scriptorium (monde X≈-63.5, y=-1.1 — même niveau que le
@@ -29,7 +30,7 @@ export default function CorridorScriptoriumCuisine({ avatarRef, cuisineUnlocked 
   const centerX = (SCRIPTORIUM_OPENING_X + CUISINE_OPENING_X) / 2;
 
   const columnXs = useMemo(() => {
-    const count = Math.max(2, Math.round(length / 4.5));
+    const count = Math.max(2, Math.round(length / 9));
     return Array.from({ length: count }, (_, i) => CUISINE_OPENING_X + ((i + 0.5) / count) * length);
   }, [length]);
 
@@ -51,10 +52,19 @@ export default function CorridorScriptoriumCuisine({ avatarRef, cuisineUnlocked 
 
       {columnXs.map((x, i) => (
         <group key={`col-${i}`}>
-          <OctagonalColumn position={[x, Y, -WIDTH / 2 + 0.5]} height={HALL_HEIGHT - 0.4} />
-          <OctagonalColumn position={[x, Y, WIDTH / 2 - 0.5]} height={HALL_HEIGHT - 0.4} />
+          <OctagonalColumn position={[x, Y, -WIDTH / 2 + 0.5]} height={HALL_HEIGHT - 0.4} shadows={false} />
+          <OctagonalColumn position={[x, Y, WIDTH / 2 - 0.5]} height={HALL_HEIGHT - 0.4} shadows={false} />
         </group>
       ))}
+      {columnXs.map((x, i) => (
+        <group key={`sconce-${i}`}>
+          <WallSconce position={[x, Y + HALL_HEIGHT * 0.5, -WIDTH / 2 + 0.15]} rotationY={0} />
+          <WallSconce position={[x, Y + HALL_HEIGHT * 0.5, WIDTH / 2 - 0.15]} rotationY={Math.PI} />
+        </group>
+      ))}
+      <MonumentalVase position={[SCRIPTORIUM_OPENING_X - 1.3, Y, -WIDTH / 2 + 0.8]} scale={1.1} />
+      <MonumentalVase position={[CUISINE_OPENING_X + 1.3, Y, WIDTH / 2 - 0.8]} scale={1.1} />
+      <CorridorRug position={[centerX, Y + 0.015, 0]} width={length * 0.4} length={WIDTH * 0.55} />
 
       <mesh
         position={[centerX, Y + HALL_HEIGHT - 0.4, 0]}

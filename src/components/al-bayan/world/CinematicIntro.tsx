@@ -12,6 +12,7 @@ const START_DIST_MULT = 2.2; // multiplicateur de distance horizontale au dépar
 interface CinematicIntroProps {
   avatarRef: React.RefObject<THREE.Group | null>;
   yawRef: React.MutableRefObject<number>;
+  pitchRef: React.MutableRefObject<number>;
   onComplete?: () => void;
 }
 
@@ -20,7 +21,7 @@ interface CinematicIntroProps {
  * à la position isométrique normale en DURATION secondes. Pendant ce temps,
  * IsoCameraFollow est suspendu (cameraReadyRef=false).
  */
-export default function CinematicIntro({ avatarRef, yawRef, onComplete }: CinematicIntroProps) {
+export default function CinematicIntro({ avatarRef, yawRef, pitchRef, onComplete }: CinematicIntroProps) {
   const { camera } = useThree();
   const startT = useRef<number | null>(null);
   const done = useRef(false);
@@ -39,7 +40,7 @@ export default function CinematicIntro({ avatarRef, yawRef, onComplete }: Cinema
     // Ease out cubic
     const ease = 1 - Math.pow(1 - raw, 3);
 
-    const offset = getCameraOffset(yawRef.current);
+    const offset = getCameraOffset(yawRef.current, pitchRef.current);
     const tx = avatar.position.x + offset.x;
     const ty = avatar.position.y + offset.y;
     const tz = avatar.position.z + offset.z;

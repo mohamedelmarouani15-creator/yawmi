@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import OctagonalColumn from "../shared/OctagonalColumn";
+import { WallSconce, MonumentalVase, CorridorRug } from "../shared/CorridorDecor";
 
 // Grande galerie diagonale en espace MONDE reliant l'ouverture du mur "+X
 // local" du Jardin (monde X≈36, Z≈30, y=0) à celle du mur "-X local" du
@@ -40,7 +41,7 @@ export default function CorridorCourScriptorium({ avatarRef }: { avatarRef?: Rea
   const stepRise = RISE / stepCount;
 
   const columnDs = useMemo(() => {
-    const count = Math.max(4, Math.round(flatLength / 5.5));
+    const count = Math.max(3, Math.round(flatLength / 11));
     return Array.from({ length: count }, (_, i) => ((i + 0.5) / count) * flatLength);
   }, [flatLength]);
 
@@ -84,10 +85,20 @@ export default function CorridorCourScriptorium({ avatarRef }: { avatarRef?: Rea
 
       {columnDs.map((d, i) => (
         <group key={`col-${i}`}>
-          <OctagonalColumn position={[d, 0, -WIDTH / 2 + 0.6]} height={HALL_HEIGHT - 0.4} />
-          <OctagonalColumn position={[d, 0, WIDTH / 2 - 0.6]} height={HALL_HEIGHT - 0.4} />
+          <OctagonalColumn position={[d, 0, -WIDTH / 2 + 0.6]} height={HALL_HEIGHT - 0.4} shadows={false} />
+          <OctagonalColumn position={[d, 0, WIDTH / 2 - 0.6]} height={HALL_HEIGHT - 0.4} shadows={false} />
         </group>
       ))}
+      {columnDs.map((d, i) => (
+        <group key={`sconce-${i}`}>
+          <WallSconce position={[d, HALL_HEIGHT * 0.5, -WIDTH / 2 + 0.15]} rotationY={0} />
+          <WallSconce position={[d, HALL_HEIGHT * 0.5, WIDTH / 2 - 0.15]} rotationY={Math.PI} />
+        </group>
+      ))}
+      <MonumentalVase position={[1.6, 0, -WIDTH / 2 + 0.9]} scale={1.3} />
+      <MonumentalVase position={[flatLength - 1.6, 0, WIDTH / 2 - 0.9]} scale={1.3} />
+      <CorridorRug position={[flatLength * 0.35, 0.015, 0]} width={7} length={WIDTH * 0.55} />
+      <CorridorRug position={[flatLength * 0.7, 0.015, 0]} width={7} length={WIDTH * 0.55} />
 
       {/* Voûte en berceau — demi-cylindre couché, axe le long de la galerie.
           `noCollide` : un plafond décoratif n'a aucune raison de bloquer un

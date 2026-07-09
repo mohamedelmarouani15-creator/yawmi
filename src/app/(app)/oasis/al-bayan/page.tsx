@@ -7,7 +7,7 @@ import * as THREE from "three";
 
 import { useAlBayanStore } from "@/lib/al-bayan/game-store";
 import { dispatchPassthroughTap } from "@/lib/touch-passthrough";
-import { ISO_YAW_DEFAULT } from "@/lib/al-bayan/iso-camera";
+import { ISO_YAW_DEFAULT, ISO_PITCH_DEFAULT, ISO_PITCH_MIN, ISO_PITCH_MAX } from "@/lib/al-bayan/iso-camera";
 
 import IntroScreen from "@/components/al-bayan/ui/IntroScreen";
 import AlBayanWorld from "@/components/al-bayan/world/AlBayanWorld";
@@ -23,6 +23,7 @@ import { triggerShake } from "@/lib/camera-shake";
 
 // Sensibilité de rotation au glissé tactile (pouce droit)
 const LOOK_SENS = 0.004;
+const PITCH_SENS = 0.0035;
 const LOOK_DRAG_THRESHOLD = 8;
 
 const ZONE_CENTERS = [
@@ -214,6 +215,7 @@ export default function AlBayanPage() {
 
   const joystickRef = useRef({ x: 0, y: 0 });
   const yawRef = useRef(ISO_YAW_DEFAULT);
+  const pitchRef = useRef(ISO_PITCH_DEFAULT);
   const avatarRef = useRef<THREE.Group>(null);
   const sunRef = useRef<THREE.Mesh>(null);
   const vestibuleSunRef = useRef<THREE.Mesh>(null);
@@ -256,6 +258,8 @@ export default function AlBayanPage() {
       pressed.add(k);
       if (k === "q") yawRef.current += 0.08;
       if (k === "e") yawRef.current -= 0.08;
+      if (k === "r") pitchRef.current = Math.min(ISO_PITCH_MAX, pitchRef.current + 0.05);
+      if (k === "f") pitchRef.current = Math.max(ISO_PITCH_MIN, pitchRef.current - 0.05);
       update();
     };
     const onKeyUp = (e: KeyboardEvent) => {
@@ -328,8 +332,13 @@ export default function AlBayanPage() {
       }}
     >
       <Canvas
-        shadows="percentage"
-        dpr={[1, 1.5]}
+        shadows="basic"
+        // Plafonné à 1 (au lieu de 1.5) : sur un écran mobile à forte
+        // densité de pixels, ce plafond seul quasi-double le nombre de
+        // fragments à ombrer sur toute la chaîne (post-processing compris)
+        // — un des principaux facteurs du ralentissement signalé après le
+        // passage à l'échelle "Grand Riad".
+        dpr={[1, 1]}
         gl={{ antialias: true, powerPreference: "high-performance" }}
         // Angle réduit (50° -> 28°) : un FOV large laisse le bord du champ de
         // vision dépasser largement le mur testé par les rayons de collision
@@ -345,6 +354,7 @@ export default function AlBayanPage() {
             avatarRef={avatarRef}
             joystickRef={joystickRef}
             yawRef={yawRef}
+            pitchRef={pitchRef}
             astrolabeSolved={astrolabeSolved}
             onSolveAstrolabe={solveAstrolabe}
             majlisUnlocked={majlisUnlocked}
@@ -446,8 +456,16 @@ export default function AlBayanPage() {
                     if (Math.abs(t.clientX - sx) > LOOK_DRAG_THRESHOLD || Math.abs(t.clientY - sy) > LOOK_DRAG_THRESHOLD) {
                       el.dataset.moved = "1";
                     }
+                    const ly = Number(el.dataset.ly ?? t.clientY);
                     if (el.dataset.moved === "1") {
                       yawRef.current -= (t.clientX - lx) * LOOK_SENS;
+                      // Glissé vertical -> incline la caméra (haut du pouce =
+                      // vue plus plongeante, bas du pouce = vue plus à
+                      // l'horizontale) — cf. iso-camera.ts pour la plage.
+                      pitchRef.current = Math.min(
+                        ISO_PITCH_MAX,
+                        Math.max(ISO_PITCH_MIN, pitchRef.current - (t.clientY - ly) * PITCH_SENS)
+                      );
                     }
                     el.dataset.lx = String(t.clientX);
                     el.dataset.ly = String(t.clientY);
@@ -479,7 +497,7 @@ export default function AlBayanPage() {
                 pointerEvents: "none",
               }}
             >
-              ⌨️ WASD : marcher · Q/E : orienter
+              ⌨️ WASD : marcher · Q/E : orienter · R/F : incliner
             </div>
           )}
 

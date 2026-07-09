@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import OctagonalColumn from "../shared/OctagonalColumn";
+import { WallSconce, MonumentalVase, CorridorRug } from "../shared/CorridorDecor";
 
 // Corridor diagonal en espace MONDE reliant l'ouverture du mur "nord" du
 // Scriptorium (monde X≈-44, Z≈-19.4, y=-1.1) à l'ouverture taillée dans
@@ -44,7 +45,7 @@ export default function CorridorScriptoriumSanctuaire({ avatarRef }: { avatarRef
   const stepRise = RISE / stepCount;
 
   const columnDs = useMemo(() => {
-    const count = Math.max(3, Math.round(flatLength / 5.5));
+    const count = Math.max(2, Math.round(flatLength / 11));
     return Array.from({ length: count }, (_, i) => ((i + 0.5) / count) * flatLength);
   }, [flatLength]);
 
@@ -90,10 +91,19 @@ export default function CorridorScriptoriumSanctuaire({ avatarRef }: { avatarRef
 
       {columnDs.map((d, i) => (
         <group key={`col-${i}`}>
-          <OctagonalColumn position={[d, 0, -WIDTH / 2 + 0.6]} height={HALL_HEIGHT - 0.4} />
-          <OctagonalColumn position={[d, 0, WIDTH / 2 - 0.6]} height={HALL_HEIGHT - 0.4} />
+          <OctagonalColumn position={[d, 0, -WIDTH / 2 + 0.6]} height={HALL_HEIGHT - 0.4} shadows={false} />
+          <OctagonalColumn position={[d, 0, WIDTH / 2 - 0.6]} height={HALL_HEIGHT - 0.4} shadows={false} />
         </group>
       ))}
+      {columnDs.map((d, i) => (
+        <group key={`sconce-${i}`}>
+          <WallSconce position={[d, HALL_HEIGHT * 0.5, -WIDTH / 2 + 0.15]} rotationY={0} />
+          <WallSconce position={[d, HALL_HEIGHT * 0.5, WIDTH / 2 - 0.15]} rotationY={Math.PI} />
+        </group>
+      ))}
+      <MonumentalVase position={[1.5, 0, -WIDTH / 2 + 0.9]} scale={1.2} />
+      <MonumentalVase position={[flatLength - 1.5, 0, WIDTH / 2 - 0.9]} scale={1.2} />
+      <CorridorRug position={[flatLength * 0.4, 0.015, 0]} width={6} length={WIDTH * 0.55} />
 
       {/* Voûte en berceau — demi-cylindre couché, axe le long du corridor.
           `noCollide` : la rotation composée (cylindre + groupe incliné de

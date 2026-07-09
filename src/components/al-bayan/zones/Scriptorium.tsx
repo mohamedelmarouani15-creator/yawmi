@@ -284,6 +284,7 @@ export default function Scriptorium({
 
   return (
     <group>
+      <ambientLight color="#4A3520" intensity={0.35} />
       <pointLight color="#E8A33D" intensity={5.5} distance={24} decay={2} position={[-9, 4.5, -6]} />
       <pointLight color="#E8A33D" intensity={5.5} distance={24} decay={2} position={[9, 4.5, -6]} />
       {/* Lumière chaude basse, au niveau des tables de copiste */}

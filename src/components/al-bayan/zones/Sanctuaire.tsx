@@ -205,6 +205,7 @@ export default function Sanctuaire({ avatarRef, lensCollected, lensPlaced, onPla
 
   return (
     <group>
+      <ambientLight color="#2A3A55" intensity={0.35} />
       {/* Puits céleste bleu argenté à travers la coupole */}
       <spotLight
         position={[0, H + 3, 0]}

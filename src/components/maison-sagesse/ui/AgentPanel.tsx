@@ -4,6 +4,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMaisonSagesseStore } from "@/lib/maison-sagesse/game-store";
 import type { AgentMessage } from "@/lib/maison-sagesse/types";
+import { supabase } from "@/lib/supabase";
 
 const AGENT_META: Record<
   "directeur" | "manager" | "adjoint",
@@ -121,9 +122,21 @@ export default function AgentPanel() {
     const context = `Phase actuelle : ${phase}. Temps restant : ${minutesLeft} min. Énigme de la Foi ${enigmaA.solved ? "résolue" : "non résolue"}, Énigme de la Science ${enigmaB.solved ? "résolue" : "non résolue"}, Énigme de la Sagesse ${enigmaC.solved ? "résolue" : "non résolue"}.`;
 
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        addAgentMessage({
+          agentId: "adjoint",
+          text: "Connecte-toi pour demander de l'aide aux agents.",
+          triggerContext: "user_help_request_error",
+        });
+        return;
+      }
       const res = await fetch("/api/maison-sagesse/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+        },
         body: JSON.stringify({ agentId, message: question, context }),
       });
       const data = await res.json();
@@ -154,7 +167,7 @@ export default function AgentPanel() {
   };
 
   // Only render after game starts
-  if (phase === "idle" || phase === "intro") return null;
+  if (phase === "idle") return null;
 
   return (
     <div

@@ -5,6 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { projectJoystickToWorld } from "@/lib/al-bayan/iso-camera";
 import { isDescendantOf } from "@/lib/al-bayan/scene-utils";
+import { playFootstep as playFootstepAlBayan } from "@/lib/al-bayan/audio-engine";
 
 const COLLIDER_MIN_HEIGHT = 0.4;
 const AVATAR_RADIUS = 0.28;
@@ -15,9 +16,18 @@ interface WePlayAvatarProps {
   yawRef: React.MutableRefObject<number>;
   speed?: number;
   bounds: { x: number; z: number };
+  /** Bleu islamique par défaut (al-bayan) — passer une autre couleur pour
+   * réutiliser cet avatar dans un autre jeu (ex: doré pour maison-sagesse). */
+  glowColor?: string;
+  /** Callback de bruit de pas — par défaut celui d'al-bayan ; passer celui
+   * d'un autre moteur audio pour un jeu qui réutilise cet avatar. */
+  onFootstep?: () => void;
+  /** Incrémenter cette valeur force un nouveau balayage de la scène pour
+   * reconstruire la liste des colliders — nécessaire pour les portes/passages
+   * verrouillés dont le `userData.noCollide` change dynamiquement après
+   * résolution d'une énigme (la liste est normalement figée au montage). */
+  collidersVersion?: number;
 }
-
-const GLOW_COLOR = "#3D7FE8"; // bleu islamique — silhouette sans visage
 
 const BOB_AMPLITUDE = 0.038;
 const BOB_BASE_FREQ = 5.5;
@@ -26,16 +36,6 @@ const TILT_MAX = (7 * Math.PI) / 180; // le thobe ondule sobrement
 const SLEEVE_SWING_MAX = (18 * Math.PI) / 180; // manches amples, swing réduit
 const RISE_RATE = 9;
 const FALL_RATE = 16;
-
-// Halo de glow — coque BackSide additive pour simuler un bloom sans post-processing
-const haloMat = new THREE.MeshBasicMaterial({
-  color: GLOW_COLOR,
-  transparent: true,
-  opacity: 0.18,
-  side: THREE.BackSide,
-  blending: THREE.AdditiveBlending,
-  depthWrite: false,
-});
 
 /**
  * Avatar islamique en thobe (djellaba) bleu lumineux, sans visage.
@@ -51,7 +51,7 @@ const haloMat = new THREE.MeshBasicMaterial({
  * par rapport à la version stick-figure.
  */
 const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
-  ({ joystickRef, yawRef, speed = 4, bounds }, ref) => {
+  ({ joystickRef, yawRef, speed = 4, bounds, glowColor = "#3D7FE8", onFootstep = playFootstepAlBayan, collidersVersion = 0 }, ref) => {
     const groupRef = useRef<THREE.Group>(null);
     const bodyRef = useRef<THREE.Group>(null);
     const leftSleeveRef = useRef<THREE.Group>(null);
@@ -77,7 +77,7 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
         list.push(box);
       });
       colliders.current = list;
-    }, [scene]);
+    }, [scene, collidersVersion]);
 
     function collidesAt(x: number, z: number): boolean {
       const list = colliders.current;
@@ -94,14 +94,28 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
     const bodyMat = useMemo(
       () =>
         new THREE.MeshStandardMaterial({
-          color: GLOW_COLOR,
-          emissive: GLOW_COLOR,
+          color: glowColor,
+          emissive: glowColor,
           emissiveIntensity: 1.6,
           roughness: 0.22,
           metalness: 0.15,
           toneMapped: false,
         }),
-      []
+      [glowColor]
+    );
+
+    // Halo de glow — coque BackSide additive pour simuler un bloom sans post-processing
+    const haloMat = useMemo(
+      () =>
+        new THREE.MeshBasicMaterial({
+          color: glowColor,
+          transparent: true,
+          opacity: 0.18,
+          side: THREE.BackSide,
+          blending: THREE.AdditiveBlending,
+          depthWrite: false,
+        }),
+      [glowColor]
     );
 
     // ── Géométries ──────────────────────────────────────────────────────────
@@ -166,6 +180,7 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
         bobPhase.current += dt * (BOB_BASE_FREQ + BOB_FREQ_RANGE * m);
         body.position.y = Math.sin(bobPhase.current) * BOB_AMPLITUDE * m;
         body.rotation.x = TILT_MAX * m;
+        if (m > 0.5) onFootstep();
 
         // Manches en opposition de phase (comme les bras humains à la marche)
         const swing = Math.sin(bobPhase.current) * SLEEVE_SWING_MAX * m;
@@ -221,7 +236,7 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
 
         {/* Lueur de contact au sol — reste au ras du plancher, hors du groupe
             qui bascule, pour ne pas "voler" avec le bob de la robe. */}
-        <pointLight position={[0, 0.1, 0]} intensity={0.85} color={GLOW_COLOR} distance={2.5} />
+        <pointLight position={[0, 0.1, 0]} intensity={0.85} color={glowColor} distance={2.5} />
       </group>
     );
   }

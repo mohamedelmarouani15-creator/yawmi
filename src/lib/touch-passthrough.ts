@@ -4,7 +4,7 @@
  * typiquement le canvas r3f, pour qu'un portail/porte 3D ou un bouton UI
  * réagisse normalement au tap.
  *
- * Deux pièges, vérifiés en runtime :
+ * Trois pièges, vérifiés en runtime :
  *
  * 1. r3f n'appelle le handler `onClick` d'un mesh que si ce mesh figure
  *    dans son `initialHits` interne, peuplé uniquement par un vrai
@@ -18,13 +18,25 @@
  *    aussi en pointer-events:auto, reste sous le doigt. On masque donc
  *    en boucle tout ce qui n'est pas le canvas, jusqu'à l'atteindre (ou
  *    abandonner après quelques tentatives), puis on restaure tout.
+ *
+ * 3. Un bouton HTML réel (ex: les boutons de proximité de la Maison de la
+ *    Sagesse, rendus via `<Html>`) peut se trouver sous le doigt AVANT le
+ *    canvas. Sans arrêt dédié, la boucle le traiterait comme "pas encore
+ *    le canvas", le masquerait aussi, et continuerait de descendre — le tap
+ *    synthétique finirait sur le canvas (où plus rien n'écoute pour ce
+ *    bouton) au lieu de déclencher le bouton lui-même. On s'arrête donc
+ *    également sur tout élément nativement interactif.
  */
+function isNativelyInteractive(el: Element): boolean {
+  return el.closest("button, a, input, textarea, select, [role='button']") !== null;
+}
+
 export function dispatchPassthroughTap(x: number, y: number) {
   const hidden: Array<[HTMLElement, string]> = [];
   let target: Element | null = document.elementFromPoint(x, y);
 
   let attempts = 0;
-  while (target && target.tagName !== "CANVAS" && attempts < 8) {
+  while (target && target.tagName !== "CANVAS" && !isNativelyInteractive(target) && attempts < 8) {
     const el = target as HTMLElement;
     hidden.push([el, el.style.pointerEvents]);
     el.style.pointerEvents = "none";

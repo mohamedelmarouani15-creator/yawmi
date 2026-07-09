@@ -7,109 +7,59 @@ import * as THREE from "three";
 import CandleLight from "../shared/CandleLight";
 import AmbientParticles from "../shared/AmbientParticles";
 import IslamicArch from "../shared/IslamicArch";
-import type { GamePhase } from "@/lib/maison-sagesse/types";
+import LightShaftSun from "../../al-bayan/world/LightShaftSun";
+import EmberParticles from "../../al-bayan/shared/EmberParticles";
+import ZoneWall from "../../al-bayan/shared/ZoneWall";
+import { HALL, CORRIDOR_HALF_WIDTH, wallGapSegment } from "@/lib/maison-sagesse/zone-layout";
 
-// Room dimensions
-const W = 20;  // width
-const H = 8;   // height
-const D = 16;  // depth
+const { W, H, D } = HALL;
+const GAP = CORRIDOR_HALF_WIDTH;
+const WOOD_TRIM = "#8B7355";
 
-interface DoorwayPortalProps {
-  position: [number, number, number];
-  glowColor: string;
-  arabicLabel: string;
-  frenchLabel: string;
-  targetPhase: GamePhase;
-  onPhaseChange: (phase: GamePhase) => void;
-}
-
-function DoorwayPortal({
+/** Repère lumineux d'entrée de zone — purement décoratif (aucun onClick,
+ * aucune collision) : la traversée se fait en marchant à travers
+ * l'ouverture du mur, pas par un clic sur un portail. Remplace
+ * l'ancien DoorwayPortal cliquable. */
+function ZoneThreshold({
   position,
+  rotation,
   glowColor,
   arabicLabel,
   frenchLabel,
-  targetPhase,
-  onPhaseChange,
-}: DoorwayPortalProps) {
-  const matRef = useRef<THREE.MeshStandardMaterial>(null);
+}: {
+  position: [number, number, number];
+  rotation?: [number, number, number];
+  glowColor: string;
+  arabicLabel: string;
+  frenchLabel: string;
+}) {
   const lightRef = useRef<THREE.PointLight>(null);
-  const [hovered, setHovered] = useState(false);
+  const matRef = useRef<THREE.MeshStandardMaterial>(null);
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
-    if (matRef.current) {
-      matRef.current.emissiveIntensity = 0.5 + Math.sin(t * 1.8) * 0.3 + (hovered ? 0.4 : 0);
-    }
-    if (lightRef.current) {
-      lightRef.current.intensity = 1.2 + Math.sin(t * 2.1) * 0.4 + (hovered ? 0.8 : 0);
-    }
+    const pulse = 0.6 + Math.sin(t * 1.6) * 0.3;
+    if (lightRef.current) lightRef.current.intensity = pulse;
+    if (matRef.current) matRef.current.emissiveIntensity = pulse * 0.5;
   });
 
-  const frameGeo = useMemo(() => new THREE.BoxGeometry(3.3, 5.3, 0.15), []);
-  const frameMat = useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
-        color: "#8B7355",
-        roughness: 0.85,
-        metalness: 0.1,
-      }),
-    []
-  );
-
-  const portalGeo = useMemo(() => new THREE.PlaneGeometry(3, 5), []);
-
   return (
-    <group position={position}>
-      {/* Stone frame */}
-      <mesh geometry={frameGeo} material={frameMat} castShadow receiveShadow />
-
-      {/* Glowing portal surface */}
-      <mesh
-        position={[0, 0, 0.1]}
-        geometry={portalGeo}
-        onPointerOver={() => {
-          setHovered(true);
-          document.body.style.cursor = "pointer";
-        }}
-        onPointerOut={() => {
-          setHovered(false);
-          document.body.style.cursor = "default";
-        }}
-        onClick={() => onPhaseChange(targetPhase)}
-      >
-        <meshStandardMaterial
-          ref={matRef}
-          color={glowColor}
-          emissive={glowColor}
-          emissiveIntensity={0.5}
-          transparent
-          opacity={0.72}
-          side={THREE.DoubleSide}
-        />
+    <group position={position} rotation={rotation}>
+      {/* Arche décorative encadrant le seuil — ne bloque jamais le passage */}
+      <mesh position={[0, 2.9, 0]} userData={{ noCollide: true }}>
+        <torusGeometry args={[GAP + 0.3, 0.1, 8, 20, Math.PI]} />
+        <meshStandardMaterial ref={matRef} color={glowColor} emissive={glowColor} emissiveIntensity={0.5} roughness={0.4} metalness={0.5} />
       </mesh>
-
-      {/* Portal glow light */}
-      <pointLight
-        ref={lightRef}
-        color={glowColor}
-        intensity={1.2}
-        distance={6}
-        decay={2}
-        position={[0, 0, 1]}
-      />
-
-      {/* Arabic label */}
-      <Html position={[0, 3.2, 0.2]} center>
-        <span style={{ color: "#F8F4EC", fontSize: "16px", fontFamily: "serif", whiteSpace: "nowrap", textShadow: "0 0 8px rgba(248,244,236,0.8)", pointerEvents: "none", direction: "rtl" }}>
-          {arabicLabel}
-        </span>
-      </Html>
-
-      {/* French label */}
-      <Html position={[0, 2.7, 0.2]} center>
-        <span style={{ color: "#D4AF37", fontSize: "11px", fontFamily: "serif", whiteSpace: "nowrap", textShadow: "0 0 8px rgba(212,175,55,0.8)", pointerEvents: "none" }}>
-          {frenchLabel}
-        </span>
+      <pointLight ref={lightRef} color={glowColor} intensity={0.6} distance={5} decay={2} position={[0, 1.5, 0]} />
+      <Html position={[0, 3.4, 0]} center>
+        <div style={{ textAlign: "center", pointerEvents: "none" }}>
+          <div style={{ color: "#F8F4EC", fontSize: 14, fontFamily: "serif", whiteSpace: "nowrap", textShadow: "0 0 8px rgba(248,244,236,0.8)", direction: "rtl" }}>
+            {arabicLabel}
+          </div>
+          <div style={{ color: glowColor, fontSize: 10, fontFamily: "serif", whiteSpace: "nowrap", textShadow: `0 0 8px ${glowColor}` }}>
+            {frenchLabel}
+          </div>
+        </div>
       </Html>
     </group>
   );
@@ -204,7 +154,6 @@ function BookShelf({ position, rotation }: { position: [number, number, number];
 
 // Geometric floor tile pattern (Islamic 8-pointed star repeat via geometry)
 function IslamicFloor() {
-  // Main dark marble floor
   const floorMat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
@@ -216,7 +165,6 @@ function IslamicFloor() {
     []
   );
 
-  // Gold inlay star tiles
   const starMat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
@@ -229,7 +177,6 @@ function IslamicFloor() {
     []
   );
 
-  // Build 8-pointed star inlays at regular grid positions
   const starPositions = useMemo(() => {
     const positions: [number, number][] = [];
     for (let ix = -4; ix <= 4; ix++) {
@@ -240,7 +187,6 @@ function IslamicFloor() {
     return positions;
   }, []);
 
-  // 8-pointed star shape (two overlapping squares rotated 45°)
   const starGeo = useMemo(() => {
     const shape = new THREE.Shape();
     const r = 0.5;
@@ -258,13 +204,11 @@ function IslamicFloor() {
 
   return (
     <group>
-      {/* Main floor slab */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]} receiveShadow>
         <planeGeometry args={[W, D]} />
         <primitive object={floorMat} attach="material" />
       </mesh>
 
-      {/* Gold star inlays — slightly raised */}
       {starPositions.map(([x, z], i) => (
         <mesh
           key={i}
@@ -302,19 +246,16 @@ function VaultedCeiling() {
     []
   );
 
-  // Dome segment (ellipsoid cap)
   const domeSphere = useMemo(() => {
     const geo = new THREE.SphereGeometry(W * 0.55, 24, 12, 0, Math.PI * 2, 0, Math.PI * 0.45);
     return geo;
   }, []);
 
-  // Shared by all 6 ceiling medallions below — one geometry, six meshes.
   const medallionGeo = useMemo(() => new THREE.TorusGeometry(0.6, 0.08, 4, 8), []);
 
-  // Arabesque band boxes around the ceiling perimeter
   const bandPositions = useMemo(() => {
     const count = 20;
-    const positions: [number, number, number, number][] = []; // x, z, ry, isLong
+    const positions: [number, number, number, number][] = [];
     for (let i = 0; i < count; i++) {
       const t = (i / count) * Math.PI * 2;
       const rx = Math.cos(t) * (W / 2 - 0.1);
@@ -326,21 +267,19 @@ function VaultedCeiling() {
 
   return (
     <group>
-      {/* Flat main ceiling */}
-      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, H, 0]} receiveShadow>
+      <mesh rotation={[Math.PI / 2, 0, 0]} position={[0, H, 0]} receiveShadow userData={{ noCollide: true }}>
         <planeGeometry args={[W, D]} />
         <primitive object={ceilingMat} attach="material" />
       </mesh>
 
-      {/* Dome above center */}
       <mesh
         geometry={domeSphere}
         material={ceilingMat}
         position={[0, H, 0]}
         rotation={[Math.PI, 0, 0]}
+        userData={{ noCollide: true }}
       />
 
-      {/* Arabesque relief medallions on ceiling */}
       {[...Array(6)].map((_, i) => {
         const angle = (i / 6) * Math.PI * 2;
         const r = 5;
@@ -351,13 +290,13 @@ function VaultedCeiling() {
             material={arabesqueMat}
             position={[Math.cos(angle) * r, H - 0.05, Math.sin(angle) * r]}
             rotation={[Math.PI / 2, 0, angle]}
+            userData={{ noCollide: true }}
           />
         );
       })}
 
-      {/* Ceiling band (frieze) */}
       {bandPositions.map(([x, z, ry], i) => (
-        <mesh key={i} material={arabesqueMat} position={[x, H - 0.08, z]} rotation={[0, ry, 0]} castShadow>
+        <mesh key={i} material={arabesqueMat} position={[x, H - 0.08, z]} rotation={[0, ry, 0]} castShadow userData={{ noCollide: true }}>
           <boxGeometry args={[1.1, 0.12, 0.08]} />
         </mesh>
       ))}
@@ -366,11 +305,17 @@ function VaultedCeiling() {
 }
 
 interface MainHallProps {
-  onPhaseChange: (phase: GamePhase) => void;
+  sunRef?: React.Ref<THREE.Mesh>;
+  avatarRef?: React.RefObject<THREE.Group | null>;
 }
 
-export default function MainHall({ onPhaseChange }: MainHallProps) {
-  // Wall material — warm stone
+/**
+ * Zone hub — Le Grand Hall. Trois ouvertures taillées dans les murs
+ * (ouest→Foi, nord→Science, est→Sagesse) qu'on traverse en marchant, plus
+ * de portails cliquables. Chaque ouverture est signalée par un
+ * `ZoneThreshold` purement décoratif.
+ */
+export default function MainHall({ sunRef, avatarRef }: MainHallProps) {
   const wallMat = useMemo(
     () =>
       new THREE.MeshStandardMaterial({
@@ -381,12 +326,14 @@ export default function MainHall({ onPhaseChange }: MainHallProps) {
     []
   );
 
+  // Segments des murs percés (voir zone-layout.ts pour la formule partagée).
+  const { segLen: backSegW, segOffset: backSegX } = wallGapSegment(W, GAP);
+  const { segLen: sideSegD, segOffset: sideSegZ } = wallGapSegment(D, GAP);
+
   return (
     <group>
-      {/* ── Ambient lighting ── */}
       <ambientLight color="#1a0a00" intensity={0.3} />
 
-      {/* Central gold light from dome */}
       <pointLight
         color="#FFD700"
         intensity={2}
@@ -400,41 +347,36 @@ export default function MainHall({ onPhaseChange }: MainHallProps) {
         shadow-camera-far={20}
       />
 
-      {/* ── Floor ── */}
       <IslamicFloor />
 
-      {/* ── Walls ── */}
-      {/* Back wall */}
-      <mesh position={[0, H / 2, -D / 2]} receiveShadow castShadow>
-        <boxGeometry args={[W, H, 0.3]} />
-        <primitive object={wallMat} attach="material" />
-      </mesh>
-      {/* Front wall */}
+      {/* Mur arrière (nord) — percé pour le corridor vers Science */}
+      <ZoneWall position={[-backSegX, H / 2, -D / 2]} size={[backSegW, H, 0.3]} color="#2C1810" roughness={0.92} metalness={0.02} />
+      <ZoneWall position={[backSegX, H / 2, -D / 2]} size={[backSegW, H, 0.3]} color="#2C1810" roughness={0.92} metalness={0.02} />
+      <ZoneWall position={[0, H - 0.6, -D / 2]} size={[GAP * 2, 1.2, 0.34]} color={WOOD_TRIM} roughness={0.55} metalness={0.1} />
+
+      {/* Mur avant (sud) — plein, aucune zone voisine */}
       <mesh position={[0, H / 2, D / 2]} receiveShadow castShadow>
         <boxGeometry args={[W, H, 0.3]} />
         <primitive object={wallMat} attach="material" />
       </mesh>
-      {/* Left wall */}
-      <mesh position={[-W / 2, H / 2, 0]} receiveShadow castShadow>
-        <boxGeometry args={[0.3, H, D]} />
-        <primitive object={wallMat} attach="material" />
-      </mesh>
-      {/* Right wall */}
-      <mesh position={[W / 2, H / 2, 0]} receiveShadow castShadow>
-        <boxGeometry args={[0.3, H, D]} />
-        <primitive object={wallMat} attach="material" />
-      </mesh>
 
-      {/* ── Ceiling ── */}
+      {/* Mur ouest — percé pour le corridor vers la Foi */}
+      <ZoneWall position={[-W / 2, H / 2, -sideSegZ]} size={[0.3, H, sideSegD]} color="#2C1810" roughness={0.92} metalness={0.02} />
+      <ZoneWall position={[-W / 2, H / 2, sideSegZ]} size={[0.3, H, sideSegD]} color="#2C1810" roughness={0.92} metalness={0.02} />
+      <ZoneWall position={[-W / 2, H - 0.6, 0]} size={[0.34, 1.2, GAP * 2]} color={WOOD_TRIM} roughness={0.55} metalness={0.1} />
+
+      {/* Mur est — percé pour le corridor vers la Sagesse */}
+      <ZoneWall position={[W / 2, H / 2, -sideSegZ]} size={[0.3, H, sideSegD]} color="#2C1810" roughness={0.92} metalness={0.02} />
+      <ZoneWall position={[W / 2, H / 2, sideSegZ]} size={[0.3, H, sideSegD]} color="#2C1810" roughness={0.92} metalness={0.02} />
+      <ZoneWall position={[W / 2, H - 0.6, 0]} size={[0.34, 1.2, GAP * 2]} color={WOOD_TRIM} roughness={0.55} metalness={0.1} />
+
       <VaultedCeiling />
 
-      {/* ── Columns — 4 octagonal ── */}
       <OctagonalColumn position={[-5, 0, -4]} />
       <OctagonalColumn position={[5, 0, -4]} />
       <OctagonalColumn position={[-5, 0, 4]} />
       <OctagonalColumn position={[5, 0, 4]} />
 
-      {/* ── Islamic arches between columns ── */}
       <group position={[0, 0, -4]}>
         <IslamicArch width={4} height={5.5} depth={0.3} />
       </group>
@@ -442,51 +384,28 @@ export default function MainHall({ onPhaseChange }: MainHallProps) {
         <IslamicArch width={4} height={5.5} depth={0.3} />
       </group>
 
-      {/* ── Candle lights — on columns and shelves ── */}
-      <CandleLight position={[-5, 0.5, -4]} intensity={1.2} />
-      <CandleLight position={[5, 0.5, -4]} intensity={1.2} />
-      <CandleLight position={[-5, 0.5, 4]} intensity={1.2} />
-      <CandleLight position={[5, 0.5, 4]} intensity={1.2} />
-      <CandleLight position={[-8, 1.2, -6]} intensity={0.9} />
-      <CandleLight position={[8, 1.2, -6]} intensity={0.9} />
+      <CandleLight position={[-5, 0.5, -4]} intensity={1.2} avatarRef={avatarRef} />
+      <CandleLight position={[5, 0.5, -4]} intensity={1.2} avatarRef={avatarRef} />
+      <CandleLight position={[-5, 0.5, 4]} intensity={1.2} avatarRef={avatarRef} />
+      <CandleLight position={[5, 0.5, 4]} intensity={1.2} avatarRef={avatarRef} />
+      <CandleLight position={[-8, 1.2, -6]} intensity={0.9} avatarRef={avatarRef} />
+      <CandleLight position={[8, 1.2, -6]} intensity={0.9} avatarRef={avatarRef} />
+      <EmberParticles position={[-5, 0.65, -4]} count={9} color="#FFC24D" />
+      <EmberParticles position={[5, 0.65, -4]} count={9} color="#FFC24D" />
 
-      {/* ── Bookshelves on side walls ── */}
       <BookShelf position={[-9.5, 1.5, -5]} rotation={[0, Math.PI / 2, 0]} />
       <BookShelf position={[-9.5, 1.5, 1]} rotation={[0, Math.PI / 2, 0]} />
       <BookShelf position={[9.5, 1.5, -5]} rotation={[0, -Math.PI / 2, 0]} />
       <BookShelf position={[9.5, 1.5, 1]} rotation={[0, -Math.PI / 2, 0]} />
 
-      {/* ── Three doorways on the back wall ── */}
-      {/* Faith — left */}
-      <DoorwayPortal
-        position={[-6, 2.5, -D / 2 + 0.2]}
-        glowColor="#055C3F"
-        arabicLabel="الإيمان"
-        frenchLabel="La Voie de la Foi"
-        targetPhase="quest-faith"
-        onPhaseChange={onPhaseChange}
-      />
-      {/* Science — center */}
-      <DoorwayPortal
-        position={[0, 2.5, -D / 2 + 0.2]}
-        glowColor="#1B3A6B"
-        arabicLabel="العلم"
-        frenchLabel="La Voie de la Science"
-        targetPhase="quest-science"
-        onPhaseChange={onPhaseChange}
-      />
-      {/* Wisdom — right */}
-      <DoorwayPortal
-        position={[6, 2.5, -D / 2 + 0.2]}
-        glowColor="#D4AF37"
-        arabicLabel="الحكمة"
-        frenchLabel="La Voie de la Sagesse"
-        targetPhase="quest-wisdom"
-        onPhaseChange={onPhaseChange}
-      />
+      {/* Seuils décoratifs — plus aucune interaction, on traverse en marchant */}
+      <ZoneThreshold position={[0, 0, -D / 2 + 0.2]} glowColor="#1B3A6B" arabicLabel="العلم" frenchLabel="La Voie de la Science" />
+      <ZoneThreshold position={[-W / 2 + 0.2, 0, 0]} rotation={[0, Math.PI / 2, 0]} glowColor="#055C3F" arabicLabel="الإيمان" frenchLabel="La Voie de la Foi" />
+      <ZoneThreshold position={[W / 2 - 0.2, 0, 0]} rotation={[0, -Math.PI / 2, 0]} glowColor="#D4AF37" arabicLabel="الحكمة" frenchLabel="La Voie de la Sagesse" />
 
-      {/* ── Floating dust particles ── */}
-      <AmbientParticles />
+      <AmbientParticles avatarRef={avatarRef} />
+
+      <LightShaftSun ref={sunRef} position={[0, H - 0.4, 0]} color="#FFD87A" size={2.6} />
     </group>
   );
 }

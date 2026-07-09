@@ -76,7 +76,7 @@ The `(app)` route group wraps all authenticated pages. Its `layout.tsx` handles 
 
 ### AI companion (groq.ts)
 
-`src/lib/ai/groq.ts` exports `groqChat` and `groqSingle` using Groq (`llama-3.3-70b-versatile`). Rate limit: 20 messages/day/user, enforced in `src/app/api/companion/chat/route.ts`.
+`src/lib/ai/groq.ts` exports `groqChat` and `groqSingle` (prompt système fixe du companion) using Groq (`llama-3.3-70b-versatile`). Rate limit: 20 messages/day/user, enforced server-side in `src/app/api/companion/chat/route.ts`. It also exports `getGroqClient()`, a shared raw Groq client (API key + error handling only) used by the other Groq-backed routes that need their own system prompt/model params: `api/arabe/chat`, `api/quran/coach`, `api/quran/recite(-chunk)`, `api/maison-sagesse/chat`.
 
 ### Game engine
 
@@ -88,8 +88,8 @@ The `(app)` route group wraps all authenticated pages. Its `layout.tsx` handles 
 
 ### Design system
 
-- Colors: deep green `#055C3F`, gold `#D4AF37`, warm white `#F8F4EC`, dark `#0A0F0D`
-- Fonts: DM Sans (`--font-dm-sans`) for UI, Lateef for Arabic text
+- Colors: deep green `#055C3F`, gold `#D4AF37`, warm white `#F8F4EC`, dark `#061A12`
+- Fonts: Bricolage Grotesque (`--font-bricolage`) for headings, DM Sans (`--font-dm-sans`) for UI, Amiri (`--font-amiri`) for Arabic text
 - Animations: Framer Motion; shared variants in `src/lib/motion.ts`
 - Sacred sections (prayers, Quran, dhikr) stay visually sober — no confetti, no gamification UI
 - Game sections (Oasis, quiz, escape) can use celebratory effects
@@ -102,6 +102,9 @@ NEXT_PUBLIC_SUPABASE_URL
 NEXT_PUBLIC_SUPABASE_ANON_KEY
 SUPABASE_SERVICE_ROLE_KEY
 GROQ_API_KEY
+OPENROUTER_API_KEY             # api/arabe/analyser-ecriture (analyse vision de l'écriture)
+REPLICATE_API_KEY              # api/story/image (illustrations de La Grande Histoire)
+VOICERSS_API_KEY               # api/story/narrate (narration audio des histoires)
 VAPID_SUBJECT                  # must be mailto: format
 NEXT_PUBLIC_VAPID_PUBLIC_KEY
 VAPID_PRIVATE_KEY

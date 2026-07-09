@@ -2,21 +2,30 @@
 
 import { motion } from "framer-motion";
 import { useAlBayanStore } from "@/lib/al-bayan/game-store";
-import type { EnigmaState } from "@/lib/al-bayan/types";
+import { ALL_QUESTS, type QuestMeta } from "@/lib/al-bayan/puzzle-logic";
 
-interface EnigmaCardProps {
-  label: string;
-  sublabel: string;
-  icon: string;
-  accentColor: string;
-  enigma: EnigmaState;
+const QUEST_ICON: Record<QuestMeta["id"], string> = {
+  astrolabe: "🔭",
+  manuscrits: "📜",
+  jarres: "🏺",
+  lentille: "💎",
+};
+
+const QUEST_COLOR: Record<QuestMeta["id"], string> = {
+  astrolabe: "#D4AF37",
+  manuscrits: "#60a5fa",
+  jarres: "#e8a33d",
+  lentille: "#34d399",
+};
+
+interface QuestCardProps {
+  quest: QuestMeta;
+  solved: boolean;
   index: number;
 }
 
-function EnigmaCard({ label, sublabel, icon, accentColor, enigma, index }: EnigmaCardProps) {
-  const solved = enigma.solved;
-  const digit = enigma.digit;
-  const clues = enigma.cluesFound.length;
+function QuestCard({ quest, solved, index }: QuestCardProps) {
+  const accentColor = QUEST_COLOR[quest.id];
 
   return (
     <motion.div
@@ -59,7 +68,7 @@ function EnigmaCard({ label, sublabel, icon, accentColor, enigma, index }: Enigm
 
       {/* En-tête : icône + label */}
       <div className="flex items-start gap-1.5 pl-1.5 mb-1.5">
-        <span style={{ fontSize: 15, flexShrink: 0, lineHeight: 1, marginTop: 1 }}>{icon}</span>
+        <span style={{ fontSize: 15, flexShrink: 0, lineHeight: 1, marginTop: 1 }}>{QUEST_ICON[quest.id]}</span>
         <div className="flex flex-col min-w-0">
           <span
             style={{
@@ -75,7 +84,7 @@ function EnigmaCard({ label, sublabel, icon, accentColor, enigma, index }: Enigm
               textOverflow: "ellipsis",
             }}
           >
-            {label}
+            {quest.title}
           </span>
           <span
             style={{
@@ -88,87 +97,33 @@ function EnigmaCard({ label, sublabel, icon, accentColor, enigma, index }: Enigm
               textOverflow: "ellipsis",
             }}
           >
-            {sublabel}
+            {quest.zone}
           </span>
         </div>
       </div>
 
-      {/* Statut + badge digit */}
+      {/* Statut */}
       <div className="flex items-center justify-between pl-1.5 gap-1">
-        <div className="flex items-center gap-1 min-w-0">
-          {solved ? (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 350, damping: 18, delay: 0.1 }}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 3,
-                background: "rgba(52,211,153,0.14)",
-                border: "1px solid rgba(52,211,153,0.35)",
-                borderRadius: 6,
-                padding: "2px 6px",
-              }}
-            >
-              <span style={{ fontSize: 8, color: "#34d399", fontFamily: "var(--font-dm-sans)", fontWeight: 800 }}>
-                ✓ Résolue
-              </span>
-            </motion.div>
-          ) : (
-            <div style={{ display: "flex", gap: 3 }}>
-              {[0, 1, 2].map((i) => (
-                <div
-                  key={i}
-                  style={{
-                    width: 5,
-                    height: 5,
-                    borderRadius: "50%",
-                    background: i < clues ? accentColor : "rgba(255,255,255,0.12)",
-                    border: `1px solid ${i < clues ? accentColor : "rgba(255,255,255,0.08)"}`,
-                    transition: "all 0.3s",
-                  }}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Digit badge quand résolu */}
-        {solved && digit !== null && (
+        {solved ? (
           <motion.div
-            initial={{ scale: 0, rotate: -120 }}
-            animate={{ scale: 1, rotate: 0 }}
-            transition={{ type: "spring", stiffness: 300, damping: 18, delay: 0.2 }}
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 350, damping: 18, delay: 0.1 }}
             style={{
-              width: 26,
-              height: 26,
-              borderRadius: "50%",
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-              background: `linear-gradient(135deg, #7a5c1a, ${accentColor})`,
-              border: "1.5px solid rgba(212,175,55,0.7)",
-              boxShadow: `0 0 12px ${accentColor}50`,
+              gap: 3,
+              background: "rgba(52,211,153,0.14)",
+              border: "1px solid rgba(52,211,153,0.35)",
+              borderRadius: 6,
+              padding: "2px 6px",
             }}
           >
-            <span
-              style={{
-                fontSize: 13,
-                fontFamily: "var(--font-dm-sans)",
-                fontWeight: 900,
-                color: "#0A0F0D",
-                lineHeight: 1,
-              }}
-            >
-              {digit}
+            <span style={{ fontSize: 8, color: "#34d399", fontFamily: "var(--font-dm-sans)", fontWeight: 800 }}>
+              ✓ Résolue
             </span>
           </motion.div>
-        )}
-
-        {/* Cadenas quand non-résolu */}
-        {!solved && (
+        ) : (
           <div
             style={{
               width: 22,
@@ -191,54 +146,41 @@ function EnigmaCard({ label, sublabel, icon, accentColor, enigma, index }: Enigm
 }
 
 export default function EnigmaStatus() {
-  const enigmaA = useAlBayanStore((s) => s.enigmaA);
-  const enigmaB = useAlBayanStore((s) => s.enigmaB);
-  const enigmaC = useAlBayanStore((s) => s.enigmaC);
+  const astrolabeSolved = useAlBayanStore((s) => s.astrolabeSolved);
+  const manuscriptsSolved = useAlBayanStore((s) => s.manuscriptsSolved);
+  const safeOpen = useAlBayanStore((s) => s.safeOpen);
+  const lensPlaced = useAlBayanStore((s) => s.lensPlaced);
   const phase = useAlBayanStore((s) => s.phase);
 
   if (phase === "idle") return null;
 
-  const allSolved = enigmaA.solved && enigmaB.solved && enigmaC.solved;
+  const solvedMap: Record<QuestMeta["id"], boolean> = {
+    astrolabe: astrolabeSolved,
+    manuscrits: manuscriptsSolved,
+    jarres: safeOpen,
+    lentille: lensPlaced,
+  };
+  const allSolved = Object.values(solvedMap).every(Boolean);
+  const quests = Object.values(ALL_QUESTS);
 
   return (
     <div
       className="absolute bottom-4 left-1/2 -translate-x-1/2 z-30 pointer-events-none"
-      style={{ width: "calc(100% - 32px)", maxWidth: 440 }}
+      style={{ width: "calc(100% - 32px)", maxWidth: 520 }}
     >
       {/* Trait ornemental supérieur */}
       <div className="flex items-center gap-2 mb-2 px-1">
         <div style={{ flex: 1, height: 1, background: "linear-gradient(to right, transparent, rgba(212,175,55,0.25))" }} />
         <span style={{ fontSize: 8, fontFamily: "var(--font-dm-sans)", color: "rgba(212,175,55,0.35)", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase" }}>
-          {allSolved ? "✦ Coffret déverrouillé ✦" : "Quêtes en cours"}
+          {allSolved ? "✦ La sortie est révélée ✦" : "Quêtes en cours"}
         </span>
         <div style={{ flex: 1, height: 1, background: "linear-gradient(to left, transparent, rgba(212,175,55,0.25))" }} />
       </div>
 
       <div className="flex gap-2">
-        <EnigmaCard
-          index={0}
-          label="Témoignage"
-          sublabel="La Balance"
-          icon="⚖️"
-          accentColor="#D4AF37"
-          enigma={enigmaA}
-        />
-        <EnigmaCard
-          index={1}
-          label="Rasm"
-          sublabel="Le Manuscrit"
-          icon="✒️"
-          accentColor="#60a5fa"
-          enigma={enigmaB}
-        />
-        <EnigmaCard
-          index={2}
-          label="Route"
-          sublabel="L&apos;Astrolabe"
-          icon="🗺️"
-          accentColor="#34d399"
-          enigma={enigmaC}
-        />
+        {quests.map((quest, index) => (
+          <QuestCard key={quest.id} quest={quest} solved={solvedMap[quest.id]} index={index} />
+        ))}
       </div>
     </div>
   );

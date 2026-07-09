@@ -5,9 +5,28 @@ interface AudioState {
   ctx: AudioContext;
   ambientGain: GainNode;
   ambientStarted: boolean;
+  reverb: ConvolverNode;
+  reverbSend: GainNode; // niveau envoyé au convolver (dry/wet)
+  dry: GainNode; // sortie directe (non traitée) vers la destination
 }
 
 let state: AudioState | null = null;
+
+/** Impulse response synthétique — decay exponentiel bruité, simule la
+ * réverbération d'une salle de pierre (scriptorium/sanctuaire) sans charger
+ * de fichier audio. */
+function makeImpulseResponse(ctx: AudioContext, durationSec = 2.6, decay = 3.2): AudioBuffer {
+  const rate = ctx.sampleRate;
+  const length = Math.floor(rate * durationSec);
+  const impulse = ctx.createBuffer(2, length, rate);
+  for (let ch = 0; ch < 2; ch++) {
+    const data = impulse.getChannelData(ch);
+    for (let i = 0; i < length; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, decay);
+    }
+  }
+  return impulse;
+}
 
 function getState(): AudioState | null {
   if (typeof window === "undefined") return null;
@@ -16,13 +35,32 @@ function getState(): AudioState | null {
       const ctx = new AudioContext();
       const ambientGain = ctx.createGain();
       ambientGain.gain.value = 0;
-      ambientGain.connect(ctx.destination);
-      state = { ctx, ambientGain, ambientStarted: false };
+
+      const reverb = ctx.createConvolver();
+      reverb.buffer = makeImpulseResponse(ctx);
+      const reverbSend = ctx.createGain();
+      reverbSend.gain.value = 0.32; // niveau de réverbération (salle de pierre)
+      const dry = ctx.createGain();
+      dry.gain.value = 1;
+
+      reverbSend.connect(reverb);
+      reverb.connect(ctx.destination);
+      dry.connect(ctx.destination);
+      ambientGain.connect(dry);
+
+      state = { ctx, ambientGain, ambientStarted: false, reverb, reverbSend, dry };
     } catch {
       return null;
     }
   }
   return state;
+}
+
+/** Connecte une source à la fois en direct et via la réverb — à utiliser
+ * pour tout son ponctuel (pas pour le drone ambiant, déjà routé via dry). */
+function connectWithReverb(s: AudioState, node: AudioNode) {
+  node.connect(s.dry);
+  node.connect(s.reverbSend);
 }
 
 export function resumeAudio() {
@@ -108,7 +146,7 @@ export function playFootstep() {
     gain.gain.value = 0.09;
     src.connect(filter);
     filter.connect(gain);
-    gain.connect(ctx.destination);
+    connectWithReverb(s, gain);
     src.start();
   } catch {}
 }
@@ -127,7 +165,7 @@ export function playInteract() {
     gain.gain.setValueAtTime(0.07, ctx.currentTime);
     gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.16);
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    connectWithReverb(s, gain);
     osc.start();
     osc.stop(ctx.currentTime + 0.18);
   } catch {}
@@ -151,9 +189,86 @@ export function playSolve() {
       gain.gain.linearRampToValueAtTime(0.11, t0 + 0.05);
       gain.gain.exponentialRampToValueAtTime(0.001, t0 + 0.9);
       osc.connect(gain);
-      gain.connect(ctx.destination);
+      connectWithReverb(s, gain);
       osc.start(t0);
       osc.stop(t0 + 0.95);
+    });
+  } catch {}
+}
+
+/** Buzz dissonant court — combinaison du coffret incorrecte. */
+export function playBuzz() {
+  const s = getState();
+  if (!s) return;
+  try {
+    const { ctx } = s;
+    const freqs = [196, 185]; // sol3 + fa#3 — seconde mineure, dissonance volontaire
+    freqs.forEach((freq) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sawtooth";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.05, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+      osc.connect(gain);
+      connectWithReverb(s, gain);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.32);
+    });
+  } catch {}
+}
+
+/** Descente sombre — le temps est écoulé (échec). Trois notes descendantes
+ * en mineur, timbre plus grave/mat que playBuzz (pas une simple erreur, la
+ * partie se termine). */
+export function playFailure() {
+  const s = getState();
+  if (!s) return;
+  try {
+    const { ctx } = s;
+    const freqs = [220, 196, 164.81]; // La3, Sol3, Mi3 — descente mineure
+    const delays = [0, 0.3, 0.6];
+    freqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = freq;
+      const t0 = ctx.currentTime + delays[i];
+      gain.gain.setValueAtTime(0, t0);
+      gain.gain.linearRampToValueAtTime(0.1, t0 + 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 1.1);
+      osc.connect(gain);
+      connectWithReverb(s, gain);
+      osc.start(t0);
+      osc.stop(t0 + 1.15);
+    });
+  } catch {}
+}
+
+/** Fanfare de victoire — arpège ascendant sur deux octaves (Ré majeur),
+ * plus ample et plus long que playSolve (issue triomphale, pas juste une
+ * énigme). */
+export function playVictory() {
+  const s = getState();
+  if (!s) return;
+  try {
+    const { ctx } = s;
+    // Ré, Fa#, La, Ré (octave sup), Fa# (octave sup)
+    const freqs = [293.66, 369.99, 440, 587.33, 739.99];
+    const delays = [0, 0.14, 0.28, 0.42, 0.56];
+    freqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = i < 3 ? "triangle" : "sine";
+      osc.frequency.value = freq;
+      const t0 = ctx.currentTime + delays[i];
+      gain.gain.setValueAtTime(0, t0);
+      gain.gain.linearRampToValueAtTime(0.13, t0 + 0.06);
+      gain.gain.exponentialRampToValueAtTime(0.001, t0 + 1.4);
+      osc.connect(gain);
+      connectWithReverb(s, gain);
+      osc.start(t0);
+      osc.stop(t0 + 1.45);
     });
   } catch {}
 }

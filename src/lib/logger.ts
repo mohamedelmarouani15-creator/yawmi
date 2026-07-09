@@ -1,8 +1,9 @@
 type LogArgs = unknown[];
 
-const isDev = process.env.NODE_ENV !== "production";
-
+// error/warn restent actifs en production : next.config.ts (compiler.removeConsole)
+// exclut déjà error/warn du strip de console.* en prod — c'est la seule
+// observabilité serveur disponible (pas de service de logs externe).
 export const logger = {
-  error: (tag: string, ...args: LogArgs) => { if (isDev) console.error(`[${tag}]`, ...args); },
-  warn:  (tag: string, ...args: LogArgs) => { if (isDev) console.warn(`[${tag}]`, ...args); },
+  error: (tag: string, ...args: LogArgs) => { console.error(`[${tag}]`, ...args); },
+  warn:  (tag: string, ...args: LogArgs) => { console.warn(`[${tag}]`, ...args); },
 };

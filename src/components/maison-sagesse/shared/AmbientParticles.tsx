@@ -5,9 +5,23 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 const PARTICLE_COUNT = 200;
+// Au-delà de cette distance, le joueur est dans une autre zone (murs opaques
+// entre elles) : geler les 200 mises à jour de matrice par frame plutôt que
+// de les faire tourner pour un nuage de particules invisible. Toutes les
+// zones désormais montées en permanence (monde ouvert), ce calcul économise
+// un travail continu qui ne l'était pas dans l'ancienne architecture à
+// salle unique.
+const ACTIVE_RADIUS = 20;
 
-export default function AmbientParticles() {
+interface AmbientParticlesProps {
+  /** Ref MONDE de l'avatar — si absent (ex: VictoryScene), l'animation
+   * tourne toujours, comme avant ce garde-fou. */
+  avatarRef?: React.RefObject<THREE.Group | null>;
+}
+
+export default function AmbientParticles({ avatarRef }: AmbientParticlesProps) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
+  const worldPos = useMemo(() => new THREE.Vector3(), []);
 
   // Pre-compute random seeds per particle so they stay stable
   const [seeds] = useState(() => {
@@ -26,6 +40,12 @@ export default function AmbientParticles() {
   useFrame(({ clock }) => {
     const mesh = meshRef.current;
     if (!mesh) return;
+
+    if (avatarRef?.current) {
+      mesh.getWorldPosition(worldPos);
+      if (worldPos.distanceTo(avatarRef.current.position) > ACTIVE_RADIUS) return;
+    }
+
     const t = clock.getElapsedTime();
 
     for (let i = 0; i < PARTICLE_COUNT; i++) {

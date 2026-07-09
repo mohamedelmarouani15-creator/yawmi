@@ -5,9 +5,9 @@ import { motion, type Variants, type Transition } from "framer-motion";
 import { useAlBayanStore } from "@/lib/al-bayan/game-store";
 
 const PARAGRAPHS = [
-  "Médine, quelques années après le décès du Prophète ﷺ. Les compagnons qui connaissaient le Coran par cœur disparaissent peu à peu, et le calife Uthmân ibn Affân a confié à des érudits une mission sacrée : préserver, lettre par lettre, le texte révélé.",
-  "Vous avez exactement quarante-cinq minutes avant que le coffret des manuscrits ne soit scellé pour la postérité. Trois voies s'ouvrent devant vous : le Poids du Témoignage, le Rasm Primitif, la Route des Codicilles. Chacune garde un chiffre.",
-  "Que la clarté d'Al-Bayân guide votre esprit, et que la rigueur des premiers savants inspire votre quête. Le compte à rebours commence maintenant.",
+  "Une grande villa andalouse, désertée depuis des années, garde encore les objets de ses derniers habitants : un astrolabe monumental veille sur le jardin, des manuscrits oubliés dorment dans le scriptorium, des jarres d'huile s'alignent dans une cuisine silencieuse, et un lustre attend au sommet du sanctuaire.",
+  "Vous avez exactement quarante-cinq minutes pour explorer les lieux avant que les portes ne se referment. Chaque énigme résolue en ouvre une nouvelle : la fontaine du jardin, le tapis du Majlis, l'étagère des jarres, et enfin la lentille de cristal qui révèlera la sortie.",
+  "Que votre curiosité guide vos pas, et que la méthode l'emporte sur la précipitation. Le compte à rebours commence maintenant.",
 ];
 
 const STARS = Array.from({ length: 60 }, (_, i) => ({
@@ -60,13 +60,13 @@ export default function IntroScreen() {
         </motion.p>
 
         <motion.h1 variants={itemVariants} className="text-center" style={{ fontFamily: "var(--font-amiri, serif)", fontSize: 24, color: "#D4AF37", lineHeight: 1.3, textShadow: "0 0 30px rgba(212,175,55,0.4)" }}>
-          Al-Bayân — Le Secret
+          Al-Bayân — Les Secrets
           <br />
-          des Manuscrits
+          de la Villa
         </motion.h1>
 
         <motion.p variants={itemVariants} style={{ fontSize: 10, fontFamily: "var(--font-dm-sans)", color: "rgba(248,244,236,0.4)", textTransform: "uppercase", letterSpacing: "0.25em", fontWeight: 600 }}>
-          Médine &bull; Compilation du Coran
+          Villa andalouse &bull; Chasse au trésor
         </motion.p>
 
         <motion.div variants={itemVariants} className="w-full flex items-center gap-3">
@@ -127,7 +127,7 @@ export default function IntroScreen() {
               fontFamily: "var(--font-bricolage, var(--font-dm-sans))", fontWeight: 800, letterSpacing: "0.04em",
             }}
           >
-            Entrer dans la Maison des Manuscrits
+            Entrer dans la Villa
           </motion.button>
         </motion.div>
 

@@ -10,14 +10,21 @@ import Vestibule from "../zones/Vestibule";
 import CourTemoignage from "../zones/CourTemoignage";
 import Scriptorium from "../zones/Scriptorium";
 import Sanctuaire from "../zones/Sanctuaire";
+import Majlis, { MAJLIS_POSITION } from "../zones/Majlis";
+import Cuisine, { CUISINE_POSITION } from "../zones/Cuisine";
+import SuitePrivee, { SUITE_POSITION } from "../zones/SuitePrivee";
 import OcclusionFader from "./OcclusionFader";
 import CorridorCourScriptorium from "./CorridorCourScriptorium";
 import CorridorScriptoriumSanctuaire from "./CorridorScriptoriumSanctuaire";
+import CorridorJardinMajlis from "./CorridorJardinMajlis";
+import CorridorScriptoriumCuisine from "./CorridorScriptoriumCuisine";
+import CorridorMajlisSuite from "./CorridorMajlisSuite";
 import AvatarTrail from "./AvatarTrail";
 import IncenseSmoke from "./IncenseSmoke";
 import CinematicIntro from "./CinematicIntro";
 import { getCameraOffset, getCameraDir, ISO_DISTANCE, ISO_FOLLOW_LERP } from "@/lib/al-bayan/iso-camera";
 import { collectOccluderCandidates } from "@/lib/al-bayan/occluder-candidates";
+import { getShakeOffset } from "@/lib/camera-shake";
 
 // Distance minimale (jamais la caméra ne s'approche plus que ça de
 // l'avatar, même collée à un mur) et marge gardée entre la caméra et le mur
@@ -35,14 +42,18 @@ const CAM_WALL_MARGIN = 0.4;
 // rayon connu, recouvrement volontaire d'environ 1 unité). ──────────────
 const ZONES = {
   vestibule: { position: [0, 0, 0] as [number, number, number], rotationY: 0 },
-  courTemoignage: { position: [15, 0, 0] as [number, number, number], rotationY: -Math.PI / 2 },
-  scriptorium: { position: [-14.5, -0.6, 0] as [number, number, number], rotationY: Math.PI / 2 },
-  sanctuaire: { position: [0, 0.4, -14] as [number, number, number], rotationY: 0 },
+  courTemoignage: { position: [53, 0, 0] as [number, number, number], rotationY: -Math.PI / 2 },
+  scriptorium: { position: [-44, -1.1, 0] as [number, number, number], rotationY: Math.PI / 2 },
+  sanctuaire: { position: [0, 0.7, -43] as [number, number, number], rotationY: 0 },
 };
 
-// Bornes englobantes généreuses pour tout le complexe (simple rectangle,
-// cf. discipline de clamp déjà utilisée ailleurs dans l'app).
-export const WORLD_BOUNDS = { x: 23, z: 23 };
+// Bornes englobantes généreuses pour tout le complexe (simple rectangle
+// symétrique, cf. discipline de clamp déjà utilisée ailleurs dans l'app —
+// le clamp reste volontairement simple même si le monde n'est plus
+// symétrique autour de l'origine). Couvre la Suite Privée (centre x=167,
+// demi-taille 12) côté est et la Cuisine (centre x=-98, demi-taille 16.5)
+// côté ouest, plus le Sanctuaire (centre z=-43, rayon 24) côté sud.
+export const WORLD_BOUNDS = { x: 185, z: 72 };
 
 interface IsoCameraFollowProps {
   avatarRef: React.RefObject<THREE.Group | null>;
@@ -73,18 +84,24 @@ interface IsoCameraFollowProps {
 // l'écran restait noire malgré le raccourcissement de distance basé sur le
 // seul rayon central).
 const CAM_RAY_ANGLES = [0, 0.46, -0.46];
+// Plus resserré que le BASE_FOV=40 de maison-sagesse (voir
+// maison-sagesse/world/MaisonSagesseWorld.tsx) : les zones d'al-bayan sont
+// plus petites, un champ plus étroit suffit à les cadrer à même ISO_DISTANCE.
+const BASE_FOV = 36;
 
 function IsoCameraFollow({ avatarRef, yawRef, cameraReadyRef }: IsoCameraFollowProps) {
   const { camera, scene } = useThree();
+  const perspCamera = camera as THREE.PerspectiveCamera;
   const desired = useRef(new THREE.Vector3());
   const candidates = useRef<THREE.Mesh[] | null>(null);
   const raycaster = useRef(new THREE.Raycaster());
   const rayDir = useRef(new THREE.Vector3());
 
-  useFrame(() => {
+  useFrame(({ clock }) => {
     if (!cameraReadyRef.current) return; // cinematic intro en cours
     const avatar = avatarRef.current;
     if (!avatar) return;
+    const t = clock.getElapsedTime();
 
     if (!candidates.current) {
       candidates.current = collectOccluderCandidates(scene, avatar);
@@ -112,7 +129,26 @@ function IsoCameraFollow({ avatarRef, yawRef, cameraReadyRef }: IsoCameraFollowP
       avatar.position.z + offset.z * scale
     );
     camera.position.lerp(desired.current, ISO_FOLLOW_LERP);
+
+    // Respiration ambiante — très légère dérive verticale continue, pour
+    // que la caméra ne soit jamais parfaitement figée même à l'arrêt.
+    camera.position.y += Math.sin(t * 0.35) * 0.025;
+
+    // Secousse d'impact (résolution d'énigme / victoire) — décalage caméra
+    // additif + léger coup de zoom (FOV), voir lib/camera-shake.ts.
+    const shake = getShakeOffset();
+    camera.position.x += shake.x;
+    camera.position.y += shake.y * 0.5;
+
     camera.lookAt(avatar.position.x, avatar.position.y + 1.1, avatar.position.z);
+
+    if (perspCamera.isPerspectiveCamera) {
+      const targetFov = BASE_FOV + shake.fovPunch;
+      if (Math.abs(perspCamera.fov - targetFov) > 0.01) {
+        perspCamera.fov = targetFov;
+        perspCamera.updateProjectionMatrix();
+      }
+    }
   });
 
   return null;
@@ -121,7 +157,6 @@ function IsoCameraFollow({ avatarRef, yawRef, cameraReadyRef }: IsoCameraFollowP
 function ToneMappingSetup() {
   const { gl } = useThree();
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/immutability
     gl.toneMapping = THREE.ACESFilmicToneMapping;
     gl.toneMappingExposure = 1.25;
   }, [gl]);
@@ -148,9 +183,22 @@ interface AlBayanWorldProps {
   avatarRef: React.RefObject<THREE.Group | null>;
   joystickRef: React.MutableRefObject<{ x: number; y: number }>;
   yawRef: React.MutableRefObject<number>;
-  onConfirmTemoignage?: () => void;
-  onConfirmRasm?: () => void;
-  onConfirmRoute?: () => void;
+  astrolabeSolved?: boolean;
+  onSolveAstrolabe?: () => void;
+  majlisUnlocked?: boolean;
+  libraryClueFound?: boolean;
+  onFindLibraryClue?: () => void;
+  manuscriptsSolved?: boolean;
+  onSolveManuscripts?: () => void;
+  cuisineUnlocked?: boolean;
+  jarsRead?: boolean;
+  onReadJars?: () => void;
+  safeOpen?: boolean;
+  lensCollected?: boolean;
+  lensPlaced?: boolean;
+  onPlaceLens?: () => void;
+  sunRef?: React.Ref<THREE.Mesh>;
+  vestibuleSunRef?: React.Ref<THREE.Mesh>;
 }
 
 /**
@@ -164,15 +212,38 @@ export default function AlBayanWorld({
   avatarRef,
   joystickRef,
   yawRef,
-  onConfirmTemoignage,
-  onConfirmRasm,
-  onConfirmRoute,
+  astrolabeSolved,
+  onSolveAstrolabe,
+  majlisUnlocked,
+  libraryClueFound,
+  onFindLibraryClue,
+  manuscriptsSolved,
+  onSolveManuscripts,
+  cuisineUnlocked,
+  jarsRead,
+  onReadJars,
+  safeOpen,
+  lensCollected,
+  lensPlaced,
+  onPlaceLens,
+  sunRef,
+  vestibuleSunRef,
 }: AlBayanWorldProps) {
   const cameraReadyRef = useRef(false);
+  // Recalcule la liste des colliders de WePlayAvatar quand une porte
+  // verrouillée s'ouvre (LockedDoor bascule userData.noCollide) — sans ça
+  // le collider figé au montage continuerait de bloquer l'avatar même
+  // après déverrouillage visuel. La porte Majlis↔Suite Privée se déverrouille
+  // directement sur jarsRead (pas de flag dédié — cf. CorridorMajlisSuite).
+  const collidersVersion = Number(!!majlisUnlocked) + Number(!!cuisineUnlocked) * 2 + Number(!!jarsRead) * 4;
 
   return (
     <group>
-      <fog attach="fog" args={["#060814", 28, 65]} />
+      {/* Brouillard exponentiel (FogExp2) plutôt que linéaire : une teinte
+          ocre/ambre très sombre qui épaissit progressivement avec la
+          distance donne de la profondeur aux longs corridors sans le "mur"
+          net d'un fog linéaire near/far. */}
+      <fogExp2 attach="fog" args={["#0b0805", 0.015]} />
       {/* Fill global : ambiance lumineuse chaude qui débouche les salles sombres
           sans tuer le contrast dramatique — hémisphère ciel bleu nuit / sol
           ambre chaud, + ambient de sécurité. */}
@@ -180,42 +251,66 @@ export default function AlBayanWorld({
       <hemisphereLight args={["#1A2060", "#4A2800", 0.35] as any} />
       <ambientLight color="#2A2838" intensity={0.55} />
 
-      <Sparkles count={180} scale={[44, 8, 44]} size={1.4} speed={0.12} color="#D4AF37" opacity={0.45} />
+      <Sparkles count={360} scale={[220, 20, 150]} size={1.4} speed={0.12} color="#D4AF37" opacity={0.4} />
 
       {/* Dalle de fondation continue sous tout le complexe, sous le niveau
-          le plus bas (Scriptorium, y=-0.6) — garde-fou : même si deux sols
-          de zone ne se recouvrent pas exactement à une jointure, il n'y a
-          jamais de vide noir sous les pieds de l'avatar. */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.85, 0]} receiveShadow>
+          le plus bas (Scriptorium/Cuisine, y=-1.1) — garde-fou : même si
+          deux sols de zone ne se recouvrent pas exactement à une jointure,
+          il n'y a jamais de vide noir sous les pieds de l'avatar. */}
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -1.3, 0]} receiveShadow>
         <planeGeometry args={[WORLD_BOUNDS.x * 2.2, WORLD_BOUNDS.z * 2.2]} />
         <meshStandardMaterial color="#08070A" roughness={0.95} />
       </mesh>
 
       <group position={ZONES.vestibule.position} rotation={[0, ZONES.vestibule.rotationY, 0]}>
-        <Vestibule />
+        <Vestibule sunRef={vestibuleSunRef} />
       </group>
       <group position={ZONES.courTemoignage.position} rotation={[0, ZONES.courTemoignage.rotationY, 0]}>
-        <CourTemoignage onConfirm={onConfirmTemoignage} />
+        <CourTemoignage onSolveAstrolabe={onSolveAstrolabe} astrolabeSolved={astrolabeSolved} avatarRef={avatarRef} />
       </group>
       <group position={ZONES.scriptorium.position} rotation={[0, ZONES.scriptorium.rotationY, 0]}>
-        <Scriptorium onConfirm={onConfirmRasm} />
+        <Scriptorium
+          sunRef={sunRef}
+          avatarRef={avatarRef}
+          libraryClueFound={libraryClueFound}
+          manuscriptsSolved={manuscriptsSolved}
+          onSolveManuscripts={onSolveManuscripts}
+        />
       </group>
       <group position={ZONES.sanctuaire.position} rotation={[0, ZONES.sanctuaire.rotationY, 0]}>
-        <Sanctuaire onConfirm={onConfirmRoute} />
+        <Sanctuaire avatarRef={avatarRef} lensCollected={lensCollected} lensPlaced={lensPlaced} onPlaceLens={onPlaceLens} />
+      </group>
+      <group position={MAJLIS_POSITION}>
+        <Majlis avatarRef={avatarRef} libraryClueFound={libraryClueFound} onFindLibraryClue={onFindLibraryClue} />
+      </group>
+      <group position={CUISINE_POSITION}>
+        <Cuisine avatarRef={avatarRef} jarsRead={jarsRead} onReadJars={onReadJars} />
+      </group>
+      <group position={SUITE_POSITION}>
+        <SuitePrivee avatarRef={avatarRef} jarsRead={jarsRead} safeOpen={safeOpen} />
       </group>
 
       {/* Corridors d'interconnexion supplémentaires (en plus de l'étoile
           centrée sur le Vestibule) — coordonnées MONDE directes, pas
           nichés dans le repère tourné d'une zone. */}
-      <CorridorCourScriptorium />
-      <CorridorScriptoriumSanctuaire />
+      <CorridorCourScriptorium avatarRef={avatarRef} />
+      <CorridorScriptoriumSanctuaire avatarRef={avatarRef} />
+      <CorridorJardinMajlis avatarRef={avatarRef} majlisUnlocked={!!majlisUnlocked} />
+      <CorridorScriptoriumCuisine avatarRef={avatarRef} cuisineUnlocked={!!cuisineUnlocked} />
+      <CorridorMajlisSuite avatarRef={avatarRef} jarsRead={!!jarsRead} />
 
-      <WePlayAvatar ref={avatarRef} joystickRef={joystickRef} yawRef={yawRef} bounds={WORLD_BOUNDS} />
+      <WePlayAvatar
+        ref={avatarRef}
+        joystickRef={joystickRef}
+        yawRef={yawRef}
+        bounds={WORLD_BOUNDS}
+        collidersVersion={collidersVersion}
+      />
       <AvatarTrail avatarRef={avatarRef} />
 
       {/* Colonnes de fumée d'encens dans le Vestibule */}
-      <IncenseSmoke position={[2.4, 0.08, -2.8]} />
-      <IncenseSmoke position={[-2.4, 0.08, -2.8]} />
+      <IncenseSmoke position={[7.2, 0.08, -8.4]} />
+      <IncenseSmoke position={[-7.2, 0.08, -8.4]} />
 
       <IsoCameraFollow avatarRef={avatarRef} yawRef={yawRef} cameraReadyRef={cameraReadyRef} />
       <CinematicIntro

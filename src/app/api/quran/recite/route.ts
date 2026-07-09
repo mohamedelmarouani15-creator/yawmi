@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import Groq from "groq-sdk";
 import { createClient } from "@supabase/supabase-js";
+import { getGroqClient } from "@/lib/ai/groq";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 // ── Levenshtein (character level, used per word) ──────────────────
@@ -255,10 +255,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Audio trop volumineux (max 25 Mo)" }, { status: 413 });
     }
 
-    const apiKey = process.env.GROQ_API_KEY;
-    if (!apiKey) return NextResponse.json({ error: "GROQ_API_KEY manquante" }, { status: 500 });
-
-    const groq = new Groq({ apiKey });
+    const groq = getGroqClient();
 
     const transcription = await groq.audio.transcriptions.create({
       file:            audioBlob,

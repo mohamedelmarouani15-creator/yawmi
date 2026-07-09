@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import Groq from "groq-sdk";
+import { getGroqClient } from "@/lib/ai/groq";
 import { checkRateLimit } from "@/lib/rate-limit";
 
 function supabaseAdmin() {
@@ -66,7 +66,7 @@ Règles ABSOLUES :
 - Si l'élève réussit, félicite brièvement et donne une information bonus intéressante
 - Termine toujours par une micro-question ou un défi pour stimuler la réflexion`;
 
-    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
+    const groq = getGroqClient();
     const completion = await groq.chat.completions.create({
       model: "llama-3.3-70b-versatile",
       messages: [

@@ -1,14 +1,7 @@
-// Phase de jeu
-export type GamePhase =
-  | 'idle'
-  | 'intro'
-  | 'main-hall'
-  | 'quest-faith'
-  | 'quest-science'
-  | 'quest-wisdom'
-  | 'code-lock'
-  | 'victory'
-  | 'failure';
+// Phase de jeu — les "salles" sont désormais des zones d'un même monde
+// ouvert (comme al-bayan), plus des phases séparées : le store ne garde que
+// les états transverses qui ne sont pas une zone navigable.
+export type GamePhase = 'idle' | 'playing' | 'victory' | 'failure';
 
 // Progression d'une énigme
 export interface EnigmaState {

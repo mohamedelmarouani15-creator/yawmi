@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { Canvas } from "@react-three/fiber";
+import { useProgress } from "@react-three/drei";
 import * as THREE from "three";
 
 import { useAlBayanStore } from "@/lib/al-bayan/game-store";
@@ -15,10 +16,10 @@ import LoadingVeil from "@/components/al-bayan/ui/LoadingVeil";
 import Timer from "@/components/al-bayan/ui/Timer";
 import EnigmaStatus from "@/components/al-bayan/ui/EnigmaStatus";
 import HintMailbox from "@/components/al-bayan/ui/HintMailbox";
-import CodeLock from "@/components/al-bayan/ui/CodeLock";
 import VictoryOverlay from "@/components/al-bayan/ui/VictoryOverlay";
 import FailureOverlay from "@/components/al-bayan/ui/FailureOverlay";
-import { resumeAudio, startAmbient, stopAmbient, playSolve } from "@/lib/al-bayan/audio-engine";
+import { resumeAudio, startAmbient, stopAmbient, playSolve, playVictory, playFailure } from "@/lib/al-bayan/audio-engine";
+import { triggerShake } from "@/lib/camera-shake";
 
 // Sensibilité de rotation au glissé tactile (pouce droit)
 const LOOK_SENS = 0.004;
@@ -26,9 +27,12 @@ const LOOK_DRAG_THRESHOLD = 8;
 
 const ZONE_CENTERS = [
   { id: "vestibule", label: "Vestibule", icon: "🏛️", x: 0, z: 0 },
-  { id: "cour", label: "Cour", icon: "⚖️", x: 15, z: 0 },
-  { id: "scriptorium", label: "Scriptorium", icon: "✒️", x: -14.5, z: 0 },
-  { id: "sanctuaire", label: "Sanctuaire", icon: "🔭", x: 0, z: -14 },
+  { id: "jardin", label: "Jardin", icon: "⛲", x: 53, z: 0 },
+  { id: "majlis", label: "Majlis", icon: "🛋️", x: 119, z: 0 },
+  { id: "suite", label: "Suite Privée", icon: "🗝️", x: 167, z: 0 },
+  { id: "scriptorium", label: "Scriptorium", icon: "✒️", x: -44, z: 0 },
+  { id: "cuisine", label: "Cuisine", icon: "🏺", x: -98, z: 0 },
+  { id: "sanctuaire", label: "Sanctuaire", icon: "🔭", x: 0, z: -43 },
 ] as const;
 
 function ZoneMiniMap({ avatarRef }: { avatarRef: { readonly current: THREE.Group | null } }) {
@@ -111,6 +115,20 @@ function isTouchCapable(): boolean {
   return "ontouchstart" in window || navigator.maxTouchPoints > 0;
 }
 
+/** Fallback in-canvas pendant le chargement des textures PBR (useTexture
+ * suspend) — ne rend rien : le voile HTML (LoadingVeil, hors du Canvas)
+ * couvre déjà tout l'écran pendant ce temps. Un fallback qui lit
+ * `useProgress()` ICI (donc à l'intérieur de l'arbre R3F suspendu) déclenche
+ * en pratique un avertissement React 19 "Cannot update a component while
+ * rendering a different component" — le store de progression de drei se met
+ * à jour de façon synchrone pendant le rendu des composants texturés
+ * fraîchement résolus (Fountain, PlanterBox, etc.), ce qui bloquait le
+ * Suspense en boucle de re-render. `useProgress()` est donc lu plus bas
+ * dans AlBayanPage, HORS du Canvas, où cette collision ne peut pas se produire. */
+function TexturesLoadingFallback() {
+  return null;
+}
+
 /**
  * Point d'entrée unique d'al-bayan : monde 3D ouvert sur une seule page,
  * plus de routes par salle (cf. plan de refonte — l'ancien layout.tsx +
@@ -120,10 +138,20 @@ export default function AlBayanPage() {
   const phase = useAlBayanStore((s) => s.phase);
   const isRunning = useAlBayanStore((s) => s.isRunning);
   const tick = useAlBayanStore((s) => s.tick);
-  const enigmaA = useAlBayanStore((s) => s.enigmaA);
-  const enigmaB = useAlBayanStore((s) => s.enigmaB);
-  const enigmaC = useAlBayanStore((s) => s.enigmaC);
-  const solveEnigma = useAlBayanStore((s) => s.solveEnigma);
+  const astrolabeSolved = useAlBayanStore((s) => s.astrolabeSolved);
+  const majlisUnlocked = useAlBayanStore((s) => s.majlisUnlocked);
+  const libraryClueFound = useAlBayanStore((s) => s.libraryClueFound);
+  const manuscriptsSolved = useAlBayanStore((s) => s.manuscriptsSolved);
+  const cuisineUnlocked = useAlBayanStore((s) => s.cuisineUnlocked);
+  const jarsRead = useAlBayanStore((s) => s.jarsRead);
+  const safeOpen = useAlBayanStore((s) => s.safeOpen);
+  const lensCollected = useAlBayanStore((s) => s.lensCollected);
+  const lensPlaced = useAlBayanStore((s) => s.lensPlaced);
+  const solveAstrolabe = useAlBayanStore((s) => s.solveAstrolabe);
+  const findLibraryClue = useAlBayanStore((s) => s.findLibraryClue);
+  const solveManuscripts = useAlBayanStore((s) => s.solveManuscripts);
+  const readJars = useAlBayanStore((s) => s.readJars);
+  const placeLens = useAlBayanStore((s) => s.placeLens);
 
   const [isTouchDevice, setIsTouchDevice] = useState(false);
   useEffect(() => {
@@ -131,15 +159,25 @@ export default function AlBayanPage() {
     setIsTouchDevice(isTouchCapable());
   }, []);
 
-  // Voile de chargement — visible pendant l'intro cinématique (~3s)
-  const [showVeil, setShowVeil] = useState(true);
+  // Voile de chargement — visible au moins le temps de l'intro cinématique
+  // (~3.2s) ET jusqu'à ce que les textures PBR soient prêtes (`useProgress`
+  // lu ICI, hors du Canvas — le lire depuis un composant R3F suspendu
+  // déclenchait un conflit de rendu React 19, voir TexturesLoadingFallback
+  // plus haut). Filet de sécurité à 15s si le réseau traîne, pour ne jamais
+  // laisser le joueur bloqué derrière le voile indéfiniment.
+  const { progress: texturesProgress } = useProgress();
+  const [minElapsed, setMinElapsed] = useState(false);
+  const [veilForceHide, setVeilForceHide] = useState(false);
   useEffect(() => {
     if (phase === "idle") return;
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setShowVeil(true);
-    const t = setTimeout(() => setShowVeil(false), 3200);
-    return () => clearTimeout(t);
+    setMinElapsed(false);
+    setVeilForceHide(false);
+    const minTimer = setTimeout(() => setMinElapsed(true), 3200);
+    const safetyTimer = setTimeout(() => setVeilForceHide(true), 15000);
+    return () => { clearTimeout(minTimer); clearTimeout(safetyTimer); };
   }, [phase]);
+  const showVeil = phase !== "idle" && !veilForceHide && !(minElapsed && texturesProgress >= 100);
 
   // Audio — démarré au premier geste après changement de phase
   useEffect(() => {
@@ -177,6 +215,8 @@ export default function AlBayanPage() {
   const joystickRef = useRef({ x: 0, y: 0 });
   const yawRef = useRef(ISO_YAW_DEFAULT);
   const avatarRef = useRef<THREE.Group>(null);
+  const sunRef = useRef<THREE.Mesh>(null);
+  const vestibuleSunRef = useRef<THREE.Mesh>(null);
 
   // Lock orientation paysage sur mobile
   useEffect(() => {
@@ -230,21 +270,49 @@ export default function AlBayanPage() {
     };
   }, []);
 
-  // Son de résolution — doit être avant les retours conditionnels (Rules of Hooks)
-  const prevSolvedRef = useRef({ A: false, B: false, C: false });
+  // Son + secousse caméra de résolution — doit être avant les retours
+  // conditionnels (Rules of Hooks)
+  const prevSolvedRef = useRef({ astrolabe: false, manuscrits: false, safe: false, lens: false });
   useEffect(() => {
     const prev = prevSolvedRef.current;
-    if ((enigmaA.solved && !prev.A) || (enigmaB.solved && !prev.B) || (enigmaC.solved && !prev.C)) {
+    if (
+      (astrolabeSolved && !prev.astrolabe) ||
+      (manuscriptsSolved && !prev.manuscrits) ||
+      (safeOpen && !prev.safe) ||
+      (lensPlaced && !prev.lens)
+    ) {
       playSolve();
+      triggerShake(0.12, 0.5);
     }
-    prevSolvedRef.current = { A: enigmaA.solved, B: enigmaB.solved, C: enigmaC.solved };
-  }, [enigmaA.solved, enigmaB.solved, enigmaC.solved]);
+    prevSolvedRef.current = { astrolabe: astrolabeSolved, manuscrits: manuscriptsSolved, safe: safeOpen, lens: lensPlaced };
+  }, [astrolabeSolved, manuscriptsSolved, safeOpen, lensPlaced]);
+
+  // Fanfare + secousse plus ample à la victoire
+  const victoryPlayedRef = useRef(false);
+  useEffect(() => {
+    if (phase === "victory" && !victoryPlayedRef.current) {
+      victoryPlayedRef.current = true;
+      playVictory();
+      triggerShake(0.22, 1.1);
+    }
+    if (phase !== "victory") victoryPlayedRef.current = false;
+  }, [phase]);
+
+  // Descente sombre au temps écoulé
+  const failurePlayedRef = useRef(false);
+  useEffect(() => {
+    if (phase === "failure" && !failurePlayedRef.current) {
+      failurePlayedRef.current = true;
+      playFailure();
+      triggerShake(0.08, 0.8);
+    }
+    if (phase !== "failure") failurePlayedRef.current = false;
+  }, [phase]);
 
   if (!mounted) return null;
   if (phase === "idle") return <IntroScreen />;
 
   const inGame = phase !== "victory" && phase !== "failure";
-  const anyEnigmaSolved = enigmaA.solved || enigmaB.solved || enigmaC.solved;
 
   return (
     <div
@@ -272,15 +340,30 @@ export default function AlBayanPage() {
         camera={{ fov: 36, near: 0.1, far: 100, position: [8, 8, 8] }}
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", touchAction: "none" }}
       >
-        <AlBayanWorld
-          avatarRef={avatarRef}
-          joystickRef={joystickRef}
-          yawRef={yawRef}
-          onConfirmTemoignage={() => solveEnigma("A")}
-          onConfirmRasm={() => solveEnigma("B")}
-          onConfirmRoute={() => solveEnigma("C")}
-        />
-        <AlBayanPostProcessing />
+        <Suspense fallback={<TexturesLoadingFallback />}>
+          <AlBayanWorld
+            avatarRef={avatarRef}
+            joystickRef={joystickRef}
+            yawRef={yawRef}
+            astrolabeSolved={astrolabeSolved}
+            onSolveAstrolabe={solveAstrolabe}
+            majlisUnlocked={majlisUnlocked}
+            libraryClueFound={libraryClueFound}
+            onFindLibraryClue={findLibraryClue}
+            manuscriptsSolved={manuscriptsSolved}
+            onSolveManuscripts={solveManuscripts}
+            cuisineUnlocked={cuisineUnlocked}
+            jarsRead={jarsRead}
+            onReadJars={readJars}
+            safeOpen={safeOpen}
+            lensCollected={lensCollected}
+            lensPlaced={lensPlaced}
+            onPlaceLens={placeLens}
+            sunRef={sunRef}
+            vestibuleSunRef={vestibuleSunRef}
+          />
+        </Suspense>
+        <AlBayanPostProcessing sunRef={sunRef} vestibuleSunRef={vestibuleSunRef} />
       </Canvas>
 
       {/* Voile de chargement — par-dessus le Canvas, en dessous du HUD */}
@@ -341,7 +424,7 @@ export default function AlBayanPage() {
                   recréé à chaque rendu du parent (handleLook non mémoïsé) :
                   ça pouvait couper un glissé en cours sur certains appareils. */}
               <div
-                style={{ position: "absolute", inset: 0, left: "45%", zIndex: 9, touchAction: "none" }}
+                style={{ position: "absolute", inset: 0, left: "50%", zIndex: 9, touchAction: "none" }}
                 onTouchStart={e => {
                   const t = e.changedTouches[0];
                   const el = e.currentTarget as HTMLElement;
@@ -488,9 +571,6 @@ export default function AlBayanPage() {
 
       <div style={{ position: "absolute", bottom: 64, left: 16, zIndex: 20 }}>
         <HintMailbox />
-      </div>
-      <div style={{ position: "absolute", bottom: 16, right: 16, zIndex: 20 }}>
-        {anyEnigmaSolved && <CodeLock />}
       </div>
 
       {phase === "victory" && <VictoryOverlay />}

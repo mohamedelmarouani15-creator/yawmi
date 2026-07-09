@@ -1,191 +1,146 @@
 // ── Constantes globales ───────────────────────────────────────────────────
+// Refonte villa/riad : la narration historique (Témoignage/Rasm/Route,
+// compilation du Coran) est remplacée par une chasse au trésor dans une
+// grande demeure — 4 énigmes imbriquées forçant une exploration méthodique
+// (Jardin -> Majlis -> Scriptorium -> Cuisine -> coffre -> Sanctuaire).
 
-export const SOLUTION = { a: 2, b: 7, c: 4 } as const;
 export const GAME_DURATION = 2700; // 45 minutes en secondes
 
-// ── Énigme A — Le Poids du Témoignage (Dhûl-Shahâdatayn) ──────────────────
-// Lors de la compilation du Coran sous Abû Bakr, Zayd ibn Thâbit ne trouva
-// les deux derniers versets d'At-Tawba (9:128-129) que chez un seul homme :
-// Khuzayma ibn Thâbit al-Ansârî. Normalement deux témoins étaient requis,
-// mais le Prophète ﷺ avait jugé — après un litige sur la vente d'un cheval
-// avec un bédouin — que le témoignage de Khuzayma valait celui de deux
-// hommes, lui donnant le surnom de "Dhûl-Shahâdatayn" (Celui aux deux
-// témoignages). Poser sa tablette sur la balance vaut donc 2 → Chiffre A = 2.
+// ── Énigme 1 — L'Horloge Astronomique du Jardin ───────────────────────────
+// Trois anneaux d'un astrolabe monumental, à orienter selon les indices
+// gravés sur la margelle de la fontaine centrale. Les trois angles doivent
+// être atteints simultanément pour déverrouiller la porte du Majlis.
 
-export interface WitnessCandidate {
-  id: string;
-  name: string;
-  arabic: string;
-  weight: 1 | 2;
+export interface AstrolabeRing {
+  id: "heures" | "mois" | "etoiles";
+  label: string;
+  targetDeg: number;
 }
 
-export const WITNESS_CANDIDATES: WitnessCandidate[] = [
-  { id: "khuzayma", name: "Khuzayma ibn Thâbit", arabic: "خزيمة بن ثابت", weight: 2 },
-  { id: "zayd",     name: "Zayd ibn Thâbit",     arabic: "زيد بن ثابت",     weight: 1 },
-  { id: "uthman",   name: "Uthmân ibn Affân",    arabic: "عثمان بن عفان",  weight: 1 },
-  { id: "umar",     name: "Umar ibn al-Khattâb",  arabic: "عمر بن الخطاب",  weight: 1 },
-  { id: "ali",      name: "Ali ibn Abi Tâlib",    arabic: "علي بن أبي طالب", weight: 1 },
+export const ASTROLABE_RINGS: AstrolabeRing[] = [
+  { id: "heures", label: "Anneau des heures", targetDeg: 120 },
+  { id: "mois", label: "Anneau des mois lunaires", targetDeg: 210 },
+  { id: "etoiles", label: "Anneau des étoiles", targetDeg: 45 },
 ];
 
-export const REQUIRED_WEIGHT = 2;
+export const ASTROLABE_TOLERANCE_DEG = 6;
 
-export const RECIT_CHEVAL = `Un jour, le Prophète ﷺ acheta un cheval à un bédouin et lui demanda de le suivre pour récupérer le paiement. \
-En chemin, des hommes proposèrent un meilleur prix au bédouin, qui se mit à nier avoir vendu le cheval. \
-Khuzayma ibn Thâbit, témoin de la transaction, prit la défense du Prophète ﷺ. \
-Le bédouin s'étonna : « Comment témoignes-tu sans avoir vu la transaction de près ? » \
-Khuzayma répondit : « Je témoigne de ta véracité parce que je sais que le Prophète ﷺ ne dit que la vérité. » \
-Le Prophète ﷺ déclara alors : « Celui pour qui Khuzayma témoigne, cela lui suffit comme témoignage de deux hommes. »`;
+export const FOUNTAIN_INSCRIPTION =
+  "Ô voyageur, la fontaine garde les secrets du ciel : l'anneau des heures s'arrête au tiers du jour, " +
+  "l'anneau des mois lunaires marque Rajab, le septième mois, et l'anneau des étoiles pointe vers l'astre du matin. " +
+  "Aligne les trois anneaux de l'astrolabe sur ces repères pour ouvrir la voie du Grand Salon.";
 
-export const PARCHEMIN_TEMOIGNAGE = `Ô apprenti, une balance de bronze garde le secret du premier chiffre. \
-Sur son plateau gauche repose le parchemin des deux derniers versets d'At-Tawba — \
-la Loi exige le poids de deux témoignages pour qu'il soit validé. \
-Examine le récit du cheval gravé dans cette salle, puis pose sur le plateau droit \
-le nom du compagnon dont le témoignage, à lui seul, pèse comme celui de deux hommes. \
-Quand la balance s'équilibre, le premier chiffre du Coffre t'est révélé.`;
-
-export const HINTS_TEMOIGNAGE: [string, string, string] = [
-  `Un parchemin froissé glissé sous la porte...\n'La balance ne s'équilibrera qu'avec UN seul nom — mais ce n'est pas n'importe lequel. Examine le récit gravé près de la balance : il parle d'un cheval et d'un bédouin.'`,
-  `Une nouvelle lettre...\n'Le Prophète ﷺ a dit d'un compagnon que son témoignage seul valait celui de deux hommes. Cherche ce nom parmi les tablettes : c'est lui qui a défendu la vérité du Prophète ﷺ devant le bédouin malhonnête.'`,
-  `Solution directe...\n'Le compagnon est Khuzayma ibn Thâbit, surnommé Dhûl-Shahâdatayn (« Celui aux deux témoignages »). Pose sa tablette sur le plateau droit. Son poids est DEUX. Le chiffre A est 2.'`,
+export const HINTS_ASTROLABE: [string, string, string] = [
+  "Un tiers du jour, sur un cercle de 360°... à quel angle cela correspond-il ?",
+  "Rajab est le SEPTIÈME mois du calendrier lunaire — répartis les 12 mois sur 360° et compte jusqu'à sept.",
+  "Anneau des heures = 120°, anneau des mois = 210°, anneau des étoiles = 45°.",
 ];
 
-// ── Énigme B — Le Rasm Primitif ────────────────────────────────────────────
-// Les plus anciens manuscrits coraniques (rasm 'uthmânî) ne portaient aucun
-// point diacritique : des lettres comme ب ت ث ن ي partageaient la même forme
-// nue. Le mot à reconstituer est فتبينوا (fa-tabayyanû, « vérifiez,
-// clarifiez ») — Sourate Al-Hujurât, verset 6 — qui porte la racine même
-// d'« Al-Bayân ». Chiffre B = nombre de lettres du mot = 7.
+// ── Énigme 2 — Les Manuscrits du Scriptorium ──────────────────────────────
+// Un indice trouvé sous un tapis du Majlis envoie le joueur au Scriptorium :
+// trois manuscrits doivent être replacés dans l'ordre chronologique de leur
+// rédaction pour révéler un passage secret vers la Cuisine.
 
-export type DotPattern = "none" | "above-1" | "above-2" | "above-3" | "below-1" | "below-2";
-
-export interface RasmLetter {
+export interface Manuscript {
   id: string;
-  shape: string; // forme nue (sans points), à titre indicatif visuel
-  correct: DotPattern;
+  title: string;
+  year: number;
+  /** Position correcte sur l'étagère, de gauche (0) à droite (2). */
+  correctSlot: 0 | 1 | 2;
 }
 
-export const TARGET_WORD = "فتبينوا";
-export const TARGET_WORD_FR = "fa-tabayyanû";
-export const TARGET_WORD_MEANING = "« …vérifiez, clarifiez… » — Sourate Al-Hujurât, verset 6";
-
-export const RASM_LETTERS: RasmLetter[] = [
-  { id: "L1", shape: "ف", correct: "above-1" },
-  { id: "L2", shape: "ت", correct: "above-2" },
-  { id: "L3", shape: "ب", correct: "below-1" },
-  { id: "L4", shape: "ي", correct: "below-2" },
-  { id: "L5", shape: "ن", correct: "above-1" },
-  { id: "L6", shape: "و", correct: "none" },
-  { id: "L7", shape: "ا", correct: "none" },
+export const MANUSCRIPTS: Manuscript[] = [
+  { id: "ms-exil", title: "Chronique de l'Exil", year: 622, correctSlot: 0 },
+  { id: "ms-bataille", title: "Récit de la Première Bataille", year: 624, correctSlot: 1 },
+  { id: "ms-retour", title: "Le Retour Triomphal", year: 630, correctSlot: 2 },
 ];
 
-export const DOT_TILES: { id: DotPattern; label: string }[] = [
-  { id: "none",    label: "Aucun point" },
-  { id: "above-1", label: "1 point dessus" },
-  { id: "above-2", label: "2 points dessus" },
-  { id: "above-3", label: "3 points dessus" },
-  { id: "below-1", label: "1 point dessous" },
-  { id: "below-2", label: "2 points dessous" },
+export const LIBRARY_CLUE =
+  "Un parchemin glissé sous le tapis du Majlis : « Trois manuscrits du Scriptorium gardent la mémoire de " +
+  "trois années : l'an de l'exil, l'an de la première bataille, l'an du retour triomphal. Range-les sur " +
+  "l'étagère du plus ancien au plus récent, et le mur cédera son secret. »";
+
+export const HINTS_MANUSCRITS: [string, string, string] = [
+  "Chaque manuscrit porte une année en chiffres — regarde-les avant de choisir un ordre.",
+  "L'exil précède la première bataille, qui précède elle-même le retour triomphal.",
+  "Ordre correct, de gauche à droite : Chronique de l'Exil (622), Première Bataille (624), Retour Triomphal (630).",
 ];
 
-export const PARCHEMIN_RASM = `Ô apprenti, les premiers copistes du Coran n'utilisaient aucun point : \
-une même forme nue pouvait être lue de plusieurs façons. Sept lettres muettes attendent \
-sur ce manuscrit. Pose sur chacune le point qui lui revient, et un mot de la Sourate \
-Al-Hujurât apparaîtra — un mot qui porte en lui le sens même d'Al-Bayân : la clarté. \
-Compte ensuite les lettres de ce mot : ce nombre est le deuxième chiffre du Coffre.`;
+// ── Énigme 3 — Les Jarres de la Cuisine ───────────────────────────────────
+// Quatre jarres d'huile, parmi d'autres poteries décoratives, portent chacune
+// un chiffre gravé. Lues dans l'ordre où elles sont disposées sur l'étagère,
+// elles forment le code du coffre en cèdre.
 
-export const HINTS_RASM: [string, string, string] = [
-  `Un parchemin froissé glissé sous la porte...\n'Avant les points, une même forme servait à plusieurs lettres : ب ت ث se ressemblent, ainsi que ن et ي. Observe bien chaque forme avant de choisir.'`,
-  `Une nouvelle lettre...\n'Le mot à reconstituer vient de la Sourate Al-Hujurât (49:6) : il signifie « vérifiez, clarifiez ». Il commence par le son "fa", puis "ta", "ba", "ya", "noun", "waw", "alif".'`,
-  `Solution directe...\n'Le mot est فتبينوا (fa-tabayyanû). Points : ف=1 dessus, ت=2 dessus, ب=1 dessous, ي=2 dessous, ن=1 dessus, و et ا=aucun. Il compte SEPT lettres. Le chiffre B est 7.'`,
+export const JAR_CODE: [number, number, number, number] = [3, 1, 8, 5];
+
+export const KITCHEN_CLUE =
+  "Quatre jarres d'huile, alignées sur l'étagère du fond, portent chacune un chiffre gravé dans l'argile. " +
+  "Lis-les dans l'ordre, de gauche à droite : voilà le code du coffre.";
+
+export const HINTS_JARRES: [string, string, string] = [
+  "Toutes les jarres ne comptent pas — seules quatre, sur l'étagère du fond, portent un chiffre gravé.",
+  "Lis les quatre jarres gravées dans leur ordre sur l'étagère, de gauche à droite.",
+  `Le code est ${JAR_CODE.join("-")}.`,
 ];
 
-// ── Énigme C — La Route des Codicilles ────────────────────────────────────
-// Le calife Uthmân ibn Affân fit établir une version standardisée du Coran
-// et en envoya des copies aux grands centres de l'empire. Les historiens
-// ne s'accordent pas sur un nombre exact (4, 5, 6 ou 7 selon les sources),
-// mais un consensus solide existe sur QUATRE villes : Médine (gardée par
-// Uthmân), Bassora, Koufa et Damas. Chiffre C = 4.
+// ── Énigme 4 — L'Éclat du Sanctuaire ──────────────────────────────────────
+// Le coffre en cèdre (dans le Majlis) contient une lentille de cristal.
+// Posée sur le grand lustre du Sanctuaire, elle projette un rayon qui
+// frappe le mur et révèle la trappe de sortie.
 
-export interface CityCandidate {
-  id: string;
-  name: string;
-  consensus: boolean; // fait partie des 4 villes du consensus
-}
+export const SANCTUAIRE_CLUE =
+  "Le lustre central du Sanctuaire porte un logement vide, à la forme d'une lentille. " +
+  "Une fois la lumière focalisée, elle désignera la sortie.";
 
-export const CITY_CANDIDATES: CityCandidate[] = [
-  { id: "medine",   name: "Médine",   consensus: true },
-  { id: "bassora",  name: "Bassora",  consensus: true },
-  { id: "koufa",    name: "Koufa",    consensus: true },
-  { id: "damas",    name: "Damas",    consensus: true },
-  { id: "le_caire", name: "Le Caire", consensus: false }, // fondée en 969, bien après Uthmân
-  { id: "bahrein",  name: "Bahreïn",  consensus: false }, // mentionnée par certains historiens seulement
-  { id: "yemen",    name: "Yémen",    consensus: false }, // idem
-  { id: "jerusalem",name: "Jérusalem",consensus: false }, // absente des récits historiques
-];
+// ── Métadonnées consolidées (pour EnigmaStatus / HintMailbox) ────────────
 
-export const REQUIRED_CITIES = CITY_CANDIDATES.filter((c) => c.consensus).map((c) => c.id);
-
-export const PARCHEMIN_ROUTE = `Ô apprenti, le calife Uthmân ibn Affân fit établir une copie unique et fidèle du Coran, \
-puis en envoya des exemplaires aux grandes villes de l'empire pour que tous récitent d'une seule voix. \
-Sur cette carte, plusieurs villes scintillent — certaines ont réellement reçu une copie, \
-d'autres ne sont que des rumeurs d'historiens peu sûrs. Active uniquement les villes \
-sur lesquelles les historiens s'accordent : ni plus, ni moins. Leur nombre est le troisième \
-et dernier chiffre du Coffre.`;
-
-export const HINTS_ROUTE: [string, string, string] = [
-  `Un parchemin froissé glissé sous la porte...\n'Toutes les villes affichées sur la carte n'ont pas la même certitude historique. Certaines ne sont mentionnées que par un seul historien — méfie-toi des rumeurs.'`,
-  `Une nouvelle lettre...\n'Quatre villes reviennent dans presque toutes les sources : la ville où vivait le calife lui-même, et trois grandes cités de l'empire naissant — l'une en Irak occidental, l'une en Irak méridional, l'une en Syrie.'`,
-  `Solution directe...\n'Les quatre villes du consensus sont Médine, Koufa, Bassora et Damas. Active uniquement celles-ci. Leur nombre est QUATRE. Le chiffre C est 4. Combinaison finale : 2-7-4.'`,
-];
-
-// ── Métadonnées des énigmes ───────────────────────────────────────────────
-
-export interface EnigmaMeta {
-  id: "A" | "B" | "C";
-  phase: "enigma-temoignage" | "enigma-rasm" | "enigma-route";
+export interface QuestMeta {
+  id: "astrolabe" | "manuscrits" | "jarres" | "lentille";
   title: string;
   subtitle: string;
-  digit: number;
-  parchemin: string;
+  zone: string;
   hints: [string, string, string];
-  childRole: string;
 }
 
-export const ENIGMA_A: EnigmaMeta = {
-  id: "A",
-  phase: "enigma-temoignage",
-  title: "Le Poids du Témoignage",
-  subtitle: "Dhûl-Shahâdatayn",
-  digit: SOLUTION.a,
-  parchemin: PARCHEMIN_TEMOIGNAGE,
-  hints: HINTS_TEMOIGNAGE,
-  childRole: "L'enfant lit le récit du cheval et choisit le nom du bon compagnon.",
+export const QUEST_ASTROLABE: QuestMeta = {
+  id: "astrolabe",
+  title: "L'Horloge Astronomique",
+  subtitle: "Les anneaux de la fontaine",
+  zone: "Jardin",
+  hints: HINTS_ASTROLABE,
 };
 
-export const ENIGMA_B: EnigmaMeta = {
-  id: "B",
-  phase: "enigma-rasm",
-  title: "Le Rasm Primitif",
-  subtitle: "Les lettres sans points",
-  digit: SOLUTION.b,
-  parchemin: PARCHEMIN_RASM,
-  hints: HINTS_RASM,
-  childRole: "L'enfant pose les points sur chaque lettre et compte les lettres du mot.",
+export const QUEST_MANUSCRITS: QuestMeta = {
+  id: "manuscrits",
+  title: "Les Manuscrits Perdus",
+  subtitle: "L'ordre des trois chroniques",
+  zone: "Scriptorium",
+  hints: HINTS_MANUSCRITS,
 };
 
-export const ENIGMA_C: EnigmaMeta = {
-  id: "C",
-  phase: "enigma-route",
-  title: "La Route des Codicilles",
-  subtitle: "Les villes du consensus",
-  digit: SOLUTION.c,
-  parchemin: PARCHEMIN_ROUTE,
-  hints: HINTS_ROUTE,
-  childRole: "L'enfant active les villes sur la carte et compte celles qui s'allument.",
+export const QUEST_JARRES: QuestMeta = {
+  id: "jarres",
+  title: "Le Code des Jarres",
+  subtitle: "Quatre chiffres gravés dans l'argile",
+  zone: "Cuisine",
+  hints: HINTS_JARRES,
 };
 
-export const ALL_ENIGMAS: Record<"A" | "B" | "C", EnigmaMeta> = {
-  A: ENIGMA_A,
-  B: ENIGMA_B,
-  C: ENIGMA_C,
+export const QUEST_LENTILLE: QuestMeta = {
+  id: "lentille",
+  title: "L'Éclat du Sanctuaire",
+  subtitle: "Le rayon qui révèle la sortie",
+  zone: "Sanctuaire",
+  hints: [
+    "Le coffre du Majlis contenait un objet de verre — où pourrait-il bien se loger ?",
+    "Le grand lustre du Sanctuaire a une forme vide en son centre.",
+    "Place la lentille de cristal sur le lustre du Sanctuaire.",
+  ],
+};
+
+export const ALL_QUESTS: Record<QuestMeta["id"], QuestMeta> = {
+  astrolabe: QUEST_ASTROLABE,
+  manuscrits: QUEST_MANUSCRITS,
+  jarres: QUEST_JARRES,
+  lentille: QUEST_LENTILLE,
 };

@@ -6,11 +6,11 @@ import { useRouter } from "next/navigation";
 import { useAlBayanStore } from "@/lib/al-bayan/game-store";
 import { GAME_DURATION } from "@/lib/al-bayan/puzzle-logic";
 
-const MANUSCRIT_FINAL = `"Ô gardiens de la lettre, vous avez prouvé que la clarté — al-bayân — ne se gagne jamais par hasard. \
-Vous avez pesé un témoignage et compris qu'un seul homme intègre peut valoir deux. \
-Vous avez redonné leurs points aux lettres muettes des premiers copistes. \
-Vous avez suivi les routes par lesquelles la parole de Dieu a traversé les déserts jusqu'à Koufa, Bassora et Damas. \
-Ce que vous tenez entre vos mains n'est pas un trésor d'or, mais la preuve que la vérité, transmise avec rigueur, traverse les siècles sans une seule lettre perdue."`;
+const MANUSCRIT_FINAL = `"Vous avez lu le ciel dans les anneaux de la fontaine, soulevé le tapis qui gardait son secret, \
+remis les manuscrits dans l'ordre du temps, et lu l'argile des jarres comme on lit un message. \
+La lentille de cristal, longtemps enfermée dans le coffre de cèdre, a enfin trouvé sa place sur le grand lustre — \
+et son éclat a révélé la trappe que la villa cachait depuis toujours. \
+Vous quittez cette demeure non pas les mains vides, mais avec la certitude qu'aucun secret ne résiste à qui explore avec méthode."`;
 
 const CONFETTI = Array.from({ length: 40 }, (_, i) => ({
   left: `${(i * 137.5) % 100}%`,
@@ -37,9 +37,11 @@ function StarRating({ timeLeft }: { timeLeft: number }) {
 
 export default function VictoryOverlay() {
   const timeLeft = useAlBayanStore((s) => s.timeLeft);
+  const hintsUsed = useAlBayanStore((s) => s.hintsUsed);
   const resetGame = useAlBayanStore((s) => s.resetGame);
   const router = useRouter();
   const [showContent, setShowContent] = useState(false);
+  const flawless = hintsUsed === 0;
 
   useEffect(() => {
     const t = setTimeout(() => setShowContent(true), 600);
@@ -74,10 +76,25 @@ export default function VictoryOverlay() {
             </motion.div>
 
             <h2 style={{ fontFamily: "var(--font-bricolage, var(--font-dm-sans))", fontSize: 22, color: "#60a5fa", textAlign: "center", fontWeight: 900 }}>
-              Le Coffret est ouvert !
+              La Sortie est révélée !
             </h2>
 
             <StarRating timeLeft={timeLeft} />
+
+            {flawless && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.6 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1.4, type: "spring", stiffness: 300, damping: 14 }}
+                className="flex items-center gap-1.5 rounded-full px-3 py-1"
+                style={{ background: "rgba(96,165,250,0.12)", border: "1px solid rgba(96,165,250,0.4)" }}
+              >
+                <span style={{ fontSize: 13 }}>✦</span>
+                <span style={{ fontSize: 10, fontFamily: "var(--font-dm-sans)", fontWeight: 800, color: "#60a5fa", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+                  Sans indice — les quatre énigmes résolues seuls
+                </span>
+              </motion.div>
+            )}
 
             <p style={{ fontSize: 11, fontFamily: "var(--font-dm-sans)", color: "rgba(248,244,236,0.45)", textAlign: "center" }}>
               Temps restant : {String(minutesLeft).padStart(2, "0")}:{String(secondsLeft).padStart(2, "0")} sur {Math.floor(GAME_DURATION / 60)} minutes

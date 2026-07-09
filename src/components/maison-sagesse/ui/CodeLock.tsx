@@ -3,6 +3,8 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useMaisonSagesseStore } from "@/lib/maison-sagesse/game-store";
+import { playInteract, playBuzz } from "@/lib/maison-sagesse/audio-engine";
+import { triggerShake } from "@/lib/camera-shake";
 
 type Slot = "a" | "b" | "c";
 
@@ -19,12 +21,14 @@ function DigitSlot({
 
   const increment = () => {
     if (disabled) return;
+    playInteract();
     const next = value === null ? 0 : (value + 1) % 10;
     setCodeDigit(slot, next);
   };
 
   const decrement = () => {
     if (disabled) return;
+    playInteract();
     const next = value === null ? 9 : (value - 1 + 10) % 10;
     setCodeDigit(slot, next);
   };
@@ -123,6 +127,8 @@ export default function CodeLock() {
       setFeedbackMsg("Le coffre s'ouvre...");
       setShowFeedback(true);
     } else {
+      playBuzz();
+      triggerShake(0.06, 0.35);
       setShaking(true);
       setFeedbackMsg(`Combinaison incorrecte... (tentative ${codeAttempts + 1})`);
       setShowFeedback(true);
@@ -132,11 +138,6 @@ export default function CodeLock() {
   }, [allFilled, tryOpenLock, codeAttempts]);
 
   const disabled = lockOpen || phase === "victory" || phase === "failure";
-
-  // Only show when phase is code-lock or later
-  if (phase !== "code-lock" && phase !== "victory" && phase !== "failure") {
-    return null;
-  }
 
   return (
     <motion.div

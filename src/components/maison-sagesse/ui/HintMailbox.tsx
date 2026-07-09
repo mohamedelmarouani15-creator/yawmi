@@ -246,7 +246,7 @@ export default function HintMailbox() {
 
   const [open, setOpen] = useState(false);
 
-  if (phase === "idle" || phase === "intro" || phase === "victory" || phase === "failure") {
+  if (phase === "idle" || phase === "victory" || phase === "failure") {
     return null;
   }
 

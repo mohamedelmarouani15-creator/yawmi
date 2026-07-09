@@ -3,80 +3,83 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAlBayanStore } from "@/lib/al-bayan/game-store";
+import { playInteract, playBuzz } from "@/lib/al-bayan/audio-engine";
+import { triggerShake } from "@/lib/camera-shake";
 
-type Slot = "a" | "b" | "c";
+const SLOT_COUNT = 4;
 
-function DigitSlot({ slot, value, disabled }: { slot: Slot; value: number | null; disabled: boolean }) {
-  const setCodeDigit = useAlBayanStore((s) => s.setCodeDigit);
-
+function DigitSlot({ value, disabled, onChange }: { value: number; disabled: boolean; onChange: (next: number) => void }) {
   const increment = () => {
     if (disabled) return;
-    setCodeDigit(slot, value === null ? 0 : (value + 1) % 10);
+    playInteract();
+    onChange((value + 1) % 10);
   };
   const decrement = () => {
     if (disabled) return;
-    setCodeDigit(slot, value === null ? 9 : (value - 1 + 10) % 10);
+    playInteract();
+    onChange((value - 1 + 10) % 10);
   };
 
   return (
     <div className="flex flex-col items-center gap-1">
       <motion.button whileTap={{ scale: 0.85 }} onClick={increment} disabled={disabled}
-        className="flex items-center justify-center w-10 h-8 rounded-lg"
-        style={{ background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.25)", color: disabled ? "rgba(212,175,55,0.3)" : "#D4AF37", fontSize: 14, cursor: disabled ? "not-allowed" : "pointer" }}
+        className="flex items-center justify-center w-9 h-7 rounded-lg"
+        style={{ background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.25)", color: disabled ? "rgba(212,175,55,0.3)" : "#D4AF37", fontSize: 13, cursor: disabled ? "not-allowed" : "pointer" }}
         aria-label="Augmenter">▲</motion.button>
 
       <AnimatePresence mode="wait">
         <motion.div
-          key={value ?? "null"}
+          key={value}
           initial={{ y: -10, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 10, opacity: 0 }} transition={{ duration: 0.15 }}
-          className="flex items-center justify-center w-14 h-14 rounded-xl"
+          className="flex items-center justify-center w-12 h-12 rounded-xl"
           style={{ background: "rgba(10,15,13,0.9)", border: "2px solid rgba(212,175,55,0.4)", boxShadow: "inset 0 2px 8px rgba(0,0,0,0.5)" }}
         >
-          <span style={{ fontSize: 32, fontFamily: "var(--font-dm-sans)", fontWeight: 900, color: value !== null ? "#D4AF37" : "rgba(212,175,55,0.2)", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
-            {value !== null ? value : "–"}
+          <span style={{ fontSize: 26, fontFamily: "var(--font-dm-sans)", fontWeight: 900, color: "#D4AF37", lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
+            {value}
           </span>
         </motion.div>
       </AnimatePresence>
 
       <motion.button whileTap={{ scale: 0.85 }} onClick={decrement} disabled={disabled}
-        className="flex items-center justify-center w-10 h-8 rounded-lg"
-        style={{ background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.25)", color: disabled ? "rgba(212,175,55,0.3)" : "#D4AF37", fontSize: 14, cursor: disabled ? "not-allowed" : "pointer" }}
+        className="flex items-center justify-center w-9 h-7 rounded-lg"
+        style={{ background: "rgba(212,175,55,0.12)", border: "1px solid rgba(212,175,55,0.25)", color: disabled ? "rgba(212,175,55,0.3)" : "#D4AF37", fontSize: 13, cursor: disabled ? "not-allowed" : "pointer" }}
         aria-label="Diminuer">▼</motion.button>
     </div>
   );
 }
 
+/** Coffre en cèdre du Majlis — s'ouvre avec le code à 4 chiffres lu sur les
+ * jarres de la Cuisine (voir puzzle-logic.ts, JAR_CODE). Contient la
+ * lentille de cristal nécessaire à l'énigme du Sanctuaire. */
 export default function CodeLock() {
-  const codeLock = useAlBayanStore((s) => s.codeLock);
-  const lockOpen = useAlBayanStore((s) => s.lockOpen);
-  const codeAttempts = useAlBayanStore((s) => s.codeAttempts);
-  const tryOpenLock = useAlBayanStore((s) => s.tryOpenLock);
+  const safeOpen = useAlBayanStore((s) => s.safeOpen);
+  const openSafe = useAlBayanStore((s) => s.openSafe);
   const phase = useAlBayanStore((s) => s.phase);
 
+  const [digits, setDigits] = useState<number[]>(Array(SLOT_COUNT).fill(0));
   const [showFeedback, setShowFeedback] = useState(false);
   const [feedbackMsg, setFeedbackMsg] = useState("");
   const [shaking, setShaking] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
-
-  const allFilled = codeLock.a !== null && codeLock.b !== null && codeLock.c !== null;
+  const [attempts, setAttempts] = useState(0);
 
   const handleTry = useCallback(() => {
-    if (!allFilled) return;
-    const success = tryOpenLock();
+    const success = openSafe(digits);
     if (success) {
-      setIsOpen(true);
-      setFeedbackMsg("Le coffret s'ouvre...");
+      setFeedbackMsg("Le coffre s'ouvre...");
       setShowFeedback(true);
     } else {
+      playBuzz();
+      triggerShake(0.06, 0.35);
       setShaking(true);
-      setFeedbackMsg(`Combinaison incorrecte... (tentative ${codeAttempts + 1})`);
+      setAttempts((a) => a + 1);
+      setFeedbackMsg(`Combinaison incorrecte... (tentative ${attempts + 1})`);
       setShowFeedback(true);
       setTimeout(() => setShaking(false), 500);
       setTimeout(() => setShowFeedback(false), 2500);
     }
-  }, [allFilled, tryOpenLock, codeAttempts]);
+  }, [openSafe, digits, attempts]);
 
-  const disabled = lockOpen || phase === "victory" || phase === "failure";
+  const disabled = safeOpen || phase === "victory" || phase === "failure";
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="pointer-events-auto">
@@ -88,29 +91,32 @@ export default function CodeLock() {
       >
         <div className="text-center mb-3">
           <span style={{ fontSize: 9, fontFamily: "var(--font-dm-sans)", color: "rgba(212,175,55,0.6)", textTransform: "uppercase", letterSpacing: "0.2em", fontWeight: 700 }}>
-            Le Coffret des Manuscrits
+            Le Coffre en Cèdre
           </span>
         </div>
 
         <div className="text-center mb-3">
-          <motion.span animate={isOpen ? { rotate: [0, -20, 0], scale: [1, 1.2, 1] } : {}} transition={{ duration: 0.5 }} style={{ fontSize: 28 }}>
-            {isOpen ? "🔓" : "🔒"}
+          <motion.span animate={safeOpen ? { rotate: [0, -20, 0], scale: [1, 1.2, 1] } : {}} transition={{ duration: 0.5 }} style={{ fontSize: 28 }}>
+            {safeOpen ? "🔓" : "🔒"}
           </motion.span>
         </div>
 
-        <div className="flex items-center gap-3 justify-center mb-4">
-          <DigitSlot slot="a" value={codeLock.a} disabled={disabled} />
-          <span style={{ color: "rgba(212,175,55,0.4)", fontSize: 20, fontWeight: 900, alignSelf: "center", marginTop: 8 }}>–</span>
-          <DigitSlot slot="b" value={codeLock.b} disabled={disabled} />
-          <span style={{ color: "rgba(212,175,55,0.4)", fontSize: 20, fontWeight: 900, alignSelf: "center", marginTop: 8 }}>–</span>
-          <DigitSlot slot="c" value={codeLock.c} disabled={disabled} />
+        <div className="flex items-center gap-2 justify-center mb-4">
+          {digits.map((d, i) => (
+            <DigitSlot
+              key={i}
+              value={d}
+              disabled={disabled}
+              onChange={(next) => setDigits((prev) => prev.map((v, idx) => (idx === i ? next : v)))}
+            />
+          ))}
         </div>
 
         <AnimatePresence>
           {showFeedback && (
             <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
               className="text-center mb-3 text-xs"
-              style={{ color: isOpen ? "#4ade80" : "#f87171", fontFamily: "var(--font-dm-sans)", fontWeight: 600 }}>
+              style={{ color: safeOpen ? "#4ade80" : "#f87171", fontFamily: "var(--font-dm-sans)", fontWeight: 600 }}>
               {feedbackMsg}
             </motion.p>
           )}
@@ -120,25 +126,24 @@ export default function CodeLock() {
           <motion.button
             whileTap={{ scale: 0.95 }}
             onClick={handleTry}
-            animate={allFilled ? { boxShadow: ["0 0 0px rgba(212,175,55,0)", "0 0 18px rgba(212,175,55,0.5)", "0 0 0px rgba(212,175,55,0)"] } : {}}
-            transition={allFilled ? { duration: 1.5, repeat: Infinity } : {}}
-            disabled={!allFilled}
+            animate={{ boxShadow: ["0 0 0px rgba(212,175,55,0)", "0 0 18px rgba(212,175,55,0.5)", "0 0 0px rgba(212,175,55,0)"] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
             className="w-full rounded-xl py-2.5"
             style={{
-              background: allFilled ? "linear-gradient(135deg, #7a5c1a 0%, #D4AF37 50%, #7a5c1a 100%)" : "rgba(212,175,55,0.08)",
-              border: `1px solid ${allFilled ? "rgba(212,175,55,0.7)" : "rgba(212,175,55,0.2)"}`,
-              color: allFilled ? "#0A0F0D" : "rgba(212,175,55,0.3)",
+              background: "linear-gradient(135deg, #7a5c1a 0%, #D4AF37 50%, #7a5c1a 100%)",
+              border: "1px solid rgba(212,175,55,0.7)",
+              color: "#0A0F0D",
               fontFamily: "var(--font-dm-sans)", fontWeight: 800, fontSize: 13, letterSpacing: "0.08em",
-              cursor: allFilled ? "pointer" : "not-allowed",
+              cursor: "pointer",
             }}
           >
-            Ouvrir le Coffret
+            Ouvrir le Coffre
           </motion.button>
         )}
 
-        {codeAttempts > 0 && !disabled && (
+        {attempts > 0 && !disabled && (
           <p className="text-center mt-2" style={{ fontSize: 9, color: "rgba(248,244,236,0.25)", fontFamily: "var(--font-dm-sans)" }}>
-            {codeAttempts} tentative{codeAttempts > 1 ? "s" : ""} incorrecte{codeAttempts > 1 ? "s" : ""}
+            {attempts} tentative{attempts > 1 ? "s" : ""} incorrecte{attempts > 1 ? "s" : ""}
           </p>
         )}
       </motion.div>

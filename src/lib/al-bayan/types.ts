@@ -1,18 +1,10 @@
-// Phase de jeu — les "salles" sont maintenant gérées par les routes Next.js
-// (/oasis/al-bayan, /temoignage, /rasm, /codicilles, /coffret) ; le store ne
-// garde que les états transverses qui ne sont pas une salle navigable.
+// Phase de jeu — le monde est un seul open-world persistant (plus de routes
+// par salle) ; le store ne garde que les états transverses.
 export type GamePhase = 'idle' | 'playing' | 'victory' | 'failure';
 
-// Progression d'une énigme
-export interface EnigmaState {
-  solved: boolean;
-  digit: number | null;
-  cluesFound: string[];
-  hintsUsed: number; // 0-3
-  startedAt: number | null; // timestamp
-}
-
-// État complet du jeu
+// Progression d'une quête imbriquée (villa/riad) — chaque étape déverrouille
+// physiquement la suivante (porte verrouillée, passage secret) plutôt que de
+// simplement révéler un chiffre combiné à la fin.
 export interface AlBayanState {
   phase: GamePhase;
   timeLeft: number; // secondes, commence à 2700 (45 min)
@@ -20,21 +12,36 @@ export interface AlBayanState {
   startedAt: number | null;
   playerCount: number; // 1-5
 
-  enigmaA: EnigmaState; // Le Poids du Témoignage → digit = 2
-  enigmaB: EnigmaState; // Le Rasm Primitif → digit = 7
-  enigmaC: EnigmaState; // La Route des Codicilles → digit = 4
+  // Énigme 1 — Astrolabe du Jardin -> déverrouille le Majlis
+  astrolabeSolved: boolean;
+  majlisUnlocked: boolean;
 
-  codeLock: { a: number | null; b: number | null; c: number | null };
-  lockOpen: boolean;
-  codeAttempts: number;
+  // Énigme 2 — Manuscrits du Scriptorium -> déverrouille la Cuisine
+  libraryClueFound: boolean; // indice trouvé sous le tapis du Majlis
+  manuscriptsSolved: boolean;
+  cuisineUnlocked: boolean;
+
+  // Énigme 3 — Jarres de la Cuisine -> ouvre le coffre du Majlis
+  jarsRead: boolean;
+  safeOpen: boolean;
+  lensCollected: boolean;
+
+  // Énigme 4 — Lentille sur le lustre du Sanctuaire -> révèle la sortie
+  lensPlaced: boolean;
+  exitRevealed: boolean;
+
+  hintsUsed: number; // 0-3, mutualisé sur les 45 minutes
 
   // Actions
   setPhase: (phase: GamePhase) => void;
   startGame: (playerCount: number) => void;
   tick: () => void;
-  markClueFound: (enigma: 'A' | 'B' | 'C', clueId: string) => void;
-  solveEnigma: (enigma: 'A' | 'B' | 'C') => void;
-  setCodeDigit: (position: 'a' | 'b' | 'c', digit: number) => void;
-  tryOpenLock: () => boolean;
+  solveAstrolabe: () => void;
+  findLibraryClue: () => void;
+  solveManuscripts: () => void;
+  readJars: () => void;
+  openSafe: (code: number[]) => boolean;
+  placeLens: () => void;
+  useHint: () => void;
   resetGame: () => void;
 }

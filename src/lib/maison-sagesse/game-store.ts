@@ -82,7 +82,7 @@ export const useMaisonSagesseStore = create<MaisonSagesseState>()(
       startGame: (playerCount: number) => {
         set({
           ...initialState,
-          phase: 'intro',
+          phase: 'playing',
           isRunning: true,
           timeLeft: GAME_DURATION,
           startedAt: Date.now(),

@@ -1,19 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { AlBayanState, GamePhase, EnigmaState } from './types';
-import { SOLUTION, GAME_DURATION } from './puzzle-logic';
-
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-function makeEnigmaState(): EnigmaState {
-  return {
-    solved: false,
-    digit: null,
-    cluesFound: [],
-    hintsUsed: 0,
-    startedAt: null,
-  };
-}
+import type { AlBayanState, GamePhase } from './types';
+import { GAME_DURATION, JAR_CODE } from './puzzle-logic';
 
 // ── État initial ──────────────────────────────────────────────────────────
 
@@ -22,10 +10,13 @@ type StoreState = Omit<
   | 'setPhase'
   | 'startGame'
   | 'tick'
-  | 'markClueFound'
-  | 'solveEnigma'
-  | 'setCodeDigit'
-  | 'tryOpenLock'
+  | 'solveAstrolabe'
+  | 'findLibraryClue'
+  | 'solveManuscripts'
+  | 'readJars'
+  | 'openSafe'
+  | 'placeLens'
+  | 'useHint'
   | 'resetGame'
 >;
 
@@ -36,13 +27,21 @@ const initialState: StoreState = {
   startedAt: null,
   playerCount: 1,
 
-  enigmaA: makeEnigmaState(),
-  enigmaB: makeEnigmaState(),
-  enigmaC: makeEnigmaState(),
+  astrolabeSolved: false,
+  majlisUnlocked: false,
 
-  codeLock: { a: null, b: null, c: null },
-  lockOpen: false,
-  codeAttempts: 0,
+  libraryClueFound: false,
+  manuscriptsSolved: false,
+  cuisineUnlocked: false,
+
+  jarsRead: false,
+  safeOpen: false,
+  lensCollected: false,
+
+  lensPlaced: false,
+  exitRevealed: false,
+
+  hintsUsed: 0,
 };
 
 // ── Store ─────────────────────────────────────────────────────────────────
@@ -62,12 +61,6 @@ export const useAlBayanStore = create<AlBayanState>()(
           timeLeft: GAME_DURATION,
           startedAt: Date.now(),
           playerCount,
-          enigmaA: makeEnigmaState(),
-          enigmaB: makeEnigmaState(),
-          enigmaC: makeEnigmaState(),
-          codeLock: { a: null, b: null, c: null },
-          lockOpen: false,
-          codeAttempts: 0,
         });
       },
 
@@ -83,56 +76,36 @@ export const useAlBayanStore = create<AlBayanState>()(
         set({ timeLeft: newTimeLeft });
       },
 
-      markClueFound: (enigma: 'A' | 'B' | 'C', clueId: string) => {
+      solveAstrolabe: () => set({ astrolabeSolved: true, majlisUnlocked: true }),
+
+      findLibraryClue: () => set({ libraryClueFound: true }),
+
+      solveManuscripts: () => {
         const state = get();
-        const key = `enigma${enigma}` as 'enigmaA' | 'enigmaB' | 'enigmaC';
-        const current = state[key];
-
-        if (current.cluesFound.includes(clueId)) return;
-
-        const updated: EnigmaState = {
-          ...current,
-          cluesFound: [...current.cluesFound, clueId],
-          startedAt: current.startedAt ?? Date.now(),
-        };
-
-        set({ [key]: updated });
+        if (!state.libraryClueFound) return; // forcer l'exploration méthodique
+        set({ manuscriptsSolved: true, cuisineUnlocked: true });
       },
 
-      solveEnigma: (enigma: 'A' | 'B' | 'C') => {
-        const key = `enigma${enigma}` as 'enigmaA' | 'enigmaB' | 'enigmaC';
-        const digit =
-          enigma === 'A' ? SOLUTION.a : enigma === 'B' ? SOLUTION.b : SOLUTION.c;
+      readJars: () => set({ jarsRead: true }),
 
-        set((state) => ({
-          [key]: { ...state[key], solved: true, digit },
-        }));
-      },
-
-      setCodeDigit: (position: 'a' | 'b' | 'c', digit: number) => {
-        set((state) => ({
-          codeLock: { ...state.codeLock, [position]: digit },
-        }));
-      },
-
-      tryOpenLock: () => {
-        const state = get();
-        const { a, b, c } = state.codeLock;
-
-        const isCorrect = a === SOLUTION.a && b === SOLUTION.b && c === SOLUTION.c;
-
+      openSafe: (code: number[]) => {
+        const isCorrect = code.length === JAR_CODE.length && code.every((d, i) => d === JAR_CODE[i]);
         if (isCorrect) {
-          set({ lockOpen: true, isRunning: false, phase: 'victory' });
+          set({ safeOpen: true, lensCollected: true });
           return true;
         }
-
-        set((s) => ({ codeAttempts: s.codeAttempts + 1 }));
         return false;
       },
 
-      resetGame: () => {
-        set({ ...initialState });
+      placeLens: () => {
+        const state = get();
+        if (!state.lensCollected) return;
+        set({ lensPlaced: true, exitRevealed: true, isRunning: false, phase: 'victory' });
       },
+
+      useHint: () => set((s) => ({ hintsUsed: Math.min(3, s.hintsUsed + 1) })),
+
+      resetGame: () => set({ ...initialState }),
     }),
     {
       name: 'yawmi_al_bayan',
@@ -142,12 +115,17 @@ export const useAlBayanStore = create<AlBayanState>()(
         isRunning: state.isRunning,
         startedAt: state.startedAt,
         playerCount: state.playerCount,
-        enigmaA: state.enigmaA,
-        enigmaB: state.enigmaB,
-        enigmaC: state.enigmaC,
-        codeLock: state.codeLock,
-        lockOpen: state.lockOpen,
-        codeAttempts: state.codeAttempts,
+        astrolabeSolved: state.astrolabeSolved,
+        majlisUnlocked: state.majlisUnlocked,
+        libraryClueFound: state.libraryClueFound,
+        manuscriptsSolved: state.manuscriptsSolved,
+        cuisineUnlocked: state.cuisineUnlocked,
+        jarsRead: state.jarsRead,
+        safeOpen: state.safeOpen,
+        lensCollected: state.lensCollected,
+        lensPlaced: state.lensPlaced,
+        exitRevealed: state.exitRevealed,
+        hintsUsed: state.hintsUsed,
       }),
     }
   )

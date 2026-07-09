@@ -3,17 +3,23 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAlBayanStore } from "@/lib/al-bayan/game-store";
-import { HINTS_TEMOIGNAGE, HINTS_RASM, HINTS_ROUTE } from "@/lib/al-bayan/puzzle-logic";
+import { ALL_QUESTS, type QuestMeta } from "@/lib/al-bayan/puzzle-logic";
 
-type EnigmaKey = "A" | "B" | "C";
-
-const ENIGMA_CONFIG: Record<EnigmaKey, { label: string; icon: string; hints: [string, string, string]; color: string }> = {
-  A: { label: "Le Poids du Témoignage", icon: "⚖️", hints: HINTS_TEMOIGNAGE, color: "#D4AF37" },
-  B: { label: "Le Rasm Primitif", icon: "✒️", hints: HINTS_RASM, color: "#60a5fa" },
-  C: { label: "La Route des Codicilles", icon: "🗺️", hints: HINTS_ROUTE, color: "#34d399" },
+const QUEST_ICON: Record<QuestMeta["id"], string> = {
+  astrolabe: "🔭",
+  manuscrits: "📜",
+  jarres: "🏺",
+  lentille: "💎",
 };
 
-const HINT_COST_LABEL = ["Gratuit", "-30s", "-60s"];
+const QUEST_COLOR: Record<QuestMeta["id"], string> = {
+  astrolabe: "#D4AF37",
+  manuscrits: "#60a5fa",
+  jarres: "#e8a33d",
+  lentille: "#34d399",
+};
+
+const HINT_LEVEL_LABEL = ["Niv.1", "Niv.2", "Niv.3"];
 
 function LetterReveal({ text, onClose, color }: { text: string; onClose: () => void; color: string }) {
   return (
@@ -33,7 +39,7 @@ function LetterReveal({ text, onClose, color }: { text: string; onClose: () => v
         <div className="text-center mb-3"><span style={{ fontSize: 28 }}>📜</span></div>
         <div className="text-center mb-3 pb-3" style={{ borderBottom: "1px solid rgba(212,175,55,0.15)" }}>
           <span style={{ fontSize: 8, fontFamily: "var(--font-dm-sans)", color: "rgba(212,175,55,0.5)", textTransform: "uppercase", letterSpacing: "0.2em", fontWeight: 700 }}>
-            Lettre du Messager
+            Indice
           </span>
         </div>
         <div className="rounded-xl p-3 mb-4" style={{ background: "rgba(248,244,236,0.04)", border: "1px solid rgba(248,244,236,0.08)" }}>
@@ -49,71 +55,95 @@ function LetterReveal({ text, onClose, color }: { text: string; onClose: () => v
   );
 }
 
-function EnigmaHintSection({ enigmaKey, hintsUsed }: { enigmaKey: EnigmaKey; hintsUsed: number }) {
-  const config = ENIGMA_CONFIG[enigmaKey];
+function QuestHintSection({
+  quest,
+  revealedLevel,
+  hintsRemaining,
+  onRequestHint,
+}: {
+  quest: QuestMeta;
+  revealedLevel: number;
+  hintsRemaining: number;
+  onRequestHint: () => void;
+}) {
+  const color = QUEST_COLOR[quest.id];
   const [revealedText, setRevealedText] = useState<string | null>(null);
-  const [localHintsUsed, setLocalHintsUsed] = useState(hintsUsed);
-
-  const nextHintLevel = localHintsUsed;
-  const allUsed = nextHintLevel >= 3;
+  const allUsed = revealedLevel >= 3;
+  const canRequest = !allUsed && hintsRemaining > 0;
 
   const handleRequestHint = () => {
-    if (allUsed) return;
-    setRevealedText(config.hints[nextHintLevel]);
-    setLocalHintsUsed((n) => n + 1);
+    if (!canRequest) return;
+    setRevealedText(quest.hints[revealedLevel]);
+    onRequestHint();
   };
 
   return (
     <div className="rounded-xl p-3" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
       <div className="flex items-center gap-2 mb-2">
-        <span style={{ fontSize: 14 }}>{config.icon}</span>
-        <span style={{ fontSize: 10, fontFamily: "var(--font-dm-sans)", color: config.color, fontWeight: 700 }}>{config.label}</span>
+        <span style={{ fontSize: 14 }}>{QUEST_ICON[quest.id]}</span>
+        <span style={{ fontSize: 10, fontFamily: "var(--font-dm-sans)", color, fontWeight: 700 }}>{quest.title}</span>
         <span style={{ fontSize: 8, color: "rgba(248,244,236,0.3)", fontFamily: "var(--font-dm-sans)", marginLeft: "auto" }}>
-          {localHintsUsed}/3 indice{localHintsUsed !== 1 ? "s" : ""} utilisé{localHintsUsed !== 1 ? "s" : ""}
+          {revealedLevel}/3 indice{revealedLevel !== 1 ? "s" : ""}
         </span>
       </div>
 
       <div className="flex gap-1.5">
         {([0, 1, 2] as const).map((idx) => {
-          const used = idx < localHintsUsed;
-          const isNext = idx === nextHintLevel;
+          const used = idx < revealedLevel;
+          const isNext = idx === revealedLevel;
+          const clickable = isNext && canRequest;
           return (
             <motion.button
               key={idx}
-              whileTap={isNext ? { scale: 0.92 } : {}}
-              onClick={isNext ? handleRequestHint : undefined}
+              whileTap={clickable ? { scale: 0.92 } : {}}
+              onClick={clickable ? handleRequestHint : undefined}
+              disabled={!clickable}
               className="flex-1 rounded-lg py-1.5 text-[9px] font-bold"
               style={{
-                background: used ? `${config.color}15` : isNext ? `${config.color}20` : "rgba(255,255,255,0.03)",
-                border: `1px solid ${used ? `${config.color}30` : isNext ? `${config.color}45` : "rgba(255,255,255,0.06)"}`,
-                color: used ? `${config.color}80` : isNext ? config.color : "rgba(248,244,236,0.2)",
-                cursor: isNext ? "pointer" : "default",
+                background: used ? `${color}15` : isNext ? `${color}20` : "rgba(255,255,255,0.03)",
+                border: `1px solid ${used ? `${color}30` : isNext ? `${color}45` : "rgba(255,255,255,0.06)"}`,
+                color: used ? `${color}80` : isNext ? color : "rgba(248,244,236,0.2)",
+                cursor: clickable ? "pointer" : "default",
                 fontFamily: "var(--font-dm-sans)",
+                opacity: isNext && !canRequest ? 0.4 : 1,
               }}
             >
-              {used ? "✓" : `Niv.${idx + 1}`}
-              {!used && <span style={{ display: "block", fontSize: 7, opacity: 0.6 }}>{HINT_COST_LABEL[idx]}</span>}
+              {used ? "✓" : HINT_LEVEL_LABEL[idx]}
             </motion.button>
           );
         })}
       </div>
 
       <AnimatePresence>
-        {revealedText && <LetterReveal text={revealedText} onClose={() => setRevealedText(null)} color={config.color} />}
+        {revealedText && <LetterReveal text={revealedText} onClose={() => setRevealedText(null)} color={color} />}
       </AnimatePresence>
     </div>
   );
 }
 
+/**
+ * 3 indices au total, mutualisés sur les 45 minutes (voir game-store.ts,
+ * `hintsUsed`) et répartissables librement entre les 4 énigmes — le niveau
+ * révélé par énigme reste local au composant (pas besoin de le persister,
+ * seul le compteur global est stateful côté store).
+ */
 export default function HintMailbox() {
-  const enigmaA = useAlBayanStore((s) => s.enigmaA);
-  const enigmaB = useAlBayanStore((s) => s.enigmaB);
-  const enigmaC = useAlBayanStore((s) => s.enigmaC);
   const phase = useAlBayanStore((s) => s.phase);
+  const hintsUsed = useAlBayanStore((s) => s.hintsUsed);
+  const consumeHint = useAlBayanStore((s) => s.useHint);
 
   const [open, setOpen] = useState(false);
+  const [revealedLevels, setRevealedLevels] = useState<Record<QuestMeta["id"], number>>({
+    astrolabe: 0,
+    manuscrits: 0,
+    jarres: 0,
+    lentille: 0,
+  });
 
   if (phase === "idle" || phase === "victory" || phase === "failure") return null;
+
+  const hintsRemaining = 3 - hintsUsed;
+  const quests = Object.values(ALL_QUESTS);
 
   return (
     <div className="pointer-events-auto">
@@ -125,7 +155,7 @@ export default function HintMailbox() {
       >
         <span style={{ fontSize: 16 }}>✉️</span>
         <span style={{ fontSize: 9, fontFamily: "var(--font-dm-sans)", color: "rgba(212,175,55,0.7)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>
-          Lettres du Messager
+          Indices ({hintsRemaining}/3)
         </span>
         <span style={{ fontSize: 10, color: "rgba(212,175,55,0.5)", marginLeft: 2 }}>{open ? "▲" : "▼"}</span>
       </motion.button>
@@ -135,11 +165,20 @@ export default function HintMailbox() {
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} style={{ overflow: "hidden" }}>
             <div className="rounded-2xl p-3 flex flex-col gap-2" style={{ background: "rgba(10,15,13,0.92)", border: "1px solid rgba(212,175,55,0.22)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", width: 240 }}>
               <p style={{ fontSize: 8, fontFamily: "var(--font-dm-sans)", color: "rgba(248,244,236,0.3)", textAlign: "center", marginBottom: 2 }}>
-                Niveau 2 et 3 réservés aux indices les plus directs
+                3 indices au total, à répartir entre les 4 énigmes
               </p>
-              <EnigmaHintSection enigmaKey="A" hintsUsed={enigmaA.hintsUsed} />
-              <EnigmaHintSection enigmaKey="B" hintsUsed={enigmaB.hintsUsed} />
-              <EnigmaHintSection enigmaKey="C" hintsUsed={enigmaC.hintsUsed} />
+              {quests.map((quest) => (
+                <QuestHintSection
+                  key={quest.id}
+                  quest={quest}
+                  revealedLevel={revealedLevels[quest.id]}
+                  hintsRemaining={hintsRemaining}
+                  onRequestHint={() => {
+                    setRevealedLevels((prev) => ({ ...prev, [quest.id]: prev[quest.id] + 1 }));
+                    consumeHint();
+                  }}
+                />
+              ))}
             </div>
           </motion.div>
         )}

@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
+import { checkRateLimit } from "@/lib/rate-limit";
 
-export async function GET() {
+function supabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+  );
+}
+
+async function requireUser(req: NextRequest) {
+  const auth = req.headers.get("Authorization");
+  if (!auth?.startsWith("Bearer ")) return null;
+  const { data: { user } } = await supabaseAdmin().auth.getUser(auth.replace("Bearer ", ""));
+  return user;
+}
+
+export async function GET(req: NextRequest) {
+  const user = await requireUser(req);
+  if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
   const apiKey = process.env.OPENROUTER_API_KEY;
   if (!apiKey) return NextResponse.json({ error: "OPENROUTER_API_KEY manquante" });
   const res  = await fetch("https://openrouter.ai/api/v1/models", {
@@ -19,10 +38,22 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const user = await requireUser(req);
+    if (!user) return NextResponse.json({ error: "Non authentifié" }, { status: 401 });
+
+    // Rate limit: 20 analyses/heure
+    const rl = await checkRateLimit(user.id, "analyser_ecriture", 20);
+    if (rl.limited) {
+      return NextResponse.json({ error: "Limite atteinte (20/heure)" }, { status: 429 });
+    }
+
     const { imageBase64, mimeType, wordAr, wordFr, ageGroup } = await req.json();
 
     if (!imageBase64 || !wordAr) {
       return NextResponse.json({ error: "Image ou mot manquant" }, { status: 400 });
+    }
+    if (imageBase64.length > 2_000_000) {
+      return NextResponse.json({ error: "Image trop volumineuse" }, { status: 413 });
     }
 
     const apiKey = process.env.OPENROUTER_API_KEY;
@@ -65,7 +96,8 @@ Réponds UNIQUEMENT en JSON valide :
 
     if (!res.ok) {
       const txt = await res.text();
-      return NextResponse.json({ error: `OpenRouter ${res.status}: ${txt.slice(0, 300)}` }, { status: res.status });
+      console.error("[analyser-ecriture/openrouter]", res.status, txt.slice(0, 300));
+      return NextResponse.json({ error: "Analyse indisponible, réessaie plus tard" }, { status: 502 });
     }
 
     const data  = await res.json();
@@ -81,6 +113,6 @@ Réponds UNIQUEMENT en JSON valide :
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error("[analyser-ecriture/openrouter]", msg);
-    return NextResponse.json({ error: msg }, { status: 500 });
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }

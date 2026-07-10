@@ -148,19 +148,26 @@ export function MashrabiyaScreen({ position, rotationY = 0, width = 1.3, height 
   const strutColor = "#160E06";
   const struts = useMemo(() => Array.from({ length: 5 }, (_, i) => -width / 2 + ((i + 0.5) / 5) * width), [width]);
 
+  // `noCollide` doit être posé sur chaque `<mesh>` individuellement — le
+  // scan de colliders (WePlayAvatar.tsx) traverse la scène mesh par mesh et
+  // lit `obj.userData.noCollide` sur le mesh lui-même, qui n'hérite PAS du
+  // `userData` d'un `<group>` parent en three.js. Un premier essai posait le
+  // flag sur le groupe englobant : le panneau (2 unités de haut) serait
+  // devenu un vrai collider invisible, capable de bloquer un passage si
+  // jamais placé un peu trop près d'une porte.
   return (
-    <group position={position} rotation={[0, rotationY, 0]} userData={{ noCollide: true }}>
-      <mesh material={woodMat}>
+    <group position={position} rotation={[0, rotationY, 0]}>
+      <mesh material={woodMat} userData={{ noCollide: true }}>
         <boxGeometry args={[width, height, 0.035]} />
       </mesh>
       {struts.map((sx, i) => (
-        <mesh key={`a-${i}`} position={[sx, 0, 0.02]} rotation={[0, 0, Math.PI / 4]}>
+        <mesh key={`a-${i}`} position={[sx, 0, 0.02]} rotation={[0, 0, Math.PI / 4]} userData={{ noCollide: true }}>
           <boxGeometry args={[0.018, height * 1.25, 0.015]} />
           <meshStandardMaterial color={strutColor} roughness={0.7} />
         </mesh>
       ))}
       {struts.map((sx, i) => (
-        <mesh key={`b-${i}`} position={[sx, 0, 0.02]} rotation={[0, 0, -Math.PI / 4]}>
+        <mesh key={`b-${i}`} position={[sx, 0, 0.02]} rotation={[0, 0, -Math.PI / 4]} userData={{ noCollide: true }}>
           <boxGeometry args={[0.018, height * 1.25, 0.015]} />
           <meshStandardMaterial color={strutColor} roughness={0.7} />
         </mesh>

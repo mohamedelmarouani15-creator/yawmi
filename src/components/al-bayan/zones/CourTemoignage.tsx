@@ -9,6 +9,7 @@ import OctagonalColumn from "../shared/OctagonalColumn";
 import InteractiveAura from "../shared/InteractiveAura";
 import ProximityPrompt from "../../maison-sagesse/shared/ProximityPrompt";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
+import { PotteryCluster } from "../shared/CorridorDecor";
 import { ASTROLABE_RINGS, ASTROLABE_TOLERANCE_DEG, FOUNTAIN_INSCRIPTION } from "@/lib/al-bayan/puzzle-logic";
 
 // Passage à l'échelle "Grand Riad" — empreinte au sol explicitement fixée à
@@ -558,6 +559,14 @@ export default function CourTemoignage({
       <LanternPost position={[20, 0, 11]} />
       <LanternPost position={[-9, 0, 3]} />
       <LanternPost position={[9, 0, 3]} />
+
+      {/* Amas de poteries près des banquettes du bassin — retour utilisateur :
+          encore trop peu de décor. Volontairement PAS dans l'arcade
+          d'entrée : les arches latérales sont un passage ouvert (largeur
+          SIDE_ARCH_HALF*2), y poser du décor l'aurait planté en plein
+          milieu du chemin de marche. */}
+      <PotteryCluster position={[-11, 0, 16]} />
+      <PotteryCluster position={[11, 0, 5]} />
     </group>
   );
 }

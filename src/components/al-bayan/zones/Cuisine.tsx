@@ -8,6 +8,7 @@ import InteractiveAura from "../shared/InteractiveAura";
 import ProximityPrompt from "../../maison-sagesse/shared/ProximityPrompt";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { JAR_CODE, KITCHEN_CLUE } from "@/lib/al-bayan/puzzle-logic";
+import { WallSconce, MonumentalVase, PotteryCluster } from "../shared/CorridorDecor";
 
 // Passage à l'échelle "Grand Riad" — SIZE x3, hauteur x1.8.
 export const CUISINE_SIZE = 11 * 3;
@@ -238,6 +239,15 @@ export default function Cuisine({ avatarRef, jarsRead, onReadJars }: CuisineProp
       <CandleLight position={[-12.9, 0.4, -9]} intensity={1.2} avatarRef={avatarRef} />
       <CandleLight position={[12.9, 0.4, -9]} intensity={1.2} avatarRef={avatarRef} />
       <CandleLight position={[0, 0.4, 13]} intensity={1.0} avatarRef={avatarRef} />
+
+      <MonumentalVase position={[-CUISINE_SIZE / 2 + 2, 0, CUISINE_SIZE / 2 - 2]} scale={1.3} />
+      <MonumentalVase position={[CUISINE_SIZE / 2 - 2, 0, CUISINE_SIZE / 2 - 2]} scale={1.3} />
+      <PotteryCluster position={[-CUISINE_SIZE / 2 + 2, 0, 0]} />
+      {/* z = SEG_Z (pas 0) côté est : le mur est a une porte au centre
+          (|z| < GAP_HALF), z=0 serait tombé en plein milieu du seuil. */}
+      <PotteryCluster position={[CUISINE_SIZE / 2 - 2, 0, SEG_Z]} />
+      <WallSconce position={[0, CUISINE_H * 0.42, -CUISINE_SIZE / 2 + 0.15]} rotationY={0} />
+      <WallSconce position={[0, CUISINE_H * 0.42, CUISINE_SIZE / 2 - 0.15]} rotationY={Math.PI} />
 
       <AmbientParticles avatarRef={avatarRef} />
     </group>

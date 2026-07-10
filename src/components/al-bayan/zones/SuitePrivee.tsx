@@ -8,6 +8,7 @@ import Moucharabieh from "../shared/Moucharabieh";
 import InteractiveAura from "../shared/InteractiveAura";
 import CodeLock from "../ui/CodeLock";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
+import { WallSconce, MonumentalVase, PotteryCluster, CushionBench } from "../shared/CorridorDecor";
 
 export const SUITE_SIZE = 24;
 export const SUITE_H = 7 * 1.8;
@@ -175,6 +176,18 @@ export default function SuitePrivee({ avatarRef, jarsRead, safeOpen }: SuitePriv
       <CandleLight position={[-9, 0.4, 6]} intensity={1.0} avatarRef={avatarRef} />
       <CandleLight position={[9, 0.4, 6]} intensity={1.0} avatarRef={avatarRef} />
       <CandleLight position={[0, 0.4, -10]} intensity={0.9} avatarRef={avatarRef} />
+
+      {/* Décor supplémentaire — retour utilisateur : pièce presque vide en
+          dehors du divan, du coffre et du point d'eau. */}
+      <MonumentalVase position={[-SUITE_SIZE / 2 + 2, 0, -SUITE_SIZE / 2 + 2]} scale={1.4} />
+      <MonumentalVase position={[SUITE_SIZE / 2 - 2, 0, SUITE_SIZE / 2 - 2]} scale={1.4} />
+      <PotteryCluster position={[-8, 0, 8]} />
+      <PotteryCluster position={[8, 0, -2]} />
+      <CushionBench position={[-8, 0, -2]} rotationY={Math.PI / 2} length={2.2} />
+      <WallSconce position={[SUITE_SIZE / 2 - 0.15, SUITE_H * 0.4, -6]} rotationY={-Math.PI / 2} />
+      <WallSconce position={[SUITE_SIZE / 2 - 0.15, SUITE_H * 0.4, 6]} rotationY={-Math.PI / 2} />
+      <WallSconce position={[-6, SUITE_H * 0.4, -SUITE_SIZE / 2 + 0.15]} rotationY={0} />
+      <WallSconce position={[6, SUITE_H * 0.4, SUITE_SIZE / 2 - 0.15]} rotationY={Math.PI} />
 
       <AmbientParticles avatarRef={avatarRef} />
     </group>

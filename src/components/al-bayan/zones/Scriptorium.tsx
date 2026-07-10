@@ -12,6 +12,7 @@ import LightShaftSun from "../world/LightShaftSun";
 import EmberParticles from "../shared/EmberParticles";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { MANUSCRIPTS } from "@/lib/al-bayan/puzzle-logic";
+import { WallSconce, MonumentalVase } from "../shared/CorridorDecor";
 
 // Passage à l'échelle "Grand Riad" — SS=3 (empreinte + décor), hauteur x1.8.
 const SS = 3;
@@ -369,7 +370,10 @@ export default function Scriptorium({
       {/* Source des rayons de lumière (GodRays) — placée côté Vestibule,
           au-delà des cloisons moucharabieh, pour que la lumière semble
           filtrer à travers les perforations ajourées. */}
-      <LightShaftSun ref={sunRef} position={[0, H / 2 + 1.5, SIZE / 2 + 6.6]} size={4} />
+      {/* Taille réduite (4 -> 1.6) : même correction que le soleil du
+          Vestibule — trop grand avec le Bloom actuel, ça écrasait l'écran
+          d'un halo blanc au lieu de filtrer à travers le moucharabieh. */}
+      <LightShaftSun ref={sunRef} position={[0, H / 2 + 1.5, SIZE / 2 + 6.6]} size={1.6} />
 
       {/* Bibliothèques murales chargées de parchemins */}
       <ScrollShelf position={[-SIZE / 2 + 0.5, 1.5, -8]} rotation={[0, Math.PI / 2, 0]} width={11} />
@@ -391,6 +395,14 @@ export default function Scriptorium({
       <CandleLight position={[0, 0.4, 10.5]} intensity={1.2} avatarRef={avatarRef} />
       <EmberParticles position={[-13.5, 0.55, -9]} count={11} />
       <EmberParticles position={[13.5, 0.55, -9]} count={11} />
+
+      {/* x = ±17.1 (pas 0) : le centre du mur sud est un moucharabieh ouvert
+          (source du GodRays), pas un pan plein — les vases vont sur les
+          pans pleins qui le flanquent jusqu'aux coins. */}
+      <MonumentalVase position={[-SIZE / 2 + 2, 0, SIZE / 2 - 2]} scale={1.3} />
+      <MonumentalVase position={[SIZE / 2 - 2, 0, SIZE / 2 - 2]} scale={1.3} />
+      <WallSconce position={[-17.1, H * 0.42, SIZE / 2 - 0.15]} rotationY={Math.PI} />
+      <WallSconce position={[17.1, H * 0.42, SIZE / 2 - 0.15]} rotationY={Math.PI} />
 
       <AmbientParticles avatarRef={avatarRef} />
     </group>

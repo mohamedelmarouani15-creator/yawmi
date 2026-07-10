@@ -10,6 +10,7 @@ import Astrolabe from "../world/Astrolabe";
 import Hud3DLabel from "../shared/Hud3DLabel";
 import IncenseSmoke from "../world/IncenseSmoke";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
+import { MonumentalVase, PotteryCluster } from "../shared/CorridorDecor";
 
 // Passage à l'échelle "Grand Riad" — RADIUS x3, hauteur x1.8.
 export const RADIUS = 8 * 3;
@@ -252,6 +253,22 @@ export default function Sanctuaire({ avatarRef, lensCollected, lensPlaced, onPla
       <CandleLight position={[10, 0.4, 14]} intensity={1.1} avatarRef={avatarRef} />
       <IncenseSmoke position={[-15, 0.46, 6]} />
       <IncenseSmoke position={[15, 0.46, -6]} />
+
+      {/* Poteries et vases longeant la paroi circulaire — retour utilisateur :
+          la salle restait bien trop vide en dehors de l'astrolabe central.
+          Les deux seuils (Vestibule à π/2, Scriptorium à 0.769, chacun
+          ±GAP_HALF_ANGLE=0.4) couvrent ensemble l'arc [0.369, 1.971] — tous
+          les angles ci-dessous restent strictement dans l'arc plein
+          [1.971, 2π+0.369] pour ne pas planter du décor en plein seuil. */}
+      {[2.618, 3.403, 4.189, 4.974, 5.760].map((angle, i) => (
+        <MonumentalVase
+          key={i}
+          position={[(RADIUS - 2) * Math.cos(angle), 0, (RADIUS - 2) * Math.sin(angle)]}
+          scale={1.2}
+        />
+      ))}
+      <PotteryCluster position={[(RADIUS - 2) * Math.cos(2.094), 0, (RADIUS - 2) * Math.sin(2.094)]} />
+      <PotteryCluster position={[(RADIUS - 2) * Math.cos(0.262), 0, (RADIUS - 2) * Math.sin(0.262)]} />
     </group>
   );
 }

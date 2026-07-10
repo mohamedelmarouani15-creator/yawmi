@@ -6,6 +6,7 @@ import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import OctagonalColumn from "../shared/OctagonalColumn";
 import LockedDoor from "../shared/LockedDoor";
 import { WallSconce, MonumentalVase, CorridorRug, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
+import DistanceCulledLight from "../shared/DistanceCulledLight";
 
 // Passage secret en coordonnées MONDE reliant l'ouverture taillée dans le
 // mur "-Z local" du Scriptorium (monde X≈-63.5, y=-1.1 — même niveau que le
@@ -89,7 +90,7 @@ export default function CorridorScriptoriumCuisine({ avatarRef, cuisineUnlocked 
       />
 
       <CandleLight position={[centerX, Y + 0.6, 0]} intensity={1.0} avatarRef={avatarRef} />
-      <pointLight color="#D4954A" intensity={2.0} distance={14} decay={2} position={[centerX, Y + 3, 0]} />
+      <DistanceCulledLight color="#D4954A" intensity={2.0} distance={14} decay={2} position={[centerX, Y + 3, 0]} avatarRef={avatarRef} activeRadius={30} />
     </group>
   );
 }

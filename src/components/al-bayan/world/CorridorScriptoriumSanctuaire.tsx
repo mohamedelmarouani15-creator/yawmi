@@ -5,6 +5,7 @@ import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import OctagonalColumn from "../shared/OctagonalColumn";
 import { WallSconce, MonumentalVase, CorridorRug, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
+import DistanceCulledLight from "../shared/DistanceCulledLight";
 
 // Corridor diagonal en espace MONDE reliant l'ouverture du mur "nord" du
 // Scriptorium (monde X≈-44, Z≈-19.4, y=-1.1) à l'ouverture taillée dans
@@ -128,7 +129,7 @@ export default function CorridorScriptoriumSanctuaire({ avatarRef }: { avatarRef
       <CandleLight position={[flatLength * 0.55, 0.6, 0]} intensity={1.0} avatarRef={avatarRef} />
       <CandleLight position={[flatLength * 0.85, 0.6, 0]} intensity={1.0} avatarRef={avatarRef} />
       <CandleLight position={[flatLength + STAIR_RUN * 0.7, 0.6 + RISE * 0.7, 0]} intensity={1.0} avatarRef={avatarRef} />
-      <pointLight color="#9FC8FF" intensity={1.8} distance={16} decay={2} position={[LENGTH - 2, 3 + RISE, 0]} />
+      <DistanceCulledLight color="#9FC8FF" intensity={1.8} distance={16} decay={2} position={[LENGTH - 2, 3 + RISE, 0]} avatarRef={avatarRef} activeRadius={30} />
     </group>
   );
 }

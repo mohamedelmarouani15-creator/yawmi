@@ -12,6 +12,7 @@ import ZoneWall from "../shared/ZoneWall";
 import LightShaftSun from "../world/LightShaftSun";
 import EmberParticles from "../shared/EmberParticles";
 import { WallSconce, MonumentalVase, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
+import DistanceCulledLight from "../shared/DistanceCulledLight";
 
 // Passage à l'échelle "Grand Riad" — le sol est multiplié par S (empreinte),
 // la hauteur suit un facteur plus mesuré HS (une pièce 3x plus vaste au sol
@@ -75,18 +76,18 @@ function CedarCounter({ position }: { position: [number, number, number] }) {
  * navigation par route, on y entre/sort en marchant) et gagne le décor du
  * brief : sol calcaire, comptoir cèdre, tapis, étagères dans le fond.
  */
-export default function Vestibule({ sunRef }: { sunRef?: Ref<THREE.Mesh> }) {
+export default function Vestibule({ sunRef, avatarRef }: { sunRef?: Ref<THREE.Mesh>; avatarRef?: React.RefObject<THREE.Group | null> }) {
   const floorMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#C9BFA8", roughness: 0.14, metalness: 0.07 }), []);
   const ceilingMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#1E1208", roughness: 0.9 }), []);
 
   return (
     <group>
       <ambientLight color="#4A3520" intensity={0.32} />
-      <pointLight color="#FFAA44" intensity={3.2} distance={13 * S} decay={2} position={[0, 1.7 * HS, -1 * S]} castShadow={false} />
-      <pointLight color="#E8A33D" intensity={3.6} distance={12 * S} decay={2} position={[-W / 2 + 2.5 * S, 3.2 * HS, 4 * S]} />
-      <pointLight color="#E8A33D" intensity={3.6} distance={12 * S} decay={2} position={[W / 2 - 2.5 * S, 3.2 * HS, 4 * S]} />
+      <DistanceCulledLight color="#FFAA44" intensity={3.2} distance={13 * S} decay={2} position={[0, 1.7 * HS, -1 * S]} castShadow={false} avatarRef={avatarRef} activeRadius={50} />
+      <DistanceCulledLight color="#E8A33D" intensity={3.6} distance={12 * S} decay={2} position={[-W / 2 + 2.5 * S, 3.2 * HS, 4 * S]} avatarRef={avatarRef} activeRadius={50} />
+      <DistanceCulledLight color="#E8A33D" intensity={3.6} distance={12 * S} decay={2} position={[W / 2 - 2.5 * S, 3.2 * HS, 4 * S]} avatarRef={avatarRef} activeRadius={50} />
       {/* Fill haut pour illuminer le plafond poutres */}
-      <pointLight color="#C8842A" intensity={1.4} distance={14 * S} decay={2} position={[0, H - 1, 0]} />
+      <DistanceCulledLight color="#C8842A" intensity={1.4} distance={14 * S} decay={2} position={[0, H - 1, 0]} avatarRef={avatarRef} activeRadius={50} />
 
       <group position={[0, H + 8, 0]}>
         <Stars radius={40 * S} depth={5} count={150} factor={1.5} fade speed={0.4} />
@@ -213,14 +214,14 @@ export default function Vestibule({ sunRef }: { sunRef?: Ref<THREE.Mesh> }) {
       <WallSconce position={[-W / 2 + 0.15, H * 0.42, -D / 2 + 6]} rotationY={Math.PI / 2} />
       <WallSconce position={[W / 2 - 0.15, H * 0.42, -D / 2 + 6]} rotationY={-Math.PI / 2} />
 
-      <CandleLight position={[-4.5 * S, 0.4, -3.5 * S]} intensity={1.3} />
-      <CandleLight position={[4.5 * S, 0.4, -3.5 * S]} intensity={1.3} />
-      <CandleLight position={[-2 * S, 1.16, -1.5 * S]} intensity={0.85} />
-      <CandleLight position={[2 * S, 1.16, -1.5 * S]} intensity={0.85} />
-      <CandleLight position={[-18, 0.4, -8]} intensity={1.0} />
-      <CandleLight position={[18, 0.4, -8]} intensity={1.0} />
-      <CandleLight position={[-14, 0.4, 14]} intensity={0.9} />
-      <CandleLight position={[14, 0.4, 14]} intensity={0.9} />
+      <CandleLight position={[-4.5 * S, 0.4, -3.5 * S]} intensity={1.3} avatarRef={avatarRef} />
+      <CandleLight position={[4.5 * S, 0.4, -3.5 * S]} intensity={1.3} avatarRef={avatarRef} />
+      <CandleLight position={[-2 * S, 1.16, -1.5 * S]} intensity={0.85} avatarRef={avatarRef} />
+      <CandleLight position={[2 * S, 1.16, -1.5 * S]} intensity={0.85} avatarRef={avatarRef} />
+      <CandleLight position={[-18, 0.4, -8]} intensity={1.0} avatarRef={avatarRef} />
+      <CandleLight position={[18, 0.4, -8]} intensity={1.0} avatarRef={avatarRef} />
+      <CandleLight position={[-14, 0.4, 14]} intensity={0.9} avatarRef={avatarRef} />
+      <CandleLight position={[14, 0.4, 14]} intensity={0.9} avatarRef={avatarRef} />
       <EmberParticles position={[-4.5 * S, 0.55, -3.5 * S]} count={9} />
       <EmberParticles position={[4.5 * S, 0.55, -3.5 * S]} count={9} />
 

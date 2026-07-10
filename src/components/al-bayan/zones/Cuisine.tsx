@@ -183,7 +183,8 @@ export default function Cuisine({ avatarRef, jarsRead, onReadJars }: CuisineProp
   return (
     <group>
       <ambientLight color="#3D2A10" intensity={0.48} />
-      <DistanceCulledLight color="#E8A33D" intensity={6.8} distance={30} decay={2} position={[0, CUISINE_H - 1, 0]} castShadow avatarRef={avatarRef} />
+      {/* castShadow retiré — même coût cubemap 6 faces/frame que Majlis. */}
+      <DistanceCulledLight color="#E8A33D" intensity={6.8} distance={30} decay={2} position={[0, CUISINE_H - 1, 0]} avatarRef={avatarRef} />
       <DistanceCulledLight color="#FFC266" intensity={3.2} distance={16} decay={2} position={[0, 3, -9]} avatarRef={avatarRef} />
       <DistanceCulledLight color="#FFC266" intensity={2.6} distance={14} decay={2} position={[0, 3, 9]} avatarRef={avatarRef} />
 

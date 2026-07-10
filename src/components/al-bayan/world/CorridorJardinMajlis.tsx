@@ -6,6 +6,7 @@ import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import OctagonalColumn from "../shared/OctagonalColumn";
 import LockedDoor from "../shared/LockedDoor";
 import { WallSconce, MonumentalVase, CorridorRug, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
+import DistanceCulledLight from "../shared/DistanceCulledLight";
 
 // Corridor en coordonnées MONDE (pas niché dans le repère tourné du Jardin)
 // reliant l'ouverture taillée dans le mur "-Z local" du Jardin (monde
@@ -94,7 +95,7 @@ export default function CorridorJardinMajlis({ avatarRef, majlisUnlocked }: Corr
 
       <CandleLight position={[centerX - length / 4, 0.6, 0]} intensity={1.0} avatarRef={avatarRef} />
       <CandleLight position={[centerX + length / 4, 0.6, 0]} intensity={1.0} avatarRef={avatarRef} />
-      <pointLight color="#E8A33D" intensity={2.2} distance={16} decay={2} position={[centerX, 3, 0]} />
+      <DistanceCulledLight color="#E8A33D" intensity={2.2} distance={16} decay={2} position={[centerX, 3, 0]} avatarRef={avatarRef} activeRadius={30} />
     </group>
   );
 }

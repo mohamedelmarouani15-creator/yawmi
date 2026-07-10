@@ -9,6 +9,7 @@ import InteractiveAura from "../shared/InteractiveAura";
 import CodeLock from "../ui/CodeLock";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { WallSconce, MonumentalVase, PotteryCluster, CushionBench } from "../shared/CorridorDecor";
+import DistanceCulledLight from "../shared/DistanceCulledLight";
 
 export const SUITE_SIZE = 24;
 export const SUITE_H = 7 * 1.8;
@@ -92,9 +93,9 @@ export default function SuitePrivee({ avatarRef, jarsRead, safeOpen }: SuitePriv
   return (
     <group>
       <ambientLight color="#2A2038" intensity={0.48} />
-      <pointLight color="#9FC8FF" intensity={3.6} distance={22} decay={2} position={[0, SUITE_H - 1, 0]} castShadow />
-      <pointLight color="#FFC266" intensity={2.8} distance={16} decay={2} position={[-6, 2, -6]} />
-      <pointLight color="#FFC266" intensity={2.8} distance={16} decay={2} position={[6, 2, 6]} />
+      <DistanceCulledLight color="#9FC8FF" intensity={3.6} distance={22} decay={2} position={[0, SUITE_H - 1, 0]} castShadow avatarRef={avatarRef} />
+      <DistanceCulledLight color="#FFC266" intensity={2.8} distance={16} decay={2} position={[-6, 2, -6]} avatarRef={avatarRef} />
+      <DistanceCulledLight color="#FFC266" intensity={2.8} distance={16} decay={2} position={[6, 2, 6]} avatarRef={avatarRef} />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[SUITE_SIZE, SUITE_SIZE]} />

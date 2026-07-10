@@ -11,6 +11,7 @@ import Hud3DLabel from "../shared/Hud3DLabel";
 import IncenseSmoke from "../world/IncenseSmoke";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { MonumentalVase, PotteryCluster } from "../shared/CorridorDecor";
+import DistanceCulledLight from "../shared/DistanceCulledLight";
 
 // Passage à l'échelle "Grand Riad" — RADIUS x3, hauteur x1.8.
 export const RADIUS = 8 * 3;
@@ -217,8 +218,8 @@ export default function Sanctuaire({ avatarRef, lensCollected, lensPlaced, onPla
         distance={H + 15}
         color="#9FC8FF"
       />
-      <pointLight color="#3D7FE8" intensity={3.2} distance={27} decay={2} position={[0, 4.5, 0]} />
-      <pointLight color="#6090C8" intensity={2.4} distance={21} decay={2} position={[0, 12, -18]} />
+      <DistanceCulledLight color="#3D7FE8" intensity={3.2} distance={27} decay={2} position={[0, 4.5, 0]} avatarRef={avatarRef} activeRadius={45} />
+      <DistanceCulledLight color="#6090C8" intensity={2.4} distance={21} decay={2} position={[0, 12, -18]} avatarRef={avatarRef} activeRadius={45} />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <cylinderGeometry args={[RADIUS, RADIUS, 0.08, 64]} />

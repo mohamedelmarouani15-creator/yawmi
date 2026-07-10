@@ -124,10 +124,17 @@ export default function CandleLight({ position, intensity = 1.5, avatarRef }: Ca
     if (avatarRef?.current) {
       light.getWorldPosition(worldPos);
       if (worldPos.distanceTo(avatarRef.current.position) > ACTIVE_RADIUS) {
-        light.intensity = intensity; // valeur stable plutôt que figée au dernier flicker
+        // `visible = false` (pas juste une intensité figée) : three.js exclut
+        // les lumières invisibles du tableau envoyé au shader (WebGLLights),
+        // donc ça retire vraiment son coût par-fragment — pas seulement son
+        // scintillement. Le villa entier (toutes les pièces + corridors)
+        // reste monté en permanence, donc sans ce garde-fou chaque bougie
+        // contribue à CHAQUE fragment de la scène, où que soit le joueur.
+        light.visible = false;
         return;
       }
     }
+    light.visible = true;
 
     const t = clock.getElapsedTime();
     // Organic flicker using multiple sine waves at prime frequencies

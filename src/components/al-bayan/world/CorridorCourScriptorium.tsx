@@ -5,6 +5,7 @@ import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import OctagonalColumn from "../shared/OctagonalColumn";
 import { WallSconce, MonumentalVase, CorridorRug, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
+import DistanceCulledLight from "../shared/DistanceCulledLight";
 
 // Grande galerie diagonale en espace MONDE reliant l'ouverture du mur "+X
 // local" du Jardin (monde X≈36, Z≈30, y=0) à celle du mur "-X local" du
@@ -121,8 +122,8 @@ export default function CorridorCourScriptorium({ avatarRef }: { avatarRef?: Rea
       {Array.from({ length: 6 }, (_, i) => (
         <CandleLight key={i} position={[(flatLength / 5) * i, 0.6, 0]} intensity={0.85} avatarRef={avatarRef} />
       ))}
-      <pointLight color="#E8A33D" intensity={2.4} distance={20} decay={2} position={[flatLength * 0.3, 3, 0]} />
-      <pointLight color="#E8A33D" intensity={2.4} distance={20} decay={2} position={[flatLength * 0.7, 3, 0]} />
+      <DistanceCulledLight color="#E8A33D" intensity={2.4} distance={20} decay={2} position={[flatLength * 0.3, 3, 0]} avatarRef={avatarRef} activeRadius={30} />
+      <DistanceCulledLight color="#E8A33D" intensity={2.4} distance={20} decay={2} position={[flatLength * 0.7, 3, 0]} avatarRef={avatarRef} activeRadius={30} />
     </group>
   );
 }

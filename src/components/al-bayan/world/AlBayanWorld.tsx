@@ -79,16 +79,20 @@ interface IsoCameraFollowProps {
  * avant la distance nominale, pour que la caméra reste toujours du bon
  * côté — recalculé chaque frame puisque l'angle d'orbite change en direct.
  */
-// Rayon central + 2 latéraux (±26°, autour de l'axe vertical) — un seul
-// rayon au centre rate les murs qui ne coupent que le bord du champ de
-// vision (cas vécu : avatar plaqué dans un angle de salle, la moitié de
-// l'écran restait noire malgré le raccourcissement de distance basé sur le
-// seul rayon central).
-const CAM_RAY_ANGLES = [0, 0.46, -0.46];
-// Plus resserré que le BASE_FOV=40 de maison-sagesse (voir
-// maison-sagesse/world/MaisonSagesseWorld.tsx) : les zones d'al-bayan sont
-// plus petites, un champ plus étroit suffit à les cadrer à même ISO_DISTANCE.
-const BASE_FOV = 36;
+// Rayon central + 2 latéraux — l'angle DOIT suivre le demi-FOV horizontal
+// réel (BASE_FOV vertical + aspect ratio ~1.6), sinon les rayons latéraux
+// ne couvrent plus le bord réel de l'écran et le garde-fou anti-mur rate
+// les murs qui ne coupent que le bord du champ de vision (cas vécu : avatar
+// plaqué dans un angle de salle, la moitié de l'écran restait noire malgré
+// le raccourcissement de distance basé sur le seul rayon central).
+const CAM_RAY_ANGLES = [0, 0.60, -0.60];
+// Élargi (36° -> 46°) : retour utilisateur direct — à 36° et à la distance
+// resserrée d'ISO_DISTANCE (7.5), on ne voit qu'une toute petite tranche
+// des pièces "Grand Riad" (jusqu'à 60 unités de large), donnant l'impression
+// que le décor ajouté est quasi absent alors qu'il est bien là, juste hors
+// champ. CAM_RAY_ANGLES ci-dessus recalculé pour ce nouveau FOV (voir
+// commentaire au-dessus).
+const BASE_FOV = 46;
 
 function IsoCameraFollow({ avatarRef, yawRef, pitchRef, cameraReadyRef }: IsoCameraFollowProps) {
   const { camera, scene } = useThree();
@@ -272,7 +276,7 @@ export default function AlBayanWorld({
       </mesh>
 
       <group position={ZONES.vestibule.position} rotation={[0, ZONES.vestibule.rotationY, 0]}>
-        <Vestibule sunRef={vestibuleSunRef} />
+        <Vestibule sunRef={vestibuleSunRef} avatarRef={avatarRef} />
       </group>
       <group position={ZONES.courTemoignage.position} rotation={[0, ZONES.courTemoignage.rotationY, 0]}>
         <CourTemoignage onSolveAstrolabe={onSolveAstrolabe} astrolabeSolved={astrolabeSolved} avatarRef={avatarRef} />

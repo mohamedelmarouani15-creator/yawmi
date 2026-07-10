@@ -20,15 +20,28 @@ import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 /** Applique murale en métal ciselé — plaque + flamme animée, se fixe
  * directement au mur (position donnée = point d'ancrage sur la paroi). */
 export function WallSconce({ position, rotationY = 0 }: { position: [number, number, number]; rotationY?: number }) {
-  const lightRef = useRef<THREE.PointLight>(null);
   const flameRef = useRef<THREE.Mesh>(null);
   const copperMat = usePBRMaterial("copper", { repeat: [1, 1], roughnessIntensity: 0.35, metalness: 0.75 });
 
+  // Pas de pointLight ici, volontairement — mesure directe en jeu (Playwright,
+  // clavier WASD) : une attente scriptée de 4s prenait 64s de temps réel,
+  // preuve d'un effondrement du budget de frame. Le villa entier (7 pièces +
+  // 5 corridors) est monté en permanence (AlBayanWorld ne démonte rien selon
+  // la zone courante) ; le renderer forward par défaut de three.js évalue
+  // TOUTES les lumières de la scène pour CHAQUE fragment de CHAQUE matériau,
+  // sans culling par distance. À 28 instances (une paire par colonne × 5
+  // corridors + les pièces), les pointLight de WallSconce ajoutaient à eux
+  // seuls 28 lumières simultanées. La flamme émissive reste visible et
+  // scintille (`toneMapped={false}` + pulse d'intensité), donnant l'illusion
+  // d'éclairage sans le coût réel d'une vraie lumière dynamique.
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     const flicker = 1 + Math.sin(t * 7.1 + position[0]) * 0.1 + Math.sin(t * 11.3 + position[2]) * 0.06;
-    if (lightRef.current) lightRef.current.intensity = 1.3 * flicker;
-    if (flameRef.current) flameRef.current.scale.setScalar(flicker);
+    const mesh = flameRef.current;
+    if (mesh) {
+      mesh.scale.setScalar(flicker);
+      (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity = 1.5 * flicker;
+    }
   });
 
   return (
@@ -49,7 +62,6 @@ export function WallSconce({ position, rotationY = 0 }: { position: [number, num
         <coneGeometry args={[0.03, 0.09, 6]} />
         <meshStandardMaterial color="#FFC840" emissive="#FF8800" emissiveIntensity={1.5} toneMapped={false} />
       </mesh>
-      <pointLight ref={lightRef} color="#FFA040" intensity={1.3} distance={7} decay={2} position={[0, 0.06, 0.2]} />
     </group>
   );
 }

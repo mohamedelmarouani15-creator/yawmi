@@ -9,6 +9,7 @@ import ProximityPrompt from "../../maison-sagesse/shared/ProximityPrompt";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { JAR_CODE, KITCHEN_CLUE } from "@/lib/al-bayan/puzzle-logic";
 import { WallSconce, MonumentalVase, PotteryCluster } from "../shared/CorridorDecor";
+import DistanceCulledLight from "../shared/DistanceCulledLight";
 
 // Passage à l'échelle "Grand Riad" — SIZE x3, hauteur x1.8.
 export const CUISINE_SIZE = 11 * 3;
@@ -182,9 +183,9 @@ export default function Cuisine({ avatarRef, jarsRead, onReadJars }: CuisineProp
   return (
     <group>
       <ambientLight color="#3D2A10" intensity={0.48} />
-      <pointLight color="#E8A33D" intensity={6.8} distance={30} decay={2} position={[0, CUISINE_H - 1, 0]} castShadow />
-      <pointLight color="#FFC266" intensity={3.2} distance={16} decay={2} position={[0, 3, -9]} />
-      <pointLight color="#FFC266" intensity={2.6} distance={14} decay={2} position={[0, 3, 9]} />
+      <DistanceCulledLight color="#E8A33D" intensity={6.8} distance={30} decay={2} position={[0, CUISINE_H - 1, 0]} castShadow avatarRef={avatarRef} />
+      <DistanceCulledLight color="#FFC266" intensity={3.2} distance={16} decay={2} position={[0, 3, -9]} avatarRef={avatarRef} />
+      <DistanceCulledLight color="#FFC266" intensity={2.6} distance={14} decay={2} position={[0, 3, 9]} avatarRef={avatarRef} />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[CUISINE_SIZE, CUISINE_SIZE]} />

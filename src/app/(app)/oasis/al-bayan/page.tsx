@@ -351,7 +351,7 @@ export default function AlBayanPage() {
         // pas un mur sombre, du vide pur derrière le bord du cadre). Un
         // objectif plus "long" rapproche le rendu d'une vraie isométrique et
         // réduit cette marge d'erreur sans changer la position/distance.
-        camera={{ fov: 36, near: 0.1, far: 100, position: [8, 8, 8] }}
+        camera={{ fov: 46, near: 0.1, far: 100, position: [8, 8, 8] }}
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%", touchAction: "none" }}
       >
         <Suspense fallback={<TexturesLoadingFallback />}>

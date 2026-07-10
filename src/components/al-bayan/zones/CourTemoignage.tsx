@@ -10,6 +10,7 @@ import InteractiveAura from "../shared/InteractiveAura";
 import ProximityPrompt from "../../maison-sagesse/shared/ProximityPrompt";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { PotteryCluster } from "../shared/CorridorDecor";
+import DistanceCulledLight from "../shared/DistanceCulledLight";
 import { ASTROLABE_RINGS, ASTROLABE_TOLERANCE_DEG, FOUNTAIN_INSCRIPTION } from "@/lib/al-bayan/puzzle-logic";
 
 // Passage à l'échelle "Grand Riad" — empreinte au sol explicitement fixée à
@@ -442,12 +443,12 @@ export default function CourTemoignage({
         shadow-mapSize-width={640}
         shadow-mapSize-height={640}
       />
-      <pointLight color="#FFAA44" intensity={4.5} distance={20} decay={2} position={[15, 5, 15]} />
-      <pointLight color="#FFAA44" intensity={4.5} distance={20} decay={2} position={[-15, 5, 15]} />
-      <pointLight color="#FFC266" intensity={4.0} distance={18} decay={2} position={[0, 5, 11]} />
-      <pointLight color="#FFC266" intensity={3.4} distance={16} decay={2} position={[0, 6, -9]} />
-      <pointLight color="#E8A33D" intensity={2.6} distance={18} decay={2} position={[-20, 6, -5]} />
-      <pointLight color="#E8A33D" intensity={2.6} distance={18} decay={2} position={[20, 6, -5]} />
+      <DistanceCulledLight color="#FFAA44" intensity={4.5} distance={20} decay={2} position={[15, 5, 15]} avatarRef={avatarRef} activeRadius={55} />
+      <DistanceCulledLight color="#FFAA44" intensity={4.5} distance={20} decay={2} position={[-15, 5, 15]} avatarRef={avatarRef} activeRadius={55} />
+      <DistanceCulledLight color="#FFC266" intensity={4.0} distance={18} decay={2} position={[0, 5, 11]} avatarRef={avatarRef} activeRadius={55} />
+      <DistanceCulledLight color="#FFC266" intensity={3.4} distance={16} decay={2} position={[0, 6, -9]} avatarRef={avatarRef} activeRadius={55} />
+      <DistanceCulledLight color="#E8A33D" intensity={2.6} distance={18} decay={2} position={[-20, 6, -5]} avatarRef={avatarRef} activeRadius={55} />
+      <DistanceCulledLight color="#E8A33D" intensity={2.6} distance={18} decay={2} position={[20, 6, -5]} avatarRef={avatarRef} activeRadius={55} />
 
       {/* Sol en zelliges (mosaïque géométrique) */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>

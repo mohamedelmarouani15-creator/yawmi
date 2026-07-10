@@ -10,6 +10,7 @@ import ProximityPrompt from "../../maison-sagesse/shared/ProximityPrompt";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { LIBRARY_CLUE } from "@/lib/al-bayan/puzzle-logic";
 import { WallSconce, MonumentalVase, PotteryCluster } from "../shared/CorridorDecor";
+import DistanceCulledLight from "../shared/DistanceCulledLight";
 
 // Passage à l'échelle "Grand Riad" — SIZE x3, hauteur x1.8 (cf. commentaire
 // dans Vestibule.tsx pour le raisonnement).
@@ -193,11 +194,11 @@ export default function Majlis({ avatarRef, libraryClueFound, onFindLibraryClue 
   return (
     <group>
       <ambientLight color="#3D2A10" intensity={0.5} />
-      <pointLight color="#E8A33D" intensity={6.5} distance={34} decay={2} position={[0, MAJLIS_H - 1, 0]} castShadow />
-      <pointLight color="#FFC266" intensity={3.2} distance={20} decay={2} position={[-9, 3, -9]} />
-      <pointLight color="#FFC266" intensity={3.2} distance={20} decay={2} position={[9, 3, 9]} />
-      <pointLight color="#D4954A" intensity={2.4} distance={18} decay={2} position={[9, 3, -9]} />
-      <pointLight color="#D4954A" intensity={2.4} distance={18} decay={2} position={[-9, 3, 9]} />
+      <DistanceCulledLight color="#E8A33D" intensity={6.5} distance={34} decay={2} position={[0, MAJLIS_H - 1, 0]} castShadow avatarRef={avatarRef} />
+      <DistanceCulledLight color="#FFC266" intensity={3.2} distance={20} decay={2} position={[-9, 3, -9]} avatarRef={avatarRef} />
+      <DistanceCulledLight color="#FFC266" intensity={3.2} distance={20} decay={2} position={[9, 3, 9]} avatarRef={avatarRef} />
+      <DistanceCulledLight color="#D4954A" intensity={2.4} distance={18} decay={2} position={[9, 3, -9]} avatarRef={avatarRef} />
+      <DistanceCulledLight color="#D4954A" intensity={2.4} distance={18} decay={2} position={[-9, 3, 9]} avatarRef={avatarRef} />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[MAJLIS_SIZE, MAJLIS_SIZE]} />

@@ -13,6 +13,7 @@ import EmberParticles from "../shared/EmberParticles";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { MANUSCRIPTS } from "@/lib/al-bayan/puzzle-logic";
 import { WallSconce, MonumentalVase } from "../shared/CorridorDecor";
+import DistanceCulledLight from "../shared/DistanceCulledLight";
 
 // Passage à l'échelle "Grand Riad" — SS=3 (empreinte + décor), hauteur x1.8.
 const SS = 3;
@@ -286,12 +287,12 @@ export default function Scriptorium({
   return (
     <group>
       <ambientLight color="#4A3520" intensity={0.35} />
-      <pointLight color="#E8A33D" intensity={5.5} distance={24} decay={2} position={[-9, 4.5, -6]} />
-      <pointLight color="#E8A33D" intensity={5.5} distance={24} decay={2} position={[9, 4.5, -6]} />
+      <DistanceCulledLight color="#E8A33D" intensity={5.5} distance={24} decay={2} position={[-9, 4.5, -6]} avatarRef={avatarRef} />
+      <DistanceCulledLight color="#E8A33D" intensity={5.5} distance={24} decay={2} position={[9, 4.5, -6]} avatarRef={avatarRef} />
       {/* Lumière chaude basse, au niveau des tables de copiste */}
-      <pointLight color="#FFAA44" intensity={3.5} distance={18} decay={2} position={[0, 2.6, 3]} />
+      <DistanceCulledLight color="#FFAA44" intensity={3.5} distance={18} decay={2} position={[0, 2.6, 3]} avatarRef={avatarRef} />
       {/* Fill de fond pour déboucher le mur du fond */}
-      <pointLight color="#D4954A" intensity={2.8} distance={20} decay={2} position={[0, 7, -15]} />
+      <DistanceCulledLight color="#D4954A" intensity={2.8} distance={20} decay={2} position={[0, 7, -15]} avatarRef={avatarRef} />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[SIZE, SIZE]} />

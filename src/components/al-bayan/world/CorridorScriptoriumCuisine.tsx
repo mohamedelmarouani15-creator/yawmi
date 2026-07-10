@@ -56,11 +56,12 @@ export default function CorridorScriptoriumCuisine({ avatarRef, cuisineUnlocked 
           <OctagonalColumn position={[x, Y, WIDTH / 2 - 0.5]} height={HALL_HEIGHT - 0.4} shadows={false} />
         </group>
       ))}
-      {columnXs.map((x, i) => (
-        <group key={`sconce-${i}`}>
-          <WallSconce position={[x, Y + HALL_HEIGHT * 0.5, -WIDTH / 2 + 0.15]} rotationY={0} />
-          <WallSconce position={[x, Y + HALL_HEIGHT * 0.5, WIDTH / 2 - 0.15]} rotationY={Math.PI} />
-        </group>
+      {columnXs.filter((_, i) => i % 2 === 0).map((x, i) => (
+        <WallSconce
+          key={`sconce-${i}`}
+          position={[x, Y + HALL_HEIGHT * 0.5, i % 2 === 0 ? -WIDTH / 2 + 0.15 : WIDTH / 2 - 0.15]}
+          rotationY={i % 2 === 0 ? 0 : Math.PI}
+        />
       ))}
       <MonumentalVase position={[SCRIPTORIUM_OPENING_X - 1.3, Y, -WIDTH / 2 + 0.8]} scale={1.1} />
       <MonumentalVase position={[CUISINE_OPENING_X + 1.3, Y, WIDTH / 2 - 0.8]} scale={1.1} />

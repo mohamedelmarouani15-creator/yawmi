@@ -59,13 +59,14 @@ export default function CorridorJardinMajlis({ avatarRef, majlisUnlocked }: Corr
         </group>
       ))}
 
-      {/* Appliques en métal ciselé — une paire par colonne, comblent aussi
-          les zones sombres entre les points lumineux centraux. */}
-      {columnXs.map((x, i) => (
-        <group key={`sconce-${i}`}>
-          <WallSconce position={[x, HALL_HEIGHT * 0.5, -WIDTH / 2 + 0.15]} rotationY={0} />
-          <WallSconce position={[x, HALL_HEIGHT * 0.5, WIDTH / 2 - 0.15]} rotationY={Math.PI} />
-        </group>
+      {/* Appliques en métal ciselé — une colonne sur deux, côtés en alternance
+          pour éviter la répétition symétrique trop chargée. */}
+      {columnXs.filter((_, i) => i % 2 === 0).map((x, i) => (
+        <WallSconce
+          key={`sconce-${i}`}
+          position={[x, HALL_HEIGHT * 0.5, i % 2 === 0 ? -WIDTH / 2 + 0.15 : WIDTH / 2 - 0.15]}
+          rotationY={i % 2 === 0 ? 0 : Math.PI}
+        />
       ))}
       <MonumentalVase position={[JARDIN_OPENING_X + 1.4, 0, -WIDTH / 2 + 0.9]} scale={1.3} />
       <MonumentalVase position={[MAJLIS_OPENING_X - 1.4, 0, WIDTH / 2 - 0.9]} scale={1.3} />

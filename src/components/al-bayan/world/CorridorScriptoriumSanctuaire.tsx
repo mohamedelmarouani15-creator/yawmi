@@ -95,11 +95,12 @@ export default function CorridorScriptoriumSanctuaire({ avatarRef }: { avatarRef
           <OctagonalColumn position={[d, 0, WIDTH / 2 - 0.6]} height={HALL_HEIGHT - 0.4} shadows={false} />
         </group>
       ))}
-      {columnDs.map((d, i) => (
-        <group key={`sconce-${i}`}>
-          <WallSconce position={[d, HALL_HEIGHT * 0.5, -WIDTH / 2 + 0.15]} rotationY={0} />
-          <WallSconce position={[d, HALL_HEIGHT * 0.5, WIDTH / 2 - 0.15]} rotationY={Math.PI} />
-        </group>
+      {columnDs.filter((_, i) => i % 2 === 0).map((d, i) => (
+        <WallSconce
+          key={`sconce-${i}`}
+          position={[d, HALL_HEIGHT * 0.5, i % 2 === 0 ? -WIDTH / 2 + 0.15 : WIDTH / 2 - 0.15]}
+          rotationY={i % 2 === 0 ? 0 : Math.PI}
+        />
       ))}
       <MonumentalVase position={[1.5, 0, -WIDTH / 2 + 0.9]} scale={1.2} />
       <MonumentalVase position={[flatLength - 1.5, 0, WIDTH / 2 - 0.9]} scale={1.2} />

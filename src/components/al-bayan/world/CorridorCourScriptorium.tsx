@@ -5,6 +5,7 @@ import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import OctagonalColumn from "../shared/OctagonalColumn";
 import { WallSconce, MonumentalVase, CorridorRug, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
+import { KenneyProp } from "../shared/KenneyProp";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
 
 // Grande galerie diagonale en espace MONDE reliant l'ouverture du mur "+X
@@ -106,6 +107,7 @@ export default function CorridorCourScriptorium({ avatarRef }: { avatarRef?: Rea
       <MashrabiyaScreen position={[flatLength * 0.5, HALL_HEIGHT * 0.42, WIDTH / 2 - 0.05]} rotationY={Math.PI} />
       <CorridorRug position={[flatLength * 0.35, 0.015, 0]} width={7} length={WIDTH * 0.55} />
       <CorridorRug position={[flatLength * 0.7, 0.015, 0]} width={7} length={WIDTH * 0.55} />
+      <KenneyProp name="pottedPlant" position={[flatLength * 0.15, 0, WIDTH / 2 - 0.7]} scale={2.2} />
 
       {/* Voûte en berceau — demi-cylindre couché, axe le long de la galerie.
           `noCollide` : un plafond décoratif n'a aucune raison de bloquer un

@@ -91,26 +91,37 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
       return false;
     }
 
+    // emissiveIntensity réduite (1.6 -> 0.55) et toneMapped réactivé : à
+    // l'ancienne valeur, une émissivité uniforme aussi forte + le Bloom en
+    // post-traitement écrasaient tout le modelé (robe, manches, tête, kufi)
+    // en un blob bleu plat sans détail — retour utilisateur direct
+    // ("je veux voir un vrai personnage"). Le personnage a pourtant déjà une
+    // vraie silhouette sculptée ; il fallait juste arrêter de la cramer.
+    // `toneMapped: true` laisse l'éclairage ambiant/ponctuel de la pièce
+    // creuser un vrai modelé (ombres portées par les plis) au lieu d'un
+    // aplat auto-illuminé.
     const bodyMat = useMemo(
       () =>
         new THREE.MeshStandardMaterial({
           color: glowColor,
           emissive: glowColor,
-          emissiveIntensity: 1.6,
-          roughness: 0.22,
-          metalness: 0.15,
-          toneMapped: false,
+          emissiveIntensity: 0.55,
+          roughness: 0.35,
+          metalness: 0.1,
+          toneMapped: true,
         }),
       [glowColor]
     );
 
-    // Halo de glow — coque BackSide additive pour simuler un bloom sans post-processing
+    // Halo de glow — opacité réduite (0.18 -> 0.08) pour le même motif :
+    // un halo trop marqué noie la silhouette dans le Bloom au lieu de
+    // simplement souligner ses contours.
     const haloMat = useMemo(
       () =>
         new THREE.MeshBasicMaterial({
           color: glowColor,
           transparent: true,
-          opacity: 0.18,
+          opacity: 0.08,
           side: THREE.BackSide,
           blending: THREE.AdditiveBlending,
           depthWrite: false,

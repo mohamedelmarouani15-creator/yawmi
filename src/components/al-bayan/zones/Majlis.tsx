@@ -10,6 +10,7 @@ import ProximityPrompt from "../../maison-sagesse/shared/ProximityPrompt";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { LIBRARY_CLUE } from "@/lib/al-bayan/puzzle-logic";
 import { WallSconce, MonumentalVase, PotteryCluster } from "../shared/CorridorDecor";
+import { KenneyProp } from "../shared/KenneyProp";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
 
 // Passage à l'échelle "Grand Riad" — SIZE x3, hauteur x1.8 (cf. commentaire
@@ -46,34 +47,6 @@ function CushionPile({ position, rotation }: { position: [number, number, number
           <boxGeometry args={[c.s, c.s * 0.5, c.s]} />
         </mesh>
       ))}
-    </group>
-  );
-}
-
-/** Table basse sculptée + plateau en cuivre poli (roughness basse -> reflets). */
-function LowTable({ position, rotation }: { position: [number, number, number]; rotation?: [number, number, number] }) {
-  const woodMat = usePBRMaterial("wood-dark", { repeat: [1, 1] });
-  const copperMat = usePBRMaterial("copper", { repeat: [1, 1], roughnessIntensity: 0.25, metalness: 0.85 });
-  return (
-    <group position={position} rotation={rotation}>
-      {[-0.35, 0.35].map((x) =>
-        [-0.35, 0.35].map((z) => (
-          <mesh key={`${x}${z}`} position={[x, 0.18, z]} castShadow material={woodMat}>
-            <cylinderGeometry args={[0.03, 0.03, 0.36, 8]} />
-          </mesh>
-        ))
-      )}
-      <mesh position={[0, 0.38, 0]} castShadow material={copperMat}>
-        <cylinderGeometry args={[0.55, 0.55, 0.03, 24]} />
-      </mesh>
-      <mesh position={[0, 0.4, 0]}>
-        <torusGeometry args={[0.55, 0.015, 6, 24]} />
-        <meshStandardMaterial color="#D4AF37" roughness={0.3} metalness={0.8} />
-      </mesh>
-      {/* Plateau à thé en cuivre, posé dessus */}
-      <mesh position={[0, 0.42, 0]} castShadow material={copperMat}>
-        <cylinderGeometry args={[0.14, 0.14, 0.05, 16]} />
-      </mesh>
     </group>
   );
 }
@@ -266,10 +239,18 @@ export default function Majlis({ avatarRef, libraryClueFound, onFindLibraryClue 
       <CushionPile position={[13, 0, 0]} rotation={[0, -1.9, 0]} />
       <CushionPile position={[-13, 0, 13]} rotation={[0, 2.4, 0]} />
       <CushionPile position={[13, 0, 13]} rotation={[0, -2.4, 0]} />
-      <LowTable position={[-7.5, 0, 0]} />
-      <LowTable position={[7.5, 0, 0]} />
-      <LowTable position={[0, 0, -8]} />
-      <LowTable position={[0, 0, 8]} />
+      {/* Vraies tables basses (pack CC0 Kenney) — remplacent LowTable
+          procédural, cf. shared/KenneyProp.tsx */}
+      <KenneyProp name="tableCoffee" position={[-7.5, 0, 0]} scale={2.2} />
+      <KenneyProp name="tableCoffee" position={[7.5, 0, 0]} scale={2.2} />
+      <KenneyProp name="tableCoffee" position={[0, 0, -8]} scale={2.2} />
+      <KenneyProp name="tableCoffee" position={[0, 0, 8]} scale={2.2} />
+
+      {/* Coussins et tapis ronds réels en complément de l'assise en U */}
+      <KenneyProp name="rugRound" position={[-13, 0.01, -13]} scale={2.6} rotation={[0, 0.6, 0]} />
+      <KenneyProp name="rugRound" position={[13, 0.01, 13]} scale={2.6} rotation={[0, -2.4, 0]} />
+      <KenneyProp name="pillowBlue" position={[-13.6, 0.15, 0.4]} scale={1.4} rotation={[0, 1.2, 0]} />
+      <KenneyProp name="pillowLong" position={[13.4, 0.15, -0.3]} scale={1.4} rotation={[0, -0.4, 0]} />
 
       <CandleLight position={[-15, 0.4, -3]} intensity={1.2} avatarRef={avatarRef} />
       <CandleLight position={[15, 0.4, 3]} intensity={1.2} avatarRef={avatarRef} />

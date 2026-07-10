@@ -548,14 +548,24 @@ export default function AlBayanPage() {
                 />
               </div>
 
-              {/* ── Indicateur rotation (droite) ────────────────────── */}
-              <div
+              {/* ── Recentrer la vue (droite) ───────────────────────────
+                  Auparavant purement décoratif (pointerEvents: "none") —
+                  l'icône ↻ laissait croire à un vrai bouton "réinitialiser
+                  la caméra", retour utilisateur direct ("je ne sais pas à
+                  quoi il sert"). Devient un vrai bouton : recentre yaw/pitch
+                  sur leurs valeurs de spawn. */}
+              <button
+                type="button"
+                onClick={() => {
+                  yawRef.current = ISO_YAW_DEFAULT;
+                  pitchRef.current = ISO_PITCH_DEFAULT;
+                }}
                 style={{
                   position: "absolute",
                   bottom: 88,
                   right: 32,
                   zIndex: 15,
-                  pointerEvents: "none",
+                  pointerEvents: "auto",
                   width: 68,
                   height: 68,
                   borderRadius: "50%",
@@ -568,6 +578,8 @@ export default function AlBayanPage() {
                   flexDirection: "column",
                   gap: 2,
                   transition: "border-color 0.15s, background 0.15s",
+                  cursor: "pointer",
+                  padding: 0,
                 }}
               >
                 <span style={{ fontSize: 16, opacity: lookActive ? 1 : 0.5 }}>↻</span>
@@ -581,7 +593,7 @@ export default function AlBayanPage() {
                 }}>
                   Vue
                 </span>
-              </div>
+              </button>
             </>
           )}
         </>

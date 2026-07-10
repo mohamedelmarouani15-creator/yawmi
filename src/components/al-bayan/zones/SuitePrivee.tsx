@@ -93,7 +93,8 @@ export default function SuitePrivee({ avatarRef, jarsRead, safeOpen }: SuitePriv
   return (
     <group>
       <ambientLight color="#2A2038" intensity={0.48} />
-      <DistanceCulledLight color="#9FC8FF" intensity={3.6} distance={22} decay={2} position={[0, SUITE_H - 1, 0]} castShadow avatarRef={avatarRef} />
+      {/* castShadow retiré — même coût cubemap 6 faces/frame que Majlis/Cuisine. */}
+      <DistanceCulledLight color="#9FC8FF" intensity={3.6} distance={22} decay={2} position={[0, SUITE_H - 1, 0]} avatarRef={avatarRef} />
       <DistanceCulledLight color="#FFC266" intensity={2.8} distance={16} decay={2} position={[-6, 2, -6]} avatarRef={avatarRef} />
       <DistanceCulledLight color="#FFC266" intensity={2.8} distance={16} decay={2} position={[6, 2, 6]} avatarRef={avatarRef} />
 

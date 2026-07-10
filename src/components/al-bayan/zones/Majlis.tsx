@@ -194,7 +194,12 @@ export default function Majlis({ avatarRef, libraryClueFound, onFindLibraryClue 
   return (
     <group>
       <ambientLight color="#3D2A10" intensity={0.5} />
-      <DistanceCulledLight color="#E8A33D" intensity={6.5} distance={34} decay={2} position={[0, MAJLIS_H - 1, 0]} castShadow avatarRef={avatarRef} />
+      {/* castShadow retiré : une lumière ponctuelle avec ombres force un rendu
+          cubemap 6 faces à CHAQUE frame — de très loin le coût GPU le plus
+          élevé de toute la scène (déjà noté et évité pour CandleLight, mais
+          oublié ici). Aucune autre source d'ombre dans cette pièce, donc le
+          sol n'aura plus d'ombres portées, contre un gain de perf majeur. */}
+      <DistanceCulledLight color="#E8A33D" intensity={6.5} distance={34} decay={2} position={[0, MAJLIS_H - 1, 0]} avatarRef={avatarRef} />
       <DistanceCulledLight color="#FFC266" intensity={3.2} distance={20} decay={2} position={[-9, 3, -9]} avatarRef={avatarRef} />
       <DistanceCulledLight color="#FFC266" intensity={3.2} distance={20} decay={2} position={[9, 3, 9]} avatarRef={avatarRef} />
       <DistanceCulledLight color="#D4954A" intensity={2.4} distance={18} decay={2} position={[9, 3, -9]} avatarRef={avatarRef} />

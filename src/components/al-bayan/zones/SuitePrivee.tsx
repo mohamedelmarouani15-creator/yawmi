@@ -10,6 +10,7 @@ import CodeLock from "../ui/CodeLock";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { WallSconce, MonumentalVase, PotteryCluster, CushionBench } from "../shared/CorridorDecor";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
+import { KenneyProp } from "../shared/KenneyProp";
 
 export const SUITE_SIZE = 24;
 export const SUITE_H = 7 * 1.8;
@@ -190,6 +191,11 @@ export default function SuitePrivee({ avatarRef, jarsRead, safeOpen }: SuitePriv
       <WallSconce position={[SUITE_SIZE / 2 - 0.15, SUITE_H * 0.4, 6]} rotationY={-Math.PI / 2} />
       <WallSconce position={[-6, SUITE_H * 0.4, -SUITE_SIZE / 2 + 0.15]} rotationY={0} />
       <WallSconce position={[6, SUITE_H * 0.4, SUITE_SIZE / 2 - 0.15]} rotationY={Math.PI} />
+
+      {/* Vrais meubles CC0 (pack Kenney) */}
+      <KenneyProp name="pottedPlant" position={[8, 0, 8]} scale={2.2} />
+      <KenneyProp name="sideTable" position={[-3, 0, 9]} scale={2.2} rotation={[0, 0.5, 0]} />
+      <KenneyProp name="rugRound" position={[0, 0.01, -2]} scale={2.8} />
 
       <AmbientParticles avatarRef={avatarRef} />
     </group>

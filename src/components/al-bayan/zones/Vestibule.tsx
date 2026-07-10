@@ -13,6 +13,7 @@ import LightShaftSun from "../world/LightShaftSun";
 import EmberParticles from "../shared/EmberParticles";
 import { WallSconce, MonumentalVase, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
+import { KenneyProp } from "../shared/KenneyProp";
 
 // Passage à l'échelle "Grand Riad" — le sol est multiplié par S (empreinte),
 // la hauteur suit un facteur plus mesuré HS (une pièce 3x plus vaste au sol
@@ -200,6 +201,12 @@ export default function Vestibule({ sunRef, avatarRef }: { sunRef?: Ref<THREE.Me
           couloirs) restaient bien trop vides à l'échelle "Grand Riad". */}
       <MonumentalVase position={[-W / 2 + 3, 0, D / 2 - 2]} scale={1.6} />
       <MonumentalVase position={[W / 2 - 3, 0, D / 2 - 2]} scale={1.6} />
+
+      {/* Vrais meubles CC0 (pack Kenney) — cf. shared/KenneyProp.tsx */}
+      <KenneyProp name="pottedPlant" position={[-W / 2 + 6, 0, D / 2 - 5]} scale={2.4} />
+      <KenneyProp name="pottedPlant" position={[W / 2 - 6, 0, D / 2 - 5]} scale={2.4} />
+      <KenneyProp name="sideTable" position={[-16, 0, 15]} scale={2.6} rotation={[0, 0.4, 0]} />
+      <KenneyProp name="rugRound" position={[16, 0.01, -14]} scale={2.6} />
       <PotteryCluster position={[-4 * S, 0, -0.5 * S]} />
       <PotteryCluster position={[4 * S, 0, -0.5 * S]} />
       <CushionBench position={[-16, 0, -2]} rotationY={Math.PI / 2} length={2.4} />

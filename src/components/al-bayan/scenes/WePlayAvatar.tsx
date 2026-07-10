@@ -129,6 +129,28 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
       [glowColor]
     );
 
+    // Accent doré (kufi + ceinture) — retour utilisateur : même après le
+    // réglage d'émissivité ci-dessus, la silhouette reste dure à distinguer
+    // dans les pièces sombres où l'éclairage ambiant ne suffit pas à creuser
+    // le modelé par ombrage seul. Un vrai contraste de COULEUR (pas
+    // seulement de lumière) reste lisible quelles que soient les conditions
+    // d'éclairage de la pièce — cf. palette dorée déjà établie de l'appli
+    // (#D4AF37).
+    const accentMat = useMemo(
+      () =>
+        new THREE.MeshStandardMaterial({
+          color: "#D4AF37",
+          emissive: "#B8860B",
+          emissiveIntensity: 0.4,
+          roughness: 0.3,
+          metalness: 0.6,
+          toneMapped: true,
+        }),
+      []
+    );
+
+    const beltGeo = useMemo(() => new THREE.TorusGeometry(0.245, 0.022, 8, 20), []);
+
     // ── Géométries ──────────────────────────────────────────────────────────
     // Thobe : surface de révolution (LatheGeometry) — profil (r, y) représente
     // une djellaba ample en bas qui s'affine vers le col.
@@ -224,8 +246,12 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
             <mesh geometry={headGeo} material={haloMat} scale={1.19} />
           </group>
 
-          {/* ── Kufi ── */}
-          <mesh geometry={kufiGeo} material={bodyMat} position={[0, 1.705, 0]} castShadow />
+          {/* ── Kufi — teinte dorée, contraste de couleur lisible même dans
+              les pièces sombres où l'ombrage seul ne suffit pas ── */}
+          <mesh geometry={kufiGeo} material={accentMat} position={[0, 1.705, 0]} castShadow />
+
+          {/* ── Ceinture dorée à la taille — même motif de contraste ── */}
+          <mesh geometry={beltGeo} material={accentMat} position={[0, 0.88, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow />
 
           {/* ── Manche gauche — pivot à l'épaule gauche ── */}
           <group ref={leftSleeveRef} position={[-0.21, 1.22, 0]}>

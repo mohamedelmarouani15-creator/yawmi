@@ -23,6 +23,10 @@ export type KenneyPropName =
   | "bookcaseOpen"
   | "bookcaseOpenLow"
   | "books"
+  | "chairRounded"
+  | "kitchenCabinet"
+  | "kitchenCabinetDrawer"
+  | "kitchenCabinetUpper"
   | "lampRoundFloor"
   | "lampWall"
   | "pillow"
@@ -37,7 +41,9 @@ export type KenneyPropName =
   | "rugSquare"
   | "sideTable"
   | "sideTableDrawers"
-  | "tableCoffee";
+  | "stoolBar"
+  | "tableCoffee"
+  | "tableRound";
 
 function modelPath(name: KenneyPropName) {
   return `/models/kenney-furniture/${name}.glb`;

@@ -14,6 +14,7 @@ import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { MANUSCRIPTS } from "@/lib/al-bayan/puzzle-logic";
 import { WallSconce, MonumentalVase } from "../shared/CorridorDecor";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
+import { KenneyProp } from "../shared/KenneyProp";
 
 // Passage à l'échelle "Grand Riad" — SS=3 (empreinte + décor), hauteur x1.8.
 const SS = 3;
@@ -404,6 +405,13 @@ export default function Scriptorium({
       <MonumentalVase position={[SIZE / 2 - 2, 0, SIZE / 2 - 2]} scale={1.3} />
       <WallSconce position={[-17.1, H * 0.42, SIZE / 2 - 0.15]} rotationY={Math.PI} />
       <WallSconce position={[17.1, H * 0.42, SIZE / 2 - 0.15]} rotationY={Math.PI} />
+
+      {/* Vraies bibliothèques CC0 (pack Kenney) — sur les pans pleins qui
+          flanquent le moucharabieh sud, mêmes positions x que les WallSconce
+          ci-dessus (déjà auditées hors seuil). */}
+      <KenneyProp name="bookcaseOpen" position={[-15, 0, 18.5]} scale={2.2} rotation={[0, Math.PI, 0]} />
+      <KenneyProp name="bookcaseOpen" position={[15, 0, 18.5]} scale={2.2} rotation={[0, Math.PI, 0]} />
+      <KenneyProp name="books" position={[-2, 0.42, -13.5]} scale={2} rotation={[0, 0.3, 0]} />
 
       <AmbientParticles avatarRef={avatarRef} />
     </group>

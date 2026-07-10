@@ -5,7 +5,7 @@ import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import OctagonalColumn from "../shared/OctagonalColumn";
 import LockedDoor from "../shared/LockedDoor";
-import { WallSconce, MonumentalVase, CorridorRug } from "../shared/CorridorDecor";
+import { WallSconce, MonumentalVase, CorridorRug, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
 
 // Passage secret en coordonnées MONDE reliant l'ouverture taillée dans le
 // mur "-Z local" du Scriptorium (monde X≈-63.5, y=-1.1 — même niveau que le
@@ -64,6 +64,10 @@ export default function CorridorScriptoriumCuisine({ avatarRef, cuisineUnlocked 
       ))}
       <MonumentalVase position={[SCRIPTORIUM_OPENING_X - 1.3, Y, -WIDTH / 2 + 0.8]} scale={1.1} />
       <MonumentalVase position={[CUISINE_OPENING_X + 1.3, Y, WIDTH / 2 - 0.8]} scale={1.1} />
+      <PotteryCluster position={[SCRIPTORIUM_OPENING_X - 1.5, Y, WIDTH / 2 - 0.55]} />
+      <PotteryCluster position={[CUISINE_OPENING_X + 1.5, Y, -WIDTH / 2 + 0.55]} />
+      <CushionBench position={[centerX - length * 0.15, Y, -WIDTH / 2 + 0.5]} />
+      <MashrabiyaScreen position={[centerX + length * 0.15, Y + HALL_HEIGHT * 0.4, WIDTH / 2 - 0.05]} rotationY={Math.PI} />
       <CorridorRug position={[centerX, Y + 0.015, 0]} width={length * 0.4} length={WIDTH * 0.55} />
 
       <mesh

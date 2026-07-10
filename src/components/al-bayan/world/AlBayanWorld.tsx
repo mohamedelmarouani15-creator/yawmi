@@ -253,11 +253,12 @@ export default function AlBayanWorld({
           3x plus petites. */}
       <fogExp2 attach="fog" args={["#0b0805", 0.006]} />
       {/* Fill global : ambiance lumineuse chaude qui débouche les salles sombres
-          sans tuer le contrast dramatique — hémisphère ciel bleu nuit / sol
-          ambre chaud, + ambient de sécurité. */}
+          sans tuer le contrast dramatique — hémisphère et ambient tous deux
+          teintés ambre/or (réf. utilisateur : riad au flambeau, pas de teinte
+          bleu-nuit froide qui casse l'atmosphère "sable chaud"). */}
       {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-      <hemisphereLight args={["#1A2060", "#4A2800", 0.6] as any} />
-      <ambientLight color="#3A3850" intensity={0.9} />
+      <hemisphereLight args={["#4A3418", "#4A2800", 0.6] as any} />
+      <ambientLight color="#4A3820" intensity={0.9} />
 
       <Sparkles count={160} scale={[220, 20, 150]} size={1.4} speed={0.12} color="#D4AF37" opacity={0.4} />
 

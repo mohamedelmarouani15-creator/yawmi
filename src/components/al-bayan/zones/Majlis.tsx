@@ -9,6 +9,7 @@ import Moucharabieh from "../shared/Moucharabieh";
 import ProximityPrompt from "../../maison-sagesse/shared/ProximityPrompt";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { LIBRARY_CLUE } from "@/lib/al-bayan/puzzle-logic";
+import { WallSconce, MonumentalVase, PotteryCluster } from "../shared/CorridorDecor";
 
 // Passage à l'échelle "Grand Riad" — SIZE x3, hauteur x1.8 (cf. commentaire
 // dans Vestibule.tsx pour le raisonnement).
@@ -268,6 +269,23 @@ export default function Majlis({ avatarRef, libraryClueFound, onFindLibraryClue 
       <CandleLight position={[15, 0.4, 3]} intensity={1.2} avatarRef={avatarRef} />
       <CandleLight position={[-15, 0.4, 3]} intensity={1.0} avatarRef={avatarRef} />
       <CandleLight position={[15, 0.4, -3]} intensity={1.0} avatarRef={avatarRef} />
+
+      {/* Décor mural supplémentaire — retour utilisateur : la salle restait
+          bien trop vide malgré l'assise en U et les tables. */}
+      <MonumentalVase position={[-MAJLIS_SIZE / 2 + 2, 0, -MAJLIS_SIZE / 2 + 2]} scale={1.5} />
+      <MonumentalVase position={[MAJLIS_SIZE / 2 - 2, 0, -MAJLIS_SIZE / 2 + 2]} scale={1.5} />
+      <MonumentalVase position={[-MAJLIS_SIZE / 2 + 2, 0, MAJLIS_SIZE / 2 - 2]} scale={1.5} />
+      <MonumentalVase position={[MAJLIS_SIZE / 2 - 2, 0, MAJLIS_SIZE / 2 - 2]} scale={1.5} />
+      <PotteryCluster position={[-MAJLIS_SIZE / 2 + 1.6, 0, -SEG_Z]} />
+      <PotteryCluster position={[-MAJLIS_SIZE / 2 + 1.6, 0, SEG_Z]} />
+      <PotteryCluster position={[MAJLIS_SIZE / 2 - 1.6, 0, -SEG_Z]} />
+      <PotteryCluster position={[MAJLIS_SIZE / 2 - 1.6, 0, SEG_Z]} />
+      <WallSconce position={[0, MAJLIS_H * 0.42, -MAJLIS_SIZE / 2 + 0.15]} rotationY={0} />
+      <WallSconce position={[0, MAJLIS_H * 0.42, MAJLIS_SIZE / 2 - 0.15]} rotationY={Math.PI} />
+      <WallSconce position={[-14, MAJLIS_H * 0.42, -MAJLIS_SIZE / 2 + 0.15]} rotationY={0} />
+      <WallSconce position={[14, MAJLIS_H * 0.42, -MAJLIS_SIZE / 2 + 0.15]} rotationY={0} />
+      <WallSconce position={[-14, MAJLIS_H * 0.42, MAJLIS_SIZE / 2 - 0.15]} rotationY={Math.PI} />
+      <WallSconce position={[14, MAJLIS_H * 0.42, MAJLIS_SIZE / 2 - 0.15]} rotationY={Math.PI} />
 
       <AmbientParticles avatarRef={avatarRef} />
     </group>

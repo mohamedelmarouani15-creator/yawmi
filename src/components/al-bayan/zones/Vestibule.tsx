@@ -11,6 +11,7 @@ import BookshelfWall from "../scenes/BookshelfWall";
 import ZoneWall from "../shared/ZoneWall";
 import LightShaftSun from "../world/LightShaftSun";
 import EmberParticles from "../shared/EmberParticles";
+import { WallSconce, MonumentalVase, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
 
 // Passage à l'échelle "Grand Riad" — le sol est multiplié par S (empreinte),
 // la hauteur suit un facteur plus mesuré HS (une pièce 3x plus vaste au sol
@@ -93,7 +94,12 @@ export default function Vestibule({ sunRef }: { sunRef?: Ref<THREE.Mesh> }) {
 
       {/* Source des rayons de lumière (GodRays) — lucarne haute du Vestibule,
           première pièce vue par le joueur au spawn. */}
-      <LightShaftSun ref={sunRef} position={[0, H - 1, -2 * S]} color="#FFE0A0" size={1.8 * HS} />
+      {/* Taille réduite (1.8*HS -> 0.7*HS) : à l'échelle "Grand Riad" et avec le
+          Bloom actuel, le disque plein cadre finissait en gros halo blanc
+          écrasant tout le champ de vision (retour utilisateur : capture
+          d'écran montrant un "soleil" géant surexposé au Vestibule). Le
+          GodRays n'a besoin que d'une petite source ponctuelle. */}
+      <LightShaftSun ref={sunRef} position={[0, H - 1, -2 * S]} color="#FFE0A0" size={0.7 * HS} />
 
       <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
         <planeGeometry args={[W, D]} />
@@ -188,6 +194,24 @@ export default function Vestibule({ sunRef }: { sunRef?: Ref<THREE.Mesh> }) {
       ))}
 
       <CedarCounter position={[0, 0, -1.5 * S]} />
+
+      {/* Décor supplémentaire — retour utilisateur : les pièces (hors
+          couloirs) restaient bien trop vides à l'échelle "Grand Riad". */}
+      <MonumentalVase position={[-W / 2 + 3, 0, D / 2 - 2]} scale={1.6} />
+      <MonumentalVase position={[W / 2 - 3, 0, D / 2 - 2]} scale={1.6} />
+      <PotteryCluster position={[-4 * S, 0, -0.5 * S]} />
+      <PotteryCluster position={[4 * S, 0, -0.5 * S]} />
+      <CushionBench position={[-16, 0, -2]} rotationY={Math.PI / 2} length={2.4} />
+      <CushionBench position={[16, 0, -2]} rotationY={-Math.PI / 2} length={2.4} />
+      {/* z = -14 (pas -4) : |z| doit dépasser GAP (7.2) pour tomber sur le
+          pan de mur plein plutôt qu'en plein milieu de l'arche latérale
+          ouverte — même piège que dans le Jardin, corrigé ici avant envoi. */}
+      <MashrabiyaScreen position={[-W / 2 + 0.2, H * 0.32, -14]} rotationY={Math.PI / 2} width={2.4} height={3.2} />
+      <MashrabiyaScreen position={[W / 2 - 0.2, H * 0.32, -14]} rotationY={-Math.PI / 2} width={2.4} height={3.2} />
+      <WallSconce position={[-W / 2 + 0.15, H * 0.42, D / 2 - 6]} rotationY={Math.PI / 2} />
+      <WallSconce position={[W / 2 - 0.15, H * 0.42, D / 2 - 6]} rotationY={-Math.PI / 2} />
+      <WallSconce position={[-W / 2 + 0.15, H * 0.42, -D / 2 + 6]} rotationY={Math.PI / 2} />
+      <WallSconce position={[W / 2 - 0.15, H * 0.42, -D / 2 + 6]} rotationY={-Math.PI / 2} />
 
       <CandleLight position={[-4.5 * S, 0.4, -3.5 * S]} intensity={1.3} />
       <CandleLight position={[4.5 * S, 0.4, -3.5 * S]} intensity={1.3} />

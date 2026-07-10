@@ -9,7 +9,9 @@ import { useAlBayanStore } from "@/lib/al-bayan/game-store";
 import { dispatchPassthroughTap } from "@/lib/touch-passthrough";
 import { ISO_YAW_DEFAULT, ISO_PITCH_DEFAULT, ISO_PITCH_MIN, ISO_PITCH_MAX } from "@/lib/al-bayan/iso-camera";
 
+import { useIsPortrait } from "@/hooks/useIsPortrait";
 import IntroScreen from "@/components/al-bayan/ui/IntroScreen";
+import RotateDeviceOverlay from "@/components/al-bayan/ui/RotateDeviceOverlay";
 import AlBayanWorld from "@/components/al-bayan/world/AlBayanWorld";
 import AlBayanPostProcessing from "@/components/al-bayan/world/PostProcessing";
 import LoadingVeil from "@/components/al-bayan/ui/LoadingVeil";
@@ -160,6 +162,8 @@ export default function AlBayanPage() {
     setIsTouchDevice(isTouchCapable());
   }, []);
 
+  const isPortrait = useIsPortrait();
+
   // Voile de chargement — visible au moins le temps de l'intro cinématique
   // (~3.2s) ET jusqu'à ce que les textures PBR soient prêtes (`useProgress`
   // lu ICI, hors du Canvas — le lire depuis un composant R3F suspendu
@@ -233,12 +237,13 @@ export default function AlBayanPage() {
     };
   }, []);
 
-  // Timer
+  // Timer — en pause tant que le joueur est bloqué par l'overlay portrait,
+  // pour ne pas lui faire perdre du temps de jeu qu'il ne peut pas utiliser.
   useEffect(() => {
-    if (!isRunning) return;
+    if (!isRunning || isPortrait) return;
     const interval = setInterval(() => tick(), 1000);
     return () => clearInterval(interval);
-  }, [isRunning, tick]);
+  }, [isRunning, isPortrait, tick]);
 
   // Clavier desktop — WASD/flèches pour le déplacement, Q/E pour
   // l'orientation : permet de tester le monde ouvert sans appareil
@@ -378,6 +383,8 @@ export default function AlBayanPage() {
 
       {/* Voile de chargement — par-dessus le Canvas, en dessous du HUD */}
       <LoadingVeil visible={showVeil} />
+
+      <RotateDeviceOverlay visible={isPortrait} />
 
       <div style={{
         position: "absolute", inset: 0, pointerEvents: "none", zIndex: 5,

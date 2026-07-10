@@ -12,6 +12,7 @@ import IncenseSmoke from "../world/IncenseSmoke";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { MonumentalVase, PotteryCluster } from "../shared/CorridorDecor";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
+import { KenneyProp } from "../shared/KenneyProp";
 
 // Passage à l'échelle "Grand Riad" — RADIUS x3, hauteur x1.8.
 export const RADIUS = 8 * 3;
@@ -270,6 +271,12 @@ export default function Sanctuaire({ avatarRef, lensCollected, lensPlaced, onPla
       ))}
       <PotteryCluster position={[(RADIUS - 2) * Math.cos(2.094), 0, (RADIUS - 2) * Math.sin(2.094)]} />
       <PotteryCluster position={[(RADIUS - 2) * Math.cos(0.262), 0, (RADIUS - 2) * Math.sin(0.262)]} />
+
+      {/* Vrais meubles CC0 (pack Kenney) — mêmes angles sûrs (arc plein
+          [1.971, 2π+0.369]) que les vases ci-dessus. */}
+      <KenneyProp name="pottedPlant" position={[(RADIUS - 2) * Math.cos(2.9), 0, (RADIUS - 2) * Math.sin(2.9)]} scale={2.4} />
+      <KenneyProp name="pottedPlant" position={[(RADIUS - 2) * Math.cos(5.3), 0, (RADIUS - 2) * Math.sin(5.3)]} scale={2.4} />
+      <KenneyProp name="rugRound" position={[0, 0.02, -6]} scale={3.2} />
     </group>
   );
 }

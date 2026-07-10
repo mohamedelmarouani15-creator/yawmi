@@ -6,6 +6,7 @@ import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import OctagonalColumn from "../shared/OctagonalColumn";
 import LockedDoor from "../shared/LockedDoor";
 import { WallSconce, MonumentalVase, CorridorRug, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
+import { KenneyProp } from "../shared/KenneyProp";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
 
 // Corridor en coordonnées MONDE reliant l'ouverture taillée dans le mur "+X
@@ -70,6 +71,7 @@ export default function CorridorMajlisSuite({ avatarRef, jarsRead }: CorridorMaj
       <CushionBench position={[centerX - length * 0.15, 0, -WIDTH / 2 + 0.5]} />
       <MashrabiyaScreen position={[centerX + length * 0.15, HALL_HEIGHT * 0.4, WIDTH / 2 - 0.05]} rotationY={Math.PI} />
       <CorridorRug position={[centerX, 0.015, 0]} width={length * 0.4} length={WIDTH * 0.55} />
+      <KenneyProp name="pottedPlant" position={[centerX, 0, -WIDTH / 2 + 0.7]} scale={2.2} />
 
       <mesh
         position={[centerX, HALL_HEIGHT - 0.4, 0]}

@@ -10,6 +10,7 @@ import InteractiveAura from "../shared/InteractiveAura";
 import ProximityPrompt from "../../maison-sagesse/shared/ProximityPrompt";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { PotteryCluster } from "../shared/CorridorDecor";
+import { KenneyProp } from "../shared/KenneyProp";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
 import { ASTROLABE_RINGS, ASTROLABE_TOLERANCE_DEG, FOUNTAIN_INSCRIPTION } from "@/lib/al-bayan/puzzle-logic";
 
@@ -568,6 +569,12 @@ export default function CourTemoignage({
           milieu du chemin de marche. */}
       <PotteryCluster position={[-11, 0, 16]} />
       <PotteryCluster position={[11, 0, 5]} />
+
+      {/* Vrais meubles CC0 (pack Kenney) — coin salon près des banquettes */}
+      <KenneyProp name="sideTable" position={[0, 0, 10.5]} scale={2.6} />
+      <KenneyProp name="rugRectangle" position={[0, 0.01, 10.5]} scale={4.5} rotation={[0, Math.PI / 2, 0]} />
+      <KenneyProp name="pottedPlant" position={[-22, 0, -3]} scale={2.6} />
+      <KenneyProp name="pottedPlant" position={[22, 0, -3]} scale={2.6} />
     </group>
   );
 }

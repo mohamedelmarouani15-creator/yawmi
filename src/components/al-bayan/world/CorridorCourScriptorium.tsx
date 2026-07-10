@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import OctagonalColumn from "../shared/OctagonalColumn";
-import { WallSconce, MonumentalVase, CorridorRug } from "../shared/CorridorDecor";
+import { WallSconce, MonumentalVase, CorridorRug, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
 
 // Grande galerie diagonale en espace MONDE reliant l'ouverture du mur "+X
 // local" du Jardin (monde X≈36, Z≈30, y=0) à celle du mur "-X local" du
@@ -89,15 +89,20 @@ export default function CorridorCourScriptorium({ avatarRef }: { avatarRef?: Rea
           <OctagonalColumn position={[d, 0, WIDTH / 2 - 0.6]} height={HALL_HEIGHT - 0.4} shadows={false} />
         </group>
       ))}
-      {columnDs.filter((_, i) => i % 2 === 0).map((d, i) => (
-        <WallSconce
-          key={`sconce-${i}`}
-          position={[d, HALL_HEIGHT * 0.5, i % 2 === 0 ? -WIDTH / 2 + 0.15 : WIDTH / 2 - 0.15]}
-          rotationY={i % 2 === 0 ? 0 : Math.PI}
-        />
+      {columnDs.map((d, i) => (
+        <group key={`sconce-${i}`}>
+          <WallSconce position={[d, HALL_HEIGHT * 0.5, -WIDTH / 2 + 0.15]} rotationY={0} />
+          <WallSconce position={[d, HALL_HEIGHT * 0.5, WIDTH / 2 - 0.15]} rotationY={Math.PI} />
+        </group>
       ))}
       <MonumentalVase position={[1.6, 0, -WIDTH / 2 + 0.9]} scale={1.3} />
       <MonumentalVase position={[flatLength - 1.6, 0, WIDTH / 2 - 0.9]} scale={1.3} />
+      <PotteryCluster position={[1.8, 0, WIDTH / 2 - 0.55]} />
+      <PotteryCluster position={[flatLength * 0.5, 0, -WIDTH / 2 + 0.55]} />
+      <PotteryCluster position={[flatLength - 1.8, 0, -WIDTH / 2 + 0.55]} />
+      <CushionBench position={[flatLength * 0.2, 0, -WIDTH / 2 + 0.5]} />
+      <CushionBench position={[flatLength * 0.85, 0, WIDTH / 2 - 0.5]} rotationY={Math.PI} />
+      <MashrabiyaScreen position={[flatLength * 0.5, HALL_HEIGHT * 0.42, WIDTH / 2 - 0.05]} rotationY={Math.PI} />
       <CorridorRug position={[flatLength * 0.35, 0.015, 0]} width={7} length={WIDTH * 0.55} />
       <CorridorRug position={[flatLength * 0.7, 0.015, 0]} width={7} length={WIDTH * 0.55} />
 

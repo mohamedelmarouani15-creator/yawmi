@@ -5,7 +5,7 @@ import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import OctagonalColumn from "../shared/OctagonalColumn";
 import LockedDoor from "../shared/LockedDoor";
-import { WallSconce, MonumentalVase, CorridorRug } from "../shared/CorridorDecor";
+import { WallSconce, MonumentalVase, CorridorRug, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
 
 // Corridor en coordonnées MONDE reliant l'ouverture taillée dans le mur "+X
 // local" du Majlis (monde X≈136.9) à celle du mur "-X local" de la Suite
@@ -56,15 +56,18 @@ export default function CorridorMajlisSuite({ avatarRef, jarsRead }: CorridorMaj
           <OctagonalColumn position={[x, 0, WIDTH / 2 - 0.45]} height={HALL_HEIGHT - 0.4} shadows={false} />
         </group>
       ))}
-      {columnXs.filter((_, i) => i % 2 === 0).map((x, i) => (
-        <WallSconce
-          key={`sconce-${i}`}
-          position={[x, HALL_HEIGHT * 0.5, i % 2 === 0 ? -WIDTH / 2 + 0.15 : WIDTH / 2 - 0.15]}
-          rotationY={i % 2 === 0 ? 0 : Math.PI}
-        />
+      {columnXs.map((x, i) => (
+        <group key={`sconce-${i}`}>
+          <WallSconce position={[x, HALL_HEIGHT * 0.5, -WIDTH / 2 + 0.15]} rotationY={0} />
+          <WallSconce position={[x, HALL_HEIGHT * 0.5, WIDTH / 2 - 0.15]} rotationY={Math.PI} />
+        </group>
       ))}
       <MonumentalVase position={[MAJLIS_OPENING_X + 1.3, 0, -WIDTH / 2 + 0.8]} scale={1.1} />
       <MonumentalVase position={[SUITE_OPENING_X - 1.3, 0, WIDTH / 2 - 0.8]} scale={1.1} />
+      <PotteryCluster position={[MAJLIS_OPENING_X + 1.5, 0, WIDTH / 2 - 0.55]} />
+      <PotteryCluster position={[SUITE_OPENING_X - 1.5, 0, -WIDTH / 2 + 0.55]} />
+      <CushionBench position={[centerX - length * 0.15, 0, -WIDTH / 2 + 0.5]} />
+      <MashrabiyaScreen position={[centerX + length * 0.15, HALL_HEIGHT * 0.4, WIDTH / 2 - 0.05]} rotationY={Math.PI} />
       <CorridorRug position={[centerX, 0.015, 0]} width={length * 0.4} length={WIDTH * 0.55} />
 
       <mesh

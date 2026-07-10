@@ -5,7 +5,7 @@ import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import OctagonalColumn from "../shared/OctagonalColumn";
 import LockedDoor from "../shared/LockedDoor";
-import { WallSconce, MonumentalVase, CorridorRug } from "../shared/CorridorDecor";
+import { WallSconce, MonumentalVase, CorridorRug, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
 
 // Passage secret en coordonnées MONDE reliant l'ouverture taillée dans le
 // mur "-Z local" du Scriptorium (monde X≈-63.5, y=-1.1 — même niveau que le
@@ -56,15 +56,18 @@ export default function CorridorScriptoriumCuisine({ avatarRef, cuisineUnlocked 
           <OctagonalColumn position={[x, Y, WIDTH / 2 - 0.5]} height={HALL_HEIGHT - 0.4} shadows={false} />
         </group>
       ))}
-      {columnXs.filter((_, i) => i % 2 === 0).map((x, i) => (
-        <WallSconce
-          key={`sconce-${i}`}
-          position={[x, Y + HALL_HEIGHT * 0.5, i % 2 === 0 ? -WIDTH / 2 + 0.15 : WIDTH / 2 - 0.15]}
-          rotationY={i % 2 === 0 ? 0 : Math.PI}
-        />
+      {columnXs.map((x, i) => (
+        <group key={`sconce-${i}`}>
+          <WallSconce position={[x, Y + HALL_HEIGHT * 0.5, -WIDTH / 2 + 0.15]} rotationY={0} />
+          <WallSconce position={[x, Y + HALL_HEIGHT * 0.5, WIDTH / 2 - 0.15]} rotationY={Math.PI} />
+        </group>
       ))}
       <MonumentalVase position={[SCRIPTORIUM_OPENING_X - 1.3, Y, -WIDTH / 2 + 0.8]} scale={1.1} />
       <MonumentalVase position={[CUISINE_OPENING_X + 1.3, Y, WIDTH / 2 - 0.8]} scale={1.1} />
+      <PotteryCluster position={[SCRIPTORIUM_OPENING_X - 1.5, Y, WIDTH / 2 - 0.55]} />
+      <PotteryCluster position={[CUISINE_OPENING_X + 1.5, Y, -WIDTH / 2 + 0.55]} />
+      <CushionBench position={[centerX - length * 0.15, Y, -WIDTH / 2 + 0.5]} />
+      <MashrabiyaScreen position={[centerX + length * 0.15, Y + HALL_HEIGHT * 0.4, WIDTH / 2 - 0.05]} rotationY={Math.PI} />
       <CorridorRug position={[centerX, Y + 0.015, 0]} width={length * 0.4} length={WIDTH * 0.55} />
 
       <mesh

@@ -5,7 +5,7 @@ import * as THREE from "three";
 import CandleLight from "../../maison-sagesse/shared/CandleLight";
 import OctagonalColumn from "../shared/OctagonalColumn";
 import LockedDoor from "../shared/LockedDoor";
-import { WallSconce, MonumentalVase, CorridorRug } from "../shared/CorridorDecor";
+import { WallSconce, MonumentalVase, CorridorRug, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
 
 // Corridor en coordonnées MONDE (pas niché dans le repère tourné du Jardin)
 // reliant l'ouverture taillée dans le mur "-Z local" du Jardin (monde
@@ -59,17 +59,19 @@ export default function CorridorJardinMajlis({ avatarRef, majlisUnlocked }: Corr
         </group>
       ))}
 
-      {/* Appliques en métal ciselé — une colonne sur deux, côtés en alternance
-          pour éviter la répétition symétrique trop chargée. */}
-      {columnXs.filter((_, i) => i % 2 === 0).map((x, i) => (
-        <WallSconce
-          key={`sconce-${i}`}
-          position={[x, HALL_HEIGHT * 0.5, i % 2 === 0 ? -WIDTH / 2 + 0.15 : WIDTH / 2 - 0.15]}
-          rotationY={i % 2 === 0 ? 0 : Math.PI}
-        />
+      {/* Appliques en métal ciselé — une paire par colonne. */}
+      {columnXs.map((x, i) => (
+        <group key={`sconce-${i}`}>
+          <WallSconce position={[x, HALL_HEIGHT * 0.5, -WIDTH / 2 + 0.15]} rotationY={0} />
+          <WallSconce position={[x, HALL_HEIGHT * 0.5, WIDTH / 2 - 0.15]} rotationY={Math.PI} />
+        </group>
       ))}
       <MonumentalVase position={[JARDIN_OPENING_X + 1.4, 0, -WIDTH / 2 + 0.9]} scale={1.3} />
       <MonumentalVase position={[MAJLIS_OPENING_X - 1.4, 0, WIDTH / 2 - 0.9]} scale={1.3} />
+      <PotteryCluster position={[JARDIN_OPENING_X + 1.6, 0, WIDTH / 2 - 0.6]} />
+      <PotteryCluster position={[MAJLIS_OPENING_X - 1.6, 0, -WIDTH / 2 + 0.6]} />
+      <CushionBench position={[centerX - length * 0.18, 0, -WIDTH / 2 + 0.5]} />
+      <MashrabiyaScreen position={[centerX + length * 0.18, HALL_HEIGHT * 0.42, WIDTH / 2 - 0.05]} rotationY={Math.PI} />
       <CorridorRug position={[centerX, 0.015, 0]} width={length * 0.4} length={WIDTH * 0.55} />
 
       <mesh

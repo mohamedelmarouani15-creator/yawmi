@@ -10,6 +10,7 @@ import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { JAR_CODE, KITCHEN_CLUE } from "@/lib/al-bayan/puzzle-logic";
 import { WallSconce, MonumentalVase, PotteryCluster } from "../shared/CorridorDecor";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
+import { KenneyProp } from "../shared/KenneyProp";
 
 // Passage à l'échelle "Grand Riad" — SIZE x3, hauteur x1.8.
 export const CUISINE_SIZE = 11 * 3;
@@ -237,6 +238,12 @@ export default function Cuisine({ avatarRef, jarsRead, onReadJars }: CuisineProp
       <WickerBasket position={[12, 0.2, 10.5]} />
       <WickerBasket position={[-6, 0.2, 12]} />
       <WickerBasket position={[6, 0.2, 12]} />
+
+      {/* Vrais meubles CC0 (pack Kenney) — mur ouest, plein sur toute sa
+          longueur (pas de seuil dessus, cf. audit fait pour WallSconce). */}
+      <KenneyProp name="kitchenCabinet" position={[-16, 0, -4]} scale={2.4} rotation={[0, Math.PI / 2, 0]} />
+      <KenneyProp name="kitchenCabinetDrawer" position={[-16, 0, 2]} scale={2.4} rotation={[0, Math.PI / 2, 0]} />
+      <KenneyProp name="stoolBar" position={[0, 0, 4.5]} scale={2.2} />
 
       <CandleLight position={[-12.9, 0.4, -9]} intensity={1.2} avatarRef={avatarRef} />
       <CandleLight position={[12.9, 0.4, -9]} intensity={1.2} avatarRef={avatarRef} />

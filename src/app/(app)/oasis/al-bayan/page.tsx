@@ -337,7 +337,7 @@ export default function AlBayanPage() {
       }}
     >
       <Canvas
-        shadows="basic"
+        shadows="soft"
         // Plafonné à 1 (au lieu de 1.5) : sur un écran mobile à forte
         // densité de pixels, ce plafond seul quasi-double le nombre de
         // fragments à ombrer sur toute la chaîne (post-processing compris)

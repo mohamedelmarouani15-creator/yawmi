@@ -15,6 +15,7 @@ import { MANUSCRIPTS } from "@/lib/al-bayan/puzzle-logic";
 import { WallSconce, MonumentalVase } from "../shared/CorridorDecor";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
 import { KenneyProp } from "../shared/KenneyProp";
+import Hud3DLabel from "../shared/Hud3DLabel";
 
 // Passage à l'échelle "Grand Riad" — SS=3 (empreinte + décor), hauteur x1.8.
 const SS = 3;
@@ -199,6 +200,7 @@ function ManuscriptShelf({
 
   return (
     <group position={[0, 0, -1.5]}>
+      {!solved && <Hud3DLabel position={[0, 2.0, 0]} variant="beacon">📜 Les Manuscrits Perdus</Hud3DLabel>}
       <mesh position={[0, 0.55, -0.15]} castShadow receiveShadow material={woodMat}>
         <boxGeometry args={[2.4, 1.1, 0.3]} />
       </mesh>

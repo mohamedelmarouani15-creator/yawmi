@@ -11,6 +11,7 @@ import ProximityPrompt from "../../maison-sagesse/shared/ProximityPrompt";
 import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 import { PotteryCluster } from "../shared/CorridorDecor";
 import { KenneyProp } from "../shared/KenneyProp";
+import Hud3DLabel from "../shared/Hud3DLabel";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
 import { ASTROLABE_RINGS, ASTROLABE_TOLERANCE_DEG, FOUNTAIN_INSCRIPTION } from "@/lib/al-bayan/puzzle-logic";
 
@@ -332,6 +333,7 @@ function AstrolabePuzzle({
 
   return (
     <group position={[0, 0, -9]}>
+      {!solved && <Hud3DLabel position={[0, 2.6, 0]} variant="beacon">🕐 L&apos;Horloge Astronomique</Hud3DLabel>}
       <mesh position={[0, 0.7, 0]} castShadow>
         <cylinderGeometry args={[0.17, 0.22, 1.4, 8]} />
         <meshStandardMaterial color="#3D2A10" roughness={0.6} metalness={0.2} />

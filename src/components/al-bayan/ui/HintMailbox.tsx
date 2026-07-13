@@ -162,8 +162,26 @@ export default function HintMailbox() {
 
       <AnimatePresence>
         {open && (
+          // Le conteneur parent est ancré par `bottom` (pas `top`) : sans
+          // limite de hauteur, le panneau ouvert pousse son sommet — donc
+          // le bouton "Indices" lui-même, seul moyen de fermer — au-dessus
+          // du viewport (constaté : y=276 avant ouverture -> y=-135 après,
+          // bouton totalement hors écran et donc injoignable). `maxHeight`
+          // + scroll interne garantit que le bouton reste toujours visible
+          // quel que soit le nombre d'indices affichés.
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.2 }} style={{ overflow: "hidden" }}>
-            <div className="rounded-2xl p-3 flex flex-col gap-2" style={{ background: "rgba(10,15,13,0.92)", border: "1px solid rgba(212,175,55,0.22)", backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)", width: 240 }}>
+            <div
+              className="rounded-2xl p-3 flex flex-col gap-2"
+              style={{
+                background: "rgba(10,15,13,0.92)",
+                border: "1px solid rgba(212,175,55,0.22)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
+                width: 240,
+                maxHeight: "min(320px, 48dvh)",
+                overflowY: "auto",
+              }}
+            >
               <p style={{ fontSize: 8, fontFamily: "var(--font-dm-sans)", color: "rgba(248,244,236,0.3)", textAlign: "center", marginBottom: 2 }}>
                 3 indices au total, à répartir entre les 4 énigmes
               </p>
@@ -179,6 +197,24 @@ export default function HintMailbox() {
                   }}
                 />
               ))}
+              {/* Fermeture explicite, redondante avec le re-tap sur le
+                  bouton "Indices" — évite de dépendre uniquement d'un
+                  bouton qui a pu, avant ce correctif, se retrouver hors
+                  écran. */}
+              <button
+                onClick={() => setOpen(false)}
+                className="rounded-lg py-1.5"
+                style={{
+                  fontSize: 9,
+                  fontFamily: "var(--font-dm-sans)",
+                  fontWeight: 700,
+                  color: "rgba(248,244,236,0.5)",
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                }}
+              >
+                ✕ Fermer
+              </button>
             </div>
           </motion.div>
         )}

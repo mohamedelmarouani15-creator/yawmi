@@ -85,6 +85,7 @@ function ChandelierLensSlot({
 
   return (
     <group position={[0, H * 0.72, 0]}>
+      {!lensPlaced && <Hud3DLabel position={[0, 2.3, 0]} variant="beacon">💎 L&apos;Éclat du Sanctuaire</Hud3DLabel>}
       <mesh position={[0, 1.8, 0]} castShadow>
         <cylinderGeometry args={[0.025, 0.025, 3.6, 6]} />
         <meshStandardMaterial color="#1A0F08" roughness={0.6} />

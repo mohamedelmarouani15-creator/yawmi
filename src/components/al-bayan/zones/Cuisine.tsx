@@ -11,6 +11,7 @@ import { JAR_CODE, KITCHEN_CLUE } from "@/lib/al-bayan/puzzle-logic";
 import { WallSconce, MonumentalVase, PotteryCluster } from "../shared/CorridorDecor";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
 import { KenneyProp } from "../shared/KenneyProp";
+import Hud3DLabel from "../shared/Hud3DLabel";
 
 // Passage à l'échelle "Grand Riad" — SIZE x3, hauteur x1.8.
 export const CUISINE_SIZE = 11 * 3;
@@ -61,6 +62,7 @@ function JarShelf({ avatarRef, jarsRead, onRead }: { avatarRef: React.RefObject<
   const woodMat = usePBRMaterial("wood-dark", { repeat: [2, 0.3] });
   return (
     <group position={[0, 0, -13.8]}>
+      {!jarsRead && <Hud3DLabel position={[0, 2.6, 0]} variant="beacon">🏺 Le Code des Jarres</Hud3DLabel>}
       <mesh position={[0, 0.9, 0]} castShadow receiveShadow material={woodMat}>
         <boxGeometry args={[6, 1.6, 0.3]} />
       </mesh>

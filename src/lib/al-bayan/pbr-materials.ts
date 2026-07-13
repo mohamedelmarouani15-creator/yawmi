@@ -37,6 +37,10 @@ interface PBRMaterialOptions {
   metalness?: number;
   emissive?: string;
   emissiveIntensity?: number;
+  /** Intensité de la normalMap (défaut [1,1] = valeur native). Monter au-delà
+   * de 1 accentue le relief perçu (briques/stucs plus "ciselés") sans coût
+   * supplémentaire — c'est le même normalMap, juste appliqué plus fort. */
+  normalScale?: [number, number];
 }
 
 function texturePath(name: PBRMaterialName, map: "color" | "roughness" | "normal") {
@@ -56,6 +60,7 @@ export function usePBRMaterial(name: PBRMaterialName, options: PBRMaterialOption
     metalness = 0,
     emissive,
     emissiveIntensity,
+    normalScale = [1, 1],
   } = options;
 
   const [colorMap, roughnessMap, normalMap] = useTexture([
@@ -79,13 +84,14 @@ export function usePBRMaterial(name: PBRMaterialName, options: PBRMaterialOption
       map: c,
       roughnessMap: r,
       normalMap: n,
+      normalScale: new THREE.Vector2(normalScale[0], normalScale[1]),
       roughness: roughnessIntensity,
       metalness,
       color,
       ...(emissive ? { emissive, emissiveIntensity: emissiveIntensity ?? 0.3 } : {}),
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [colorMap, roughnessMap, normalMap, repeat[0], repeat[1], color, roughnessIntensity, metalness, emissive, emissiveIntensity]);
+  }, [colorMap, roughnessMap, normalMap, repeat[0], repeat[1], color, roughnessIntensity, metalness, emissive, emissiveIntensity, normalScale[0], normalScale[1]]);
 }
 
 /** Précharge toutes les textures utilisées par une zone dès le montage du

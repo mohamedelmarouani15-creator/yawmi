@@ -7,6 +7,7 @@ import OctagonalColumn from "../shared/OctagonalColumn";
 import { WallSconce, MonumentalVase, CorridorRug, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
 import { KenneyProp } from "../shared/KenneyProp";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
+import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 
 // Grande galerie diagonale en espace MONDE reliant l'ouverture du mur "+X
 // local" du Jardin (monde X≈36, Z≈30, y=0) à celle du mur "-X local" du
@@ -33,9 +34,9 @@ const STAIR_RUN = 5; // longueur (le long de la galerie) occupée par les marche
 const WALL_SEGMENTS = 16; // cf. commentaire sur le débordement d'AABB des parois (corridor Scriptorium↔Sanctuaire)
 
 export default function CorridorCourScriptorium({ avatarRef }: { avatarRef?: React.RefObject<THREE.Group | null> }) {
-  const floorMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#241B10", roughness: 0.7, metalness: 0.05 }), []);
-  const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#352818", roughness: 0.8 }), []);
-  const stepMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#3A3024", roughness: 0.85 }), []);
+  const floorMat = usePBRMaterial("terracotta", { repeat: [LENGTH / 4, WIDTH / 2], color: "#5A4326", roughnessIntensity: 0.8 });
+  const wallMat = usePBRMaterial("plaster", { repeat: [LENGTH / 6, HALL_HEIGHT / 3], color: "#5C4A34", normalScale: [1.8, 1.8] });
+  const stepMat = usePBRMaterial("marble", { repeat: [1, 1], color: "#4A3E2E", roughnessIntensity: 0.6 });
 
   const flatLength = LENGTH - STAIR_RUN;
   const stepCount = 4;

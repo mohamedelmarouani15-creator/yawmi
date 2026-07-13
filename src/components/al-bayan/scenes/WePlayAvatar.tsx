@@ -91,42 +91,31 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
       return false;
     }
 
-    // emissiveIntensity réduite (1.6 -> 0.55) et toneMapped réactivé : à
-    // l'ancienne valeur, une émissivité uniforme aussi forte + le Bloom en
-    // post-traitement écrasaient tout le modelé (robe, manches, tête, kufi)
-    // en un blob bleu plat sans détail — retour utilisateur direct
-    // ("je veux voir un vrai personnage"). Le personnage a pourtant déjà une
-    // vraie silhouette sculptée ; il fallait juste arrêter de la cramer.
-    // `toneMapped: true` laisse l'éclairage ambiant/ponctuel de la pièce
-    // creuser un vrai modelé (ombres portées par les plis) au lieu d'un
-    // aplat auto-illuminé.
+    // Étoffe opaque, pas de halo — retour utilisateur direct : la version
+    // émissive + halo additif (même réduite) reste lue comme un "fantôme
+    // bleu transparent" plutôt qu'un vrai personnage. `emissiveIntensity: 0`
+    // et la suppression du halo BackSide (qui produisait l'effet de bord
+    // lumineux "vaporeux") font que seule la lumière réelle de la pièce
+    // sculpte la robe — roughness élevée pour une texture de tissu lourd
+    // (bure) plutôt qu'un plastique lisse. `glowColor` teinte toujours la
+    // robe (identité par jeu réutilisant ce composant) mais désaturée/
+    // assombrie pour lire comme une laine teinte, pas une source de lumière.
+    const clothColor = useMemo(() => {
+      const c = new THREE.Color(glowColor);
+      const hsl = { h: 0, s: 0, l: 0 };
+      c.getHSL(hsl);
+      c.setHSL(hsl.h, hsl.s * 0.55, Math.min(hsl.l, 0.32));
+      return c;
+    }, [glowColor]);
+
     const bodyMat = useMemo(
       () =>
         new THREE.MeshStandardMaterial({
-          color: glowColor,
-          emissive: glowColor,
-          emissiveIntensity: 0.55,
-          roughness: 0.35,
-          metalness: 0.1,
-          toneMapped: true,
+          color: clothColor,
+          roughness: 0.85,
+          metalness: 0,
         }),
-      [glowColor]
-    );
-
-    // Halo de glow — opacité réduite (0.18 -> 0.08) pour le même motif :
-    // un halo trop marqué noie la silhouette dans le Bloom au lieu de
-    // simplement souligner ses contours.
-    const haloMat = useMemo(
-      () =>
-        new THREE.MeshBasicMaterial({
-          color: glowColor,
-          transparent: true,
-          opacity: 0.08,
-          side: THREE.BackSide,
-          blending: THREE.AdditiveBlending,
-          depthWrite: false,
-        }),
-      [glowColor]
+      [clothColor]
     );
 
     // Accent doré (kufi + ceinture) — retour utilisateur : même après le
@@ -178,6 +167,14 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
       () => new THREE.CylinderGeometry(0.062, 0.096, 0.50, 10),
       []
     );
+
+    // Collet/capuche retombée dans le dos — cône aplati, silhouette de
+    // tunique de voyageur plutôt qu'un simple col rond.
+    const hoodGeo = useMemo(() => new THREE.ConeGeometry(0.19, 0.22, 12, 1, true), []);
+
+    // Petite sacoche de ceinture — un simple box suffit à casser la
+    // silhouette lisse de la robe et à suggérer un vrai équipement porté.
+    const pouchGeo = useMemo(() => new THREE.BoxGeometry(0.09, 0.11, 0.06), []);
 
     // ── Frame : déplacement + animation ─────────────────────────────────────
     useFrame((_, delta) => {
@@ -236,29 +233,31 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
       <group ref={groupRef}>
         <group ref={bodyRef}>
           {/* ── Robe / Thobe ── */}
-          <mesh geometry={robeGeo} material={bodyMat} castShadow />
-          {/* Halo de glow : même géométrie agrandie, BackSide additive */}
-          <mesh geometry={robeGeo} material={haloMat} scale={[1.08, 1.025, 1.08]} />
+          <mesh geometry={robeGeo} material={bodyMat} castShadow receiveShadow />
+
+          {/* ── Capuche/collet de voyageur — deux triangles de tissu retombant
+              sur les épaules, pour la silhouette "tunique de voyageur"
+              demandée plutôt qu'un simple col rond. */}
+          <mesh geometry={hoodGeo} material={bodyMat} position={[0, 1.38, -0.03]} rotation={[0.32, 0, 0]} castShadow />
 
           {/* ── Tête (sans visage) ── */}
           <group position={[0, 1.59, 0]}>
             <mesh geometry={headGeo} material={bodyMat} castShadow />
-            <mesh geometry={headGeo} material={haloMat} scale={1.19} />
           </group>
 
           {/* ── Kufi — teinte dorée, contraste de couleur lisible même dans
               les pièces sombres où l'ombrage seul ne suffit pas ── */}
           <mesh geometry={kufiGeo} material={accentMat} position={[0, 1.705, 0]} castShadow />
 
-          {/* ── Ceinture dorée à la taille — même motif de contraste ── */}
+          {/* ── Ceinture à la taille + petite sacoche de voyage ── */}
           <mesh geometry={beltGeo} material={accentMat} position={[0, 0.88, 0]} rotation={[Math.PI / 2, 0, 0]} castShadow />
+          <mesh geometry={pouchGeo} material={accentMat} position={[0.19, 0.78, 0.08]} rotation={[0, 0.3, 0]} castShadow />
 
           {/* ── Manche gauche — pivot à l'épaule gauche ── */}
           <group ref={leftSleeveRef} position={[-0.21, 1.22, 0]}>
             {/* légèrement écarté vers l'extérieur + incliné vers le bas */}
             <group position={[-0.045, -0.24, 0]} rotation={[0, 0, -(Math.PI / 9)]}>
               <mesh geometry={sleeveGeo} material={bodyMat} castShadow />
-              <mesh geometry={sleeveGeo} material={haloMat} scale={1.18} />
             </group>
           </group>
 
@@ -266,14 +265,15 @@ const WePlayAvatar = forwardRef<THREE.Group, WePlayAvatarProps>(
           <group ref={rightSleeveRef} position={[0.21, 1.22, 0]}>
             <group position={[0.045, -0.24, 0]} rotation={[0, 0, Math.PI / 9]}>
               <mesh geometry={sleeveGeo} material={bodyMat} castShadow />
-              <mesh geometry={sleeveGeo} material={haloMat} scale={1.18} />
             </group>
           </group>
         </group>
 
-        {/* Lueur de contact au sol — reste au ras du plancher, hors du groupe
-            qui bascule, pour ne pas "voler" avec le bob de la robe. */}
-        <pointLight position={[0, 0.1, 0]} intensity={0.85} color={glowColor} distance={2.5} />
+        {/* Lueur de contact au sol, réduite (0.85 -> 0.35) — l'avatar est
+            maintenant opaque et lu par la lumière réelle de la pièce ; cette
+            lueur ne sert plus qu'à garder les pieds visibles dans les
+            pièces les plus sombres, pas à faire briller tout le personnage. */}
+        <pointLight position={[0, 0.1, 0]} intensity={0.35} color={glowColor} distance={2} />
       </group>
     );
   }

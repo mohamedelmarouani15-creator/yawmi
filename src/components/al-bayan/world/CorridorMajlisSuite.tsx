@@ -29,7 +29,7 @@ export default function CorridorMajlisSuite({ avatarRef, jarsRead }: CorridorMaj
   const length = SUITE_OPENING_X - MAJLIS_OPENING_X;
   const centerX = (MAJLIS_OPENING_X + SUITE_OPENING_X) / 2;
   const floorMat = usePBRMaterial("marble", { repeat: [length / 4, WIDTH / 2], color: "#3A3448", roughnessIntensity: 0.6 });
-  const wallMat = usePBRMaterial("plaster", { repeat: [length / 6, HALL_HEIGHT / 3], color: "#463D58" });
+  const wallMat = usePBRMaterial("plaster", { repeat: [length / 6, HALL_HEIGHT / 3], color: "#463D58", normalScale: [1.8, 1.8] });
 
   const columnXs = useMemo(() => {
     const count = Math.max(2, Math.round(length / 9));

@@ -35,7 +35,7 @@ const WALL_SEGMENTS = 16; // cf. commentaire sur le débordement d'AABB des paro
 
 export default function CorridorCourScriptorium({ avatarRef }: { avatarRef?: React.RefObject<THREE.Group | null> }) {
   const floorMat = usePBRMaterial("terracotta", { repeat: [LENGTH / 4, WIDTH / 2], color: "#5A4326", roughnessIntensity: 0.8 });
-  const wallMat = usePBRMaterial("plaster", { repeat: [LENGTH / 6, HALL_HEIGHT / 3], color: "#5C4A34" });
+  const wallMat = usePBRMaterial("plaster", { repeat: [LENGTH / 6, HALL_HEIGHT / 3], color: "#5C4A34", normalScale: [1.8, 1.8] });
   const stepMat = usePBRMaterial("marble", { repeat: [1, 1], color: "#4A3E2E", roughnessIntensity: 0.6 });
 
   const flatLength = LENGTH - STAIR_RUN;

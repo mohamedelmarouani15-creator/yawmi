@@ -84,6 +84,10 @@ function CedarCounter({ position }: { position: [number, number, number] }) {
 export default function Vestibule({ sunRef, avatarRef }: { sunRef?: Ref<THREE.Mesh>; avatarRef?: React.RefObject<THREE.Group | null> }) {
   const floorMat = usePBRMaterial("marble", { repeat: [W / 8, D / 8], color: "#C9BFA8", roughnessIntensity: 0.35 });
   const ceilingMat = usePBRMaterial("wood-dark", { repeat: [W / 6, D / 6], color: "#3A2A18" });
+  // Murs — briques ocre + liseré de bois, relief accentué (normalScale 1.8)
+  // pour un rendu ciselé sous les lumières ambre plutôt qu'une teinte plate.
+  const brickMat = usePBRMaterial("terracotta", { repeat: [W / 5, H / 4], color: BRICK, roughnessIntensity: 0.85, normalScale: [1.8, 1.8] });
+  const trimMat = usePBRMaterial("wood-dark", { repeat: [W / 6, 1], color: WOOD_TRIM, normalScale: [1.8, 1.8] });
 
   return (
     <group>
@@ -156,6 +160,7 @@ export default function Vestibule({ sunRef, avatarRef }: { sunRef?: Ref<THREE.Me
             position={[side * (GAP + (W / 2 - GAP) / 2), H / 2, -D / 2 + 0.15]}
             size={[W / 2 - GAP, H, 0.3]}
             color={BRICK}
+            material={brickMat}
           />
           <ZoneWall
             position={[side * (GAP + (W / 2 - GAP) / 2), H - 0.3, -D / 2 + 0.15]}
@@ -163,6 +168,7 @@ export default function Vestibule({ sunRef, avatarRef }: { sunRef?: Ref<THREE.Me
             color={WOOD_TRIM}
             roughness={0.55}
             metalness={0.1}
+            material={trimMat}
           />
         </group>
       ))}
@@ -172,6 +178,7 @@ export default function Vestibule({ sunRef, avatarRef }: { sunRef?: Ref<THREE.Me
             position={[-W / 2 + 0.15, H / 2, side * (GAP + (D / 2 - GAP) / 2)]}
             size={[0.3, H, D / 2 - GAP]}
             color={BRICK}
+            material={brickMat}
           />
           <ZoneWall
             position={[-W / 2 + 0.15, H - 0.3, side * (GAP + (D / 2 - GAP) / 2)]}
@@ -179,6 +186,7 @@ export default function Vestibule({ sunRef, avatarRef }: { sunRef?: Ref<THREE.Me
             color={WOOD_TRIM}
             roughness={0.55}
             metalness={0.1}
+            material={trimMat}
           />
         </group>
       ))}
@@ -188,6 +196,7 @@ export default function Vestibule({ sunRef, avatarRef }: { sunRef?: Ref<THREE.Me
             position={[W / 2 - 0.15, H / 2, side * (GAP + (D / 2 - GAP) / 2)]}
             size={[0.3, H, D / 2 - GAP]}
             color={BRICK}
+            material={brickMat}
           />
           <ZoneWall
             position={[W / 2 - 0.15, H - 0.3, side * (GAP + (D / 2 - GAP) / 2)]}
@@ -195,6 +204,7 @@ export default function Vestibule({ sunRef, avatarRef }: { sunRef?: Ref<THREE.Me
             color={WOOD_TRIM}
             roughness={0.55}
             metalness={0.1}
+            material={trimMat}
           />
         </group>
       ))}

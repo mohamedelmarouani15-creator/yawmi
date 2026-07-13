@@ -29,7 +29,7 @@ export default function CorridorScriptoriumCuisine({ avatarRef, cuisineUnlocked 
   const length = SCRIPTORIUM_OPENING_X - CUISINE_OPENING_X;
   const centerX = (SCRIPTORIUM_OPENING_X + CUISINE_OPENING_X) / 2;
   const floorMat = usePBRMaterial("wood-dark", { repeat: [length / 4, WIDTH / 2], color: "#4A3A26", roughnessIntensity: 0.7 });
-  const wallMat = usePBRMaterial("plaster", { repeat: [length / 6, HALL_HEIGHT / 3], color: "#4E4030" });
+  const wallMat = usePBRMaterial("plaster", { repeat: [length / 6, HALL_HEIGHT / 3], color: "#4E4030", normalScale: [1.8, 1.8] });
 
   const columnXs = useMemo(() => {
     const count = Math.max(2, Math.round(length / 9));

@@ -39,7 +39,7 @@ const WALL_SEGMENTS = 8; // cf. commentaire sur le débordement d'AABB des paroi
 
 export default function CorridorScriptoriumSanctuaire({ avatarRef }: { avatarRef?: React.RefObject<THREE.Group | null> }) {
   const floorMat = usePBRMaterial("marble", { repeat: [LENGTH / 4, WIDTH / 2], color: "#3A3428", roughnessIntensity: 0.55 });
-  const wallMat = usePBRMaterial("plaster", { repeat: [LENGTH / 6, HALL_HEIGHT / 3], color: "#4A4234" });
+  const wallMat = usePBRMaterial("plaster", { repeat: [LENGTH / 6, HALL_HEIGHT / 3], color: "#4A4234", normalScale: [1.8, 1.8] });
   const stepMat = usePBRMaterial("marble", { repeat: [1, 1], color: "#4A3E2E", roughnessIntensity: 0.6 });
 
   const flatLength = LENGTH - STAIR_RUN;

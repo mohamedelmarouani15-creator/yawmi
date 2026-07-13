@@ -30,7 +30,7 @@ export default function CorridorJardinMajlis({ avatarRef, majlisUnlocked }: Corr
   const length = MAJLIS_OPENING_X - JARDIN_OPENING_X;
   const centerX = (JARDIN_OPENING_X + MAJLIS_OPENING_X) / 2;
   const floorMat = usePBRMaterial("terracotta", { repeat: [length / 4, WIDTH / 2], color: "#5A4326", roughnessIntensity: 0.8 });
-  const wallMat = usePBRMaterial("plaster", { repeat: [length / 6, HALL_HEIGHT / 3], color: "#5C4A34" });
+  const wallMat = usePBRMaterial("plaster", { repeat: [length / 6, HALL_HEIGHT / 3], color: "#5C4A34", normalScale: [1.8, 1.8] });
 
   const columnXs = useMemo(() => {
     const count = Math.max(2, Math.round(length / 9));

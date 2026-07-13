@@ -8,6 +8,7 @@ import LockedDoor from "../shared/LockedDoor";
 import { WallSconce, MonumentalVase, CorridorRug, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
 import { KenneyProp } from "../shared/KenneyProp";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
+import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 
 // Passage secret en coordonnées MONDE reliant l'ouverture taillée dans le
 // mur "-Z local" du Scriptorium (monde X≈-63.5, y=-1.1 — même niveau que le
@@ -25,11 +26,10 @@ interface CorridorScriptoriumCuisineProps {
 }
 
 export default function CorridorScriptoriumCuisine({ avatarRef, cuisineUnlocked }: CorridorScriptoriumCuisineProps) {
-  const floorMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#1E1810", roughness: 0.7, metalness: 0.04 }), []);
-  const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#2E2416", roughness: 0.82 }), []);
-
   const length = SCRIPTORIUM_OPENING_X - CUISINE_OPENING_X;
   const centerX = (SCRIPTORIUM_OPENING_X + CUISINE_OPENING_X) / 2;
+  const floorMat = usePBRMaterial("wood-dark", { repeat: [length / 4, WIDTH / 2], color: "#4A3A26", roughnessIntensity: 0.7 });
+  const wallMat = usePBRMaterial("plaster", { repeat: [length / 6, HALL_HEIGHT / 3], color: "#4E4030" });
 
   const columnXs = useMemo(() => {
     const count = Math.max(2, Math.round(length / 9));

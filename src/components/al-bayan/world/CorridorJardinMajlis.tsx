@@ -8,6 +8,7 @@ import LockedDoor from "../shared/LockedDoor";
 import { WallSconce, MonumentalVase, CorridorRug, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
 import { KenneyProp } from "../shared/KenneyProp";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
+import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 
 // Corridor en coordonnées MONDE (pas niché dans le repère tourné du Jardin)
 // reliant l'ouverture taillée dans le mur "-Z local" du Jardin (monde
@@ -26,11 +27,10 @@ interface CorridorJardinMajlisProps {
 }
 
 export default function CorridorJardinMajlis({ avatarRef, majlisUnlocked }: CorridorJardinMajlisProps) {
-  const floorMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#241B10", roughness: 0.7, metalness: 0.05 }), []);
-  const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#352818", roughness: 0.8 }), []);
-
   const length = MAJLIS_OPENING_X - JARDIN_OPENING_X;
   const centerX = (JARDIN_OPENING_X + MAJLIS_OPENING_X) / 2;
+  const floorMat = usePBRMaterial("terracotta", { repeat: [length / 4, WIDTH / 2], color: "#5A4326", roughnessIntensity: 0.8 });
+  const wallMat = usePBRMaterial("plaster", { repeat: [length / 6, HALL_HEIGHT / 3], color: "#5C4A34" });
 
   const columnXs = useMemo(() => {
     const count = Math.max(2, Math.round(length / 9));

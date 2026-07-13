@@ -8,6 +8,7 @@ import LockedDoor from "../shared/LockedDoor";
 import { WallSconce, MonumentalVase, CorridorRug, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
 import { KenneyProp } from "../shared/KenneyProp";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
+import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 
 // Corridor en coordonnées MONDE reliant l'ouverture taillée dans le mur "+X
 // local" du Majlis (monde X≈136.9) à celle du mur "-X local" de la Suite
@@ -25,11 +26,10 @@ interface CorridorMajlisSuiteProps {
 }
 
 export default function CorridorMajlisSuite({ avatarRef, jarsRead }: CorridorMajlisSuiteProps) {
-  const floorMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#1E1A26", roughness: 0.7, metalness: 0.05 }), []);
-  const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#2C2636", roughness: 0.8 }), []);
-
   const length = SUITE_OPENING_X - MAJLIS_OPENING_X;
   const centerX = (MAJLIS_OPENING_X + SUITE_OPENING_X) / 2;
+  const floorMat = usePBRMaterial("marble", { repeat: [length / 4, WIDTH / 2], color: "#3A3448", roughnessIntensity: 0.6 });
+  const wallMat = usePBRMaterial("plaster", { repeat: [length / 6, HALL_HEIGHT / 3], color: "#463D58" });
 
   const columnXs = useMemo(() => {
     const count = Math.max(2, Math.round(length / 9));

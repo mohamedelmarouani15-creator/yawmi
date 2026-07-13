@@ -7,6 +7,7 @@ import OctagonalColumn from "../shared/OctagonalColumn";
 import { WallSconce, MonumentalVase, CorridorRug, PotteryCluster, CushionBench, MashrabiyaScreen } from "../shared/CorridorDecor";
 import { KenneyProp } from "../shared/KenneyProp";
 import DistanceCulledLight from "../shared/DistanceCulledLight";
+import { usePBRMaterial } from "@/lib/al-bayan/pbr-materials";
 
 // Corridor diagonal en espace MONDE reliant l'ouverture du mur "nord" du
 // Scriptorium (monde X≈-44, Z≈-19.4, y=-1.1) à l'ouverture taillée dans
@@ -37,9 +38,9 @@ const STAIR_RUN = 6; // longueur (le long du corridor) occupée par les marches,
 const WALL_SEGMENTS = 8; // cf. commentaire sur le débordement d'AABB des parois
 
 export default function CorridorScriptoriumSanctuaire({ avatarRef }: { avatarRef?: React.RefObject<THREE.Group | null> }) {
-  const floorMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#1C1812", roughness: 0.65, metalness: 0.08 }), []);
-  const wallMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#2C261C", roughness: 0.8 }), []);
-  const stepMat = useMemo(() => new THREE.MeshStandardMaterial({ color: "#3A3024", roughness: 0.85 }), []);
+  const floorMat = usePBRMaterial("marble", { repeat: [LENGTH / 4, WIDTH / 2], color: "#3A3428", roughnessIntensity: 0.55 });
+  const wallMat = usePBRMaterial("plaster", { repeat: [LENGTH / 6, HALL_HEIGHT / 3], color: "#4A4234" });
+  const stepMat = usePBRMaterial("marble", { repeat: [1, 1], color: "#4A3E2E", roughnessIntensity: 0.6 });
 
   const flatLength = LENGTH - STAIR_RUN;
   const stepCount = 5;
